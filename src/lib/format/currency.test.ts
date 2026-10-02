@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCurrency } from "./currency.ts";
+import { formatCurrency } from "./currency";
 
 // O Intl separa "R$" do número com espaço não separável (U+00A0).
 const NBSP = " ";

@@ -2,7 +2,7 @@ import { tz } from "@date-fns/tz";
 import { format, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-import { EMPTY_VALUE, isNil } from "./empty.ts";
+import { EMPTY_VALUE, isNil } from "./empty";
 
 export const APP_TIME_ZONE = "America/Sao_Paulo";
 

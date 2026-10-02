@@ -1,6 +1,6 @@
-import type { Cents } from "@guara/types";
+import type { Cents } from "@/types";
 
-import { EMPTY_VALUE, isNil } from "./empty.ts";
+import { EMPTY_VALUE, isNil } from "./empty";
 
 const brl = new Intl.NumberFormat("pt-BR", {
   style: "currency",

@@ -1,7 +1,3 @@
-packages:
-  - "apps/*"
-  - "packages/*"
-
 # pnpm 11+: scripts de build de dependências precisam ser liberados explicitamente.
 allowBuilds:
   sharp: false

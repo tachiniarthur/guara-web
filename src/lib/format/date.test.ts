@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDate, formatDateTime } from "./date.ts";
+import { formatDate, formatDateTime } from "./date";
 
 describe("formatDate", () => {
   it("formata no fuso America/Sao_Paulo, independente do fuso do sistema", () => {

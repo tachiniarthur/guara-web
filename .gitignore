@@ -8,12 +8,8 @@ out/
 next-env.d.ts
 
 # Build
-dist/
 build/
 *.tsbuildinfo
-
-# Turborepo
-.turbo/
 
 # Testes
 coverage/
