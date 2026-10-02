@@ -1,0 +1,15 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# pnpm 11+: scripts de build de dependências precisam ser liberados explicitamente.
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
+
+minimumReleaseAgeExclude:
+  - "@types/node@24.19.1"
+  - framer-motion@13.5.1
+  - lucide-react@1.50.0
+  - motion-dom@13.5.1
+  - motion@13.5.1

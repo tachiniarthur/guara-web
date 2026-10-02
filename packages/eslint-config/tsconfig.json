@@ -1,0 +1,5 @@
+{
+  "extends": "@guara/typescript-config/library.json",
+  "compilerOptions": { "checkJs": false, "allowJs": true },
+  "include": ["*.js"]
+}

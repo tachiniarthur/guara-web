@@ -1,0 +1,47 @@
+{
+  "name": "guara",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.8.1",
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "24.x",
+      "onFail": "download"
+    }
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@guara/eslint-config": "workspace:*",
+    "eslint": "^9.39.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "turbo": "^2.11.6",
+    "typescript": "~6.0.3"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx}": [
+      "eslint --flag v10_config_lookup_from_file --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css,yaml,yml}": [
+      "prettier --write"
+    ]
+  }
+}

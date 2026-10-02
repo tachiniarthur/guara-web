@@ -1,0 +1,42 @@
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+
+# Turborepo
+.turbo/
+
+# Testes
+coverage/
+
+# Variáveis de ambiente (apenas .env.example é versionado)
+.env
+.env*.local
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema / editores
+.DS_Store
+*.pem
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Vercel
+.vercel

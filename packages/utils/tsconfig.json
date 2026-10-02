@@ -1,0 +1,4 @@
+{
+  "extends": "@guara/typescript-config/library.json",
+  "include": ["src", "*.ts", "*.js"]
+}

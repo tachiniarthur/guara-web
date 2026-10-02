@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Next.js (App Router)",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2023"],
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "incremental": true,
+    "types": ["node"],
+    "plugins": [{ "name": "next" }]
+  }
+}

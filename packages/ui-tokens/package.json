@@ -1,0 +1,24 @@
+{
+  "name": "@guara/ui-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./dist/tokens.css"
+  },
+  "scripts": {
+    "build": "node scripts/generate-css.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@guara/eslint-config": "workspace:*",
+    "@guara/typescript-config": "workspace:*",
+    "@types/node": "^24.19.1",
+    "eslint": "^9.39.5",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.3"
+  }
+}
