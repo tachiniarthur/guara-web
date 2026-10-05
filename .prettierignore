@@ -3,3 +3,6 @@ pnpm-lock.yaml
 .next
 coverage
 next-env.d.ts
+
+# Gerado por scripts/generate-globe-dots.mjs
+src/features/investimentos/globe/dots.ts

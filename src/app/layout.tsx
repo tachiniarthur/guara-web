@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Figtree, Fraunces } from "next/font/google";
 
 import "./globals.css";
 
-// TODO(identidade-visual): fonte neutra provisória.
-const inter = Inter({
-  variable: "--font-inter",
+// Fraunces (serifada calorosa) para números e títulos; Figtree (humanista) para ler e tocar.
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+  display: "swap",
+});
+
+const figtree = Figtree({
+  variable: "--font-figtree",
   subsets: ["latin"],
   display: "swap",
 });
@@ -17,8 +25,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={`dark ${inter.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+    <html lang="pt-BR" className={`dark ${fraunces.variable} ${figtree.variable} h-full`}>
+      {/* Extensões de navegador (ex.: ColorZilla) injetam atributos no body antes da hidratação. */}
+      <body className="min-h-full" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }

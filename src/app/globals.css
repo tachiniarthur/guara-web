@@ -5,57 +5,70 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Tokens de design (fonte única da verdade). Os nomes das cores seguem as variáveis
- * semânticas do shadcn/ui; o bloco @theme abaixo as expõe como classes do Tailwind.
- * TODO(identidade-visual): valores neutros PROVISÓRIOS, substituir pela paleta oficial.
+ * Tokens de design (fonte única da verdade), extraídos dos protótipos do app.
+ * "Mata à noite": fundo verde-escuro, amarelo-tucano como ação principal e urucum como alerta.
+ * As variáveis semânticas do shadcn/ui (--background, --card...) apontam para a mesma paleta.
  */
 :root {
-  --background: #0a0a0b;
-  --foreground: #fafafa;
-  --card: #121214;
-  --card-foreground: #fafafa;
-  --popover: #121214;
-  --popover-foreground: #fafafa;
-  --primary: #e4e4e7;
-  --primary-foreground: #18181b;
-  --secondary: #27272a;
-  --secondary-foreground: #fafafa;
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
-  --accent: #27272a;
-  --accent-foreground: #fafafa;
-  --destructive: #ef4444;
-  --border: #27272a;
-  --input: #3f3f46;
-  --ring: #71717a;
-  /* Semânticas financeiras. */
-  --positive: #22c55e;
-  --negative: #ef4444;
-  --warning: #f59e0b;
-  /* Séries de gráficos (recharts). */
-  --chart-1: #a1a1aa;
-  --chart-2: #71717a;
-  --chart-3: #d4d4d8;
-  --chart-4: #52525b;
-  --chart-5: #e4e4e7;
-  /* Navegação lateral (padrão do shadcn/ui). */
-  --sidebar: #121214;
-  --sidebar-foreground: #fafafa;
-  --sidebar-primary: #e4e4e7;
-  --sidebar-primary-foreground: #18181b;
-  --sidebar-accent: #27272a;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: #27272a;
-  --sidebar-ring: #71717a;
-  /* Raio base do shadcn/ui (`rounded-lg` = `--radius`). */
-  --radius: 0.625rem;
+  /* Neutros */
+  --guara-canvas: #0b110e; /* fundo do app */
+  --guara-card: #121a16; /* cards e painéis */
+  --guara-field: #16201b; /* campos, opções e cards internos */
+  --guara-shade: #1a241f; /* trilhos, bolhas e áreas rebaixadas */
+  --guara-line: #25322b; /* bordas e divisórias */
+  --guara-line-strong: #34443b; /* borda de campo e botão contorno */
+  --guara-grid: #4a5e52; /* linhas de grade e curvas de nível */
+  --guara-sand: #f2efe6; /* texto principal */
+  --guara-soft: #d4dbd5; /* texto de leitura em blocos */
+  --guara-mist: #bdc6be; /* texto de apoio */
+  --guara-caption: #93a198; /* legendas e metadados */
+
+  /* Acentos */
+  --guara-tucano: #f2c230; /* ação principal, atenção */
+  --guara-urucum: #ff6a50; /* alerta, fora do padrão */
+  --guara-folha: #6cc08e; /* ganho, tranquilo */
+  --guara-arara: #6db3ec; /* dados, entradas */
+  --guara-mata: #1b4535; /* destaque do saldo */
+  --guara-mata-2: #23513c;
+
+  /* Fundos tingidos */
+  --guara-urucum-bg: #3a1c16;
+  --guara-folha-bg: #16301f;
+  --guara-tucano-bg: #332a12;
+
+  /* Anéis de bioma da turma */
+  --guara-bioma-capivara: #5c4a2e;
+  --guara-bioma-pacu: #23513c;
+  --guara-bioma-caramelo: #1f4a4e;
+  --guara-bioma-tamandua: #6a4428;
+  --guara-bioma-quero-quero: #44502a;
+  --guara-bioma-onca: #7a3b1e;
+
+  /* shadcn/ui */
+  --background: var(--guara-canvas);
+  --foreground: var(--guara-sand);
+  --card: var(--guara-card);
+  --card-foreground: var(--guara-sand);
+  --popover: var(--guara-field);
+  --popover-foreground: var(--guara-sand);
+  --primary: var(--guara-tucano);
+  --primary-foreground: var(--guara-canvas);
+  --secondary: var(--guara-shade);
+  --secondary-foreground: var(--guara-sand);
+  --muted: var(--guara-shade);
+  --muted-foreground: var(--guara-mist);
+  --accent: var(--guara-shade);
+  --accent-foreground: var(--guara-sand);
+  --destructive: var(--guara-urucum);
+  --border: var(--guara-line);
+  --input: var(--guara-line-strong);
+  --ring: var(--guara-tucano);
+  --radius: 1.5rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
@@ -70,45 +83,73 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-positive: var(--positive);
-  --color-negative: var(--negative);
-  --color-warning: var(--warning);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 
-  /* TODO(identidade-visual): fonte, escala e raios provisórios. */
-  --font-sans: var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-heading:
-    var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --color-canvas: var(--guara-canvas);
+  --color-card: var(--guara-card);
+  --color-card-foreground: var(--card-foreground);
+  --color-field: var(--guara-field);
+  --color-shade: var(--guara-shade);
+  --color-line: var(--guara-line);
+  --color-line-strong: var(--guara-line-strong);
+  --color-grid: var(--guara-grid);
+  --color-sand: var(--guara-sand);
+  --color-soft: var(--guara-soft);
+  --color-mist: var(--guara-mist);
+  --color-caption: var(--guara-caption);
+  --color-tucano: var(--guara-tucano);
+  --color-urucum: var(--guara-urucum);
+  --color-folha: var(--guara-folha);
+  --color-arara: var(--guara-arara);
+  --color-mata: var(--guara-mata);
+  --color-mata-2: var(--guara-mata-2);
+  --color-urucum-bg: var(--guara-urucum-bg);
+  --color-folha-bg: var(--guara-folha-bg);
+  --color-tucano-bg: var(--guara-tucano-bg);
+
+  --font-sans: var(--font-figtree), "Figtree", system-ui, sans-serif;
+  --font-display: var(--font-fraunces), "Fraunces", Georgia, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
 
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
-  --text-4xl: 2.25rem;
+@theme {
+  /* Classes de janela (o layout muda pela largura disponível). */
+  --breakpoint-*: initial;
+  --breakpoint-md: 37.5rem; /* 600px: trilho lateral (tablet) */
+  --breakpoint-lg: 75rem; /* 1200px: menu lateral completo */
+  --breakpoint-xl: 100rem; /* 1600px: painel de conversa fixo à direita */
 
-  --spacing: 0.25rem;
+  /* Larguras do conteúdo principal (container queries em <main>). */
+  --container-tab: 37.5rem; /* 600px: arranjo de tablet */
+  --container-desk: 68.75rem; /* 1100px: arranjo de desktop */
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.625rem;
-  --radius-xl: 0.875rem;
-  --radius-2xl: 1.125rem;
+  /* Escala tipográfica em px, como nos protótipos (text-13 = 13px). */
+  --text-9: 0.5625rem;
+  --text-11: 0.6875rem;
+  --text-12: 0.75rem;
+  --text-13: 0.8125rem;
+  --text-14: 0.875rem;
+  --text-15: 0.9375rem;
+  --text-16: 1rem;
+  --text-17: 1.0625rem;
+  --text-18: 1.125rem;
+  --text-19: 1.1875rem;
+  --text-20: 1.25rem;
+  --text-22: 1.375rem;
+  --text-24: 1.5rem;
+  --text-26: 1.625rem;
+  --text-28: 1.75rem;
+  --text-30: 1.875rem;
+  --text-32: 2rem;
+  --text-34: 2.125rem;
+  --text-36: 2.25rem;
+  --text-38: 2.375rem;
+  --text-40: 2.5rem;
+  --text-42: 2.625rem;
+  --text-44: 2.75rem;
+
+  --radius-card: 1.5rem; /* 24px: cards */
+  --radius-tile: 1rem; /* 16px: itens de lista e cards internos */
+  --radius-bubble: 1.25rem; /* 20px: blocos e bolhas */
 }
 
 @layer base {
@@ -116,12 +157,47 @@
     color-scheme: dark;
   }
   * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
+    @apply border-line;
   }
   html {
-    @apply font-sans;
+    @apply bg-canvas font-sans text-sand antialiased;
+  }
+  /*
+   * Desktop: os protótipos foram desenhados em 2560px. A partir de 1200px o tamanho base
+   * acompanha a largura (16px por volta de 2360px, ~12,8px numa tela de 1890px), então
+   * todo o layout em rem — inclusive as container queries — escala na mesma proporção.
+   */
+  @media (min-width: 75rem) {
+    html {
+      font-size: clamp(12px, calc(100vw / 147.5), 16px);
+    }
+  }
+  /* 1rem continua 16px; o texto corrido do app é 15px (16px no desktop, via app shell). */
+  body {
+    @apply bg-canvas text-15 leading-normal;
+  }
+  button {
+    cursor: pointer;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-caption;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  summary:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid var(--guara-tucano);
+    outline-offset: 3px;
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
