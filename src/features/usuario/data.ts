@@ -3,6 +3,7 @@ export const user = {
   nome: "Arthur",
   nomeCompleto: "Arthur Rocha",
   iniciais: "AR",
+  email: "arthur@exemplo.com",
   bancosConectados: 2,
   bancosDoPlano: 3,
   notificacoesNovas: 3,

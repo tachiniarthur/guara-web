@@ -1,3 +1,6 @@
+import Link from "next/link";
+
+import { inlineLinkClass } from "@/components/ui/text-link";
 import { cn } from "@/lib/utils";
 
 import type { TetoMilestone, TetoProgress } from "../data";
@@ -73,7 +76,11 @@ export function TetoMeter({ teto }: { teto: TetoProgress }) {
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-15 font-bold">{teto.categoria}</span>
+        <span className="text-15 font-bold">
+          <Link href={`/alertas/tetos/${teto.id}`} className={inlineLinkClass}>
+            {teto.categoria}
+          </Link>
+        </span>
         <span className="text-14 text-mist tabular-nums">
           <strong className="text-sand">{teto.gasto}</strong> de {teto.teto}
         </span>

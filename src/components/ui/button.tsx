@@ -23,6 +23,8 @@ export const buttonVariants = cva(
         /** Translúcido, para usar sobre imagens. */
         glass: "border-sand/35 bg-canvas/70 text-sand hover:bg-canvas/85",
         danger: "border-urucum bg-urucum text-canvas hover:bg-urucum/90",
+        /** Urucum só no contorno: excluir, desconectar, "Não reconheço". */
+        "danger-outline": "border-urucum-line bg-transparent text-urucum hover:bg-urucum-bg",
       },
       size: {
         sm: "h-10 px-4.5 text-14",

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
+import { ShowValuesButton } from "@/components/layout/privacy-toggle";
 import { Page } from "@/components/layout/page";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -18,6 +19,7 @@ import { PositionCards } from "@/features/investimentos/components/position-card
 import { WorldCard } from "@/features/investimentos/components/world-card";
 import { SortArrows } from "@/features/investimentos/components/position-parts";
 import { PositionsTable } from "@/features/investimentos/components/positions-table";
+import { NewUserInvestments } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
 
 function GroupToggle() {
@@ -46,10 +48,10 @@ function GroupToggle() {
 
 function SeeAll() {
   return (
-    <a href="#" className={cn(panelLinkClass, "text-15")}>
+    <Link href="/investimentos/posicoes" className={cn(panelLinkClass, "text-15")}>
       Ver as 12
       <Icon name="chevron-right" size={16} />
-    </a>
+    </Link>
   );
 }
 
@@ -144,7 +146,8 @@ function AlertsSection({ variant }: { variant: "desktop" | "tablet" | "mobile" }
   );
 }
 
-export default function InvestimentosPage() {
+export default async function InvestimentosPage({ searchParams }: PageProps<"/investimentos">) {
+  if ((await searchParams).estado === "novo") return <NewUserInvestments />;
   return (
     <Page
       padding="list"
@@ -154,12 +157,15 @@ export default function InvestimentosPage() {
           title="Investimentos"
           account
           actions={
-            <IconButtonLink
-              href="/investimentos/novo"
-              icon="plus"
-              label="Adicionar investimento"
-              variant="ghost"
-            />
+            <>
+              <ShowValuesButton variant="icon" />
+              <IconButtonLink
+                href="/investimentos/novo"
+                icon="plus"
+                label="Adicionar investimento"
+                variant="ghost"
+              />
+            </>
           }
         />
       }
@@ -193,8 +199,9 @@ export default function InvestimentosPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ShowValuesButton variant="pill" />
           <Link
-            href="/onboarding/perfil"
+            href="/perfil/investidor"
             className="flex h-[2.875rem] items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 whitespace-nowrap text-sand no-underline"
           >
             <Icon name="shield" size={18} />

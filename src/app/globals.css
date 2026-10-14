@@ -35,6 +35,9 @@
   --guara-urucum-bg: #3a1c16;
   --guara-folha-bg: #16301f;
   --guara-tucano-bg: #332a12;
+  --guara-arara-bg: #172838;
+  /* Borda das ações de excluir e desconectar */
+  --guara-urucum-line: #5a2a22;
 
   /* Anéis de bioma da turma */
   --guara-bioma-capivara: #5c4a2e;
@@ -105,6 +108,8 @@
   --color-urucum-bg: var(--guara-urucum-bg);
   --color-folha-bg: var(--guara-folha-bg);
   --color-tucano-bg: var(--guara-tucano-bg);
+  --color-arara-bg: var(--guara-arara-bg);
+  --color-urucum-line: var(--guara-urucum-line);
 
   --font-sans: var(--font-figtree), "Figtree", system-ui, sans-serif;
   --font-display: var(--font-fraunces), "Fraunces", Georgia, serif;
@@ -119,11 +124,13 @@
   --breakpoint-xl: 100rem; /* 1600px: painel de conversa fixo à direita */
 
   /* Larguras do conteúdo principal (container queries em <main>). */
+  --container-chat: 26rem; /* 416px: chat em gaveta (tablet), fonte maior que no celular */
   --container-tab: 37.5rem; /* 600px: arranjo de tablet */
   --container-desk: 68.75rem; /* 1100px: arranjo de desktop */
 
   /* Escala tipográfica em px, como nos protótipos (text-13 = 13px). */
   --text-9: 0.5625rem;
+  --text-10: 0.625rem;
   --text-11: 0.6875rem;
   --text-12: 0.75rem;
   --text-13: 0.8125rem;
@@ -192,6 +199,40 @@
   [tabindex]:focus-visible {
     outline: 3px solid var(--guara-tucano);
     outline-offset: 3px;
+  }
+}
+
+/*
+ * Telas com pouco conteúdo ampliam só a área de conteúdo no desktop (até 1,4×; 1,6× no
+ * onboarding), para não sobrar tela vazia. O fator cheio vale nas telas grandes (≥ 2360px,
+ * onde os protótipos foram desenhados) e diminui em degraus até sumir abaixo de 1600px.
+ */
+@utility zoom-area {
+  zoom: calc(1 + (var(--zoom, 1) - 1) * var(--zoom-t, 0));
+}
+@media (min-width: 100rem) {
+  :root {
+    --zoom-t: 0.2;
+  }
+}
+@media (min-width: 112.5rem) {
+  :root {
+    --zoom-t: 0.4;
+  }
+}
+@media (min-width: 125rem) {
+  :root {
+    --zoom-t: 0.6;
+  }
+}
+@media (min-width: 137.5rem) {
+  :root {
+    --zoom-t: 0.8;
+  }
+}
+@media (min-width: 147.5rem) {
+  :root {
+    --zoom-t: 1;
   }
 }
 

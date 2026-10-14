@@ -1,5 +1,8 @@
+import Link from "next/link";
+
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
+import { inlineLinkClass } from "@/components/ui/text-link";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Panel, PanelHeader } from "@/components/ui/panel";
@@ -39,6 +42,7 @@ export default function AlertasPage() {
   return (
     <Page
       padding="list"
+      zoom={1.4}
       className="gap-4 @tab:gap-5 @desk:gap-6"
       header={<MobileHeader title="Alertas" back="/" />}
     >
@@ -76,7 +80,11 @@ export default function AlertasPage() {
         <Panel className="gap-5.5 p-4 @tab:gap-5 @tab:p-5">
           <PanelHeader
             className="-mb-2 @tab:mb-0"
-            title="Tetos do mês"
+            title={
+              <Link href="/alertas/tetos" className={inlineLinkClass}>
+                Tetos do mês
+              </Link>
+            }
             subtitle="Cada aviso chega uma vez por mês, somando crédito e débito"
             titleClassName="@max-tab:text-18 @max-tab:tracking-normal"
             action={

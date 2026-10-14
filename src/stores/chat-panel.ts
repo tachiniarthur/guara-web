@@ -14,6 +14,8 @@ type ChatPanelState = {
   view: "chat" | "history";
   /** Conversa aberta; `null` = nova conversa, ainda sem mensagens. */
   conversationId: string | null;
+  /** Variação da conversa aberta (ex.: a última mensagem não saiu). */
+  variant: "nao-enviada" | null;
   /** Texto inicial do campo (ex.: "@pacu " ao chamar um bicho específico). */
   draft: string;
   /** Mensagens enviadas nesta sessão, por conversa (ainda não há API). */
@@ -21,7 +23,7 @@ type ChatPanelState = {
   /** Conversas criadas nesta sessão, da mais nova para a mais antiga. */
   started: ConversationSummary[];
 
-  openConversation: (id: string) => void;
+  openConversation: (id: string, variant?: "nao-enviada" | null) => void;
   /** Abre a conversa atual (ou a última aberta). */
   openCurrent: () => void;
   newConversation: (draft?: string) => void;
@@ -46,13 +48,16 @@ export const useChatPanel = create<ChatPanelState>((set, get) => ({
   open: null,
   view: "chat",
   conversationId: "gastos-setembro",
+  variant: null,
   draft: "",
   messages: {},
   started: [],
 
-  openConversation: (id) => set({ open: true, view: "chat", conversationId: id, draft: "" }),
+  openConversation: (id, variant = null) =>
+    set({ open: true, view: "chat", conversationId: id, variant, draft: "" }),
   openCurrent: () => set({ open: true, view: "chat", draft: "" }),
-  newConversation: (draft = "") => set({ open: true, view: "chat", conversationId: null, draft }),
+  newConversation: (draft = "") =>
+    set({ open: true, view: "chat", conversationId: null, variant: null, draft }),
   showHistory: () => set({ open: true, view: "history" }),
   close: () => set({ open: false, view: "chat" }),
 

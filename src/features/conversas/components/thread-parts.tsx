@@ -19,29 +19,49 @@ export function UserQuestion({ children, className }: { children: ReactNode; cla
 /** Resposta de um bicho sem bolha: retrato pequeno, nome e área, e o conteúdo logo abaixo. */
 export function AgentReply({
   agent,
+  role,
   children,
   className,
 }: {
   agent: AgentId;
+  /** Área ao lado do nome, quando difere do cadastro (ex.: "Coordena a turma"). */
+  role?: string;
   children: ReactNode;
   className?: string;
 }) {
-  const { nome, papel } = agents[agent];
+  const { nome } = agents[agent];
+  const papel = role ?? agents[agent].papel;
   return (
     <article className={cn("flex flex-col gap-2.5", className)}>
       <div className="flex items-center gap-2">
         <AgentAvatar agent={agent} size={28} variant="ring" />
         <span className="text-14 font-bold">{nome}</span>
-        <span className="text-12 text-caption">· {papel}</span>
+        <span className="text-12 text-caption">{`· ${papel}`}</span>
       </div>
       {children}
     </article>
   );
 }
 
-export function ReplyText({ children, size = "md" }: { children: ReactNode; size?: "sm" | "md" }) {
+export function ReplyText({
+  children,
+  size = "md",
+}: {
+  children: ReactNode;
+  /** "adaptive": 15 no celular e 16 a partir do tablet (e na gaveta de chat do tablet). */
+  size?: "sm" | "md" | "adaptive";
+}) {
   return (
-    <p className={cn("m-0", size === "md" ? "text-16 leading-[1.6]" : "text-15 leading-[1.65]")}>
+    <p
+      className={cn(
+        "m-0",
+        size === "md"
+          ? "text-16 leading-[1.6]"
+          : size === "adaptive"
+            ? "text-15 leading-[1.6] max-lg:@chat:text-16"
+            : "text-15 leading-[1.65]",
+      )}
+    >
       {children}
     </p>
   );

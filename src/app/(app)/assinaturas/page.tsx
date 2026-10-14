@@ -1,5 +1,8 @@
+import Link from "next/link";
+
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
+import { inlineLinkClass } from "@/components/ui/text-link";
 import { AgentTip } from "@/components/ui/agent-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
@@ -45,7 +48,14 @@ function PrimeTip({ className }: { className?: string }) {
 function CalendarCard() {
   return (
     <Panel className="gap-3">
-      <PanelHeader title="Cobranças de outubro" titleClassName="text-18 tracking-normal" />
+      <PanelHeader
+        title={
+          <Link href="/assinaturas/calendario" className={inlineLinkClass}>
+            Cobranças de outubro
+          </Link>
+        }
+        titleClassName="text-18 tracking-normal"
+      />
       <BillingCalendar items={subscriptions} />
       <span className="text-13 text-mist">
         Todas as cobranças vencem até o dia 15. Nenhuma na segunda quinzena.
@@ -72,6 +82,7 @@ export default function AssinaturasPage() {
   return (
     <Page
       padding="list"
+      zoom={1.4}
       className="gap-4 @tab:gap-5 @desk:gap-6"
       header={<MobileHeader title="Assinaturas" back="/gastos" />}
     >

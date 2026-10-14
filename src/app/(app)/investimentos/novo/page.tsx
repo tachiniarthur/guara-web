@@ -33,6 +33,7 @@ export default function AdicionarInvestimentoPage() {
   return (
     <Page
       padding="form"
+      zoom={1.4}
       className="gap-4 @tab:gap-5 @desk:gap-6"
       header={<MobileHeader title="Adicionar investimento" close="/investimentos" />}
     >

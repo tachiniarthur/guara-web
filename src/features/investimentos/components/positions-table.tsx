@@ -101,8 +101,7 @@ export function PositionsTable() {
                   <span role="rowheader" className="px-3.5 py-3 text-15 font-bold text-sand">
                     {group.classe}{" "}
                     <span className="font-normal text-mist">
-                      · {group.posicoes.length}{" "}
-                      {group.posicoes.length === 1 ? "posição" : "posições"}
+                      {`· ${group.posicoes.length} ${group.posicoes.length === 1 ? "posição" : "posições"}`}
                     </span>
                   </span>
                   <span className="px-3.5 py-3 text-right text-15 font-bold whitespace-nowrap tabular-nums">

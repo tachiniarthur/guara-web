@@ -27,3 +27,16 @@ export const toggleChipClass = (pressed: boolean) =>
       ? "border-sand bg-sand text-canvas"
       : "border-line-strong bg-transparent text-mist hover:text-sand",
   );
+
+/** Pílula de filtro das listas completas (36px, semibold). Ativa em areia. */
+export const filterChipClass = (pressed: boolean) =>
+  cn(
+    "flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-14 font-semibold whitespace-nowrap transition-colors",
+    pressed
+      ? "border-sand bg-sand text-canvas"
+      : "border-line-strong bg-card text-mist hover:text-sand",
+  );
+
+/** Menu em pílula (período, categoria, ordenação): ícone, rótulo e seta. */
+export const dropdownPillClass =
+  "inline-flex h-9 items-center gap-1.5 rounded-full border border-line-strong bg-transparent px-3 text-14 font-semibold whitespace-nowrap text-sand hover:bg-shade";

@@ -1,3 +1,6 @@
+import Link from "next/link";
+
+import { inlineLinkClass } from "@/components/ui/text-link";
 import type { SubscriptionSummary } from "../data";
 
 /** Assinaturas detectadas: inicial em quadrado, próxima cobrança e valor. */
@@ -13,7 +16,11 @@ export function SubscriptionList({ items }: { items: SubscriptionSummary[] }) {
             {item.nome.charAt(0)}
           </span>
           <span className="flex grow flex-col leading-[1.3]">
-            <span className="font-medium">{item.nome}</span>
+            <span className="font-medium">
+              <Link href={`/assinaturas/${item.id}`} className={inlineLinkClass}>
+                {item.nome}
+              </Link>
+            </span>
             <span className="text-12 text-caption">{item.proxima}</span>
           </span>
           <span className="font-bold tabular-nums">{item.valor}</span>

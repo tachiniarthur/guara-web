@@ -1,3 +1,6 @@
+import Link from "next/link";
+
+import { inlineLinkClass } from "@/components/ui/text-link";
 import { Tag } from "@/components/ui/tag";
 
 import type { Subscription } from "../data";
@@ -36,7 +39,11 @@ export function SubscriptionDetailList({
             {item.nome.charAt(0)}
           </span>
           <span className="flex min-w-0 grow flex-col leading-[1.35]">
-            <span className="font-bold">{item.nome}</span>
+            <span className="font-bold">
+              <Link href={`/assinaturas/${item.id}`} className={inlineLinkClass}>
+                {item.nome}
+              </Link>
+            </span>
             <span className="text-13 text-caption">
               {item.categoria} · {item.conta}
             </span>

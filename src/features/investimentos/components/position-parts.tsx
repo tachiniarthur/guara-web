@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +37,27 @@ export function RiskBadge({ risk }: { risk: Risk }) {
   );
 }
 
+/** Selo de risco compacto das listas de posições: leva ao diálogo "Ajustar risco". */
+export function RiskPill({ risk, href, label }: { risk: Risk; href: string; label: string }) {
+  const style = riskStyle[risk];
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      aria-label={label}
+      title={riskHint}
+      className={cn(
+        "inline-flex h-6.5 items-center gap-1 rounded-full px-2 text-12 font-bold no-underline",
+        style.bg,
+        style.text,
+      )}
+    >
+      {risk}
+      <Icon name="chevron-down" size={12} strokeWidth={2} />
+    </Link>
+  );
+}
+
 /** De onde vem a posição: Open Finance, cadastro manual ou via chat. */
 export function OriginInfo({ origin }: { origin: Origin }) {
   const icon = origin.tipo === "open-finance" ? "link" : origin.tipo === "chat" ? "chat" : "user";
@@ -52,7 +75,15 @@ export function OriginInfo({ origin }: { origin: Origin }) {
 }
 
 /** Variação do dia com seta (▲ verde / ▼ urucum). */
-export function DayChange({ change, className }: { change: Position["hoje"]; className?: string }) {
+export function DayChange({
+  change,
+  className,
+  arrowClassName = "text-11",
+}: {
+  change: Position["hoje"];
+  className?: string;
+  arrowClassName?: string;
+}) {
   return (
     <span
       className={cn(
@@ -61,7 +92,7 @@ export function DayChange({ change, className }: { change: Position["hoje"]; cla
         className,
       )}
     >
-      <span aria-hidden="true" className="text-11">
+      <span aria-hidden="true" className={arrowClassName}>
         {change.alta ? "▲" : "▼"}
       </span>
       {` ${change.valor}`}

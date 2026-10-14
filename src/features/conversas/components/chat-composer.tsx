@@ -7,6 +7,7 @@ import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 import { quickPrompts } from "../data";
+import { AttachmentCard } from "./thread-status";
 
 type ChatComposerProps = {
   placeholder?: string;
@@ -17,6 +18,8 @@ type ChatComposerProps = {
   defaultValue?: string;
   /** Envia a mensagem (as sugestões rápidas também enviam). */
   onSend?: (text: string) => void;
+  /** Anexo que não chegou a ser enviado, acima do campo. */
+  attachmentFailed?: boolean;
   className?: string;
 };
 
@@ -27,10 +30,12 @@ export function ChatComposer({
   disclaimer = true,
   defaultValue = "",
   onSend,
+  attachmentFailed,
   className,
 }: ChatComposerProps) {
   const inputId = useId();
   const [value, setValue] = useState(defaultValue);
+  const [failed, setFailed] = useState(Boolean(attachmentFailed));
 
   function submit(text: string) {
     if (!text.trim()) return;
@@ -55,12 +60,13 @@ export function ChatComposer({
         </div>
       )}
       <form
-        className="m-0"
+        className="m-0 flex flex-col"
         onSubmit={(event) => {
           event.preventDefault();
           submit(value);
         }}
       >
+        {failed && <AttachmentCard failed onRemove={() => setFailed(false)} />}
         <label htmlFor={inputId} className="sr-only">
           Mensagem
         </label>

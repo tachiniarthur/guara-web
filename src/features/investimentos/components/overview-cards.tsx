@@ -1,15 +1,21 @@
 import Link from "next/link";
 
-import { Donut } from "@/components/charts/donut";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { chipClass } from "@/components/ui/chip";
 import { Icon } from "@/components/ui/icon";
 import { Panel, PanelHeader, panelLinkClass } from "@/components/ui/panel";
+import {
+  donutSizes,
+  GroupBarHeading,
+  GroupBarList,
+  GroupLegend,
+  PortfolioVsTarget,
+} from "@/features/alocacao/components/allocation-parts";
 import { OpenChat } from "@/features/conversas/components/open-chat";
 import { cn } from "@/lib/utils";
 
-import { allocation, otherAssets, portfolio } from "../data";
-import { ClassComparisonChart, PerformanceChart } from "./charts";
+import { otherAssets, portfolio } from "../data";
+import { PerformanceChart } from "./charts";
 
 type Variant = "desktop" | "tablet" | "mobile";
 
@@ -138,7 +144,7 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
       <div className="flex items-center justify-between">
         <span className="text-14 text-mist">Patrimônio investido</span>
         <Link
-          href="/onboarding/perfil"
+          href="/perfil/investidor"
           className="flex min-h-8 items-center gap-1 text-13 text-sand"
         >
           <Icon name="shield" size={16} />
@@ -180,107 +186,55 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
   );
 }
 
-const donutSize: Record<Variant, { size: number; radius: number; stroke: number; label: number }> =
-  {
-    desktop: { size: 170, radius: 73, stroke: 24, label: 18 },
-    tablet: { size: 150, radius: 64, stroke: 22, label: 18 },
-    mobile: { size: 128, radius: 55, stroke: 18, label: 15 },
-  };
-
-function AllocationDonut({ variant, target }: { variant: Variant; target?: boolean }) {
-  const d = donutSize[variant];
-  const segments = allocation.map((slice) => ({
-    value: target ? slice.alvo : slice.atual,
-    color: slice.cor,
-    title: `${slice.classe}: ${target ? slice.alvo : slice.atual}%`,
-  }));
-  const label = `${target ? "Perfil moderado" : "Sua carteira"}: ${allocation
-    .map((s) => `${s.classe} ${target ? s.alvo : s.atual}%`)
-    .join(", ")}`;
-  return (
-    <div className="flex min-w-0 flex-col items-center gap-2.5">
-      <strong className="text-14">{target ? "Perfil moderado" : "Sua carteira"}</strong>
-      <Donut
-        segments={segments}
-        size={d.size}
-        box={d.size}
-        radius={d.radius}
-        strokeWidth={d.stroke}
-        gap={2.5}
-        track="#1A241F"
-        label={label}
-      >
-        <span className="leading-[1.2]">
-          <span className="block text-12 text-caption">{target ? "Alvo" : "Atual"}</span>
-          <span className="block font-display font-bold" style={{ fontSize: `${d.label / 16}rem` }}>
-            {target ? "Moderado" : "12 ativos"}
-          </span>
-        </span>
-      </Donut>
-    </div>
-  );
-}
-
-/** Alocação atual × alvo do perfil, com comparação classe por classe. */
+/** Alocação atual × alvo do perfil, grupo por grupo (5 grupos). */
 export function AllocationCard({ variant }: { variant: Variant }) {
+  const desktop = variant === "desktop";
+  const mobile = variant === "mobile";
+  const linkClass =
+    "inline-flex min-h-6 items-center gap-1 border-none bg-transparent p-0 text-14 font-bold whitespace-nowrap text-sand underline hover:text-tucano";
+  const fullLink = (
+    <Link href="/investimentos/alocacao" className={linkClass}>
+      Ver alocação completa
+      <Icon name="chevron-right" size={16} />
+    </Link>
+  );
   return (
-    <Panel
-      className={cn(
-        "gap-4",
-        variant === "desktop" ? "p-6" : variant === "mobile" ? "p-4" : undefined,
-      )}
-    >
+    <Panel className={cn("gap-4", desktop ? "p-6" : mobile ? "p-4" : undefined)}>
       <PanelHeader
         title="Alocação"
-        subtitle="Sua carteira comparada ao perfil moderado"
-        titleClassName={variant === "desktop" ? undefined : "text-18"}
+        subtitle="Sua carteira comparada ao perfil Moderado, em 5 grupos"
+        titleClassName={desktop ? undefined : "text-18"}
+        action={desktop ? fullLink : undefined}
       />
-      <div className="grid grid-cols-2 justify-items-center gap-3">
-        <AllocationDonut variant={variant} />
-        <AllocationDonut variant={variant} target />
+      <PortfolioVsTarget
+        dims={desktop ? donutSizes.lg : mobile ? donutSizes.sm : donutSizes.xs}
+        titleClassName={variant === "tablet" ? "text-13" : "text-14"}
+        gapClassName={variant === "tablet" ? "gap-2" : "gap-3"}
+      />
+      {variant !== "tablet" && <GroupLegend />}
+      <div className="flex flex-col gap-1.5 border-t border-line pt-3.5">
+        <GroupBarHeading />
+        <GroupBarList stacked={!desktop} />
       </div>
-      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-13 text-mist">
-        {allocation.map((slice) => (
-          <span key={slice.classe} className="inline-flex items-center gap-1.5">
-            <span
-              aria-hidden="true"
-              className="size-2.5 rounded-[3px]"
-              style={{ background: slice.cor }}
-            />
-            {slice.classe}
-          </span>
-        ))}
-      </div>
-      <div className="flex flex-col gap-2.5 border-t border-line pt-4">
-        <strong className="text-14">Classe por classe</strong>
-        <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-12 text-mist">
-          <span className="inline-flex items-center gap-1.5">
-            <span aria-hidden="true" className="size-3 rounded-[3px] bg-mist" />
-            Sua carteira
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span
-              aria-hidden="true"
-              className="size-3 rounded-[3px] bg-[rgba(189,198,190,0.28)] shadow-[inset_0_0_0_1.5px_#BDC6BE]"
-            />
-            Alvo do perfil moderado
-          </span>
-        </div>
-        <ClassComparisonChart variant={variant} />
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-line pt-3">
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-line pt-3">
         <p className="m-0 text-13 text-mist">
-          <strong className="text-tucano">Cripto</strong> está{" "}
-          <strong className="text-sand">5 p.p. acima</strong> do alvo. O resto está perto do perfil.
+          Fora do alvo em <strong className="text-sand">3 de 5 grupos</strong>
+          {variant === "tablet" ? (
+            "."
+          ) : (
+            <>
+              . A maior diferença é <strong className="text-tucano">Renda variável Brasil</strong>,{" "}
+              <strong className="text-sand">17,2 p.p. acima</strong>.
+            </>
+          )}
         </p>
-        <OpenChat
-          agent="pacu"
-          question="Como rebalancear minha carteira?"
-          className="inline-flex min-h-8 items-center gap-1 border-none bg-transparent p-0 text-14 font-bold whitespace-nowrap text-sand underline underline-offset-4 hover:text-tucano"
-        >
-          Rebalancear com o Pacu
-          <Icon name="chevron-right" size={16} />
-        </OpenChat>
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+          {!desktop && fullLink}
+          <OpenChat agent="pacu" question="Como rebalancear minha carteira?" className={linkClass}>
+            Rebalancear com o Pacu
+            <Icon name="chevron-right" size={16} />
+          </OpenChat>
+        </div>
       </div>
     </Panel>
   );
@@ -304,21 +258,26 @@ export function AssetsCard({ variant }: { variant: Variant }) {
         />
         <ul className="m-0 list-none p-0">
           {otherAssets.map((a) => (
-            <li key={a.id} className="flex items-start gap-3 border-b border-line py-3">
-              <span
-                aria-hidden="true"
-                className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-shade text-tucano"
+            <li key={a.id} className="border-b border-line">
+              <Link
+                href={`/investimentos/bens/${a.id}`}
+                className="flex items-start gap-3 py-3 text-sand no-underline"
               >
-                <Icon name={a.icone} />
-              </span>
-              <span className="flex min-w-0 grow flex-col gap-0.5 leading-[1.35]">
-                <span className="flex items-baseline justify-between gap-2">
-                  <strong className="min-w-0 text-15">{a.nome}</strong>
-                  <strong className="text-15 whitespace-nowrap tabular-nums">{a.valor}</strong>
+                <span
+                  aria-hidden="true"
+                  className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-shade text-tucano"
+                >
+                  <Icon name={a.icone} />
                 </span>
-                <span className="text-13 text-mist">{a.detalheCurto}</span>
-                <span className="text-12 text-caption">{a.fonteCurta}</span>
-              </span>
+                <span className="flex min-w-0 grow flex-col gap-0.5 leading-[1.35]">
+                  <span className="flex items-baseline justify-between gap-2">
+                    <strong className="min-w-0 text-15">{a.nome}</strong>
+                    <strong className="text-15 whitespace-nowrap tabular-nums">{a.valor}</strong>
+                  </span>
+                  <span className="text-13 text-mist">{a.detalheCurto}</span>
+                  <span className="text-12 text-caption">{a.fonteCurta}</span>
+                </span>
+              </Link>
             </li>
           ))}
         </ul>
@@ -347,22 +306,27 @@ export function AssetsCard({ variant }: { variant: Variant }) {
       />
       <ul className="m-0 list-none p-0">
         {otherAssets.map((a) => (
-          <li key={a.id} className="flex items-center gap-3.5 border-b border-line py-3">
-            <span
-              aria-hidden="true"
-              className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-shade text-tucano"
+          <li key={a.id} className="border-b border-line">
+            <Link
+              href={`/investimentos/bens/${a.id}`}
+              className="flex items-center gap-3.5 py-3 text-sand no-underline"
             >
-              <Icon name={a.icone} />
-            </span>
-            <span className="flex min-w-0 grow flex-col leading-[1.35]">
-              <strong className="text-15">{a.nome}</strong>
-              <span className="text-12 text-caption">{a.detalhe}</span>
-            </span>
-            <span className="flex flex-col items-end text-right leading-[1.35]">
-              <strong className="text-15 whitespace-nowrap tabular-nums">{a.valor}</strong>
-              <span className="text-12 text-caption">{a.fonte}</span>
-              <span className="text-12 text-mist">{a.extra}</span>
-            </span>
+              <span
+                aria-hidden="true"
+                className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-shade text-tucano"
+              >
+                <Icon name={a.icone} />
+              </span>
+              <span className="flex min-w-0 grow flex-col leading-[1.35]">
+                <strong className="text-15">{a.nome}</strong>
+                <span className="text-12 text-caption">{a.detalhe}</span>
+              </span>
+              <span className="flex flex-col items-end text-right leading-[1.35]">
+                <strong className="text-15 whitespace-nowrap tabular-nums">{a.valor}</strong>
+                <span className="text-12 text-caption">{a.fonte}</span>
+                <span className="text-12 text-mist">{a.extra}</span>
+              </span>
+            </Link>
           </li>
         ))}
       </ul>

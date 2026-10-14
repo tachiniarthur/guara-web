@@ -5,11 +5,21 @@ import { agents, type AgentId } from "@/features/assistentes/data";
 import { cn } from "@/lib/utils";
 
 /** Marcador de data/assunto no meio da conversa. */
-export function ChatDateChip({ children, className }: { children: ReactNode; className?: string }) {
+export function ChatDateChip({
+  children,
+  small,
+  className,
+}: {
+  children: ReactNode;
+  /** 12px (conversa compacta e páginas de conversa). */
+  small?: boolean;
+  className?: string;
+}) {
   return (
     <p
       className={cn(
-        "mx-auto my-0 rounded-full bg-shade px-3.5 py-1 text-13 text-caption",
+        "mx-auto my-0 rounded-full bg-shade px-3.5 py-1 text-caption",
+        small ? "text-12" : "text-13",
         className,
       )}
     >

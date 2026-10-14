@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/icon";
 import { Note } from "@/components/ui/note";
 import { Panel, PanelHeader, panelLinkClass } from "@/components/ui/panel";
 import { SegmentedTiles } from "@/components/ui/segmented-tiles";
+import { DeviceNotificationsAlert } from "@/features/notificacoes/components/device-notifications-alert";
 import { user } from "@/features/usuario/data";
 import { cn } from "@/lib/utils";
 
@@ -51,9 +52,9 @@ export function AccountCard({ className }: SectionProps) {
           <strong className="text-18">{user.nome}</strong>
           <span className="text-14 text-mist">{account.email}</span>
         </div>
-        <Button variant="glass" size="sm">
+        <ButtonLink href="/perfil/editar" variant="glass" size="sm">
           <span>Editar</span>
-        </Button>
+        </ButtonLink>
       </div>
     </section>
   );
@@ -72,7 +73,7 @@ export function InvestorProfileCard({ className }: SectionProps) {
           <span className="text-13 text-caption">{investorProfile.detalhe}</span>
         </div>
       </div>
-      <ButtonLink href="/onboarding/perfil" variant="secondary">
+      <ButtonLink href="/perfil/investidor" variant="secondary">
         <span>Refazer questionário</span>
       </ButtonLink>
     </Panel>
@@ -167,22 +168,29 @@ function BankItem({ bank }: { bank: BankConnection }) {
             <span>Atualizar agora</span>
           </Button>
         ) : (
-          <Button variant="primary" size="sm" className={bankActionClass}>
+          <ButtonLink
+            href={`/perfil/bancos/${bank.id}/renovar`}
+            variant="primary"
+            size="sm"
+            className={bankActionClass}
+          >
             <Icon name="link-alt" size={16} />
             <span>Renovar autorização</span>
-          </Button>
+          </ButtonLink>
         )}
         <Button variant="outline" size="sm" className={bankActionClass}>
           <Icon name="eye" size={16} />
           <span>Ver o que é compartilhado</span>
         </Button>
-        <Button
+        <ButtonLink
+          href={`/perfil?desconectar=${bank.id}`}
+          scroll={false}
           variant="ghost"
           size="sm"
           className={cn(bankActionClass, "text-urucum hover:bg-urucum-bg")}
         >
           <span>Desconectar</span>
-        </Button>
+        </ButtonLink>
       </div>
     </li>
   );
@@ -197,14 +205,12 @@ export function BanksCard({ className }: SectionProps) {
       <div className="flex flex-col gap-2">
         <div className="flex justify-between text-13">
           <span className="text-mist">
-            <strong className="text-sand">
-              {plan.usadas} de {plan.total}
-            </strong>{" "}
-            conexões usadas no plano {plan.nome}
+            <strong className="text-sand">{`${plan.usadas} de ${plan.total}`}</strong> conexões
+            usadas no plano {plan.nome}
           </span>
-          <a href="#" className="font-bold text-sand underline underline-offset-3">
+          <Link href="/perfil/planos" className="font-bold text-sand underline underline-offset-3">
             Ver planos
-          </a>
+          </Link>
         </div>
         <div
           role="img"
@@ -255,10 +261,17 @@ export function BanksCard({ className }: SectionProps) {
 const notificationGrid = "grid grid-cols-[minmax(0,1fr)_4rem_4rem]";
 
 /** Canais (celular e e-mail) por tipo de aviso. */
-export function NotificationsCard({ className }: SectionProps) {
+export function NotificationsCard({
+  className,
+  deviceOff,
+}: SectionProps & {
+  /** Notificações desligadas no aparelho (ou bloqueadas no navegador). */
+  deviceOff?: boolean;
+}) {
   return (
     <Panel className={cn("gap-2.5", className)}>
       <Title>Notificações</Title>
+      {deviceOff && <DeviceNotificationsAlert />}
       <div role="table" aria-label="Canais por tipo de aviso">
         <div
           role="row"
@@ -368,9 +381,12 @@ export function SecurityCard({ className, idSuffix }: WithIds) {
           Baixar meus dados (LGPD)
           <Icon name="chevron-right" size={16} />
         </a>
-        <a href="#" className="flex min-h-8 items-center text-14 font-bold text-urucum underline">
+        <Link
+          href="/perfil/excluir-conta"
+          className="flex min-h-8 items-center text-14 font-bold text-urucum underline"
+        >
           Excluir conta
-        </a>
+        </Link>
       </div>
     </Panel>
   );

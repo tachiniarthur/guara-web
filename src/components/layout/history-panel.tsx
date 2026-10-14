@@ -18,9 +18,12 @@ import { HISTORY_WIDTH } from "./chat-sizes";
  */
 export function HistoryPanel({
   mode = "aside",
+  wide,
   className,
 }: {
   mode?: "aside" | "sheet";
+  /** Versão do Início (24rem, letras maiores e "Abrir em tela cheia"). */
+  wide?: boolean;
   className?: string;
 }) {
   const { open, conversationId, openConversation, openCurrent, newConversation, close } =
@@ -32,18 +35,27 @@ export function HistoryPanel({
       aria-label="Histórico de conversas"
       className={cn(
         "flex-col bg-card",
-        sheet ? "flex" : `sticky top-0 h-dvh shrink-0 border-l border-line ${HISTORY_WIDTH}`,
+        sheet
+          ? "flex"
+          : cn("sticky top-0 h-dvh shrink-0 border-l border-line", wide ? "w-96" : HISTORY_WIDTH),
         className,
       )}
     >
       <header
         className={cn(
           "flex shrink-0 items-center gap-1 border-b border-line pr-2.5 pl-4.5",
-          "h-17",
+          wide ? "h-[5.0625rem]" : "h-17",
         )}
       >
-        <h2 className={cn("m-0 grow font-display font-bold", "text-18")}>Conversas</h2>
-        <IconButton icon="search" label="Buscar conversas" variant="ghost" size="sm" />
+        <h2 className={cn("m-0 grow font-display font-bold", wide ? "text-22" : "text-18")}>
+          Conversas
+        </h2>
+        <IconButton
+          icon="search"
+          label="Buscar conversas"
+          variant="ghost"
+          size={wide ? "md" : "sm"}
+        />
         {sheet ? (
           <>
             <IconButton
@@ -56,21 +68,32 @@ export function HistoryPanel({
             <IconButton icon="x" label="Fechar" variant="ghost" size="sm" onClick={close} />
           </>
         ) : (
-          <IconButton
-            icon="panel-right"
-            label="Abrir a conversa atual"
-            variant="ghost"
-            size="sm"
-            onClick={openCurrent}
-          />
+          <>
+            <IconButton
+              icon="panel-right"
+              label="Abrir a conversa atual"
+              variant="ghost"
+              size={wide ? "md" : "sm"}
+              onClick={openCurrent}
+            />
+            {wide && (
+              <Link
+                href="/conversas"
+                aria-label="Abrir em tela cheia"
+                className="flex size-10 shrink-0 items-center justify-center rounded-full text-mist hover:bg-shade"
+              >
+                <Icon name="expand" />
+              </Link>
+            )}
+          </>
         )}
       </header>
       <div className="shrink-0 px-3 pt-3.5">
         <Button
           variant="forest"
-          size="md"
+          size={wide ? "lg" : "md"}
           block
-          className="text-14"
+          className={wide ? "text-15" : "text-14"}
           onClick={() => newConversation()}
         >
           <Icon name="plus" size={18} />
@@ -81,13 +104,17 @@ export function HistoryPanel({
         <ConversationList
           currentId={open ? conversationId : undefined}
           onSelect={openConversation}
+          size={wide ? "lg" : "md"}
         />
       </div>
       <div className="border-t border-line px-4.5 pt-3 pb-4.5">
         <Link
           href="/conversas/historico"
           onClick={sheet ? close : undefined}
-          className="flex min-h-6 items-center gap-1 text-14 font-bold whitespace-nowrap text-sand underline underline-offset-3"
+          className={cn(
+            "flex min-h-6 items-center gap-1 font-bold whitespace-nowrap text-sand underline underline-offset-3",
+            wide ? "text-15" : "text-14",
+          )}
         >
           Ver todas as conversas
           <Icon name="chevron-right" size={16} />

@@ -21,6 +21,8 @@ type MobileHeaderProps = {
   account?: boolean;
   /** Mostra o sino de notificações (variante "brand"). */
   notifications?: boolean;
+  /** Reserva 44px à direita mesmo sem ações, para o título ficar no centro da barra. */
+  balanced?: boolean;
   className?: string;
 };
 
@@ -34,6 +36,7 @@ export function MobileHeader({
   actions,
   account = false,
   notifications = false,
+  balanced = false,
   className,
 }: MobileHeaderProps) {
   return (
@@ -60,10 +63,10 @@ export function MobileHeader({
           </div>
         </>
       )}
-      <div className="flex items-center gap-1">
+      <div className={cn("flex items-center gap-1", balanced && "min-w-11 justify-end")}>
         {notifications && (
           <IconButtonLink
-            href="/alertas"
+            href="/notificacoes"
             icon="bell"
             label={`Notificações, ${user.notificacoesNovas} novas`}
             variant="ghost"

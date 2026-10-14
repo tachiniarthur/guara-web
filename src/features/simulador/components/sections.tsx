@@ -282,7 +282,8 @@ function Composition({ section }: { section: Extract<DetailSection, { kind: "com
               {slice.label}
             </span>
             <span className="text-14 font-bold tabular-nums">
-              {slice.amount} <span className="font-normal text-caption">· {slice.percent}</span>
+              {slice.amount}{" "}
+              <span className="font-normal text-caption">{`· ${slice.percent}`}</span>
             </span>
           </div>
         ))}

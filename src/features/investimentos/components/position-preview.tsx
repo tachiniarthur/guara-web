@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 
+import Link from "next/link";
+
 import { Note } from "@/components/ui/note";
+import { formatPercent } from "@/features/alocacao/data";
 import { cn } from "@/lib/utils";
 
 /** Escala das barras de alocação: 0 a 50% da carteira. */
@@ -28,7 +31,7 @@ function AllocationBar({ label, value, target }: { label: string; value: number;
     <div className="flex flex-col gap-1">
       <div className="flex justify-between text-13">
         <span className="text-mist">{label}</span>
-        <strong className="tabular-nums">{value}%</strong>
+        <strong className="tabular-nums">{formatPercent(value)}</strong>
       </div>
       <div className="relative h-2.5 rounded-full bg-shade">
         <span
@@ -91,19 +94,23 @@ export function PositionPreview({ className }: { className?: string }) {
       </Row>
       <div
         role="img"
-        aria-label="Ações passam de 22% para 33% da carteira. Alvo do perfil Moderado: 20%."
+        aria-label="Renda variável Brasil passa de 36,2% para 44,8% da carteira. Alvo do perfil Moderado: 19%."
         className="flex flex-col gap-2.5"
       >
-        <AllocationBar label="Ações hoje" value={22} target={20} />
-        <AllocationBar label="Ações com PETR4" value={33} target={20} />
+        <AllocationBar label="Renda variável Brasil hoje" value={36.2} target={19} />
+        <AllocationBar label="Renda variável Brasil com PETR4" value={44.8} target={19} />
         <span className="flex items-center gap-1.5 text-12 text-caption">
           <span aria-hidden="true" className="h-3 w-0.5 bg-sand" />
-          Alvo do perfil Moderado: 20%
+          Alvo do perfil Moderado: 19%
         </span>
       </div>
       <Note icon="alert-triangle" tone="warning">
-        Com esta compra, ações ficam <strong>13 p.p. acima</strong> do alvo do seu perfil. Você pode
-        salvar mesmo assim ou pedir ao Pacu uma sugestão de rebalanceamento.
+        Com esta compra, Renda variável Brasil fica <strong>25,8 p.p. acima</strong> do alvo do seu
+        perfil. Na subclasse Ações large cap, passa de 22,1% para <strong>32,7%</strong> (alvo 10%).
+        Você pode salvar mesmo assim ou pedir ao Pacu uma sugestão de rebalanceamento.{" "}
+        <Link href="/investimentos/alocacao" className="font-bold text-sand underline">
+          Ver alocação
+        </Link>
       </Note>
     </section>
   );

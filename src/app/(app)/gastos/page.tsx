@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
+import { inlineLinkClass } from "@/components/ui/text-link";
 import { ButtonLink } from "@/components/ui/button";
 import { AddChip, FilterChips } from "@/components/ui/filter-chips";
 import { Icon } from "@/components/ui/icon";
@@ -19,6 +20,7 @@ import { SubscriptionList } from "@/features/gastos/components/subscription-list
 import { TetoMeter } from "@/features/gastos/components/teto-meter";
 import { ViewModeToggle } from "@/features/gastos/components/view-mode-toggle";
 import { activeSubscriptions, ledger, otherSpending, tetos } from "@/features/gastos/data";
+import { NewUserSpending } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
 
 const SAIDAS = "#E0935A";
@@ -42,7 +44,8 @@ function ChartFooter({ children }: { children: React.ReactNode }) {
   return <p className="m-0 text-13 leading-normal text-mist">{children}</p>;
 }
 
-export default function GastosPage() {
+export default async function GastosPage({ searchParams }: PageProps<"/gastos">) {
+  if ((await searchParams).estado === "novo") return <NewUserSpending />;
   return (
     <Page
       padding="list"
@@ -229,10 +232,10 @@ export default function GastosPage() {
             }
             titleClassName="@max-tab:text-18 @max-tab:tracking-normal"
             action={
-              <a href="#" className={panelLinkClass}>
+              <Link href="/gastos/lancamentos" className={panelLinkClass}>
                 Ver 118
                 <Icon name="chevron-right" size={16} />
-              </a>
+              </Link>
             }
           />
           <SearchField
@@ -257,7 +260,11 @@ export default function GastosPage() {
 
         <Panel id="g-tetos" className="gap-5 p-4 @tab:p-5 @desk:col-span-3">
           <PanelHeader
-            title="Tetos do mês"
+            title={
+              <Link href="/alertas/tetos" className={inlineLinkClass}>
+                Tetos do mês
+              </Link>
+            }
             subtitle="Cada aviso chega uma vez por mês, somando crédito e débito"
             action={
               <ButtonLink href="/alertas/novo-teto" size="sm">

@@ -2,7 +2,15 @@ import type { ReactNode } from "react";
 
 import { TetoBar } from "@/features/gastos/components/teto-meter";
 
+import { ChatDateChip } from "./components/messages";
 import { SimulationCard } from "./components/simulation-card";
+import {
+  CalledBy,
+  TypingCursor,
+  TypingIndicator,
+  UnavailableAlert,
+  UnsentMessage,
+} from "./components/thread-status";
 import { AgentReply, ReplySuggestions, ReplyText, UserQuestion } from "./components/thread-parts";
 import type { ConversationId } from "./data";
 
@@ -11,6 +19,18 @@ export type Thread = {
   title: string;
   /** Quando começou (cabeçalho do mobile e do tablet). */
   time: string;
+  /** Linha de apoio do painel de chat ("Hoje, 14:32 · com o Tamanduá"). */
+  subtitle: string;
+  /** Apoio do cabeçalho em tela cheia, quando inclui com quem é a conversa. */
+  pageSubtitle?: string;
+  /** A resposta ainda está sendo escrita (o envio vira "parar"). */
+  typing?: boolean;
+  /** Anexo que não chegou a ser enviado, acima do campo. */
+  attachmentFailed?: boolean;
+  /** O conteúdo já começa com o marcador de data (o painel não repete o título). */
+  ownDateChip?: boolean;
+  /** A conversa com a última mensagem sem enviar (`?estado=nao-enviada`). */
+  unsentContent?: ReactNode;
   /** Quando começou (cabeçalho do desktop). */
   startedAt: string;
   /** Sugestões acima do campo de mensagem. */
@@ -18,13 +38,29 @@ export type Thread = {
   content: ReactNode;
 };
 
+const prompts = ["Cancelar o Amazon Prime", "Resumo da semana", "Como está meu saldo?"];
+
 export const threads: Record<ConversationId, Thread> = {
   "gastos-setembro": {
     id: "gastos-setembro",
     title: "Gastos de setembro",
     time: "Hoje, 14:32",
+    subtitle: "Hoje, 14:32 · com o Tamanduá",
     startedAt: "Iniciada hoje às 14:32",
-    prompts: ["Cancelar o Amazon Prime", "Resumo da semana", "Como está meu saldo?"],
+    prompts,
+    unsentContent: (
+      <>
+        <ChatDateChip small>Hoje, 14:32</ChatDateChip>
+        <UserQuestion>quanto gastei com comida esse mês?</UserQuestion>
+        <AgentReply agent="tamandua" className="gap-2">
+          <ReplyText size="adaptive">
+            Farejei tudo: você gastou <strong>R$ 742,18</strong> em Alimentação, 74% do teto de R$
+            1.000. Os avisos de R$ 500 e R$ 700 já foram enviados.
+          </ReplyText>
+        </AgentReply>
+        <UnsentMessage>e com transporte?</UnsentMessage>
+      </>
+    ),
     content: (
       <>
         <UserQuestion>quanto gastei com comida esse mês?</UserQuestion>
@@ -68,6 +104,7 @@ export const threads: Record<ConversationId, Thread> = {
     id: "aposentadoria-55",
     title: "Aposentadoria aos 55",
     time: "Hoje, 14:40",
+    subtitle: "Hoje, 14:40 · com o Pacu",
     startedAt: "Iniciada hoje às 14:40",
     content: (
       <>
@@ -93,6 +130,73 @@ export const threads: Record<ConversationId, Thread> = {
             "Quanto consigo cortar dos gastos?",
           ]}
         />
+      </>
+    ),
+  },
+  "rendimento-setembro": {
+    id: "rendimento-setembro",
+    title: "Rendimento de setembro",
+    time: "Hoje, 14:40",
+    subtitle: "Hoje, 14:40 · com o Pacu",
+    pageSubtitle: "Hoje, 14:40 · com o Pacu",
+    ownDateChip: true,
+    startedAt: "Iniciada hoje às 14:40",
+    prompts,
+    typing: true,
+    content: (
+      <>
+        <ChatDateChip small>Hoje, 14:40</ChatDateChip>
+        <UserQuestion>quanto rendeu minha carteira em setembro?</UserQuestion>
+        <CalledBy agent="pacu" />
+        <AgentReply agent="pacu" className="gap-2">
+          <ReplyText size="adaptive">
+            Em setembro sua carteira rendeu <strong>R$ 862,40</strong>, ou <strong>+1,8%</strong>. O
+            CDI do mês foi menor, então você ficou acima dele. Quem mais ajudou foi
+            <TypingCursor />
+          </ReplyText>
+          <TypingIndicator agent="pacu" />
+        </AgentReply>
+      </>
+    ),
+  },
+  "petr4-hoje": {
+    id: "petr4-hoje",
+    title: "PETR4 hoje",
+    time: "Hoje, 14:45",
+    subtitle: "Hoje, 14:45 · aguardando o Pacu",
+    pageSubtitle: "Hoje, 14:45 · aguardando o Pacu",
+    ownDateChip: true,
+    startedAt: "Iniciada hoje às 14:45",
+    prompts,
+    content: (
+      <>
+        <ChatDateChip small>Hoje, 14:45</ChatDateChip>
+        <UserQuestion>a PETR4 caiu hoje?</UserQuestion>
+        <CalledBy agent="pacu" />
+        <UnavailableAlert agent="pacu" />
+      </>
+    ),
+  },
+  "extrato-itau": {
+    id: "extrato-itau",
+    title: "Extrato do Itaú",
+    time: "Hoje, 14:50",
+    subtitle: "Hoje, 14:50 · com a Capivara",
+    pageSubtitle: "Hoje, 14:50 · com a Capivara",
+    ownDateChip: true,
+    startedAt: "Iniciada hoje às 14:50",
+    prompts,
+    attachmentFailed: true,
+    content: (
+      <>
+        <ChatDateChip small>Hoje, 14:50</ChatDateChip>
+        <UserQuestion>consegue ler meu extrato do Itaú?</UserQuestion>
+        <AgentReply agent="capivara" role="Coordena a turma" className="gap-2">
+          <ReplyText size="adaptive">
+            Consigo, sim. Mande o PDF, a foto ou a imagem do extrato (até 10 MB) e eu passo para o
+            Tamanduá.
+          </ReplyText>
+        </AgentReply>
       </>
     ),
   },

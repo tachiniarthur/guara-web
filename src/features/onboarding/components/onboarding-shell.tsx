@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { BrandLogo } from "@/components/layout/brand";
 import { Icon } from "@/components/ui/icon";
@@ -6,21 +6,26 @@ import { cn } from "@/lib/utils";
 
 import { onboardingHighlights } from "../data";
 
-/** Some de cima para baixo (degradê suave de 110px), como nos protótipos. */
-const landscapeMask =
-  "linear-gradient(180deg, rgba(0,0,0,0) 0px, rgba(0,0,0,.017) 9px, rgba(0,0,0,.067) 18px, rgba(0,0,0,.146) 28px, rgba(0,0,0,.25) 37px, rgba(0,0,0,.371) 46px, rgba(0,0,0,.5) 55px, rgba(0,0,0,.629) 64px, rgba(0,0,0,.75) 73px, rgba(0,0,0,.854) 82px, rgba(0,0,0,.933) 92px, rgba(0,0,0,.983) 101px, rgba(0,0,0,1) 110px)";
-
-/** Paisagem da mata (ilustração) que preenche o contêiner posicionado. */
-export function MataLandscape() {
+/** Foto da mata (textura de destaque) com degradê escuro por cima, preenchendo o contêiner. */
+export function MataPhoto({
+  position = "center 40%",
+  overlay = "linear-gradient(180deg, rgba(11,17,14,0.15) 0%, rgba(11,17,14,0.35) 55%, #0B110E 100%)",
+}: {
+  position?: string;
+  overlay?: string;
+}) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- ilustração decorativa
-    <img
-      src="/images/marca/paisagem-mata.svg"
-      alt=""
-      aria-hidden="true"
-      className="absolute inset-0 block size-full"
-      style={{ maskImage: landscapeMask, WebkitMaskImage: landscapeMask }}
-    />
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- textura decorativa */}
+      <img
+        src="/images/marca/faixa-tucano.jpg"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 block size-full object-cover"
+        style={{ objectPosition: position }}
+      />
+      <span aria-hidden="true" className="absolute inset-0" style={{ background: overlay }} />
+    </>
   );
 }
 
@@ -36,7 +41,7 @@ function Wordmark({ size, className }: { size: number; className?: string }) {
 }
 
 /** Painel lateral do desktop: marca, promessa e garantias, com a mata ao pé. */
-function OnboardingAside() {
+export function OnboardingAside() {
   return (
     <aside className="relative hidden h-dvh w-[35rem] shrink-0 flex-col justify-between overflow-hidden bg-shade p-14 text-sand lg:flex">
       <div className="flex items-center gap-3">
@@ -58,11 +63,14 @@ function OnboardingAside() {
           ))}
         </ul>
       </div>
-      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[20.625rem]">
-        <MataLandscape />
+      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[28.75rem] overflow-hidden">
+        <MataPhoto
+          position="60% center"
+          overlay="linear-gradient(180deg, #1A241F 0%, rgba(26,36,31,0) 45%, rgba(26,36,31,0.55) 100%)"
+        />
       </div>
       <span className="relative self-start rounded-full bg-[rgba(11,17,14,0.78)] px-3 py-1.5 text-13 text-sand">
-        Conexão bancária via Pluggy · Cotações via Brapi
+        Conexão bancária via Malvo · Cotações via Brapi
       </span>
     </aside>
   );
@@ -78,7 +86,7 @@ export function MataBanner({ variant }: { variant: "tablet" | "mobile" }) {
         tablet ? "hidden h-[13.125rem] md:block lg:hidden" : "mb-4 h-[11.25rem] md:hidden",
       )}
     >
-      <MataLandscape />
+      <MataPhoto />
       <div
         className={cn(
           "relative flex",
@@ -99,8 +107,12 @@ type OnboardingShellProps = {
   mobileTop: ReactNode;
   /** Barra fixa de ações no mobile. */
   mobileActions?: ReactNode;
-  /** Centraliza o conteúdo na vertical no desktop (boas-vindas). */
-  centered?: boolean;
+  /** Largura máxima do conteúdo no desktop (padrão 40rem, 640px). */
+  desktopWidth?: string;
+  /** Largura do card no tablet (padrão 37.5rem, 600px). */
+  tabletWidth?: string;
+  /** Ampliação do conteúdo no desktop (padrão 1.6); ver `zoom-area` em globals.css. */
+  zoom?: number;
   /** Espaço entre blocos no mobile (22px por padrão). */
   className?: string;
   children: ReactNode;
@@ -113,7 +125,9 @@ type OnboardingShellProps = {
 export function OnboardingShell({
   mobileTop,
   mobileActions,
-  centered,
+  desktopWidth = "lg:max-w-[40rem]",
+  tabletWidth = "md:w-[37.5rem]",
+  zoom = 1.6,
   className,
   children,
 }: OnboardingShellProps) {
@@ -122,15 +136,17 @@ export function OnboardingShell({
       <OnboardingAside />
       <MataBanner variant="tablet" />
       {mobileTop}
-      <div className="lg:flex lg:grow lg:justify-center lg:overflow-y-auto lg:px-20 lg:py-16">
+      <div className="lg:flex lg:grow lg:flex-col lg:items-center lg:overflow-y-auto lg:px-20 lg:py-16">
         <main
           className={cn(
             "flex flex-col gap-5.5 px-4 pt-2 pb-35",
-            "md:relative md:mx-auto md:-mt-[4.375rem] md:mb-10 md:w-[37.5rem] md:gap-6.5 md:rounded-card md:border md:border-line md:bg-card md:p-10",
-            "lg:m-0 lg:w-full lg:max-w-[35rem] lg:gap-7 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0",
-            centered && "lg:min-h-full lg:justify-center",
+            "md:relative md:mx-auto md:-mt-[4.375rem] md:mb-10 md:gap-6.5 md:rounded-card md:border md:border-line md:bg-card md:p-10",
+            "lg:my-auto lg:w-full lg:zoom-area lg:gap-7 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0",
+            tabletWidth,
+            desktopWidth,
             className,
           )}
+          style={{ "--zoom": zoom } as CSSProperties}
         >
           {children}
         </main>
@@ -170,7 +186,7 @@ export function OnboardingSteps({ current, steps }: { current: number; steps: re
                       : "font-medium text-caption",
                 )}
               >
-                {n}. {step}
+                {`${n}. ${step}`}
               </span>
             </li>
           );

@@ -23,7 +23,10 @@ export function ConversationList({
   onSelect,
   groupClassName,
   headingClassName,
+  size = "md",
 }: {
+  /** "lg": itens de 60px com 15/13 (histórico do Início). */
+  size?: "md" | "lg";
   /** Conversa aberta (destacada). */
   currentId?: string | null;
   onSelect?: (id: string) => void;
@@ -45,15 +48,19 @@ export function ConversationList({
           <span
             className={cn(
               "min-w-0 grow truncate",
-              "text-14",
+              size === "lg" ? "text-15" : "text-14",
               current ? "font-bold" : "font-medium",
             )}
           >
             {item.titulo}
           </span>
-          <span className={cn("shrink-0 text-caption", "text-12")}>{item.quando}</span>
+          <span className={cn("shrink-0 text-caption", size === "lg" ? "text-13" : "text-12")}>
+            {item.quando}
+          </span>
         </span>
-        <span className={cn("truncate text-caption", "text-12")}>{item.resumo}</span>
+        <span className={cn("truncate text-caption", size === "lg" ? "text-13" : "text-12")}>
+          {item.resumo}
+        </span>
       </>
     );
   }
@@ -65,7 +72,7 @@ export function ConversationList({
           <h3
             className={cn(
               "mt-2.5 mr-0 mb-0.5 ml-2.5 font-bold tracking-[.1em] text-caption uppercase",
-              "text-12",
+              size === "lg" ? "text-13" : "text-12",
               headingClassName,
             )}
           >
@@ -79,7 +86,7 @@ export function ConversationList({
                 const current = item.id === currentId;
                 const className = cn(
                   "flex w-full flex-col gap-0.5 rounded-full border-none px-2.5 py-2 text-left text-sand no-underline hover:bg-shade",
-                  "min-h-13",
+                  size === "lg" ? "min-h-15" : "min-h-13",
                   current ? "bg-shade" : "bg-transparent",
                 );
                 const select = onSelect ?? (startedIds.has(item.id) ? openConversation : undefined);

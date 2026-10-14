@@ -294,15 +294,41 @@ export function IndicatorsCard({
   );
 }
 
+/** "Ver todos": link para a lista completa quando ela existe; senão, só expande. */
+function ViewAll({
+  href,
+  className,
+  children,
+}: {
+  href?: string;
+  className: string;
+  children: ReactNode;
+}) {
+  return href ? (
+    <Link href={href} className={cn(className, "no-underline hover:text-sand")}>
+      {children}
+      <Icon name="chevron-down" size={14} />
+    </Link>
+  ) : (
+    <button type="button" className={className}>
+      {children}
+      <Icon name="chevron-down" size={14} />
+    </button>
+  );
+}
+
 /** Seção "Eventos corporativos": tabela de proventos ou aviso de que o ativo não paga. */
 export function EventsCard({
   events,
   variant,
   className,
+  allHref,
 }: {
   events: EventsInfo;
   variant: "desktop" | "tablet" | "mobile";
   className?: string;
+  /** Tela com todos os eventos ("Ver todos"), quando existe. */
+  allHref?: string;
 }) {
   const mobile = variant === "mobile";
   const th =
@@ -403,23 +429,21 @@ export function EventsCard({
                   ))}
                 </tbody>
               </table>
-              <button
-                type="button"
+              <ViewAll
+                href={allHref}
                 className="flex w-full items-center gap-1.5 border-none bg-transparent px-4 py-3 text-14 font-semibold text-mist"
               >
                 Ver todos ({events.total})
-                <Icon name="chevron-down" size={14} />
-              </button>
+              </ViewAll>
             </div>
           )}
           {mobile && (
-            <button
-              type="button"
+            <ViewAll
+              href={allHref}
               className="flex items-center gap-1.5 border-none bg-transparent p-0 text-14 font-semibold text-mist"
             >
               Ver todos ({events.total})
-              <Icon name="chevron-down" size={14} />
-            </button>
+            </ViewAll>
           )}
           <p className="m-0 text-13 text-caption">{events.nota}</p>
         </>

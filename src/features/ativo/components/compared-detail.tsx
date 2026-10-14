@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { AgentAvatar } from "@/components/ui/agent-avatar";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
@@ -9,6 +10,7 @@ import { OpenChat } from "@/features/conversas/components/open-chat";
 import { cn } from "@/lib/utils";
 
 import { seriesKey, type ComparedAsset } from "../data";
+import { assetEvents, assetFacts, chartDetails } from "../more";
 import { ComparedChart, type Variant } from "./charts";
 import {
   AssetActions,
@@ -19,6 +21,30 @@ import {
   IndicatorsCard,
   InfoHint,
 } from "./parts";
+
+/** Link quando a tela de destino existe; senão, botão. */
+function MaybeLink({
+  href,
+  className,
+  children,
+}: {
+  href?: string | false;
+  className: string;
+  children: ReactNode;
+}) {
+  return href ? (
+    <Link href={href} className={cn(className, "no-underline")}>
+      {children}
+    </Link>
+  ) : (
+    <button type="button" className={className}>
+      {children}
+    </button>
+  );
+}
+
+const eventsHref = (asset: ComparedAsset) =>
+  assetEvents[asset.slug] ? `/investimentos/${asset.slug}/eventos` : undefined;
 
 function Origin({ asset }: { asset: ComparedAsset }) {
   return (
@@ -106,20 +132,29 @@ function ChartCard({ asset, variant }: { asset: ComparedAsset; variant: Variant 
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          <button type="button" className={cn(selectClass, "border-b border-solid")}>
+          <MaybeLink
+            href={chartDetails[asset.slug] && `/investimentos/${asset.slug}/grafico?escolher`}
+            className={cn(selectClass, "border-b border-solid")}
+          >
             Comparar com: CDI
             <span className="text-mist">
               <Icon name="chevron-down" size={14} />
             </span>
-          </button>
+          </MaybeLink>
           {asset.precoAjustado && (
             <>
-              <button type="button" className={cn(selectClass, "border-b border-solid")}>
+              <MaybeLink
+                href={
+                  chartDetails[asset.slug]?.visoes["sem-ajuste"] &&
+                  `/investimentos/${asset.slug}/grafico?comparar=sem-ajuste`
+                }
+                className={cn(selectClass, "border-b border-solid")}
+              >
                 Preço ajustado
                 <span className="text-mist">
                   <Icon name="chevron-down" size={14} />
                 </span>
-              </button>
+              </MaybeLink>
               <InfoHint
                 text="Inclui os rendimentos pagos no período."
                 size={15}
@@ -277,13 +312,23 @@ function DetailsCard({ asset }: { asset: ComparedAsset }) {
           </dd>
         </div>
       </dl>
-      <button
-        type="button"
-        className="flex items-center gap-2 border-none bg-transparent px-0 pt-3 pb-0 text-left text-14 font-semibold text-mist"
-      >
-        <Icon name="more" size={18} />
-        Mais detalhes
-      </button>
+      {assetFacts[asset.slug] ? (
+        <Link
+          href={`/investimentos/${asset.slug}/detalhes`}
+          className="flex items-center gap-2 px-0 pt-3 pb-0 text-left text-14 font-semibold text-mist no-underline hover:text-sand"
+        >
+          <Icon name="more" size={18} />
+          Mais detalhes
+        </Link>
+      ) : (
+        <button
+          type="button"
+          className="flex items-center gap-2 border-none bg-transparent px-0 pt-3 pb-0 text-left text-14 font-semibold text-mist"
+        >
+          <Icon name="more" size={18} />
+          Mais detalhes
+        </button>
+      )}
       <p className="m-0 text-13 text-caption">{asset.detalhes.nota}</p>
     </Panel>
   );
@@ -373,7 +418,7 @@ export function ComparedDetail({ asset, variant }: { asset: ComparedAsset; varia
         <DetailsCard asset={asset} />
         <FeesCard asset={asset} single />
         <IndicatorsCard asset={asset} variant="mobile" />
-        <EventsCard events={asset.eventos} variant="mobile" />
+        <EventsCard events={asset.eventos} allHref={eventsHref(asset)} variant="mobile" />
         <AskPacuCard asset={asset} />
         <DataSource>{footer}</DataSource>
       </div>
@@ -394,7 +439,12 @@ export function ComparedDetail({ asset, variant }: { asset: ComparedAsset; varia
         </div>
         <FeesCard asset={asset} />
         <IndicatorsCard asset={asset} variant="tablet" className="p-5" />
-        <EventsCard events={asset.eventos} variant="tablet" className="p-5" />
+        <EventsCard
+          events={asset.eventos}
+          allHref={eventsHref(asset)}
+          variant="tablet"
+          className="p-5"
+        />
         <AskPacuCard asset={asset} />
         <DataSource>{footer}</DataSource>
       </div>
@@ -419,7 +469,7 @@ export function ComparedDetail({ asset, variant }: { asset: ComparedAsset; varia
         </div>
       </div>
       <IndicatorsCard asset={asset} variant="desktop" />
-      <EventsCard events={asset.eventos} variant="desktop" />
+      <EventsCard events={asset.eventos} allHref={eventsHref(asset)} variant="desktop" />
       <DataSource>{footer}</DataSource>
     </div>
   );

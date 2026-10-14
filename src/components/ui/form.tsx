@@ -84,6 +84,7 @@ type CheckboxRowProps = {
   accent?: "sand" | "tucano";
   /** Liga/desliga (anuncia como interruptor). */
   isSwitch?: boolean;
+  disabled?: boolean;
   className?: string;
   labelClassName?: string;
 };
@@ -96,6 +97,7 @@ export function CheckboxRow({
   defaultChecked,
   accent = "sand",
   isSwitch,
+  disabled,
   className,
   labelClassName,
 }: CheckboxRowProps) {
@@ -106,6 +108,7 @@ export function CheckboxRow({
         type="checkbox"
         role={isSwitch ? "switch" : undefined}
         defaultChecked={defaultChecked}
+        disabled={disabled}
         className={cn(
           "m-0 size-5.5 shrink-0",
           accent === "tucano" ? "accent-tucano" : "accent-sand",
@@ -116,6 +119,44 @@ export function CheckboxRow({
         {description && <span className="text-13 text-caption">{description}</span>}
       </label>
     </div>
+  );
+}
+
+/** Opção em cartão (60px, raio 20) com título e descrição; marcada ganha borda de 2px em areia. */
+export function RadioCard({
+  name,
+  title,
+  description,
+  value,
+  defaultChecked,
+  className,
+}: {
+  name: string;
+  title: ReactNode;
+  description?: ReactNode;
+  value?: string;
+  defaultChecked?: boolean;
+  className?: string;
+}) {
+  return (
+    <label
+      className={cn(
+        "flex min-h-15 cursor-pointer items-center gap-3.5 rounded-bubble border border-line-strong bg-field px-4 py-2.5 text-16 font-medium has-checked:border-2 has-checked:border-sand has-checked:font-bold",
+        className,
+      )}
+    >
+      <input
+        type="radio"
+        name={name}
+        value={value}
+        defaultChecked={defaultChecked}
+        className="m-0 size-5.5 shrink-0 accent-sand"
+      />
+      <span className="flex flex-col leading-[1.35]">
+        <span>{title}</span>
+        {description && <span className="text-13 font-normal text-caption">{description}</span>}
+      </span>
+    </label>
   );
 }
 

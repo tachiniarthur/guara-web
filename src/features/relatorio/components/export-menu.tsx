@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/ui/icon";
@@ -16,6 +17,8 @@ export function ExportMenu({
   className?: string;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const router = useRouter();
+  const pathname = usePathname();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,7 +65,10 @@ export function ExportMenu({
               type="button"
               role="menuitem"
               autoFocus={i === 0}
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setOpen(false);
+                router.replace(`${pathname}?exportado`, { scroll: false });
+              }}
               className="flex min-h-14 w-full items-center gap-3 rounded-full border-none bg-transparent px-3 py-2 text-left text-sand hover:bg-shade focus-visible:bg-shade"
             >
               <span className="flex size-[2.375rem] shrink-0 items-center justify-center rounded-[0.625rem] border border-line bg-canvas">

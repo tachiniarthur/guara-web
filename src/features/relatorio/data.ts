@@ -174,3 +174,120 @@ export const monthComparison = [
     previous: { value: "R$ 4.900", width: 83 },
   },
 ] as const;
+
+/** Linha do tempo completa: dias com saldo no fim do dia e os lançamentos (alguns agrupados). */
+export type TimelineDay = {
+  dia: string;
+  saldo: string;
+  itens: { titulo: string; meta: string; valor: string; foraDoPadrao?: boolean }[];
+};
+
+export const fullTimeline: TimelineDay[] = [
+  {
+    dia: "23 set · ter",
+    saldo: "R$ 12.480,32",
+    itens: [
+      {
+        titulo: "Loja de eletrônicos online",
+        meta: "Nubank crédito · 02:14 · Eletrônicos",
+        valor: "−R$ 1.249,90",
+        foraDoPadrao: true,
+      },
+      { titulo: "Café da esquina", meta: "Nubank crédito · Alimentação", valor: "−R$ 9,50" },
+    ],
+  },
+  {
+    dia: "22 set · seg",
+    saldo: "R$ 13.739,72",
+    itens: [
+      { titulo: "Presentes Casa Bela", meta: "Nubank crédito · Compras", valor: "−R$ 220,00" },
+      {
+        titulo: "Restaurante Sabor da Vila",
+        meta: "Nubank crédito · Alimentação",
+        valor: "−R$ 163,10",
+      },
+      {
+        titulo: "Mais 3 lançamentos",
+        meta: "Farmácia, transporte por app e padaria",
+        valor: "−R$ 129,90",
+      },
+    ],
+  },
+  {
+    dia: "21 set · dom",
+    saldo: "R$ 14.252,72",
+    itens: [
+      {
+        titulo: "3 lançamentos",
+        meta: "Delivery, cinema e transporte por app",
+        valor: "−R$ 166,10",
+      },
+    ],
+  },
+  {
+    dia: "20 set · sáb",
+    saldo: "R$ 14.418,82",
+    itens: [
+      { titulo: "3 lançamentos", meta: "Bar, mercado e transporte por app", valor: "−R$ 198,40" },
+    ],
+  },
+  {
+    dia: "19 set · sex",
+    saldo: "R$ 14.617,22",
+    itens: [{ titulo: "2 lançamentos", meta: "Delivery e hamburgueria", valor: "−R$ 154,62" }],
+  },
+  {
+    dia: "18 set · qui",
+    saldo: "R$ 14.771,84",
+    itens: [
+      {
+        titulo: "Freela · site institucional",
+        meta: "Pix recebido · Itaú · Entrada",
+        valor: "+R$ 1.000,00",
+      },
+      { titulo: "Posto de combustível", meta: "Itaú débito · Transporte", valor: "−R$ 92,30" },
+    ],
+  },
+  {
+    dia: "15 a 17 set",
+    saldo: "R$ 13.864,14",
+    itens: [
+      {
+        titulo: "7 lançamentos",
+        meta: "iCloud+, mercado, transporte e almoço",
+        valor: "−R$ 168,20",
+      },
+    ],
+  },
+  {
+    dia: "10 set · qua",
+    saldo: "R$ 14.477,79",
+    itens: [
+      { titulo: "Mercado do mês", meta: "Itaú débito · Alimentação", valor: "−R$ 311,20" },
+      { titulo: "Transporte por app", meta: "Nubank crédito · Transporte", valor: "−R$ 22,40" },
+    ],
+  },
+  {
+    dia: "05 set · sex",
+    saldo: "R$ 15.105,29",
+    itens: [
+      { titulo: "Salário", meta: "Crédito em conta · Itaú · Entrada", valor: "+R$ 7.200,00" },
+      { titulo: "Aluguel", meta: "Pix enviado · Itaú · Moradia", valor: "−R$ 2.100,00" },
+    ],
+  },
+  {
+    dia: "01 set · seg",
+    saldo: "R$ 10.118,09",
+    itens: [
+      { titulo: "Mercado do bairro", meta: "Itaú débito · Alimentação", valor: "−R$ 46,30" },
+      { titulo: "Transporte por app", meta: "Nubank crédito · Transporte", valor: "−R$ 28,40" },
+    ],
+  },
+];
+
+export const timelineTotals = [
+  { label: "Começou o mês", value: "R$ 10.192,79" },
+  { label: "Entrou", value: "+R$ 8.200,00", tone: "text-folha" },
+  { label: "Saiu", value: "−R$ 5.912,47" },
+  { label: "Hoje", value: "R$ 12.480,32", tone: "text-tucano" },
+];

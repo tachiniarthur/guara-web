@@ -1,7 +1,8 @@
 import { MobileHeader } from "@/components/layout/mobile-header";
+import { ShowValuesButton } from "@/components/layout/privacy-toggle";
 import { Page, PageTitle } from "@/components/layout/page";
 import { Icon } from "@/components/ui/icon";
-import { IconButton } from "@/components/ui/icon-button";
+import { IconButtonLink } from "@/components/ui/icon-button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -11,6 +12,7 @@ import { AgentCard } from "@/features/assistentes/components/agent-card";
 import { CategoryBudgetList } from "@/features/gastos/components/category-budget-list";
 import { TransactionList } from "@/features/gastos/components/transaction-list";
 import { categoryBudgets, recentTransactions } from "@/features/gastos/data";
+import { NewUserHome } from "@/features/inicio/components/new-user-home";
 import { PendingCard } from "@/features/inicio/components/pending-card";
 import { SummaryCard } from "@/features/inicio/components/summary-card";
 import { user } from "@/features/usuario/data";
@@ -22,10 +24,28 @@ const homeAgents = [
   agentCards["quero-quero"],
 ];
 
-export default function InicioPage() {
+/** Início (e o caso de quem ainda não conectou banco: ?estado=novo). */
+export default async function InicioPage({ searchParams }: PageProps<"/">) {
+  if ((await searchParams).estado === "novo") return <NewUserHome />;
   return (
     <Page
-      header={<MobileHeader variant="brand" notifications account />}
+      header={
+        <MobileHeader
+          variant="brand"
+          account
+          actions={
+            <>
+              <ShowValuesButton variant="icon" />
+              <IconButtonLink
+                href="/notificacoes"
+                icon="bell"
+                label={`Notificações, ${user.notificacoesNovas} novas`}
+                variant="ghost"
+              />
+            </>
+          }
+        />
+      }
       className="gap-6.5 md:gap-7 lg:gap-6.5 lg:text-16"
     >
       <header className="flex flex-wrap items-end justify-between gap-4 @desk:flex-nowrap @desk:gap-6">
@@ -58,7 +78,9 @@ export default function InicioPage() {
             <span className="hidden @tab:inline">Setembro 2026</span>
             <Icon name="chevron-down" size={16} />
           </button>
-          <IconButton
+          <ShowValuesButton variant="pill" className="hidden @tab:flex" />
+          <IconButtonLink
+            href="/notificacoes"
             icon="bell"
             label={`Notificações, ${user.notificacoesNovas} novas`}
             size="lg"

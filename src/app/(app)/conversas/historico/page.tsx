@@ -14,7 +14,7 @@ export default function HistoricoConversasPage() {
           <h1 className="m-0 font-display text-22 font-bold tracking-[-0.01em]">
             Histórico de conversas
           </h1>
-          <span className="text-13 text-caption">{conversationCount} conversas com a equipe</span>
+          <span className="text-13 text-caption">{`${conversationCount} conversas com a equipe`}</span>
         </div>
         <ButtonLink href="/conversas" variant="forest" className="text-15">
           <Icon name="plus" size={18} />

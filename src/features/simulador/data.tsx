@@ -185,7 +185,7 @@ export const simulations: Record<SimulatorId, Simulation> = {
         { name: "Moderado", detail: "4% a.a. · seu perfil", value: "R$ 5.640", current: true },
         { name: "Arrojado", detail: "5% a.a.", value: "R$ 4.840" },
       ],
-      primary: { label: "Transformar em meta" },
+      primary: { label: "Transformar em meta", href: "/metas/nova" },
       disclaimer: "Simulação educativa em valores de hoje. Não é recomendação de investimento.",
     },
     details: [
@@ -383,7 +383,7 @@ export const simulations: Record<SimulatorId, Simulation> = {
         { name: "Seu plano", detail: "18 meses", value: "R$ 1.310", current: true },
         { name: "Mais leve", detail: "24 meses", value: "R$ 940" },
       ],
-      primary: { label: "Transformar em meta" },
+      primary: { label: "Transformar em meta", href: "/metas/nova" },
       disclaimer: "Simulação educativa. Rendimentos podem variar.",
     },
     details: [

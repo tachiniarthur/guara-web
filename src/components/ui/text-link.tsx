@@ -25,3 +25,6 @@ export function TextLink({ chevron = true, className, children, ...props }: Text
     </Link>
   );
 }
+
+/** Nome sublinhado dentro de uma linha de lista (ex.: o nome do teto leva ao detalhe). */
+export const inlineLinkClass = "text-inherit underline underline-offset-3 hover:text-tucano";

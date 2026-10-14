@@ -11,7 +11,7 @@ import {
 
 export default function BoasVindasPage() {
   return (
-    <OnboardingShell mobileTop={<MataBanner variant="mobile" />} centered>
+    <OnboardingShell mobileTop={<MataBanner variant="mobile" />}>
       <OnboardingIntro title="Bem-vindo ao Guará" titleClassName="text-28 md:text-30 lg:text-34">
         Gastos, investimentos e alertas em um só lugar, com seis assistentes acompanhando tudo para
         você.
@@ -34,7 +34,7 @@ export default function BoasVindasPage() {
           <FieldLabel htmlFor="email">E-mail</FieldLabel>
           <TextInput id="email" type="email" placeholder="voce@exemplo.com" />
         </Field>
-        <ButtonLink href="/onboarding/bancos" variant="primary" size="xl" block>
+        <ButtonLink href="/boas-vindas/codigo" variant="primary" size="xl" block>
           <span>Criar conta</span>
         </ButtonLink>
       </form>
@@ -46,19 +46,19 @@ export default function BoasVindasPage() {
       </div>
       <p className="m-0 text-center text-15">
         Já tem conta?{" "}
-        <Link href="/" className="font-bold text-sand underline">
+        <Link href="/entrar" className="font-bold text-sand underline">
           Entrar
         </Link>
       </p>
       <p className="m-0 text-center text-13 leading-normal text-caption">
         Ao continuar, você aceita os{" "}
-        <a href="#" className="text-mist underline">
+        <Link href="/termos" className="text-mist underline">
           Termos de uso
-        </a>{" "}
+        </Link>{" "}
         e a{" "}
-        <a href="#" className="text-mist underline">
+        <Link href="/privacidade" className="text-mist underline">
           Política de privacidade
-        </a>
+        </Link>
         .
       </p>
     </OnboardingShell>

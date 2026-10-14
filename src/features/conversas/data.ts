@@ -75,7 +75,13 @@ export const quickPrompts = ["Gastos pequenos", "Resumo da semana", "Como está 
 
 /** Conversas com o conteúdo completo; as demais do histórico ainda abrem a conversa atual. */
 export const CURRENT_CONVERSATION = "gastos-setembro";
-export const conversationIds = ["gastos-setembro", "aposentadoria-55"] as const;
+export const conversationIds = [
+  "gastos-setembro",
+  "aposentadoria-55",
+  "rendimento-setembro",
+  "petr4-hoje",
+  "extrato-itau",
+] as const;
 export type ConversationId = (typeof conversationIds)[number];
 
 export function conversationHref(id: string) {

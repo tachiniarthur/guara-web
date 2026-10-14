@@ -9,12 +9,20 @@ import {
   OnboardingSteps,
 } from "@/features/onboarding/components/onboarding-shell";
 import { agents } from "@/features/assistentes/data";
+import { NotificationPermissionAlert } from "@/features/onboarding/components/permission-alert";
 import { agentIntros, onboardingSteps } from "@/features/onboarding/data";
 
-export default function AssistentesAvisosPage() {
+export default async function AssistentesAvisosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ permissao?: string }>;
+}) {
+  // Notificações bloqueadas no aparelho ou no navegador (?permissao=bloqueada).
+  const blocked = (await searchParams).permissao === "bloqueada";
   return (
     <OnboardingShell
-      mobileTop={<MobileHeader back="/onboarding/perfil" />}
+      zoom={blocked ? 1.24 : 1.52}
+      mobileTop={<MobileHeader back="/onboarding/perfil/resultado" />}
       mobileActions={
         <MobileActionBar>
           <ButtonLink href="/" variant="primary" size="xl" block>
@@ -44,11 +52,13 @@ export default function AssistentesAvisosPage() {
       </div>
       <fieldset className="m-0 flex flex-col border-none p-0">
         <Legend className="mb-1.5 text-16">Como quer ser avisado?</Legend>
+        {blocked && <NotificationPermissionAlert />}
         <CheckboxRow
           id="aviso-celular"
           label="Notificação no celular"
           description="Tetos, alertas de preço e compras fora do padrão"
-          defaultChecked
+          defaultChecked={!blocked}
+          disabled={blocked}
         />
         <CheckboxRow
           id="aviso-email"
@@ -58,7 +68,7 @@ export default function AssistentesAvisosPage() {
         />
       </fieldset>
       <OnboardingActions>
-        <ButtonLink href="/onboarding/perfil" variant="secondary" size="xl">
+        <ButtonLink href="/onboarding/perfil/resultado" variant="secondary" size="xl">
           <span>Voltar</span>
         </ButtonLink>
         <div className="grow" />

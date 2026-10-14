@@ -287,7 +287,7 @@ export function TimelineCard() {
             </p>
           </div>
         </div>
-        <Link href="/gastos" className={panelLinkClass}>
+        <Link href="/relatorio/linha-do-tempo" className={panelLinkClass}>
           <span className="@tab:hidden @desk:inline">Todos</span>
           <span className="hidden @tab:inline @desk:hidden">Ver 118 lançamentos</span>
           <Icon name="chevron-right" size={16} />

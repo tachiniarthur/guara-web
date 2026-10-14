@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Donut } from "@/components/charts/donut";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
@@ -31,8 +32,8 @@ export function CategoryBreakdown({ variant }: { variant: "desktop" | "tablet" |
     <ul className={cn("m-0 min-w-0 list-none p-0", !mobile && "grow")}>
       {categorySpending.map((c) => (
         <li key={c.id}>
-          <a
-            href="#"
+          <Link
+            href={`/gastos/categorias/${c.id}`}
             className={cn(
               "flex items-center gap-3 border-b border-line text-sand no-underline",
               mobile ? "min-h-[3.5625rem]" : "min-h-[3.3125rem]",
@@ -46,13 +47,14 @@ export function CategoryBreakdown({ variant }: { variant: "desktop" | "tablet" |
             <span className="flex min-w-0 grow flex-col leading-[1.3]">
               <span className="font-bold">{c.nome}</span>
               <span className="text-12 text-caption">
-                {c.lancamentos} {c.lancamentos === 1 ? "lançamento" : "lançamentos"}
-                {!mobile && ` · ${c.percentual}%`}
+                {`${c.lancamentos} ${c.lancamentos === 1 ? "lançamento" : "lançamentos"}${
+                  mobile ? "" : ` · ${c.percentual}%`
+                }`}
               </span>
             </span>
             <span className="font-bold tabular-nums">{c.valorFormatado}</span>
             <Icon name="chevron-right" size={18} className="text-caption" />
-          </a>
+          </Link>
         </li>
       ))}
     </ul>

@@ -1,17 +1,21 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, type ReactNode } from "react";
 
+import { ReportChatAside } from "@/features/relatorio/components/report-chat-aside";
 import { shellConfig } from "@/lib/navigation";
+import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
+import { usePrivacy } from "@/stores/privacy";
 
 import { BottomNav } from "./bottom-nav";
 import { ChatOverlay, ChatPanel } from "./chat-panel";
-import { ConversarFab } from "./conversar-fab";
+import { ConversarFab, ConversarFabCompact } from "./conversar-fab";
 import { HistoryPanel } from "./history-panel";
 import { Rail } from "./rail";
 import { Sidebar } from "./sidebar";
+import { ValuesMask } from "./values-mask";
 
 /**
  * Estrutura do app pelas classes de janela:
@@ -23,7 +27,51 @@ import { Sidebar } from "./sidebar";
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const config = shellConfig(pathname);
+  return (
+    <div className="flex min-h-dvh">
+      <Sidebar className="hidden lg:flex" />
+      <Rail className="hidden md:flex lg:hidden" />
+      <main className="@container min-w-0 flex-1">{children}</main>
+      <ValuesMask />
+      <Suspense fallback={<ShellChrome pathname={pathname} novo={false} />}>
+        <ShellChromeFromUrl pathname={pathname} />
+      </Suspense>
+    </div>
+  );
+}
+
+const chatLinks: Record<string, string> = {
+  aberto: "gastos-setembro",
+  digitando: "rendimento-setembro",
+  indisponivel: "petr4-hoje",
+  "anexo-falhou": "extrato-itau",
+};
+
+function ShellChromeFromUrl({ pathname }: { pathname: string }) {
+  const params = useSearchParams();
+  const novo = params.get("estado") === "novo";
+  const setHidden = usePrivacy((state) => state.setHidden);
+  // Link direto com os valores ocultos (`?valores=ocultos`).
+  const ocultos = params.get("valores") === "ocultos";
+  useEffect(() => {
+    if (ocultos) setHidden(true);
+  }, [ocultos, setHidden]);
+  // Chat aberto por link (`?chat=aberto`, `?chat=nova`, `?chat=digitando`…).
+  const chat = params.get("chat");
+  useEffect(() => {
+    if (!chat) return;
+    const { openConversation, newConversation } = useChatPanel.getState();
+    if (chat === "historico") useChatPanel.getState().close();
+    else if (chat === "nova") newConversation();
+    else if (chat === "nao-enviada") openConversation("gastos-setembro", "nao-enviada");
+    else openConversation(chatLinks[chat] ?? chat);
+  }, [chat]);
+  return <ShellChrome pathname={pathname} novo={novo} />;
+}
+
+/** Painel de conversas, chat por cima, botões "Conversar" e barra inferior de cada rota. */
+function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
+  const config = shellConfig(pathname, { novo });
   const open = useChatPanel((state) => state.open);
   const hasAside = config.aside !== false;
   // As páginas de conversa já são o chat em tela cheia.
@@ -32,10 +80,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const docked = hasAside && (open === true || (open === null && config.aside === "home"));
 
   return (
-    <div className="flex min-h-dvh">
-      <Sidebar className="hidden lg:flex" />
-      <Rail className="hidden md:flex lg:hidden" />
-      <main className="@container min-w-0 flex-1">{children}</main>
+    <>
+      {config.tabletChat && !(chatAvailable && open === true) && (
+        <ReportChatAside className="hidden min-[68.75rem]:flex lg:hidden" />
+      )}
       {hasAside &&
         (docked ? (
           <>
@@ -43,13 +91,18 @@ export function AppShell({ children }: { children: ReactNode }) {
             <HistoryPanel className="hidden lg:flex xl:hidden" />
           </>
         ) : (
-          <HistoryPanel className="hidden lg:flex" />
+          <HistoryPanel className="hidden lg:flex" wide={config.aside === "home"} />
         ))}
       {chatAvailable && open === true && (
         <ChatOverlay className={hasAside ? "xl:hidden" : undefined} />
       )}
-      {config.fab && <ConversarFab className="hidden md:flex lg:hidden" />}
+      {config.fab && !(chatAvailable && open === true) && (
+        <ConversarFab className={cn("hidden md:flex", hasAside && "lg:hidden")} />
+      )}
+      {config.mobileFab && (
+        <ConversarFabCompact position={config.mobileFab} className="md:hidden" />
+      )}
       {config.bottomNav && <BottomNav className="md:hidden" />}
-    </div>
+    </>
   );
 }

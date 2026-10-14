@@ -1,6 +1,6 @@
 import { Card, CardHeader } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
-import { IconButton } from "@/components/ui/icon-button";
+import { PrivacyToggle } from "@/components/layout/privacy-toggle";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 
 import { summary } from "../data";
@@ -38,7 +38,7 @@ export function SummaryCard({ className }: { className?: string }) {
                 {summary.saldo}
               </span>
             </div>
-            <IconButton icon="eye" label="Ocultar valores" />
+            <PrivacyToggle />
           </div>
           <ul className="m-0 flex list-none flex-col gap-1 p-0">
             {summary.linhas.map((linha) => (

@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import Link from "next/link";
 
 import { Icon } from "@/components/ui/icon";
 import { plan } from "@/features/perfil/data";
@@ -8,40 +6,26 @@ import { cn } from "@/lib/utils";
 
 import { banks } from "../data";
 
-/** Bancos para conectar pelo Open Finance (toque para conectar ou desconectar). */
-export function BankPicker({ defaultConnected = ["nubank"] }: { defaultConnected?: string[] }) {
-  const [connected, setConnected] = useState<string[]>(defaultConnected);
-
-  function toggle(id: string) {
-    setConnected((current) =>
-      current.includes(id)
-        ? current.filter((item) => item !== id)
-        : current.length < plan.total
-          ? [...current, id]
-          : current,
-    );
-  }
-
+/**
+ * Bancos para conectar pelo Open Finance. Os já conectados aparecem marcados; os outros levam
+ * à autorização pelo Malvo.
+ */
+export function BankPicker({ connected = ["nubank"] }: { connected?: string[] }) {
   return (
     <>
       <div className="grid grid-cols-2 items-start gap-2.5">
         {banks.map((bank) => {
           const on = connected.includes(bank.id);
-          return (
-            <button
-              key={bank.id}
-              type="button"
-              aria-pressed={on}
-              onClick={() => toggle(bank.id)}
-              className={cn(
-                "flex min-h-15 items-center gap-3 rounded-full px-3.5 text-left text-sand",
-                on
-                  ? "border-2 border-folha bg-folha-bg"
-                  : "border border-line-strong bg-field hover:bg-shade",
-                // No mobile o Santander aparece depois do C6, como no protótipo.
-                bank.id === "santander" && "order-1 md:order-none",
-              )}
-            >
+          const className = cn(
+            "flex min-h-15 items-center gap-3 rounded-full px-3.5 text-left text-sand no-underline",
+            on
+              ? "border-2 border-folha bg-folha-bg"
+              : "border border-line-strong bg-field hover:bg-shade",
+            // No mobile o Santander aparece depois do C6, como no protótipo.
+            bank.id === "santander" && "order-1 md:order-none",
+          );
+          const content = (
+            <>
               <span
                 aria-hidden="true"
                 className="flex size-[2.25rem] shrink-0 items-center justify-center rounded-[0.625rem] border border-line bg-canvas font-display text-14 font-bold"
@@ -59,7 +43,16 @@ export function BankPicker({ defaultConnected = ["nubank"] }: { defaultConnected
                   <span className="text-12 text-caption">Conectar</span>
                 )}
               </span>
-            </button>
+            </>
+          );
+          return on ? (
+            <div key={bank.id} className={className}>
+              {content}
+            </div>
+          ) : (
+            <Link key={bank.id} href={`/onboarding/bancos/${bank.id}`} className={className}>
+              {content}
+            </Link>
           );
         })}
       </div>

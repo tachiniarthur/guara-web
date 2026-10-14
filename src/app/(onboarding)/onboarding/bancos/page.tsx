@@ -15,11 +15,12 @@ import { cn } from "@/lib/utils";
 export default function ConectarBancosPage() {
   return (
     <OnboardingShell
+      zoom={1.37}
       mobileTop={<MobileHeader back="/boas-vindas" />}
       mobileActions={
         <MobileActionBar>
           <ButtonLink
-            href="/onboarding/perfil"
+            href="/onboarding/perfil/1"
             variant="ghost"
             size="xl"
             className="hover:bg-transparent"
@@ -27,7 +28,7 @@ export default function ConectarBancosPage() {
             <span>Pular</span>
           </ButtonLink>
           <div className="grow">
-            <ButtonLink href="/onboarding/perfil" variant="primary" size="xl" block>
+            <ButtonLink href="/onboarding/perfil/1" variant="primary" size="xl" block>
               <span>Continuar</span>
             </ButtonLink>
           </div>
@@ -36,7 +37,7 @@ export default function ConectarBancosPage() {
     >
       <OnboardingSteps current={1} steps={onboardingSteps} />
       <OnboardingIntro title="Conecte seus bancos">
-        Pelo Open Finance, via Pluggy. Você autoriza no app do banco e revoga quando quiser.
+        Pelo Open Finance, via Malvo. Você autoriza no app do banco e revoga quando quiser.
       </OnboardingIntro>
       <div className="relative">
         <label htmlFor="buscar-banco" className="sr-only">
@@ -68,7 +69,7 @@ export default function ConectarBancosPage() {
       </div>
       <OnboardingActions>
         <ButtonLink
-          href="/onboarding/perfil"
+          href="/onboarding/perfil/1"
           variant="ghost"
           size="xl"
           className="hover:bg-transparent"
@@ -76,7 +77,7 @@ export default function ConectarBancosPage() {
           <span>Pular por agora</span>
         </ButtonLink>
         <div className="grow" />
-        <ButtonLink href="/onboarding/perfil" variant="primary" size="xl">
+        <ButtonLink href="/onboarding/perfil/1" variant="primary" size="xl">
           <span>Continuar</span>
         </ButtonLink>
       </OnboardingActions>
