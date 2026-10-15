@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Icon } from "@/components/ui/icon";
+import { CardBody, CardNote } from "@/components/states/screen-state-context";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
 
@@ -194,20 +195,22 @@ export function WorldCard({ variant }: { variant: Variant }) {
     <Panel className={cn("gap-3.5", mobile && "p-4")}>
       <PanelHeader
         title="Onde seu dinheiro está no mundo"
-        subtitle="Exposição dos seus investimentos por país"
+        subtitle={<CardNote>Exposição dos seus investimentos por país</CardNote>}
         titleClassName={mobile ? "text-18" : undefined}
       />
-      {mobile ? (
-        <>
-          <div className="px-3">{globe}</div>
-          {details}
-        </>
-      ) : (
-        <div className="grid grow grid-cols-2 items-center gap-6">
-          <div className="min-w-0">{globe}</div>
-          <div className="flex min-w-0 flex-col gap-3.5">{details}</div>
-        </div>
-      )}
+      <CardBody className="grow gap-3.5">
+        {mobile ? (
+          <>
+            <div className="px-3">{globe}</div>
+            {details}
+          </>
+        ) : (
+          <div className="grid grow grid-cols-2 items-center gap-6">
+            <div className="min-w-0">{globe}</div>
+            <div className="flex min-w-0 flex-col gap-3.5">{details}</div>
+          </div>
+        )}
+      </CardBody>
     </Panel>
   );
 }

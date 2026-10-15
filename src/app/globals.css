@@ -236,6 +236,43 @@
   }
 }
 
+/*
+ * Esqueleto de carregamento (components/states/skeleton.tsx): textos viram barras, superfícies
+ * ficam no tom dos campos, bordas quase somem e ícones e imagens se escondem.
+ */
+[data-skeleton] :not([data-skeleton-skip], [data-skeleton-skip] *) {
+  color: transparent !important;
+  border-color: #1e2a23 !important;
+  box-shadow: none !important;
+  text-decoration-color: transparent !important;
+  accent-color: var(--guara-field);
+}
+[data-skeleton]
+  :is([class^="bg-"], [class*=" bg-"], [style*="background"]):not(
+    .bg-transparent,
+    [data-skeleton-skip],
+    [data-skeleton-skip] *
+  ) {
+  background: var(--guara-field) !important;
+}
+[data-skeleton] :is(svg, img):not([data-skeleton-skip] *) {
+  visibility: hidden;
+}
+[data-skeleton] ::placeholder {
+  color: transparent;
+}
+/* Partes que continuam visíveis voltam à cor do texto (sem isso herdariam o transparente). */
+@layer base {
+  [data-skeleton] [data-skeleton-skip] {
+    color: var(--foreground);
+  }
+}
+[data-skeleton] .skeleton-text {
+  border-radius: 6px;
+  box-decoration-break: clone;
+  background: var(--guara-line) !important;
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
   &::-webkit-scrollbar {

@@ -10,6 +10,8 @@ import { DetailList } from "@/components/ui/detail-list";
 import { Icon } from "@/components/ui/icon";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
+import { OFFLINE_NOTE, type ScreenState } from "@/components/states/screen-state";
+import { ErrorBlock, NoDataBlock, StateSwap } from "@/components/states/state-block";
 
 import type { Transaction, TransactionDetails } from "../lancamentos";
 import { OffPatternTag } from "./transaction-days";
@@ -113,72 +115,87 @@ export function CategoryPicker({
   current,
   desktop,
   id,
+  state,
 }: {
   details: TransactionDetails;
   current: string;
   desktop?: boolean;
   id: string;
+  state?: ScreenState | null;
 }) {
   const [category, setCategory] = useState(current);
   return (
     <Panel className={cn("gap-3", desktop ? "p-5.5" : "p-4.5")}>
       <PanelHeader
         title="Categoria"
-        subtitle={`${desktop ? "Clique" : "Toque"} para mudar · vale para compras parecidas`}
+        subtitle={
+          state === "sem-internet" ? (
+            <span className="text-tucano">{OFFLINE_NOTE}</span>
+          ) : (
+            `${desktop ? "Clique" : "Toque"} para mudar · vale para compras parecidas`
+          )
+        }
         titleClassName={cn("tracking-normal", desktop ? "text-19" : "text-17")}
       />
-      <div className="flex flex-wrap gap-2">
-        {[...details.categorias, "Outra…"].map((option) => (
-          <button
-            key={option}
-            type="button"
-            aria-pressed={option === category}
-            onClick={() => setCategory(option)}
-            className={filterChipClass(option === category)}
-          >
-            {option}
-          </button>
-        ))}
-      </div>
-      <div className="flex min-h-13 items-center gap-3">
-        <input
-          id={id}
-          type="checkbox"
-          defaultChecked
-          className="m-0 size-5.5 shrink-0 accent-sand"
-        />
-        <label htmlFor={id} className="flex grow flex-col leading-[1.35]">
-          <span className="font-bold">Usar “{category}” para esta loja nas próximas vezes</span>
-        </label>
-      </div>
-      {desktop && details.semTeto && <NoCeilingNote text={details.semTeto} />}
+      <StateSwap
+        replacement={state === "erro" ? <ErrorBlock /> : state === "vazio" && <NoDataBlock />}
+        className="grow gap-3"
+      >
+        <div className="flex flex-wrap gap-2">
+          {[...details.categorias, "Outra…"].map((option) => (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={option === category}
+              onClick={() => setCategory(option)}
+              className={filterChipClass(option === category)}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+        <div className="flex min-h-13 items-center gap-3">
+          <input
+            id={id}
+            type="checkbox"
+            defaultChecked
+            className="m-0 size-5.5 shrink-0 accent-sand"
+          />
+          <label htmlFor={id} className="flex grow flex-col leading-[1.35]">
+            <span className="font-bold">Usar “{category}” para esta loja nas próximas vezes</span>
+          </label>
+        </div>
+        {desktop && details.semTeto && <NoCeilingNote text={details.semTeto} />}
+      </StateSwap>
     </Panel>
   );
 }
 
-export function MoreActions({ desktop }: { desktop?: boolean }) {
+export function MoreActions({ desktop, failed }: { desktop?: boolean; failed?: boolean }) {
   return (
     <Panel className={cn("grow gap-1.5", desktop ? "p-5.5" : "p-4.5")}>
       <PanelHeader
         title="Mais ações"
         titleClassName={cn("tracking-normal", desktop ? "text-19" : "text-17")}
       />
-      <ActionList
-        items={[
-          {
-            icon: "copy",
-            label: "Marcar como duplicado",
-            description: "Some do total se o mesmo gasto apareceu duas vezes",
-          },
-          {
-            icon: "repeat-alt",
-            label: "Não é assinatura",
-            description: "Para de tratar esta loja como cobrança recorrente",
-          },
-          { icon: "edit", label: "Adicionar observação" },
-          { icon: "eye-alt", label: "Esconder dos relatórios" },
-        ]}
-      />
+      <StateSwap replacement={failed && <ErrorBlock />} className="grow">
+        <ActionList
+          items={[
+            {
+              icon: "copy",
+              label: "Marcar como duplicado",
+              description: "Some do total se o mesmo gasto apareceu duas vezes",
+            },
+            {
+              icon: "repeat-alt",
+              label: "Não é assinatura",
+              description: "Para de tratar esta loja como cobrança recorrente",
+            },
+            { icon: "edit", label: "Adicionar observação" },
+            { icon: "eye-alt", label: "Esconder dos relatórios" },
+          ]}
+        />
+      </StateSwap>
     </Panel>
   );
 }

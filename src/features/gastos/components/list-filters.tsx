@@ -6,11 +6,25 @@ import { dropdownPillClass, filterChipClass } from "@/components/ui/chip";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
-const banks = ["Todos os bancos", "Nubank", "Itaú"];
+export const ALL_BANKS = "Todos os bancos";
+export const banks = [ALL_BANKS, "Nubank", "Itaú"];
 
-/** Filtro por banco das listas completas (um ativo por vez). */
-export function BankFilter({ className }: { className?: string }) {
-  const [current, setCurrent] = useState(banks[0]);
+/** Filtro por banco das listas completas (um ativo por vez); controlável com `value`. */
+export function BankFilter({
+  value,
+  onChange,
+  className,
+}: {
+  value?: string;
+  onChange?: (bank: string) => void;
+  className?: string;
+}) {
+  const [own, setOwn] = useState(ALL_BANKS);
+  const current = value ?? own;
+  const setCurrent = (bank: string) => {
+    setOwn(bank);
+    onChange?.(bank);
+  };
   return (
     <div role="group" aria-label="Filtrar por banco" className={cn("flex gap-2", className)}>
       {banks.map((bank) => (

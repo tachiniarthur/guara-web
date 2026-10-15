@@ -4,6 +4,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, type ReactNode } from "react";
 
 import { ReportChatAside } from "@/features/relatorio/components/report-chat-aside";
+import { ErrorToast, OfflineToast } from "@/components/states/status-toast";
 import { shellConfig } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
@@ -28,7 +29,7 @@ import { ValuesMask } from "./values-mask";
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   return (
-    <div className="flex min-h-dvh">
+    <div className="relative flex min-h-dvh">
       <Sidebar className="hidden lg:flex" />
       <Rail className="hidden md:flex lg:hidden" />
       <main className="@container min-w-0 flex-1">{children}</main>
@@ -66,7 +67,15 @@ function ShellChromeFromUrl({ pathname }: { pathname: string }) {
     else if (chat === "nao-enviada") openConversation("gastos-setembro", "nao-enviada");
     else openConversation(chatLinks[chat] ?? chat);
   }, [chat]);
-  return <ShellChrome pathname={pathname} novo={novo} />;
+  const estado = params.get("estado");
+  return (
+    <>
+      <ShellChrome pathname={pathname} novo={novo} />
+      {/* Avisos dos estados de erro e sem internet (`?estado=erro`, `?estado=sem-internet`). */}
+      {estado === "erro" && <ErrorToast />}
+      {estado === "sem-internet" && <OfflineToast />}
+    </>
+  );
 }
 
 /** Painel de conversas, chat por cima, botões "Conversar" e barra inferior de cada rota. */

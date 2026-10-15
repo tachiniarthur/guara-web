@@ -2,38 +2,60 @@ import Link from "next/link";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
+import { OFFLINE_NOTE, parseScreenState, type ScreenState } from "@/components/states/screen-state";
+import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
+import { ErrorBlock, NoDataBlock, StateSwap } from "@/components/states/state-block";
 import { Button } from "@/components/ui/button";
 import { DetailList } from "@/components/ui/detail-list";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
-import { ListFilter } from "@/components/ui/list-filter";
 import { Panel, PanelHeader, panelLinkClass } from "@/components/ui/panel";
 import { DeviceNotificationsAlert } from "@/features/notificacoes/components/device-notifications-alert";
-import {
-  NotificationGroupTitle,
-  NotificationList,
-} from "@/features/notificacoes/components/notification-list";
+import { NotificationsFeed } from "@/features/notificacoes/components/notifications-feed";
 import {
   notificationChannels,
   notifications,
   notificationsThisMonth,
 } from "@/features/notificacoes/data";
 
-const filters = ["Todas", "Gastos", "Investimentos", "Conta"];
+type Props = { state: ScreenState | null };
 
-function ChannelsPanel() {
+const offlineNote = (state: ScreenState | null, text: string) =>
+  state === "sem-internet" ? <span className="text-tucano">{OFFLINE_NOTE}</span> : text;
+
+function ChannelsPanel({ state }: Props) {
   return (
     <Panel className="gap-3.5 p-5.5">
       <PanelHeader
         title="Como você recebe os avisos"
-        subtitle="Cada aviso de teto chega uma vez por mês"
+        subtitle={offlineNote(state, "Cada aviso de teto chega uma vez por mês")}
         titleClassName="text-18 tracking-normal"
       />
-      <DetailList items={notificationChannels} />
-      <Link href="/perfil" className={panelLinkClass}>
-        Mudar em Meu perfil
-        <Icon name="chevron-right" size={16} />
-      </Link>
+      <StateSwap replacement={state === "erro" && <ErrorBlock />} className="grow gap-3.5">
+        <DetailList items={notificationChannels} />
+        <Link href="/perfil" className={panelLinkClass}>
+          Mudar em Meu perfil
+          <Icon name="chevron-right" size={16} />
+        </Link>
+      </StateSwap>
+    </Panel>
+  );
+}
+
+function MonthPanel({ state }: Props) {
+  return (
+    <Panel className="grow gap-3.5 p-5.5">
+      <PanelHeader
+        title="Neste mês"
+        subtitle={offlineNote(state, "Avisos enviados em setembro")}
+        titleClassName="text-18 tracking-normal"
+      />
+      <StateSwap
+        replacement={state === "erro" ? <ErrorBlock /> : state === "vazio" && <NoDataBlock />}
+        className="grow"
+      >
+        <DetailList items={notificationsThisMonth} />
+      </StateSwap>
     </Panel>
   );
 }
@@ -42,11 +64,12 @@ function ChannelsPanel() {
 export default async function NotificacoesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ aparelho?: string }>;
+  searchParams: Promise<{ aparelho?: string; estado?: string }>;
 }) {
-  const disabled = (await searchParams).aparelho === "desligado";
+  const params = await searchParams;
+  const disabled = params.aparelho === "desligado";
+  const state = parseScreenState(params.estado);
   const fresh = notifications.filter((n) => n.nova);
-  const older = notifications.filter((n) => !n.nova);
   const markAll = (
     <Button variant="secondary" size="sm">
       <Icon name="check" size={18} />
@@ -68,40 +91,16 @@ export default async function NotificacoesPage({
         />
       }
     >
+      {state === "carregando" && <LoadingStatus />}
       <DetailHeader title="Notificações" subtitle={`${fresh.length} novas`} actions={markAll} />
       {disabled && <DeviceNotificationsAlert />}
-      <ListFilter
-        options={filters}
-        label="Filtrar notificações"
-        className="-mr-4 overflow-hidden @tab:mr-0 @tab:flex-wrap"
-      />
-      <NotificationGroupTitle>{`Novas · ${fresh.length}`}</NotificationGroupTitle>
-
-      <div className="contents @desk:hidden">
-        <NotificationList items={fresh} />
-        <NotificationGroupTitle className="mt-2">Anteriores</NotificationGroupTitle>
-        <NotificationList items={older} />
-        <ChannelsPanel />
-      </div>
-
-      <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1fr)] items-stretch gap-5 @desk:grid">
-        <div className="flex min-w-0 flex-col gap-3">
-          <NotificationList items={fresh} />
-          <NotificationGroupTitle>Anteriores</NotificationGroupTitle>
-          <NotificationList items={older} />
-        </div>
-        <div className="flex min-w-0 flex-col gap-5">
-          <ChannelsPanel />
-          <Panel className="grow gap-3.5 p-5.5">
-            <PanelHeader
-              title="Neste mês"
-              subtitle="Avisos enviados em setembro"
-              titleClassName="text-18 tracking-normal"
-            />
-            <DetailList items={notificationsThisMonth} />
-          </Panel>
-        </div>
-      </div>
+      <Skeleton active={state === "carregando"}>
+        <NotificationsFeed
+          state={state}
+          channels={<ChannelsPanel state={state} />}
+          month={<MonthPanel state={state} />}
+        />
+      </Skeleton>
     </Page>
   );
 }

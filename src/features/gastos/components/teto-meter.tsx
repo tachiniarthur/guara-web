@@ -82,12 +82,13 @@ export function TetoMeter({ teto }: { teto: TetoProgress }) {
           </Link>
         </span>
         <span className="text-14 text-mist tabular-nums">
-          <strong className="text-sand">{teto.gasto}</strong> de {teto.teto}
+          <strong className="text-sand">{teto.gasto}</strong>
+          {` de ${teto.teto}`}
         </span>
       </div>
       <TetoBar percentual={teto.percentual} estado={teto.estado} marcos={teto.marcos} />
       <span className={cn("inline-flex items-center gap-1.5 text-12", stateText[teto.estado])}>
-        {Math.round(teto.percentual)}% · {teto.estado}
+        {`${Math.round(teto.percentual)}% · ${teto.estado}`}
       </span>
     </div>
   );

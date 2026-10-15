@@ -10,6 +10,8 @@ type SearchFieldProps = {
   /** "sm": 44px, texto 14 · "list": 46px, texto 16 (listas completas) · "lg": 52px, texto 16. */
   size?: "sm" | "md" | "list" | "lg";
   defaultValue?: string;
+  /** Texto do campo, quando quem usa controla a busca. */
+  value?: string;
   className?: string;
   inputClassName?: string;
   onValueChange?: (value: string) => void;
@@ -21,6 +23,7 @@ export function SearchField({
   placeholder,
   size = "sm",
   defaultValue,
+  value,
   className,
   inputClassName,
   onValueChange,
@@ -49,7 +52,8 @@ export function SearchField({
         id={id}
         type="search"
         placeholder={placeholder ?? label}
-        defaultValue={defaultValue}
+        defaultValue={value === undefined ? defaultValue : undefined}
+        value={value}
         onChange={onValueChange && ((event) => onValueChange(event.target.value))}
         className={cn(
           "w-full rounded-full border border-line-strong bg-field px-3.5 text-sand",

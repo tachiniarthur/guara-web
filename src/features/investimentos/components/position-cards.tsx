@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { StateSwap, TileErrorBlock } from "@/components/states/state-block";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
@@ -31,31 +32,44 @@ function Detail({
 }
 
 /** Faixa com textura de mata que abre cada classe ("Renda fixa · R$ 22.222,10 · 46,0%"). */
+/** Faixa do tucano com degradê, fundo das faixas de classe (e dos avisos no lugar delas). */
+export const classBannerClass =
+  "mt-1.5 rounded-[0.875rem] border border-sand/25 bg-[linear-gradient(90deg,rgba(11,17,14,0.82)_0%,rgba(11,17,14,0.55)_55%,rgba(11,17,14,0.2)_100%),url(/images/marca/faixa-tucano.jpg)] bg-mata bg-cover bg-right px-3.5 py-3";
+
 export function ClassBanner({
   classe,
   total,
   percentual,
   quantidade,
+  failed,
 }: {
   classe: string;
   total: string;
   percentual: string;
   quantidade?: number;
+  /** Erro ao carregar: a faixa mostra o aviso no lugar do total. */
+  failed?: boolean;
 }) {
   return (
-    <div className="mt-1.5 flex items-baseline justify-between gap-2 rounded-[0.875rem] border border-sand/25 bg-[linear-gradient(90deg,rgba(11,17,14,0.82)_0%,rgba(11,17,14,0.55)_55%,rgba(11,17,14,0.2)_100%),url(/images/marca/faixa-tucano.jpg)] bg-cover bg-right px-3.5 py-3">
-      <h3 className="m-0 text-15 font-bold">
-        {classe}
-        {quantidade !== undefined && (
-          <span className="font-normal text-mist">
-            {` · ${quantidade} ${quantidade === 1 ? "posição" : "posições"}`}
-          </span>
-        )}
-      </h3>
-      <span className="text-14 whitespace-nowrap text-soft tabular-nums">
-        <strong className="text-sand">{total}</strong>
-        {` · ${percentual}`}
-      </span>
+    <div className={cn("flex items-baseline justify-between gap-2", classBannerClass)}>
+      <StateSwap
+        replacement={failed && <TileErrorBlock />}
+        className="grow flex-row items-baseline justify-between gap-2"
+        overlayClassName="items-start justify-center"
+      >
+        <h3 className="m-0 text-15 font-bold">
+          {classe}
+          {quantidade !== undefined && (
+            <span className="font-normal text-mist">
+              {` · ${quantidade} ${quantidade === 1 ? "posição" : "posições"}`}
+            </span>
+          )}
+        </h3>
+        <span className="text-14 whitespace-nowrap text-soft tabular-nums">
+          <strong className="text-sand">{total}</strong>
+          {` · ${percentual}`}
+        </span>
+      </StateSwap>
     </div>
   );
 }

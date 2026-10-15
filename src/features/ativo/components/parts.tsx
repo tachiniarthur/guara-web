@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { OFFLINE_NOTE } from "@/components/states/screen-state";
+import { StateSwap } from "@/components/states/state-block";
 import { Icon } from "@/components/ui/icon";
 import { Panel } from "@/components/ui/panel";
 import { OpenChat } from "@/features/conversas/components/open-chat";
@@ -104,10 +106,16 @@ export function RangeCard({
   range,
   short,
   className,
+  replacement,
+  offline,
 }: {
   range: RangeInfo;
   short?: boolean;
   className?: string;
+  /** Bloco de estado (erro, vazio) no lugar do conteúdo. */
+  replacement?: ReactNode;
+  /** Sem internet: o subtítulo dá a hora dos dados guardados. */
+  offline?: boolean;
 }) {
   return (
     <Panel className={cn("gap-4 p-[1.375rem]", className)}>
@@ -115,26 +123,36 @@ export function RangeCard({
         <h2 className="m-0 font-display text-20 leading-[1.25] font-bold tracking-[-0.01em]">
           {range.titulo}
         </h2>
-        <p className="m-0 text-13 text-caption">{short ? range.subtituloCurto : range.subtitulo}</p>
+        <p className="m-0 text-13 text-caption">
+          {offline ? (
+            <span className="text-tucano">{OFFLINE_NOTE}</span>
+          ) : short ? (
+            range.subtituloCurto
+          ) : (
+            range.subtitulo
+          )}
+        </p>
       </div>
-      <div className="flex flex-col gap-2">
-        <div
-          role="img"
-          aria-label={range.label}
-          className="relative h-2.5 rounded-[0.3125rem] bg-[linear-gradient(90deg,rgba(255,106,80,0.55),rgba(242,194,48,0.55),rgba(108,192,142,0.55))]"
-        >
+      <StateSwap replacement={replacement} className="grow gap-4">
+        <div className="flex flex-col gap-2">
           <div
-            aria-hidden="true"
-            className="absolute -top-[0.3125rem] size-5 rounded-full bg-sand shadow-[0_0_0_3px_var(--guara-card)]"
-            style={{ left: `calc(${range.posicao}% - 0.625rem)` }}
-          />
+            role="img"
+            aria-label={range.label}
+            className="relative h-2.5 rounded-[0.3125rem] bg-[linear-gradient(90deg,rgba(255,106,80,0.55),rgba(242,194,48,0.55),rgba(108,192,142,0.55))]"
+          >
+            <div
+              aria-hidden="true"
+              className="absolute -top-[0.3125rem] size-5 rounded-full bg-sand shadow-[0_0_0_3px_var(--guara-card)]"
+              style={{ left: `calc(${range.posicao}% - 0.625rem)` }}
+            />
+          </div>
+          <div className="flex justify-between text-13 text-mist tabular-nums">
+            <span>{range.min}</span>
+            <span>{range.max}</span>
+          </div>
         </div>
-        <div className="flex justify-between text-13 text-mist tabular-nums">
-          <span>{range.min}</span>
-          <span>{range.max}</span>
-        </div>
-      </div>
-      <KeyValueList rows={range.linhas} rowClassName="min-h-[2.5625rem]" />
+        <KeyValueList rows={range.linhas} rowClassName="min-h-[2.5625rem]" />
+      </StateSwap>
     </Panel>
   );
 }
@@ -265,10 +283,14 @@ export function IndicatorsCard({
   asset,
   variant,
   className,
+  replacement,
+  offline,
 }: {
   asset: Asset;
   variant: "desktop" | "tablet" | "mobile";
   className?: string;
+  replacement?: ReactNode;
+  offline?: boolean;
 }) {
   const mobile = variant === "mobile";
   return (
@@ -282,14 +304,22 @@ export function IndicatorsCard({
         >
           Indicadores principais
         </h2>
-        <p className="m-0 text-13 text-mist">Atualizado em 23 de set. de 2026</p>
+        <p className="m-0 text-13 text-mist">
+          {offline ? (
+            <span className="text-tucano">{OFFLINE_NOTE}</span>
+          ) : (
+            "Atualizado em 23 de set. de 2026"
+          )}
+        </p>
       </div>
-      {mobile ? (
-        <IndicatorsList rows={asset.indicadores} />
-      ) : (
-        <IndicatorsTable rows={asset.indicadores} compact={variant === "tablet"} />
-      )}
-      <p className="m-0 text-13 text-caption">{asset.notaIndicadores}</p>
+      <StateSwap replacement={replacement} className="grow gap-3.5">
+        {mobile ? (
+          <IndicatorsList rows={asset.indicadores} />
+        ) : (
+          <IndicatorsTable rows={asset.indicadores} compact={variant === "tablet"} />
+        )}
+        <p className="m-0 text-13 text-caption">{asset.notaIndicadores}</p>
+      </StateSwap>
     </Panel>
   );
 }
@@ -323,12 +353,16 @@ export function EventsCard({
   variant,
   className,
   allHref,
+  replacement,
+  offline,
 }: {
   events: EventsInfo;
   variant: "desktop" | "tablet" | "mobile";
   className?: string;
   /** Tela com todos os eventos ("Ver todos"), quando existe. */
   allHref?: string;
+  replacement?: ReactNode;
+  offline?: boolean;
 }) {
   const mobile = variant === "mobile";
   const th =
@@ -346,108 +380,112 @@ export function EventsCard({
         >
           Eventos corporativos
         </h2>
-        <p className="m-0 text-13 text-mist">{events.subtitulo}</p>
+        <p className="m-0 text-13 text-mist">
+          {offline ? <span className="text-tucano">{OFFLINE_NOTE}</span> : events.subtitulo}
+        </p>
       </div>
-      {events.tipo === "mensagem" ? (
-        <div className="flex gap-3 rounded-tile bg-field p-4 text-14 leading-[1.55] text-soft">
-          <span className="mt-0.5 text-caption">
-            <Icon name="info" size={18} />
-          </span>
-          <span>{events.texto}</span>
-        </div>
-      ) : (
-        <>
-          <div className="flex items-center gap-2.5 rounded-[0.875rem] bg-folha-bg px-3.5 py-3 text-14 text-sand">
-            <span className="text-folha">
-              <Icon name="dollar" size={18} />
+      <StateSwap replacement={replacement} className="grow gap-3.5">
+        {events.tipo === "mensagem" ? (
+          <div className="flex gap-3 rounded-tile bg-field p-4 text-14 leading-[1.55] text-soft">
+            <span className="mt-0.5 text-caption">
+              <Icon name="info" size={18} />
             </span>
-            <span>{events.resumo}</span>
+            <span>{events.texto}</span>
           </div>
-          {mobile ? (
-            <ul className="m-0 -mt-1 list-none p-0">
-              {events.eventos.slice(0, 6).map((e) => (
-                <li
-                  key={e.data}
-                  className="flex items-center justify-between gap-3 border-b border-line py-3"
-                >
-                  <span className="flex flex-col leading-[1.35]">
-                    <strong className="text-15 tabular-nums">{e.data}</strong>
-                    <span className="text-13 text-mist">{e.evento}</span>
-                  </span>
-                  <span className="flex flex-col items-end leading-[1.35]">
-                    <strong className="text-15 tabular-nums">{e.valor}</strong>
-                    <span
-                      className={cn(
-                        "text-13 tabular-nums",
-                        e.recebido ? "text-folha" : "text-caption",
-                      )}
-                    >
-                      {e.recebido
-                        ? `você: ${e.recebido.replace("+", "")}`
-                        : (events.semRecebimento ?? "—")}
+        ) : (
+          <>
+            <div className="flex items-center gap-2.5 rounded-[0.875rem] bg-folha-bg px-3.5 py-3 text-14 text-sand">
+              <span className="text-folha">
+                <Icon name="dollar" size={18} />
+              </span>
+              <span>{events.resumo}</span>
+            </div>
+            {mobile ? (
+              <ul className="m-0 -mt-1 list-none p-0">
+                {events.eventos.slice(0, 6).map((e) => (
+                  <li
+                    key={e.data}
+                    className="flex items-center justify-between gap-3 border-b border-line py-3"
+                  >
+                    <span className="flex flex-col leading-[1.35]">
+                      <strong className="text-15 tabular-nums">{e.data}</strong>
+                      <span className="text-13 text-mist">{e.evento}</span>
                     </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="overflow-hidden rounded-tile border border-line">
-              <table className="w-full border-collapse">
-                <caption className="sr-only">Eventos corporativos</caption>
-                <thead className="bg-field">
-                  <tr>
-                    <th scope="col" className={cn(th, "text-left")}>
-                      Data
-                    </th>
-                    <th scope="col" className={cn(th, "text-left")}>
-                      Evento
-                    </th>
-                    <th scope="col" className={cn(th, "text-right")}>
-                      Valor
-                    </th>
-                    <th scope="col" className={cn(th, "text-right")}>
-                      Você recebeu
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {events.eventos.map((e) => (
-                    <tr key={e.data}>
-                      <td className={cn(td, "font-bold tabular-nums")}>{e.data}</td>
-                      <td className={cn(td, "text-mist")}>{e.evento}</td>
-                      <td className={cn(td, "text-right font-bold tabular-nums")}>{e.valor}</td>
-                      <td
+                    <span className="flex flex-col items-end leading-[1.35]">
+                      <strong className="text-15 tabular-nums">{e.valor}</strong>
+                      <span
                         className={cn(
-                          td,
-                          "text-right font-bold tabular-nums",
+                          "text-13 tabular-nums",
                           e.recebido ? "text-folha" : "text-caption",
                         )}
                       >
-                        {e.recebido ?? "—"}
-                      </td>
+                        {e.recebido
+                          ? `você: ${e.recebido.replace("+", "")}`
+                          : (events.semRecebimento ?? "—")}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="overflow-hidden rounded-tile border border-line">
+                <table className="w-full border-collapse">
+                  <caption className="sr-only">Eventos corporativos</caption>
+                  <thead className="bg-field">
+                    <tr>
+                      <th scope="col" className={cn(th, "text-left")}>
+                        Data
+                      </th>
+                      <th scope="col" className={cn(th, "text-left")}>
+                        Evento
+                      </th>
+                      <th scope="col" className={cn(th, "text-right")}>
+                        Valor
+                      </th>
+                      <th scope="col" className={cn(th, "text-right")}>
+                        Você recebeu
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {events.eventos.map((e) => (
+                      <tr key={e.data}>
+                        <td className={cn(td, "font-bold tabular-nums")}>{e.data}</td>
+                        <td className={cn(td, "text-mist")}>{e.evento}</td>
+                        <td className={cn(td, "text-right font-bold tabular-nums")}>{e.valor}</td>
+                        <td
+                          className={cn(
+                            td,
+                            "text-right font-bold tabular-nums",
+                            e.recebido ? "text-folha" : "text-caption",
+                          )}
+                        >
+                          {e.recebido ?? "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <ViewAll
+                  href={allHref}
+                  className="flex w-full items-center gap-1.5 border-none bg-transparent px-4 py-3 text-14 font-semibold text-mist"
+                >
+                  Ver todos ({events.total})
+                </ViewAll>
+              </div>
+            )}
+            {mobile && (
               <ViewAll
                 href={allHref}
-                className="flex w-full items-center gap-1.5 border-none bg-transparent px-4 py-3 text-14 font-semibold text-mist"
+                className="flex items-center gap-1.5 border-none bg-transparent p-0 text-14 font-semibold text-mist"
               >
                 Ver todos ({events.total})
               </ViewAll>
-            </div>
-          )}
-          {mobile && (
-            <ViewAll
-              href={allHref}
-              className="flex items-center gap-1.5 border-none bg-transparent p-0 text-14 font-semibold text-mist"
-            >
-              Ver todos ({events.total})
-            </ViewAll>
-          )}
-          <p className="m-0 text-13 text-caption">{events.nota}</p>
-        </>
-      )}
+            )}
+            <p className="m-0 text-13 text-caption">{events.nota}</p>
+          </>
+        )}
+      </StateSwap>
     </Panel>
   );
 }

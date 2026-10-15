@@ -1,9 +1,20 @@
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
+import { parseScreenState } from "@/components/states/screen-state";
+import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
+import {
+  ErrorBlock,
+  ErrorBlocks,
+  NoDataBlock,
+  StateBlock,
+  StateSwap,
+  TileEmptyBlock,
+} from "@/components/states/state-block";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
@@ -17,16 +28,51 @@ import {
 } from "@/features/gastos/components/transaction-detail";
 import { allTransactions, detailsFor, findTransaction } from "@/features/gastos/lancamentos";
 
+function NoCeilingTile({ text, replacement }: { text: string; replacement: ReactNode }) {
+  return (
+    <StateSwap
+      replacement={replacement}
+      overlayClassName="items-start rounded-[0.875rem] bg-shade px-3.5 py-3"
+    >
+      <NoCeilingNote text={text} />
+    </StateSwap>
+  );
+}
+
 export function generateStaticParams() {
   return allTransactions.map((item) => ({ id: item.id }));
 }
 
-export default async function LancamentoPage({ params }: { params: Promise<{ id: string }> }) {
+const notFoundBlock = (
+  <StateBlock
+    icon="search"
+    title="Lançamento não encontrado"
+    action={
+      <ButtonLink href="/gastos/lancamentos" size="md">
+        <span>Ver lançamentos</span>
+      </ButtonLink>
+    }
+  >
+    O banco pode ter cancelado esta compra ou juntado com outra. Os outros lançamentos continuam
+    iguais.
+  </StateBlock>
+);
+
+export default async function LancamentoPage({
+  params,
+  searchParams,
+}: PageProps<"/gastos/lancamentos/[id]">) {
   const { id } = await params;
   const item = findTransaction(id);
   if (!item) notFound();
   const details = detailsFor(item);
   const offPattern = item.foraDoPadrao;
+  const state = parseScreenState((await searchParams).estado);
+  const failed = state === "erro";
+  const empty = state === "vazio";
+  /** Tiles sem título (valor, pergunta do Quero-quero, aviso sem teto). */
+  const tile = (onTablet: "tile" | "compact" = "tile") =>
+    failed ? <ErrorBlocks mobile="tile" tablet={onTablet} /> : empty && <TileEmptyBlock />;
 
   return (
     <Page
@@ -42,6 +88,7 @@ export default async function LancamentoPage({ params }: { params: Promise<{ id:
         />
       }
     >
+      {state === "carregando" && <LoadingStatus />}
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
         items={[
@@ -60,50 +107,100 @@ export default async function LancamentoPage({ params }: { params: Promise<{ id:
         }
       />
 
-      {/* Celular: tudo em sequência · tablet: valor no topo e duas colunas. */}
-      <div className="contents @desk:hidden">
-        <TransactionHero item={item} details={details} />
-        <div className="flex flex-col gap-4 @tab:grid @tab:grid-cols-2 @tab:items-stretch">
+      <Skeleton active={state === "carregando"}>
+        {/* Celular: tudo em sequência · tablet: valor no topo e duas colunas. */}
+        <div className="contents @desk:hidden">
+          <StateSwap
+            overlayClassName="items-center text-center"
+            replacement={
+              failed ? (
+                <ErrorBlocks mobile="tile" tablet="compact" />
+              ) : (
+                empty && (
+                  <>
+                    <TileEmptyBlock className="@tab:hidden" />
+                    <NoDataBlock compact className="hidden @tab:flex" />
+                  </>
+                )
+              )
+            }
+          >
+            <TransactionHero item={item} details={details} />
+          </StateSwap>
+          <div className="flex flex-col gap-4 @tab:grid @tab:grid-cols-2 @tab:items-stretch">
+            <div className="flex min-w-0 flex-col gap-4">
+              {offPattern && (
+                <StateSwap replacement={tile()} overlayClassName="rounded-bubble bg-shade p-4">
+                  <OffPatternCheck />
+                </StateSwap>
+              )}
+              {details.semTeto && (
+                <div className="hidden @tab:block">
+                  <NoCeilingTile text={details.semTeto} replacement={tile()} />
+                </div>
+              )}
+              <Panel className="gap-3.5 p-4.5 @tab:grow">
+                <StateSwap
+                  replacement={failed ? <ErrorBlock /> : empty && notFoundBlock}
+                  className="grow"
+                >
+                  <TransactionDetailList details={details} />
+                </StateSwap>
+              </Panel>
+            </div>
+            <div className="flex min-w-0 flex-col gap-4">
+              <CategoryPicker details={details} current={item.categoria} id="cat-m" state={state} />
+              {details.semTeto && (
+                <div className="@tab:hidden">
+                  <NoCeilingTile text={details.semTeto} replacement={tile()} />
+                </div>
+              )}
+              <MoreActions failed={failed} />
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: três colunas. */}
+        <div className="hidden grid-cols-3 items-stretch gap-5 @desk:grid">
           <div className="flex min-w-0 flex-col gap-4">
-            {offPattern && <OffPatternCheck />}
-            {details.semTeto && (
-              <div className="hidden @tab:block">
-                <NoCeilingNote text={details.semTeto} />
-              </div>
+            {offPattern && (
+              <StateSwap
+                replacement={failed ? <ErrorBlock compact /> : empty && <NoDataBlock compact />}
+                overlayClassName="rounded-bubble bg-shade p-4"
+              >
+                <OffPatternCheck />
+              </StateSwap>
             )}
-            <Panel className="gap-3.5 p-4.5 @tab:grow">
-              <TransactionDetailList details={details} />
+            <Panel className="grow gap-3.5 p-6">
+              <StateSwap
+                replacement={failed ? <ErrorBlock /> : empty && <NoDataBlock />}
+                className="grow"
+              >
+                <TransactionHero item={item} details={details} desktop />
+              </StateSwap>
             </Panel>
           </div>
+          <Panel className="gap-3.5 p-5.5">
+            <PanelHeader title="Detalhes" titleClassName="text-19 tracking-normal" />
+            <StateSwap
+              replacement={failed ? <ErrorBlock /> : empty && notFoundBlock}
+              className="grow"
+            >
+              <TransactionDetailList details={details} />
+            </StateSwap>
+          </Panel>
           <div className="flex min-w-0 flex-col gap-4">
-            <CategoryPicker details={details} current={item.categoria} id="cat-m" />
-            {details.semTeto && (
-              <div className="@tab:hidden">
-                <NoCeilingNote text={details.semTeto} />
-              </div>
-            )}
-            <MoreActions />
+            <CategoryPicker
+              details={details}
+              current={item.categoria}
+              id="cat-d"
+              desktop
+              state={state}
+            />
+            <MoreActions desktop failed={failed} />
           </div>
         </div>
-      </div>
-
-      {/* Desktop: três colunas. */}
-      <div className="hidden grid-cols-3 items-stretch gap-5 @desk:grid">
-        <div className="flex min-w-0 flex-col gap-4">
-          {offPattern && <OffPatternCheck />}
-          <Panel className="grow gap-3.5 p-6">
-            <TransactionHero item={item} details={details} desktop />
-          </Panel>
-        </div>
-        <Panel className="gap-3.5 p-5.5">
-          <PanelHeader title="Detalhes" titleClassName="text-19 tracking-normal" />
-          <TransactionDetailList details={details} />
-        </Panel>
-        <div className="flex min-w-0 flex-col gap-4">
-          <CategoryPicker details={details} current={item.categoria} id="cat-d" desktop />
-          <MoreActions desktop />
-        </div>
-      </div>
+      </Skeleton>
     </Page>
   );
 }

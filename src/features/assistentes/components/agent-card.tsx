@@ -1,3 +1,4 @@
+import { CardBody } from "@/components/states/screen-state-context";
 import { Icon } from "@/components/ui/icon";
 import { iconButtonVariants } from "@/components/ui/icon-button";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -88,65 +89,70 @@ export function AgentCard({
         className,
       )}
     >
-      <div
-        role="img"
-        aria-label={`Imagem do agente ${agent.nome}`}
-        className={cn("relative shrink-0 overflow-hidden rounded-t-[1.375rem]", imageClassName)}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element -- ilustração do bioma */}
-        <img src={agent.cena} alt="" className="absolute inset-0 block size-full object-cover" />
-        <span className="absolute top-3.5 right-3.5 rounded-full bg-black/45 px-2.5 py-1 text-12 font-bold text-sand">
-          {agent.bioma}
-        </span>
-        <span className="absolute top-3.5 left-3.5">
-          <span
-            className={cn(
-              "inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-12 font-bold whitespace-nowrap",
-              data.statusAlert ? "bg-urucum text-canvas" : "bg-black/55 text-[#F4F1EA]",
-            )}
-          >
-            {data.status}
+      <CardBody className="grow">
+        <div
+          role="img"
+          aria-label={`Imagem do agente ${agent.nome}`}
+          className={cn("relative shrink-0 overflow-hidden rounded-t-[1.375rem]", imageClassName)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- ilustração do bioma */}
+          <img src={agent.cena} alt="" className="absolute inset-0 block size-full object-cover" />
+          <span className="absolute top-3.5 right-3.5 rounded-full bg-black/45 px-2.5 py-1 text-12 font-bold text-sand">
+            {agent.bioma}
           </span>
-        </span>
-      </div>
-      <div className="flex min-h-0 grow flex-col gap-2.5 px-5 pt-4 pb-4.5">
-        <div className="flex items-baseline justify-between gap-2 @tab:flex-wrap @tab:gap-x-2 @tab:gap-y-0.5">
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <strong className="font-display text-24 leading-[1.1] font-extrabold">
-              {agent.nome}
-            </strong>
-            <span className="font-display text-13 leading-[1.2] font-bold text-caption italic">
-              {agent.cientifico}
+          <span className="absolute top-3.5 left-3.5">
+            <span
+              className={cn(
+                "inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-12 font-bold whitespace-nowrap",
+                data.statusAlert ? "bg-urucum text-canvas" : "bg-black/55 text-[#F4F1EA]",
+              )}
+            >
+              {data.status}
             </span>
-          </div>
-          <span className="text-13 font-bold text-mist">{agent.area}</span>
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <span
-            className={cn(
-              "font-display text-28 leading-[1.1] font-extrabold tabular-nums",
-              data.metricAlert ? "text-urucum" : "text-sand",
-            )}
-          >
-            {data.metric}
           </span>
-          <span className="text-13 text-caption">{data.metricCaption}</span>
         </div>
-        <Highlight highlight={data.highlight} />
-        <p className="m-0 text-14 leading-[1.4] text-mist italic">&quot;{data.quote}&quot;</p>
-        <div className="mt-auto flex items-center justify-between gap-2">
-          <TextLink href={data.link.href} className={data.link.alert ? "text-urucum" : undefined}>
-            {data.link.label}
-          </TextLink>
-          <OpenChat
-            agent={data.agent}
-            aria-label={`Conversar com ${agent.nome}`}
-            className={cn(iconButtonVariants({ variant: "outline", size: "md" }), actionClassName)}
-          >
-            <Icon name="chat" />
-          </OpenChat>
+        <div className="flex min-h-0 grow flex-col gap-2.5 px-5 pt-4 pb-4.5">
+          <div className="flex items-baseline justify-between gap-2 @tab:flex-wrap @tab:gap-x-2 @tab:gap-y-0.5">
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <strong className="font-display text-24 leading-[1.1] font-extrabold">
+                {agent.nome}
+              </strong>
+              <span className="font-display text-13 leading-[1.2] font-bold text-caption italic">
+                {agent.cientifico}
+              </span>
+            </div>
+            <span className="text-13 font-bold text-mist">{agent.area}</span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span
+              className={cn(
+                "font-display text-28 leading-[1.1] font-extrabold tabular-nums",
+                data.metricAlert ? "text-urucum" : "text-sand",
+              )}
+            >
+              {data.metric}
+            </span>
+            <span className="text-13 text-caption">{data.metricCaption}</span>
+          </div>
+          <Highlight highlight={data.highlight} />
+          <p className="m-0 text-14 leading-[1.4] text-mist italic">&quot;{data.quote}&quot;</p>
+          <div className="mt-auto flex items-center justify-between gap-2">
+            <TextLink href={data.link.href} className={data.link.alert ? "text-urucum" : undefined}>
+              {data.link.label}
+            </TextLink>
+            <OpenChat
+              agent={data.agent}
+              aria-label={`Conversar com ${agent.nome}`}
+              className={cn(
+                iconButtonVariants({ variant: "outline", size: "md" }),
+                actionClassName,
+              )}
+            >
+              <Icon name="chat" />
+            </OpenChat>
+          </div>
         </div>
-      </div>
+      </CardBody>
     </section>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { AgentTip } from "@/components/ui/agent-tip";
+import { StateSwap } from "@/components/states/state-block";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Tag } from "@/components/ui/tag";
@@ -65,17 +66,20 @@ export function GoalCard({ goal }: { goal: Goal }) {
 }
 
 /** Quanto está guardado nas metas e os depósitos planejados. */
-export function GoalsHero() {
+/** Total guardado nas metas; `replacement` troca o conteúdo (erro) mantendo a mata ao fundo. */
+export function GoalsHero({ replacement }: { replacement?: ReactNode }) {
   return (
     <MataCard className="gap-1.5">
-      <span className="text-14 text-[#C5D8CB]">Guardado nas metas</span>
-      <span className="font-display text-34 leading-[1.1] font-extrabold tracking-[-0.01em] tabular-nums">
-        {goalsSummary.guardado}
-      </span>
-      <span className="text-14 text-[#E4EEE6]">
-        Depósitos planejados: <strong className="text-white">{goalsSummary.mensal}</strong>
-        {` ${goalsSummary.sobrou}`}
-      </span>
+      <StateSwap replacement={replacement} className="grow gap-1.5">
+        <span className="text-14 text-[#C5D8CB]">Guardado nas metas</span>
+        <span className="font-display text-34 leading-[1.1] font-extrabold tracking-[-0.01em] tabular-nums">
+          {goalsSummary.guardado}
+        </span>
+        <span className="text-14 text-[#E4EEE6]">
+          Depósitos planejados: <strong className="text-white">{goalsSummary.mensal}</strong>
+          {` ${goalsSummary.sobrou}`}
+        </span>
+      </StateSwap>
     </MataCard>
   );
 }
