@@ -18,6 +18,9 @@ import { UserInitials } from "./user-chip";
 /** Assistentes com algo novo para mostrar (bolinha urucum no menu). */
 const agentsWithNews = new Set(["quero-quero"]);
 
+/** A turma no menu fica curta; os demais assistentes estão em "Ver todos os assistentes". */
+const sidebarAgents = agentOrder.filter((id) => id !== "caramelo" && id !== "onca");
+
 /** Menu lateral completo (janelas grandes): marca, busca, destinos, a turma e o card do usuário. */
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
@@ -26,7 +29,7 @@ export function Sidebar({ className }: { className?: string }) {
     <nav
       aria-label="Principal"
       className={cn(
-        "sticky top-0 scrollbar-none h-dvh w-[22rem] shrink-0 flex-col gap-6 overflow-y-auto border-r border-line bg-canvas px-5 pt-8 pb-6",
+        "sticky top-0 h-dvh w-[22rem] shrink-0 flex-col gap-6 overflow-hidden border-r border-line bg-canvas px-5 pt-8 pb-6",
         className,
       )}
     >
@@ -73,7 +76,7 @@ export function Sidebar({ className }: { className?: string }) {
           <span className="text-13 text-caption">Cada um cuida de uma parte do dinheiro</span>
         </div>
         <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
-          {agentOrder.map((id) => {
+          {sidebarAgents.map((id) => {
             const agent = agents[id];
             return (
               <li key={id}>
@@ -97,9 +100,17 @@ export function Sidebar({ className }: { className?: string }) {
             );
           })}
         </ul>
+        <Link
+          href="/assistentes"
+          className="mx-3 mt-1 flex min-h-8 items-center gap-1 self-start text-14 font-bold text-sand underline underline-offset-3 hover:text-tucano"
+        >
+          Ver todos os assistentes
+          <Icon name="chevron-right" size={16} />
+        </Link>
       </div>
 
-      <div className="grow" />
+      {/* Espaço flexível: o card do usuário fica sempre no rodapé, sem rolagem no menu. */}
+      <div className="min-h-0 grow" />
 
       <Link
         href="/perfil"
