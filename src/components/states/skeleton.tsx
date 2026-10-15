@@ -2,52 +2,48 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
+/** Card: tem fundo ou borda, cantos arredondados e altura de card (botões e pílulas ficam fora). */
+function isCard(element: HTMLElement) {
+  const style = getComputedStyle(element);
+  if (style.display === "contents" || element.offsetHeight < 64) return false;
+  const hasBackground =
+    !/rgba\(0, 0, 0, 0\)|transparent/.test(style.backgroundColor) ||
+    style.backgroundImage !== "none";
+  const hasBorder = parseFloat(style.borderTopWidth) > 0;
+  return (hasBackground || hasBorder) && parseFloat(style.borderTopLeftRadius) >= 12;
+}
+
 /**
- * Esqueleto de carregamento: a própria tela com os textos trocados por barras, cards apagados e
- * ícones e imagens escondidos (estilos em `globals.css`, `[data-skeleton]`). Assim o esqueleto
- * tem sempre o mesmo desenho da tela carregada. Partes marcadas com `data-skeleton-skip`
+ * Carregando (`?estado=carregando`): cada card da área continua no mesmo tamanho e lugar, com um
+ * círculo girando no centro no lugar do conteúdo (estilos em `globals.css`, `[data-skeleton]`).
+ * O que fica fora dos cards some, guardando o espaço; partes marcadas com `data-skeleton-skip`
  * (títulos de grupo, por exemplo) continuam visíveis.
  */
 export function Skeleton({ active, children }: { active: boolean; children: ReactNode }) {
   if (!active) return children;
-  return <SkeletonArea>{children}</SkeletonArea>;
+  return <LoadingArea>{children}</LoadingArea>;
 }
 
-function SkeletonArea({ children }: { children: ReactNode }) {
+function LoadingArea({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Cada trecho de texto ganha uma barra do tamanho dele (texto em si fica transparente).
+  // Marca os cards de fora para dentro: um card dentro de outro não ganha círculo próprio.
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-      acceptNode: (node) =>
-        node.textContent?.trim() &&
-        !node.parentElement?.closest("svg, .skeleton-text, [data-skeleton-skip]")
-          ? NodeFilter.FILTER_ACCEPT
-          : NodeFilter.FILTER_REJECT,
-    });
-    const nodes: Text[] = [];
-    while (walker.nextNode()) nodes.push(walker.currentNode as Text);
-    const bars: HTMLSpanElement[] = [];
-    for (const node of nodes) {
-      // Trechos vizinhos ("74", "% · ", "atenção") formam uma barra só.
-      const previous = node.previousSibling;
-      if (previous instanceof HTMLSpanElement && previous.classList.contains("skeleton-text")) {
-        previous.append(node);
-        continue;
-      }
-      const bar = document.createElement("span");
-      bar.className = "skeleton-text";
-      bar.setAttribute("aria-hidden", "true");
-      node.before(bar);
-      bar.append(node);
-      bars.push(bar);
+    const cards: HTMLElement[] = [];
+    for (const element of root.querySelectorAll<HTMLElement>("*")) {
+      if (element.closest("[data-skeleton-skip], svg")) continue;
+      if (cards.some((card) => card.contains(element))) continue;
+      if (!isCard(element)) continue;
+      cards.push(element);
+    }
+    for (const card of cards) {
+      card.classList.add("loading-card");
+      if (getComputedStyle(card).position === "static") card.classList.add("loading-card-relative");
     }
     return () => {
-      for (const bar of bars) {
-        if (bar.parentNode) bar.replaceWith(...bar.childNodes);
-      }
+      for (const card of cards) card.classList.remove("loading-card", "loading-card-relative");
     };
   }, []);
 

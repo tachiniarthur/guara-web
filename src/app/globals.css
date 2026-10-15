@@ -237,40 +237,47 @@
 }
 
 /*
- * Esqueleto de carregamento (components/states/skeleton.tsx): textos viram barras, superfícies
- * ficam no tom dos campos, bordas quase somem e ícones e imagens se escondem.
+ * Carregando (components/states/skeleton.tsx): os cards mantêm tamanho, fundo e borda, e o
+ * conteúdo dá lugar a um círculo girando no centro. O que fica fora dos cards some, mas guarda o
+ * espaço; partes marcadas com `data-skeleton-skip` continuam visíveis.
  */
-[data-skeleton] :not([data-skeleton-skip], [data-skeleton-skip] *) {
-  color: transparent !important;
-  border-color: #1e2a23 !important;
-  box-shadow: none !important;
-  text-decoration-color: transparent !important;
-  accent-color: var(--guara-field);
-}
-[data-skeleton]
-  :is([class^="bg-"], [class*=" bg-"], [style*="background"]):not(
-    .bg-transparent,
-    [data-skeleton-skip],
-    [data-skeleton-skip] *
-  ) {
-  background: var(--guara-field) !important;
-}
-[data-skeleton] :is(svg, img):not([data-skeleton-skip] *) {
+[data-skeleton] * {
   visibility: hidden;
 }
-[data-skeleton] ::placeholder {
-  color: transparent;
+[data-skeleton] .loading-card {
+  visibility: visible;
 }
-/* Partes que continuam visíveis voltam à cor do texto (sem isso herdariam o transparente). */
-@layer base {
-  [data-skeleton] [data-skeleton-skip] {
-    color: var(--foreground);
+[data-skeleton] .loading-card * {
+  visibility: hidden;
+}
+[data-skeleton] :is([data-skeleton-skip], [data-skeleton-skip] *) {
+  visibility: visible;
+}
+[data-skeleton] .loading-card-relative {
+  position: relative;
+}
+[data-skeleton] .loading-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 3px solid var(--guara-line-strong);
+  border-top-color: var(--guara-tucano);
+  border-radius: 9999px;
+  animation: loading-spin 0.8s linear infinite;
+}
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
-[data-skeleton] .skeleton-text {
-  border-radius: 6px;
-  box-decoration-break: clone;
-  background: var(--guara-line) !important;
+@media (prefers-reduced-motion: reduce) {
+  [data-skeleton] .loading-card::after {
+    animation-duration: 2.4s;
+  }
 }
 
 @utility scrollbar-none {

@@ -1,6 +1,6 @@
 /**
  * Estados de uma tela, abertos por `?estado=` (ex.: `/alertas?estado=erro`):
- * carregando (esqueleto), erro (não deu para carregar), sem internet (dados guardados),
+ * carregando (círculo girando em cada card), erro (não deu para carregar), sem internet (dados guardados),
  * vazio (ainda sem dados), vazio com filtro (a busca não achou nada) e excluída (com desfazer).
  */
 export type ScreenState =

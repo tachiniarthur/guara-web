@@ -33,8 +33,8 @@ export function TransactionDayGroup({
 }) {
   return (
     <div className={cn("flex min-w-0 flex-col", className)}>
-      {/* No carregamento, o título do dia fica visível no celular (fora de card) e vira
-          esqueleto no tablet e no desktop, dentro do card. */}
+      {/* No carregamento, o título do dia fica visível no celular (fora de card); no tablet e
+          no desktop ele está dentro do card, que mostra só o círculo de carregamento. */}
       <DayTitle day={day} className="@tab:hidden" skip />
       <DayTitle day={day} className="hidden @tab:flex" />
       <StateSwap
