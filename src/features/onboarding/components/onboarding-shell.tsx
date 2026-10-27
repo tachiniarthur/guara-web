@@ -44,11 +44,12 @@ function Wordmark({ size, className }: { size: number; className?: string }) {
 export function OnboardingAside() {
   return (
     <aside className="relative hidden h-dvh w-[35rem] shrink-0 flex-col justify-between overflow-hidden bg-shade p-14 text-sand lg:flex">
-      <div className="flex items-center gap-3">
+      <div className="relative z-10 flex items-center gap-3">
         <BrandLogo size={64} />
         <Wordmark size={34} />
       </div>
-      <div className="relative flex flex-col gap-7">
+      {/* Texto na frente da foto: em janelas baixas a mata sobe até ele. */}
+      <div className="relative z-10 flex flex-col gap-7">
         <p className="m-0 font-display text-40 leading-[1.2] font-extrabold tracking-[-0.01em]">
           Seu dinheiro organizado em um só lugar.
         </p>
@@ -63,14 +64,17 @@ export function OnboardingAside() {
           ))}
         </ul>
       </div>
-      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[28.75rem] overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-[min(28.75rem,45dvh)] overflow-hidden"
+      >
         <MataPhoto
           position="60% center"
           overlay="linear-gradient(180deg, #1A241F 0%, rgba(26,36,31,0) 45%, rgba(26,36,31,0.55) 100%)"
         />
       </div>
-      <span className="relative self-start rounded-full bg-[rgba(11,17,14,0.78)] px-3 py-1.5 text-13 text-sand">
-        Conexão bancária via Malvo · Cotações via Brapi
+      <span className="relative z-10 self-start rounded-full bg-[rgba(11,17,14,0.78)] px-3 py-1.5 text-13 text-sand">
+        Conexão bancária pelo Open Finance · Cotações da bolsa
       </span>
     </aside>
   );

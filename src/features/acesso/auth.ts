@@ -17,7 +17,12 @@ export class EmailAuthError extends Error {
 }
 
 function toEmailAuthError(error: unknown): EmailAuthError {
-  if (isAuthRetryableFetchError(error)) return new EmailAuthError("sem-internet");
+  // "Sem internet" só quando o navegador está mesmo offline; falha do Supabase (ou do envio do
+  // e-mail) é indisponibilidade.
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    return new EmailAuthError("sem-internet");
+  }
+  if (isAuthRetryableFetchError(error)) return new EmailAuthError("indisponivel");
   if (isAuthApiError(error)) {
     if (error.code === "otp_disabled" || error.code === "signup_disabled") {
       return new EmailAuthError("sem-conta");
@@ -69,7 +74,7 @@ export async function signInWithProvider(provider: "google" | "apple"): Promise<
 export function emailAuthMessage(code: EmailAuthErrorCode): string {
   if (code === "muitos") return "Muitos códigos em pouco tempo. Espere um minuto e peça outro.";
   if (code === "sem-internet") return "Sem conexão. Confira sua internet e tente de novo.";
-  return "Não deu para mandar o código agora. Tente de novo em instantes.";
+  return "Não conseguimos mandar o e-mail com o código agora. Tente de novo em instantes.";
 }
 
 export const authErrorCode = (error: unknown): EmailAuthErrorCode =>
