@@ -18,7 +18,11 @@ export const MyPlanSchema = z.object({
       name: z.string(),
       monthlyPriceCents: z.number().int().nullable(),
       limits: z
-        .object({ bankConnections: z.number().int(), aiQuestionsPerMonth: z.number().int() })
+        .object({
+          bankConnections: z.number().int(),
+          aiQuestionsPerMonth: z.number().int(),
+          specialists: z.number().int().nullable(),
+        })
         .loose(),
     })
     .loose()
@@ -65,4 +69,17 @@ export function useActivatePlan() {
 /** Grava o nome do perfil (`PATCH /v1/me`), depois de criar a conta. */
 export function saveDisplayName(displayName: string): Promise<unknown> {
   return apiRequest("/v1/me", z.unknown(), { method: "PATCH", body: { displayName } });
+}
+
+/** Troca os assistentes escolhidos (`PUT /v1/me/plan/assistants`), na ordem de preferência. */
+export function useChooseAssistants() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (assistants: string[]) =>
+      apiRequest("/v1/me/plan/assistants", MyPlanSchema, {
+        method: "PUT",
+        body: { assistants },
+      }),
+    onSuccess: (plan) => queryClient.setQueryData(planKeys.mine, plan),
+  });
 }

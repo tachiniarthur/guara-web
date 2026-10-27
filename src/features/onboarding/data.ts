@@ -107,7 +107,10 @@ export const profileQuestions: ProfileQuestion[] = [
 ];
 
 export const agentIntros: { id: AgentId; texto: string }[] = [
-  { id: "capivara", texto: "Coordena a equipe: recebe sua pergunta e chama o assistente certo." },
+  {
+    id: "capivara",
+    texto: "Responde as dúvidas gerais sobre dinheiro e o dia a dia das suas finanças.",
+  },
   { id: "pacu", texto: "Tira dúvidas, monta simulações e analisa sua carteira." },
   { id: "caramelo", texto: "Vigia os preços que você escolher e avisa na hora." },
   { id: "tamandua", texto: "Organiza seus gastos e responde quanto foi para onde." },
