@@ -30,6 +30,10 @@ describe("Onboarding · Plano (protótipo)", () => {
     expect(screen.queryByText(/além da Capivara/)).not.toBeInTheDocument();
     // O Básico não exporta: aparece como "não inclui".
     expect(screen.getAllByText("Exportar relatórios").length).toBe(1);
+    // Clicar no card escolhe o plano (a borda e o botão em destaque vão para ele).
+    expect(screen.getByRole("radio", { name: /Plus/ })).toBeChecked();
+    fireEvent.click(screen.getByText("Para acompanhar tudo, sem limites."));
+    expect(screen.getByRole("radio", { name: /Pro/ })).toBeChecked();
     fireEvent.click(screen.getByRole("button", { name: "Assinar o Pro" }));
     expect(push).toHaveBeenCalledWith("/onboarding/bancos");
   });
