@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 import { BrandLockup } from "./brand";
 import { UserInitials } from "./user-chip";
+import { MataArt } from "@/components/ui/mata-art";
 
 /** Assistentes com algo novo para mostrar (bolinha urucum no menu). */
 const agentsWithNews = new Set(["quero-quero"]);
@@ -117,12 +118,7 @@ export function Sidebar({ className }: { className?: string }) {
         aria-label={`${user.nome}, ${bancosResumo}. Abrir meu perfil e configurações`}
         className="relative isolate flex shrink-0 items-center gap-3 overflow-hidden rounded-bubble border border-line-strong bg-mata p-3 leading-[1.3] text-sand no-underline"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element -- textura decorativa */}
-        <img
-          src="/images/marca/faixa-tucano.jpg"
-          alt=""
-          className="absolute inset-0 -z-20 block size-full object-cover object-right"
-        />
+        <MataArt className="absolute inset-0 -z-20 size-full" align="right" />
         <span
           aria-hidden="true"
           className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(11,17,14,0.85)_0%,rgba(11,17,14,0.55)_50%,rgba(11,17,14,0.1)_100%)]"

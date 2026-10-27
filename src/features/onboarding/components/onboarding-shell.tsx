@@ -5,25 +5,19 @@ import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 import { onboardingHighlights } from "../data";
+import { MataArt } from "@/components/ui/mata-art";
 
-/** Foto da mata (textura de destaque) com degradê escuro por cima, preenchendo o contêiner. */
+/** Textura da mata (vetor) com degradê escuro por cima, preenchendo o contêiner. */
 export function MataPhoto({
-  position = "center 40%",
+  position = "center",
   overlay = "linear-gradient(180deg, rgba(11,17,14,0.15) 0%, rgba(11,17,14,0.35) 55%, #0B110E 100%)",
 }: {
-  position?: string;
+  position?: "center" | "right" | "top";
   overlay?: string;
 }) {
   return (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element -- textura decorativa */}
-      <img
-        src="/images/marca/faixa-tucano.jpg"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 block size-full object-cover"
-        style={{ objectPosition: position }}
-      />
+      <MataArt className="absolute inset-0 size-full" align={position} />
       <span aria-hidden="true" className="absolute inset-0" style={{ background: overlay }} />
     </>
   );
@@ -69,7 +63,7 @@ export function OnboardingAside() {
         className="absolute inset-x-0 bottom-0 h-[min(28.75rem,45dvh)] overflow-hidden"
       >
         <MataPhoto
-          position="60% center"
+          position="center"
           overlay="linear-gradient(180deg, #1A241F 0%, rgba(26,36,31,0) 45%, rgba(26,36,31,0.55) 100%)"
         />
       </div>

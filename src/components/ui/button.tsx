@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
+import { MataArt } from "@/components/ui/mata-art";
 
 export const buttonVariants = cva(
   "relative isolate inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-full border font-bold whitespace-nowrap no-underline transition-colors disabled:cursor-not-allowed disabled:opacity-50",
@@ -49,13 +50,7 @@ export function ForestBackdrop({
 }) {
   return (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element -- textura decorativa */}
-      <img
-        src="/images/marca/faixa-tucano.jpg"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 -z-20 block size-full object-cover object-right"
-      />
+      <MataArt className="absolute inset-0 -z-20 size-full" align="right" />
       <span
         aria-hidden="true"
         className={cn(

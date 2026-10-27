@@ -59,9 +59,10 @@ export const disabledButtonClass =
   "h-13 w-full rounded-full border border-line bg-shade text-16 font-bold text-caption";
 
 /** Molde das telas de entrada por e-mail (card de 560 no tablet, 520 ampliado no desktop). */
+/** Mesma largura da boas-vindas: o bloco não muda de tamanho entre as telas da entrada. */
 export const authShell = {
   zoom: 1.6,
-  desktopWidth: "lg:max-w-[32.5rem]",
-  tabletWidth: "md:w-[35rem]",
+  desktopWidth: "lg:max-w-[40rem]",
+  tabletWidth: "md:w-[37.5rem]",
   className: "gap-5 pb-10 md:gap-6.5 lg:gap-5.5",
 };

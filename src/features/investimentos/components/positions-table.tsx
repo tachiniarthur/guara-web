@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 import { portfolio, positionGroups } from "../data";
 import { DayChange, OriginInfo, RiskBadge, SortArrows } from "./position-parts";
+import { MataArt } from "@/components/ui/mata-art";
 
 const th =
   "border-b border-line-strong px-3.5 pb-3 text-13 font-bold tracking-[.05em] whitespace-nowrap text-mist uppercase";
@@ -87,13 +88,7 @@ export function PositionsTable() {
             <tr>
               <td colSpan={11} className="pt-2 pb-1.5">
                 <div className="relative isolate grid grid-cols-[71fr_9fr_8fr_12fr] items-center overflow-hidden rounded-[0.875rem] border border-sand/25 bg-mata">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- textura decorativa */}
-                  <img
-                    src="/images/marca/faixa-tucano.jpg"
-                    alt=""
-                    aria-hidden="true"
-                    className="absolute inset-0 -z-20 block size-full object-cover object-right"
-                  />
+                  <MataArt className="absolute inset-0 -z-20 size-full" align="right" />
                   <span
                     aria-hidden="true"
                     className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(11,17,14,0.85)_0%,rgba(11,17,14,0.55)_55%,rgba(11,17,14,0.2)_100%)]"

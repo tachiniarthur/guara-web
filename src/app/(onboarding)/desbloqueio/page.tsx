@@ -6,6 +6,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { OnboardingAside } from "@/features/onboarding/components/onboarding-shell";
 import { user } from "@/features/usuario/data";
+import { MataArt } from "@/components/ui/mata-art";
 
 /** Tela de desbloqueio com biometria (Face ID no celular e tablet, Touch ID no computador). */
 function Unlock({ desktop }: { desktop?: boolean }) {
@@ -47,13 +48,7 @@ export default function DesbloqueioPage() {
   return (
     <>
       <div className="relative flex min-h-dvh flex-col lg:hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element -- textura decorativa */}
-        <img
-          src="/images/marca/faixa-tucano.jpg"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-x-0 top-0 block h-[46%] w-full object-cover"
-        />
+        <MataArt className="absolute inset-x-0 top-0 h-[46%] w-full" />
         <span
           aria-hidden="true"
           className="absolute inset-x-0 top-0 h-[46%] bg-[linear-gradient(180deg,rgba(11,17,14,.25)_0%,#0B110E_100%)]"

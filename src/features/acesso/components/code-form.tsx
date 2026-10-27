@@ -155,7 +155,7 @@ export function CodeForm({
       </div>
       <fieldset className="m-0 border-none p-0">
         <legend className="sr-only">Código de 6 dígitos</legend>
-        <div className="flex justify-between gap-2">
+        <div className="grid grid-cols-6 gap-2 md:gap-3">
           {digits.map((digit, i) => (
             <input
               key={i}
@@ -174,7 +174,7 @@ export function CodeForm({
               onKeyDown={(event) => onKeyDown(i, event)}
               onPaste={onPaste}
               className={cn(
-                "h-[3.6875rem] w-[2.9375rem] rounded-[0.875rem] bg-field p-0 text-center font-display text-26 font-bold md:h-[4.1875rem] md:w-[3.6875rem]",
+                "h-[3.6875rem] w-full min-w-0 rounded-[0.875rem] bg-field p-0 text-center font-display text-26 font-bold md:h-[4.1875rem]",
                 expired
                   ? "border-[1.5px] border-line text-caption"
                   : error

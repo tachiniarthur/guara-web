@@ -15,6 +15,7 @@ import { useChatPanel } from "@/stores/chat-panel";
 import { CHAT_WIDTH, HISTORY_WIDTH_MD } from "./chat-sizes";
 import { ChatSheetBody } from "./chat-sheet";
 import { HistoryPanel } from "./history-panel";
+import { MataArt } from "@/components/ui/mata-art";
 
 type Mode = "docked" | "overlay";
 
@@ -36,12 +37,7 @@ function ChatPanelBody({ mode }: { mode: Mode }) {
   return (
     <>
       <div aria-hidden="true" className="relative h-[4.375rem] shrink-0 overflow-hidden bg-mata">
-        {/* eslint-disable-next-line @next/next/no-img-element -- textura decorativa */}
-        <img
-          src="/images/marca/faixa-tucano.jpg"
-          alt=""
-          className="absolute inset-0 block size-full object-cover object-right"
-        />
+        <MataArt className="absolute inset-0 size-full" align="right" />
         <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,26,22,0.05)_0%,rgba(18,26,22,0.45)_60%,var(--guara-card)_100%)]" />
       </div>
       <header className="flex h-20 shrink-0 items-center gap-2 border-b border-line px-4 md:gap-3 md:px-6">
