@@ -70,7 +70,7 @@ export default async function SucessoBancoPage({ params }: { params: Promise<{ b
         <Panel className="gap-3.5 p-4.5 lg:p-5.5">
           <PanelHeader
             title="Bancos conectados"
-            subtitle="2 de 3 conexões do plano Completo"
+            subtitle="2 de 4 conexões do plano Plus"
             titleClassName="text-17 tracking-normal lg:text-18"
           />
           <ul className="m-0 flex list-none flex-col gap-2.5 p-0">

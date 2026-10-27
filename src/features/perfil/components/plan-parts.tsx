@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Note } from "@/components/ui/note";
 import { Panel, PanelHeader } from "@/components/ui/panel";
-import { PillToggle } from "@/components/ui/pill-toggle";
 import { Tag } from "@/components/ui/tag";
 import { cn } from "@/lib/utils";
 
@@ -31,9 +30,9 @@ export function PlanCard({ plan, compact }: { plan: Plan; compact?: boolean }) {
       <div className="flex flex-col gap-0.5">
         <span className="font-display text-30 leading-[1.1] font-extrabold tracking-[-0.01em] tabular-nums">
           {plan.preco}
-          {plan.mensal && <span className="text-16 font-medium text-mist"> /mês</span>}
+          <span className="text-16 font-medium text-mist"> /mês</span>
         </span>
-        <span className="text-13 text-caption">{plan.apoio}</span>
+        <span className="text-13 text-caption">cobrado todo mês</span>
       </div>
       <div className="flex flex-col gap-2 rounded-[0.875rem] bg-field px-3.5 py-3">
         <span className="flex items-center gap-2 font-bold">
@@ -63,7 +62,7 @@ export function PlanCard({ plan, compact }: { plan: Plan; compact?: boolean }) {
         </Note>
       )}
       <Button
-        variant={plan.id === "ampliado" ? "primary" : "secondary"}
+        variant={plan.id === "pro" ? "primary" : "secondary"}
         size="lg"
         block
         className={cn(compact && !plan.atual && "text-14")}
@@ -117,20 +116,6 @@ export function UsagePanel({ className }: { className?: string }) {
         </div>
       </div>
     </Panel>
-  );
-}
-
-export function BillingToggle() {
-  return (
-    <PillToggle
-      label="Cobrança"
-      options={[
-        { value: "mensal", label: "Mensal" },
-        { value: "anual", label: "Anual · 2 meses grátis" },
-      ]}
-      className="flex self-stretch"
-      itemClassName="flex-1"
-    />
   );
 }
 

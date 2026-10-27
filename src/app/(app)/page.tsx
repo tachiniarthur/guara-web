@@ -108,7 +108,7 @@ export default async function InicioPage({ searchParams }: PageProps<"/">) {
             title="Resumo de setembro"
             subtitle="Como está o seu mês"
             aside={
-              <span className="text-13 text-caption">Atualizado há 5 min · 2 de 3 bancos</span>
+              <span className="text-13 text-caption">Atualizado há 5 min · 2 de 4 bancos</span>
             }
           />
           <Skeleton active={loading}>

@@ -5,12 +5,7 @@ import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Panel, PanelHeader } from "@/components/ui/panel";
-import {
-  BillingToggle,
-  PlanCard,
-  PlanComparison,
-  UsagePanel,
-} from "@/features/perfil/components/plan-parts";
+import { PlanCard, PlanComparison, UsagePanel } from "@/features/perfil/components/plan-parts";
 import { plans } from "@/features/perfil/planos";
 
 const cancelLink = (
@@ -24,7 +19,7 @@ const cancelLink = (
 
 const byId = Object.fromEntries(plans.map((p) => [p.id, p]));
 /** No celular, o plano atual vem primeiro. */
-const mobileOrder = [byId.completo!, byId.ampliado!, byId.essencial!];
+const mobileOrder = [byId.plus!, byId.pro!, byId.basic!];
 
 function BillingPanel({
   note,
@@ -39,10 +34,9 @@ function BillingPanel({
     <Panel className={className ?? "p-5"}>
       <PanelHeader
         title="Cobrança"
-        subtitle="Anual sai por 10 meses de mensalidade"
+        subtitle="Mensal, sem fidelidade"
         titleClassName="text-18 tracking-normal"
       />
-      <BillingToggle />
       <p className="m-0 text-13 leading-[1.55] text-caption">{note}</p>
       {children}
     </Panel>
@@ -64,15 +58,11 @@ export default function PlanosPage() {
           { label: "Planos" },
         ]}
       />
-      <DetailHeader
-        title="Planos"
-        subtitle="Você está no Completo: 3 bancos e 300 perguntas por mês"
-      />
+      <DetailHeader title="Planos" subtitle="Você está no Plus: 4 bancos e 40 perguntas por mês" />
 
       {/* Celular */}
       <div className="flex flex-col gap-4 @tab:hidden">
         <UsagePanel />
-        <BillingToggle />
         {mobileOrder.map((plan) => (
           <PlanCard key={plan.id} plan={plan} />
         ))}

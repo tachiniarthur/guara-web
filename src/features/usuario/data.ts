@@ -5,7 +5,7 @@ export const user = {
   iniciais: "AR",
   email: "arthur@exemplo.com",
   bancosConectados: 2,
-  bancosDoPlano: 3,
+  bancosDoPlano: 4,
   notificacoesNovas: 3,
 };
 

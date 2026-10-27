@@ -7,7 +7,7 @@ export const investorProfile = {
   detalhe: "Respondido em 23 set 2026 · vale só para Investimentos",
 };
 
-export const plan = { nome: "Completo", usadas: 2, total: 3 };
+export const plan = { nome: "Plus", usadas: 2, total: 4 };
 
 export type BankConnection = {
   id: string;

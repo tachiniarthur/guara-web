@@ -35,7 +35,7 @@ export const termsOfUse: LegalDoc = {
     {
       titulo: "5. Planos e pagamento",
       texto:
-        "O plano Essencial é gratuito. Os planos Completo e Ampliado são assinaturas mensais ou anuais, renovadas automaticamente até você cancelar. Ao cancelar, o acesso pago vale até o fim do período já pago.",
+        "Os planos Básico, Plus e Pro são assinaturas mensais, renovadas automaticamente até você cancelar. Ao cancelar, o plano vale até o fim do período já pago; depois disso, é preciso assinar de novo para continuar usando o Guará. Seus dados ficam guardados.",
     },
     {
       titulo: "6. Limites de responsabilidade",
