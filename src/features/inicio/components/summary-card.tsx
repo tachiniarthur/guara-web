@@ -31,7 +31,8 @@ const noBank = (
       </ButtonLink>
     }
   >
-    Conecte um banco pela Malvo para ver saldo, entradas e saídas do mês. O Guará só lê os dados.
+    Conecte um banco pelo Open Finance para ver saldo, entradas e saídas do mês. O Guará só lê os
+    dados.
   </StateBlock>
 );
 

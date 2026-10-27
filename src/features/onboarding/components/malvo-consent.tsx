@@ -95,7 +95,7 @@ function NeverNote() {
 function HowItWorks({ banco }: { banco: string }) {
   const steps = [
     { titulo: "Você confirma aqui o que será compartilhado", texto: "Agora" },
-    { titulo: `O Malvo abre o app do ${banco}`, texto: "Login com sua senha, só no app do banco" },
+    { titulo: `Abrimos o app do ${banco}`, texto: "Login com sua senha, só no app do banco" },
     { titulo: `Você autoriza no ${banco} e volta para o Guará`, texto: "Leva cerca de 1 minuto" },
   ];
   return (
@@ -123,8 +123,8 @@ function HowItWorks({ banco }: { banco: string }) {
 function RevokeNote({ banco }: { banco: string }) {
   return (
     <p className="m-0 text-13 leading-[1.55] text-caption">
-      Você pode revogar quando quiser em Meu perfil ou no app do {banco}. O Malvo é a empresa
-      autorizada pelo Banco Central que faz a ponte com o banco.
+      Você pode revogar quando quiser em Meu perfil ou no app do {banco}. A ponte com o banco é
+      feita por uma instituição autorizada pelo Banco Central, dentro do Open Finance Brasil.
     </p>
   );
 }

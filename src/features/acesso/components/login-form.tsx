@@ -24,7 +24,7 @@ export type LoginState = "pronto" | "sem-conta" | "sem-internet";
 export function LoginForm({ initialState = "pronto" }: { initialState?: LoginState }) {
   const router = useRouter();
   const { live } = useSession();
-  const setFlowEmail = useAuthFlow((s) => s.setEmail);
+  const startFlow = useAuthFlow((s) => s.start);
   const [state, setState] = useState<LoginState>(initialState);
   const [email, setEmail] = useState(
     live ? "" : initialState === "sem-conta" ? "artur@exemplo.com" : account.email,
@@ -39,7 +39,7 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
     setFailure(null);
     try {
       await requestEmailCode(address, criarConta);
-      setFlowEmail(address);
+      startFlow(address, null);
       router.push(criarConta ? "/boas-vindas/codigo" : "/entrar/codigo");
     } catch (error) {
       const code = authErrorCode(error);
@@ -111,7 +111,7 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
           <section className="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">
             <strong className="text-15">Quer criar uma conta com este e-mail?</strong>
             <p className="m-0 text-14 leading-[1.55] text-mist">
-              Leva menos de um minuto. Depois você conecta seus bancos pela Malvo, se quiser.
+              Leva menos de um minuto. Depois você conecta seus bancos pelo Open Finance, se quiser.
             </p>
             <div className="flex flex-wrap items-center gap-2">
               {live ? (

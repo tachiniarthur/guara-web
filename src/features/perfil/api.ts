@@ -61,3 +61,8 @@ export function useActivatePlan() {
     onSuccess: (plan) => queryClient.setQueryData(planKeys.mine, plan),
   });
 }
+
+/** Grava o nome do perfil (`PATCH /v1/me`), depois de criar a conta. */
+export function saveDisplayName(displayName: string): Promise<unknown> {
+  return apiRequest("/v1/me", z.unknown(), { method: "PATCH", body: { displayName } });
+}

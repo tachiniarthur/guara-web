@@ -34,7 +34,9 @@ export function AlertSummary({ alert, fired }: Props) {
         </span>
         <span className="flex grow flex-col leading-[1.3]">
           <strong className="text-20">{alert.ativo}</strong>
-          <span className="text-13 text-mist">{alert.ticker} · cotação via Brapi</span>
+          <span className="text-13 text-mist">
+            {alert.ticker} · cotação com atraso de até 15 min
+          </span>
         </span>
         {fired ? <FiredTag /> : <DirectionTag direcao={alert.direcao} status />}
       </div>

@@ -25,7 +25,7 @@ export const termsOfUse: LegalDoc = {
     {
       titulo: "3. Conexão com bancos",
       texto:
-        "A conexão é feita pelo Malvo, instituição autorizada pelo Banco Central, dentro do Open Finance Brasil. Cada autorização vale por até 12 meses e pode ser revogada no Guará ou no app do banco.",
+        "A conexão é feita por uma instituição autorizada pelo Banco Central, dentro do Open Finance Brasil. Cada autorização vale por até 12 meses e pode ser revogada no Guará ou no app do banco.",
     },
     {
       titulo: "4. Assistentes de IA",
@@ -70,7 +70,7 @@ export const privacyPolicy: LegalDoc = {
     {
       titulo: "Com quem compartilhamos",
       texto:
-        "Com o Malvo, para a conexão com os bancos; com a Brapi, só o código dos ativos para buscar cotações; e com o provedor de IA, apenas o necessário para responder cada pergunta, sem uso para treinar modelos.",
+        "Com a instituição autorizada que faz a conexão com os bancos; com o serviço de cotações, só o código dos ativos; e com o provedor de IA, apenas o necessário para responder cada pergunta, sem uso para treinar modelos.",
     },
     {
       titulo: "Por quanto tempo guardamos",

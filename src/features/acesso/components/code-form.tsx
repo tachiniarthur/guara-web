@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { account } from "@/features/perfil/data";
 import { cn } from "@/lib/utils";
+import { saveDisplayName } from "@/features/perfil/api";
 import { useAuthFlow } from "@/stores/auth-flow";
 
 import { authErrorCode, emailAuthMessage, requestEmailCode, verifyEmailCode } from "../auth";
@@ -35,7 +36,8 @@ export function CodeForm({
   const router = useRouter();
   const { live, refresh } = useSession();
   const flowEmail = useAuthFlow((s) => s.email);
-  const setFlowEmail = useAuthFlow((s) => s.setEmail);
+  const flowName = useAuthFlow((s) => s.name);
+  const clearFlow = useAuthFlow((s) => s.clear);
   const [digits, setDigits] = useState<string[]>(
     live
       ? ["", "", "", "", "", ""]
@@ -86,7 +88,9 @@ export function CodeForm({
     setFailure(null);
     try {
       await verifyEmailCode(flowEmail, digits.join(""));
-      setFlowEmail(null);
+      // O nome do cadastro vai para o perfil; se a API falhar, dá para editar depois.
+      if (mode === "criar" && flowName) await saveDisplayName(flowName).catch(() => undefined);
+      clearFlow();
       await refresh();
     } catch (failed) {
       const code = authErrorCode(failed);
@@ -117,8 +121,8 @@ export function CodeForm({
 
   function resend() {
     if (live && flowEmail) {
-      requestEmailCode(flowEmail, mode === "criar").catch((failed: unknown) =>
-        setFailure(emailAuthMessage(authErrorCode(failed))),
+      requestEmailCode(flowEmail, mode === "criar", flowName ?? undefined).catch(
+        (failed: unknown) => setFailure(emailAuthMessage(authErrorCode(failed))),
       );
     }
     setDigits(["", "", "", "", "", ""]);
@@ -127,7 +131,7 @@ export function CodeForm({
     refs.current[0]?.focus();
   }
 
-  const changeEmail = mode === "criar" ? "/boas-vindas" : "/entrar";
+  const changeEmail = mode === "criar" ? "/boas-vindas/criar" : "/entrar";
 
   // Sem código a caminho (link antigo, outra aba): volta para pedir um.
   useEffect(() => {

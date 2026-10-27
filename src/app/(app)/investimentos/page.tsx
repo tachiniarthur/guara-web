@@ -74,8 +74,8 @@ const noInvestments = (
       </ButtonLink>
     }
   >
-    Conecte o banco ou a corretora pela Malvo, ou cadastre à mão. A carteira é comparada com o seu
-    perfil.
+    Conecte o banco ou a corretora pelo Open Finance, ou cadastre à mão. A carteira é comparada com
+    o seu perfil.
   </StateBlock>
 );
 

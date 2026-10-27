@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { Icon } from "@/components/ui/icon";
-import { SignUpForm } from "@/features/acesso/components/signup-form";
+import { WelcomeOptions } from "@/features/acesso/components/signup-form";
 import {
   MataBanner,
   OnboardingIntro,
@@ -15,7 +15,7 @@ export default function BoasVindasPage() {
         Gastos, investimentos e alertas em um só lugar, com seis assistentes acompanhando tudo para
         você.
       </OnboardingIntro>
-      <SignUpForm />
+      <WelcomeOptions />
       <div className="flex items-start gap-2.5 rounded-tile bg-shade p-3.5 text-14 leading-normal text-mist lg:hidden">
         <span className="text-sand">
           <Icon name="shield" />

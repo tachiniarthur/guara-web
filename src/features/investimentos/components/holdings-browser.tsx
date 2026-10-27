@@ -129,7 +129,7 @@ const noPositions = (
       </ButtonLink>
     }
   >
-    Conecte a corretora pela Malvo ou cadastre seus investimentos à mão.
+    Conecte a corretora pelo Open Finance ou cadastre seus investimentos à mão.
   </StateBlock>
 );
 

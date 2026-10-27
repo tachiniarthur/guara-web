@@ -20,7 +20,7 @@ const period = [
   { label: "Autorização atual até", value: "26/10/2026" },
   { label: "Nova autorização até", value: "23/09/2027" },
   { label: "Finalidade", value: "Organizar gastos e investimentos" },
-  { label: "Via", value: "Malvo · Open Finance Brasil" },
+  { label: "Via", value: "Open Finance Brasil" },
 ];
 
 export default async function RenovarPage({ params }: PageProps<"/perfil/bancos/[banco]/renovar">) {

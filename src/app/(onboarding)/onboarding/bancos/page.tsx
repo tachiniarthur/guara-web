@@ -37,7 +37,7 @@ export default function ConectarBancosPage() {
     >
       <OnboardingSteps current={2} steps={onboardingSteps} />
       <OnboardingIntro title="Conecte seus bancos">
-        Pelo Open Finance, via Malvo. Você autoriza no app do banco e revoga quando quiser.
+        Pelo Open Finance Brasil. Você autoriza no app do banco e revoga quando quiser.
       </OnboardingIntro>
       <div className="relative">
         <label htmlFor="buscar-banco" className="sr-only">

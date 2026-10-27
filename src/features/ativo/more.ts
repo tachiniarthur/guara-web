@@ -51,7 +51,7 @@ export const assetFacts: Record<
         ],
       },
     ],
-    nota: "Dados de exemplo via Brapi, com atraso de até 15 minutos. “—” quando a fonte não informa. Não é recomendação de investimento.",
+    nota: "Dados de exemplo, com atraso de até 15 minutos. “—” quando a fonte não informa. Não é recomendação de investimento.",
   },
 };
 
@@ -108,7 +108,7 @@ export const assetEvents: Record<
         mais: 9,
       },
     ],
-    nota: "“Você não tinha”: na data com, você ainda não tinha cotas (comprou em abril de 2026). Valores de exemplo via Brapi.",
+    nota: "“Você não tinha”: na data com, você ainda não tinha cotas (comprou em abril de 2026). Valores de exemplo.",
   },
 };
 

@@ -405,7 +405,7 @@ function AskPacuCard({ asset }: { asset: ComparedAsset }) {
 }
 
 const footer =
-  "Cotações e dados via Brapi e Open Finance, com atraso de até 15 minutos. Informação para acompanhamento, não é recomendação de investimento.";
+  "Cotações e dados do Open Finance, com atraso de até 15 minutos. Informação para acompanhamento, não é recomendação de investimento.";
 
 /** Detalhe de ativos comparados ao CDI (renda fixa, ETF, FII, cripto). */
 export function ComparedDetail({ asset, variant }: { asset: ComparedAsset; variant: Variant }) {

@@ -37,8 +37,8 @@ export const noAssetData = (
       </ButtonLink>
     }
   >
-    A Brapi ainda não tem dados de PETR4 para mostrar. Os campos ficam com “—” até a próxima
-    atualização.
+    O serviço de cotações ainda não tem dados de PETR4 para mostrar. Os campos ficam com “—” até a
+    próxima atualização.
   </StateBlock>
 );
 
@@ -326,7 +326,7 @@ function TitleBlock({
 }
 
 const footer =
-  "Cotação e dados da empresa via Brapi, com atraso de até 15 minutos. Informação para acompanhamento, não é recomendação de investimento.";
+  "Cotação e dados da empresa com atraso de até 15 minutos. Informação para acompanhamento, não é recomendação de investimento.";
 
 /** Detalhe de uma ação: cotação, posição, faixas de preço, fundamentos, proventos e eventos. */
 export function StockDetail({

@@ -15,7 +15,7 @@ const period = [
   { label: "Vale por", value: "12 meses" },
   { label: "Até", value: "23/09/2027" },
   { label: "Finalidade", value: "Organizar gastos e investimentos" },
-  { label: "Via", value: "Malvo · Open Finance Brasil" },
+  { label: "Via", value: "Open Finance Brasil" },
 ];
 
 export default async function AutorizarBancoPage({
@@ -30,7 +30,7 @@ export default async function AutorizarBancoPage({
     <MalvoConsentHeader
       banco={bank}
       title={`Conectar ${bank.nome}`}
-      subtitle="Pelo Open Finance, via Malvo"
+      subtitle="Pelo Open Finance Brasil"
       intro="Antes de abrir o app do banco, veja o que o Guará vai poder ler e por quanto tempo."
     />
   );

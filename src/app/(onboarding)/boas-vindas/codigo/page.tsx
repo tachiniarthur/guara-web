@@ -13,7 +13,7 @@ export default async function CodigoCriarPage({
   const initialState = states.find((s) => s === estado) ?? "digitando";
   return (
     <OnboardingShell mobileTop={<MataBanner variant="mobile" />} {...authShell}>
-      <AuthBackLink href="/boas-vindas" />
+      <AuthBackLink href="/boas-vindas/criar" />
       <AuthIntro title="Confirme seu e-mail">
         Para criar sua conta, digite os 6 números que enviamos. O código vale por 10 minutos.
       </AuthIntro>

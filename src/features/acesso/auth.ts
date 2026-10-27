@@ -37,13 +37,18 @@ function toEmailAuthError(error: unknown): EmailAuthError {
 
 /**
  * Manda o código de 6 dígitos. `criarConta: false` (Entrar) falha com `sem-conta` para e-mail
- * desconhecido; `true` (Criar conta) cria a conta quando o código for confirmado.
+ * desconhecido; `true` (Criar conta) cria a conta quando o código for confirmado, com o `nome`
+ * nos metadados do usuário.
  */
-export async function requestEmailCode(email: string, criarConta: boolean): Promise<void> {
+export async function requestEmailCode(
+  email: string,
+  criarConta: boolean,
+  nome?: string,
+): Promise<void> {
   try {
     const { error } = await getSupabase().auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: criarConta },
+      options: { shouldCreateUser: criarConta, ...(nome ? { data: { name: nome } } : {}) },
     });
     if (error) throw error;
   } catch (error) {
