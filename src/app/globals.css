@@ -117,6 +117,69 @@
 }
 
 @theme {
+  /*
+   * Movimento: entradas curtas e suaves (ease-out "expo"), saídas mais rápidas. Quem pede menos
+   * movimento no sistema não vê nenhuma (bloco prefers-reduced-motion no fim do arquivo).
+   */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-fade-up: fade-up 0.45s var(--ease-out-soft) both;
+  --animate-fade-in: fade-in 0.35s ease-out both;
+  --animate-scale-in: scale-in 0.3s var(--ease-out-soft) both;
+  --animate-slide-in-right: slide-in-right 0.4s var(--ease-out-soft) both;
+  --animate-pop: pop 0.35s var(--ease-out-soft) both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(1.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes pop {
+    0% {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.08);
+      opacity: 1;
+    }
+    100% {
+      transform: none;
+    }
+  }
+
   /* Classes de janela (o layout muda pela largura disponível). */
   --breakpoint-*: initial;
   --breakpoint-md: 37.5rem; /* 600px: trilho lateral (tablet) */
@@ -289,5 +352,17 @@
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Menos movimento pedido no sistema: animações e transições quase instantâneas. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
