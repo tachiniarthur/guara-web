@@ -26,7 +26,7 @@ export function SessionMessages({
             <UserQuestion key={message.id}>{message.text}</UserQuestion>
           )
         ) : variant === "panel" ? (
-          <AgentMessage key={message.id} agent="capivara" tag="coordenação">
+          <AgentMessage key={message.id} agent="capivara" tag="dúvidas gerais">
             <MessageText>{message.text}</MessageText>
           </AgentMessage>
         ) : (

@@ -6,19 +6,20 @@ import { AgentAvatar } from "@/components/ui/agent-avatar";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Tag } from "@/components/ui/tag";
-import { agents, type AgentId } from "@/features/assistentes/data";
+import { agentOrder, agents, type AgentId } from "@/features/assistentes/data";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
+import { BrandLogo } from "@/components/layout/brand";
 
 const article = (agent: AgentId) => (agent === "capivara" || agent === "onca" ? "a" : "o");
 
-/** "A Capivara chamou o Pacu · Investimentos" (quando a coordenação passa a pergunta). */
+/** "Encaminhado para o Pacu · Investimentos" (quando o chat passa a pergunta a um assistente). */
 export function CalledBy({ agent }: { agent: AgentId }) {
   return (
-    <div className="flex items-center gap-2 text-12 text-caption">
-      <AgentAvatar agent="capivara" size={20} variant="ring" />
+    <div className="flex animate-fade-in items-center gap-2 text-12 text-caption">
+      <BrandLogo size={20} />
       <span>
-        {`A Capivara chamou ${article(agent)} `}
+        {`Encaminhado para ${article(agent)} `}
         <strong className="text-mist">{agents[agent].nome}</strong>
         {` · ${agents[agent].papel}`}
       </span>
@@ -75,7 +76,7 @@ export function UnavailableAlert({ agent }: { agent: AgentId }) {
         </Button>
         <Button variant="ghost" size="sm">
           <Icon name="chat" size={18} />
-          <span>Perguntar à Capivara</span>
+          <span>Perguntar no chat</span>
         </Button>
       </div>
     </div>
@@ -128,7 +129,7 @@ const starters: { agent: AgentId; pergunta: string }[] = [
   { agent: "quero-quero", pergunta: "Teve alguma compra fora do padrão?" },
 ];
 
-/** Conversa nova: a turma pronta, a apresentação da Capivara e perguntas para começar. */
+/** Conversa nova: a equipe pronta, a apresentação do chat e perguntas para começar. */
 export function NewConversationStart({
   compact,
   onAsk,
@@ -139,7 +140,7 @@ export function NewConversationStart({
   onAsk?: (text: string) => void;
   className?: string;
 }) {
-  const team: AgentId[] = ["tamandua", "pacu", "caramelo", "quero-quero", "onca"];
+  const team = agentOrder;
   const ask = useChatPanel((state) => state.ask);
   return (
     <div className={cn("mt-auto flex flex-col gap-4", className)}>
@@ -154,17 +155,17 @@ export function NewConversationStart({
             </span>
           </span>
         ))}
-        <span className="ml-1 text-12 text-caption">5 assistentes prontos</span>
+        <span className="ml-1 text-12 text-caption">Sua equipe está pronta</span>
       </div>
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <AgentAvatar agent="capivara" size={28} variant="ring" />
-          <span className="text-14 font-bold">Capivara</span>
-          <span className="text-12 text-caption">· Coordena a turma</span>
+          <BrandLogo size={28} />
+          <span className="text-14 font-bold">Guará</span>
+          <span className="text-12 text-caption">· Chat</span>
         </div>
         <p className="m-0 text-15 leading-[1.6] max-lg:@chat:text-16">
-          Oi, Arthur! Eu sou a Capivara. Pergunte qualquer coisa sobre seu dinheiro que eu chamo
-          quem entende do assunto. Se preferir, digite <strong>@</strong> e escolha um bicho.
+          Oi, Arthur! Pergunte qualquer coisa sobre seu dinheiro: o assistente certo da sua equipe
+          responde. Se preferir, digite <strong>@</strong> e escolha um bicho.
         </p>
       </div>
       <span className="text-13 font-bold text-mist">Comece por aqui</span>

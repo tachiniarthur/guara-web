@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
-import { AgentAvatar } from "@/components/ui/agent-avatar";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { ChatComposer } from "@/features/conversas/components/chat-composer";
@@ -16,6 +15,7 @@ import { CHAT_WIDTH, HISTORY_WIDTH_MD } from "./chat-sizes";
 import { ChatSheetBody } from "./chat-sheet";
 import { HistoryPanel } from "./history-panel";
 import { MataArt } from "@/components/ui/mata-art";
+import { BrandLogo } from "@/components/layout/brand";
 
 type Mode = "docked" | "overlay";
 
@@ -41,12 +41,10 @@ function ChatPanelBody({ mode }: { mode: Mode }) {
         <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,26,22,0.05)_0%,rgba(18,26,22,0.45)_60%,var(--guara-card)_100%)]" />
       </div>
       <header className="flex h-20 shrink-0 items-center gap-2 border-b border-line px-4 md:gap-3 md:px-6">
-        <AgentAvatar agent="capivara" size={48} />
+        <BrandLogo size={48} />
         <div className="flex min-w-0 grow flex-col leading-[1.25]">
-          <strong className="font-display text-22">Capivara</strong>
-          <span className="truncate text-13 text-caption">
-            de boa, chama o bicho certo pra você
-          </span>
+          <strong className="font-display text-22">Chat do Guará</strong>
+          <span className="truncate text-13 text-caption">Sua equipe de assistentes de IA</span>
         </div>
         <IconButton
           icon="chat"

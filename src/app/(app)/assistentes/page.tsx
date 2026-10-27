@@ -13,7 +13,7 @@ export default function AssistentesPage() {
       <header>
         <PageTitle
           title="Seus assistentes"
-          subtitle="Cada um cuida de uma parte do seu dinheiro. Toque em um deles para conversar ou pergunte no chat, que a Capivara chama o certo."
+          subtitle="Cada um cuida de uma parte do seu dinheiro. Toque em um deles para conversar ou pergunte no chat, que o Guará chama o certo."
         />
       </header>
       <div className="grid grid-cols-1 gap-3.5 @tab:grid-cols-2 @tab:gap-4 @desk:grid-cols-3 @desk:gap-6">

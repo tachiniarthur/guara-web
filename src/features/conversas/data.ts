@@ -97,7 +97,7 @@ export const conversationCount = conversationHistory.reduce(
 
 /** Como cada bicho aparece ao ser chamado com @. */
 export const agentMentions: { id: AgentId; handle: string; descricao: string }[] = [
-  { id: "capivara", handle: "@capivara", descricao: "Coordena e chama o certo" },
+  { id: "capivara", handle: "@capivara", descricao: "Dúvidas gerais" },
   { id: "pacu", handle: "@pacu", descricao: "Investimentos e simulações" },
   { id: "caramelo", handle: "@caramelo", descricao: "Alertas de preço" },
   { id: "tamandua", handle: "@tamandua", descricao: "Organização de gastos" },

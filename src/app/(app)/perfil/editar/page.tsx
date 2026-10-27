@@ -20,7 +20,7 @@ const nameUses = [
   {
     icon: "chat",
     titulo: "Conversas com os assistentes",
-    texto: "A Capivara e a turma chamam você pelo nome",
+    texto: "Os assistentes chamam você pelo nome",
   },
   { icon: "mail", titulo: "E-mails e avisos", texto: "Tetos, alertas de preço e relatórios" },
 ] as const;

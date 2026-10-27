@@ -29,11 +29,11 @@ export type AgentCardData = {
 export const agentCards: Record<AgentId, AgentCardData> = {
   capivara: {
     agent: "capivara",
-    status: "coordenando a equipe",
+    status: "respondendo dúvidas gerais",
     metric: "6 conversas",
     metricCaption: "com a equipe esta semana",
     highlight: { kind: "dot", tone: "folha", strong: "Hoje:", text: "gastos de setembro" },
-    quote: "Pergunta do seu jeito que eu chamo quem sabe.",
+    quote: "Pode perguntar o que quiser sobre o seu dinheiro.",
     link: { label: "Abrir conversas", href: "/conversas" },
   },
   tamandua: {

@@ -191,10 +191,10 @@ export const threads: Record<ConversationId, Thread> = {
       <>
         <ChatDateChip small>Hoje, 14:50</ChatDateChip>
         <UserQuestion>consegue ler meu extrato do Itaú?</UserQuestion>
-        <AgentReply agent="capivara" role="Coordena a turma" className="gap-2">
+        <AgentReply agent="capivara" role="Dúvidas gerais" className="gap-2">
           <ReplyText size="adaptive">
-            Consigo, sim. Mande o PDF, a foto ou a imagem do extrato (até 10 MB) e eu passo para o
-            Tamanduá.
+            Consigo, sim. Mande o PDF, a foto ou a imagem do extrato (até 10 MB) que o Tamanduá, que
+            cuida dos gastos, organiza tudo.
           </ReplyText>
         </AgentReply>
       </>

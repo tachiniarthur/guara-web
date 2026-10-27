@@ -300,30 +300,28 @@ function MentionSheet({
           <IconButton icon="x" label="Fechar" variant="ghost" onClick={onClose} />
         </div>
         <p className="m-0 text-14 leading-normal text-mist">
-          Opcional. Se você não escolher, a Capivara leva sua pergunta pro bicho certo.
+          Opcional. Se você não escolher, o Guará leva sua pergunta para o assistente certo.
         </p>
         <ul className="m-0 flex list-none flex-col gap-1 p-0">
-          {agentMentions
-            .filter((mention) => mention.id !== "capivara")
-            .map((mention, i) => (
-              <li key={mention.id}>
-                <button
-                  type="button"
-                  autoFocus={i === 0}
-                  onClick={() => onPick(mention.handle)}
-                  className={cn(
-                    "flex min-h-16 w-full items-center gap-3.5 rounded-full border-none px-3 py-2 text-left text-sand hover:bg-shade focus-visible:bg-shade",
-                    i === 0 ? "bg-shade" : "bg-transparent",
-                  )}
-                >
-                  <AgentAvatar agent={mention.id} size={42} variant="ring" />
-                  <span className="flex flex-col leading-[1.35]">
-                    <strong className="text-15">{agents[mention.id].nome}</strong>
-                    <span className="text-13 text-mist">{mention.descricao}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
+          {agentMentions.map((mention, i) => (
+            <li key={mention.id}>
+              <button
+                type="button"
+                autoFocus={i === 0}
+                onClick={() => onPick(mention.handle)}
+                className={cn(
+                  "flex min-h-16 w-full items-center gap-3.5 rounded-full border-none px-3 py-2 text-left text-sand hover:bg-shade focus-visible:bg-shade",
+                  i === 0 ? "bg-shade" : "bg-transparent",
+                )}
+              >
+                <AgentAvatar agent={mention.id} size={42} variant="ring" />
+                <span className="flex flex-col leading-[1.35]">
+                  <strong className="text-15">{agents[mention.id].nome}</strong>
+                  <span className="text-13 text-mist">{mention.descricao}</span>
+                </span>
+              </button>
+            </li>
+          ))}
         </ul>
       </div>
     </>
