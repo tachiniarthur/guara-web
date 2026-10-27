@@ -68,6 +68,9 @@ export default function ConectarBancosPage() {
         </ul>
       </div>
       <OnboardingActions>
+        <ButtonLink href="/onboarding/plano" variant="secondary" size="xl">
+          <span>Voltar</span>
+        </ButtonLink>
         <ButtonLink
           href="/onboarding/perfil/1"
           variant="ghost"

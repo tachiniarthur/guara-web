@@ -28,7 +28,7 @@ export const plans: Plan[] = [
     limiteBancos: 1,
     perguntas: "20 perguntas por mês aos assistentes",
     recursos: [
-      "2 assistentes à sua escolha, além da Capivara",
+      "2 assistentes de IA à sua escolha",
       "Até 2 tetos de gasto e 2 alertas de preço",
       "Histórico de 3 meses",
       "Relatório do mês atual, sem exportação",
@@ -49,7 +49,7 @@ export const plans: Plan[] = [
     perguntas: "40 perguntas por mês aos assistentes",
     recursos: [
       "Tudo do Básico",
-      "5 assistentes à sua escolha, além da Capivara",
+      "5 assistentes de IA à sua escolha",
       "Até 4 tetos de gasto e 4 alertas de preço",
       "Histórico de 12 meses",
       "Relatórios com exportação em PDF, Excel e CSV",
@@ -67,7 +67,7 @@ export const plans: Plan[] = [
     perguntas: "70 perguntas por mês aos assistentes",
     recursos: [
       "Tudo do Plus",
-      "Todos os assistentes",
+      "Todos os assistentes de IA",
       "Tetos de gasto e alertas de preço sem limite",
       "Histórico completo",
       "Suporte por e-mail e WhatsApp",
@@ -76,6 +76,72 @@ export const plans: Plan[] = [
 ];
 
 export const planById = (id: PlanId): Plan => plans.find((p) => p.id === id)!;
+
+/** Frase curta de cada plano (cards lado a lado da escolha do plano). */
+export const planPitch: Record<PlanId, string> = {
+  basic: "Para começar a organizar seus gastos.",
+  plus: "Para ter clareza do seu dinheiro e planejar metas.",
+  pro: "Para acompanhar tudo, sem limites.",
+};
+
+/** O plano em destaque na escolha. */
+export const featuredPlan: PlanId = "plus";
+
+/**
+ * Recursos linha a linha nos cards da escolha do plano: o texto de cada plano (na ordem de
+ * `plans`) ou `null` quando o plano não tem (aparece riscado, com o texto de `off`).
+ */
+export const planFeatureRows: {
+  off: string;
+  values: [string | null, string | null, string | null];
+}[] = [
+  {
+    off: "Bancos conectados",
+    values: ["1 banco conectado", "4 bancos conectados", "6 bancos conectados"],
+  },
+  {
+    off: "Perguntas à IA",
+    values: ["20 perguntas por mês à IA", "40 perguntas por mês à IA", "70 perguntas por mês à IA"],
+  },
+  {
+    off: "Assistentes de IA",
+    values: [
+      "2 assistentes de IA à sua escolha",
+      "5 assistentes de IA à sua escolha",
+      "Todos os assistentes de IA",
+    ],
+  },
+  {
+    off: "Tetos de gasto e alertas de preço",
+    values: [
+      "Até 2 tetos e 2 alertas de preço",
+      "Até 4 tetos e 4 alertas de preço",
+      "Tetos e alertas sem limite",
+    ],
+  },
+  {
+    off: "Histórico",
+    values: ["Histórico de 3 meses", "Histórico de 12 meses", "Histórico completo"],
+  },
+  {
+    off: "Relatórios",
+    values: ["Relatório do mês atual", "Relatórios completos", "Relatórios completos"],
+  },
+  {
+    off: "Simulador",
+    values: ["1 simulação por mês", "Simulador sem limite", "Simulador sem limite"],
+  },
+  {
+    off: "Exportar relatórios",
+    values: [null, "Exportar em PDF, Excel e CSV", "Exportar em PDF, Excel e CSV"],
+  },
+  {
+    off: "Metas e simulações salvas",
+    values: [null, "Metas e simulações salvas", "Metas e simulações salvas"],
+  },
+  { off: "Página de cada ativo", values: [null, "Página de cada ativo", "Página de cada ativo"] },
+  { off: "Suporte por WhatsApp", values: [null, null, "Suporte por e-mail e WhatsApp"] },
+];
 
 export const planUsage = {
   renova: "Assinatura mensal · renova em 10/10/2026",
@@ -86,7 +152,7 @@ export const planUsage = {
 export const planComparison: { recurso: string; valores: [string, string, string] }[] = [
   { recurso: "Bancos conectados", valores: ["1", "4", "6"] },
   { recurso: "Perguntas aos assistentes", valores: ["20/mês", "40/mês", "70/mês"] },
-  { recurso: "Assistentes além da Capivara", valores: ["2 à escolha", "5 à escolha", "Todos"] },
+  { recurso: "Assistentes de IA", valores: ["2 à escolha", "5 à escolha", "Todos"] },
   { recurso: "Tetos de gasto", valores: ["Até 2", "Até 4", "Sem limite"] },
   { recurso: "Alertas de preço", valores: ["Até 2", "Até 4", "Sem limite"] },
   { recurso: "Histórico", valores: ["3 meses", "12 meses", "Completo"] },

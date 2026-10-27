@@ -20,13 +20,17 @@ function renderStep() {
 }
 
 describe("Onboarding · Plano (protótipo)", () => {
-  it("mostra os três planos mensais e avança com o escolhido", () => {
+  it("mostra os três planos lado a lado, com o que cada um inclui, e assina pelo card", () => {
     renderStep();
     expect(screen.getByText("Etapa 1 de 4")).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /^Plus,/ })).toHaveAttribute("aria-checked", "true");
-    fireEvent.click(screen.getByRole("radio", { name: /^Pro,/ }));
-    expect(screen.getAllByRole("button", { name: "Assinar o Pro" }).length).toBeGreaterThan(0);
-    fireEvent.click(screen.getAllByRole("button", { name: "Assinar o Pro" })[0]!);
+    for (const name of ["Básico", "Plus", "Pro"]) {
+      expect(screen.getByRole("heading", { level: 2, name })).toBeInTheDocument();
+    }
+    expect(screen.getByText("Mais popular")).toBeInTheDocument();
+    expect(screen.queryByText(/além da Capivara/)).not.toBeInTheDocument();
+    // O Básico não exporta: aparece como "não inclui".
+    expect(screen.getAllByText("Exportar relatórios").length).toBe(1);
+    fireEvent.click(screen.getByRole("button", { name: "Assinar o Pro" }));
     expect(push).toHaveBeenCalledWith("/onboarding/bancos");
   });
 });

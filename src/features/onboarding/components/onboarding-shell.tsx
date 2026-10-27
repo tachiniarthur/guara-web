@@ -117,6 +117,8 @@ type OnboardingShellProps = {
   tabletWidth?: string;
   /** Ampliação do conteúdo no desktop (padrão 1.6); ver `zoom-area` em globals.css. */
   zoom?: number;
+  /** Sem o painel lateral do desktop: o conteúdo usa a largura toda (escolha do plano). */
+  wide?: boolean;
   /** Espaço entre blocos no mobile (22px por padrão). */
   className?: string;
   children: ReactNode;
@@ -132,12 +134,13 @@ export function OnboardingShell({
   desktopWidth = "lg:max-w-[40rem]",
   tabletWidth = "md:w-[37.5rem]",
   zoom = 1.6,
+  wide = false,
   className,
   children,
 }: OnboardingShellProps) {
   return (
     <div className="min-h-dvh lg:flex lg:h-dvh">
-      <OnboardingAside />
+      {!wide && <OnboardingAside />}
       <MataBanner variant="tablet" />
       {mobileTop}
       <div className="lg:flex lg:grow lg:flex-col lg:items-center lg:overflow-y-auto lg:px-20 lg:py-16">

@@ -168,6 +168,11 @@
   }
   html {
     @apply bg-canvas font-sans text-sand antialiased;
+    /* Sem a barra de rolagem da página (a rolagem continua no mouse, no toque e no teclado). */
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar {
+    display: none;
   }
   /*
    * Desktop: os protótipos foram desenhados em 2560px. A partir de 1200px o tamanho base
