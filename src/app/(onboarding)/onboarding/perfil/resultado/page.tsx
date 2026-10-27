@@ -1,16 +1,9 @@
-import Link from "next/link";
-
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { ButtonLink } from "@/components/ui/button";
 import { MobileActionBar } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
 import { Panel, PanelHeader } from "@/components/ui/panel";
-import {
-  donutSizes,
-  GroupDetailsList,
-  ProfileLevels,
-  TargetDonutWithList,
-} from "@/features/alocacao/components/allocation-parts";
+import { ProfileLevels } from "@/features/alocacao/components/allocation-parts";
 import {
   OnboardingActions,
   OnboardingShell,
@@ -18,30 +11,11 @@ import {
 } from "@/features/onboarding/components/onboarding-shell";
 import { onboardingSteps, profileAnswers, profileEffects } from "@/features/onboarding/data";
 
-function OffTargetNote() {
-  return (
-    <div className="flex items-start gap-2.5 rounded-[0.875rem] bg-tucano-bg px-3.5 py-3 text-13 leading-normal text-sand">
-      <span className="mt-px text-tucano">
-        <Icon name="alert-triangle" size={16} />
-      </span>
-      <span>
-        Sua carteira está fora do alvo em 3 de 5 grupos: <strong>Renda variável Brasil</strong> 17,2
-        p.p. acima, <strong>Renda fixa internacional</strong> 14 p.p. abaixo e{" "}
-        <strong>Renda variável internacional</strong> 6,1 p.p. abaixo. O Pacu pode sugerir como
-        ajustar, mas nada muda sem você.
-      </span>
-    </div>
-  );
-}
-
-const compareLink =
-  "inline-flex min-h-6 items-center gap-1 text-14 font-bold whitespace-nowrap text-sand underline hover:text-tucano";
-
 export default function ResultadoPerfilPage() {
   return (
     <OnboardingShell
       zoom={1.19}
-      desktopWidth="lg:max-w-[77.5rem]"
+      desktopWidth="lg:max-w-[64rem]"
       tabletWidth="md:w-[40rem]"
       className="gap-5"
       mobileTop={<MobileHeader title="Perfil de investidor" back="/onboarding/perfil/6" balanced />}
@@ -57,8 +31,8 @@ export default function ResultadoPerfilPage() {
       }
     >
       <OnboardingSteps current={3} steps={onboardingSteps} />
-      <div className="grid grid-cols-1 gap-5 md:gap-6.5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-start lg:gap-x-7 lg:gap-y-5.5">
-        <div className="flex flex-col gap-2.5">
+      <div className="grid grid-cols-1 gap-5 md:gap-6.5 lg:grid-cols-2 lg:items-start lg:gap-x-7 lg:gap-y-5.5">
+        <div className="flex animate-fade-up flex-col gap-2.5 lg:col-span-2">
           <span className="text-13 text-caption">Resultado · 6 de 6 respondidas</span>
           <h1 className="m-0 font-display text-26 leading-[1.2] font-extrabold tracking-[-0.01em] md:text-30 lg:text-32">
             Seu perfil é <span className="text-tucano">Moderado</span>
@@ -69,34 +43,10 @@ export default function ResultadoPerfilPage() {
             resgatar combinam com uma carteira equilibrada.
           </p>
         </div>
-        <ProfileLevels />
-        <Panel className="gap-3.5 p-4.5 md:p-5.5 lg:col-start-2 lg:row-span-5 lg:row-start-1 lg:p-6">
-          <PanelHeader
-            title="Como o Guará vai dividir as sugestões"
-            subtitle="Carteira-alvo do perfil Moderado em 5 grupos · toque num grupo para ver as subclasses · a marca branca é a sua carteira hoje"
-            titleClassName="text-18 tracking-normal md:text-20 md:tracking-[-0.01em]"
-          />
-          <div className="lg:hidden">
-            <TargetDonutWithList dims={donutSizes.result} />
-          </div>
-          <div className="hidden lg:block">
-            <TargetDonutWithList dims={donutSizes.lg} />
-          </div>
-          <div className="lg:hidden">
-            <GroupDetailsList layout="compact" openGroup="rv-br" />
-          </div>
-          <div className="hidden lg:block">
-            <GroupDetailsList layout="wide" />
-          </div>
-          <OffTargetNote />
-          <div className="flex justify-end">
-            <Link href="/investimentos/alocacao/perfis" className={compareLink}>
-              Comparar os 4 perfis
-              <Icon name="chevron-right" size={16} />
-            </Link>
-          </div>
-        </Panel>
-        <Panel className="gap-3.5 p-4.5 md:p-5.5 lg:p-6">
+        <div className="animate-fade-up [animation-delay:80ms] lg:col-span-2">
+          <ProfileLevels />
+        </div>
+        <Panel className="animate-fade-up gap-3.5 p-4.5 [animation-delay:160ms] md:p-5.5 lg:p-6">
           <PanelHeader title="Suas respostas" titleClassName="text-16 tracking-normal md:text-18" />
           <dl className="m-0 grid grid-cols-2 gap-x-3.5 gap-y-3 text-13">
             {profileAnswers.map((answer) => (
@@ -107,7 +57,7 @@ export default function ResultadoPerfilPage() {
             ))}
           </dl>
         </Panel>
-        <Panel className="hidden gap-3.5 p-6 lg:flex">
+        <Panel className="animate-fade-up gap-3.5 p-4.5 [animation-delay:240ms] md:p-5.5 lg:p-6">
           <PanelHeader
             title="O que o perfil muda no app"
             titleClassName="text-18 tracking-normal"
@@ -132,7 +82,7 @@ export default function ResultadoPerfilPage() {
             ))}
           </ul>
         </Panel>
-        <p className="m-0 text-13 leading-[1.55] text-caption">
+        <p className="m-0 text-13 leading-[1.55] text-caption lg:col-span-2">
           O perfil vale só para Investimentos. Você pode refazer quando quiser em Meu perfil.
         </p>
       </div>
