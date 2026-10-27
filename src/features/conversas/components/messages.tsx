@@ -31,7 +31,7 @@ export function ChatDateChip({
 /** Mensagem do usuário: bolha amarela à direita. */
 export function UserBubble({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className="flex justify-end">
+    <div className="flex animate-fade-up justify-end">
       <p
         className={cn(
           "m-0 max-w-[20.625rem] rounded-[1.25rem_1.25rem_0.375rem_1.25rem] bg-tucano px-4 py-3 text-16 leading-normal font-medium text-canvas",
@@ -65,7 +65,7 @@ export function AgentMessage({
   className,
 }: AgentMessageProps) {
   return (
-    <article className={cn("flex items-start gap-3", className)}>
+    <article className={cn("flex animate-fade-up items-start gap-3", className)}>
       <AgentAvatar agent={agent} size={avatarSize} />
       <div className="flex min-w-0 grow flex-col gap-2">
         <div className="flex items-baseline gap-2">

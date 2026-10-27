@@ -127,6 +127,10 @@
   --animate-scale-in: scale-in 0.3s var(--ease-out-soft) both;
   --animate-slide-in-right: slide-in-right 0.4s var(--ease-out-soft) both;
   --animate-pop: pop 0.35s var(--ease-out-soft) both;
+  --animate-dialog-in: dialog-in 0.28s var(--ease-out-soft) both;
+  --animate-sheet-in: sheet-in 0.42s var(--ease-out-soft) both;
+  --animate-panel-in: panel-in 0.42s var(--ease-out-soft) both;
+  --animate-grow-x: grow-x 0.9s var(--ease-out-soft) both;
 
   @keyframes fade-up {
     from {
@@ -164,6 +168,30 @@
     to {
       opacity: 1;
       transform: none;
+    }
+  }
+  /* `scale`, `translate` e `opacity` sozinhos: somam com o `translate` do Tailwind (centralizar). */
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      scale: 0.95;
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      opacity: 0.4;
+      translate: 0 2.5rem;
+    }
+  }
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      translate: 2rem 0;
+    }
+  }
+  @keyframes grow-x {
+    from {
+      scale: 0 1;
     }
   }
   @keyframes pop {
@@ -348,6 +376,43 @@
   }
 }
 
+/*
+ * Entrada em cascata: os filhos diretos sobem e aparecem um depois do outro (páginas, onboarding).
+ * A partir do 10º, entram juntos com o 10º para a tela não demorar a ficar pronta.
+ */
+@utility stagger {
+  & > * {
+    animation: fade-up 0.5s var(--ease-out-soft) both;
+  }
+  & > :nth-child(2) {
+    animation-delay: 50ms;
+  }
+  & > :nth-child(3) {
+    animation-delay: 100ms;
+  }
+  & > :nth-child(4) {
+    animation-delay: 150ms;
+  }
+  & > :nth-child(5) {
+    animation-delay: 200ms;
+  }
+  & > :nth-child(6) {
+    animation-delay: 250ms;
+  }
+  & > :nth-child(7) {
+    animation-delay: 300ms;
+  }
+  & > :nth-child(8) {
+    animation-delay: 340ms;
+  }
+  & > :nth-child(9) {
+    animation-delay: 380ms;
+  }
+  & > :nth-child(n + 10) {
+    animation-delay: 420ms;
+  }
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
   &::-webkit-scrollbar {
@@ -364,5 +429,25 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Cards clicáveis (links e botões com o raio de card) sobem um pouco ao passar o mouse e afundam
+ * ao tocar: o mesmo retorno em todo o app, sem repetir classes em cada tela.
+ */
+@layer components {
+  :is(a, button):is(.rounded-card, .rounded-bubble, .rounded-tile) {
+    transition:
+      translate 0.2s var(--ease-out-soft),
+      background-color 0.2s ease-out,
+      border-color 0.2s ease-out,
+      scale 0.15s ease-out;
+  }
+  :is(a, button):is(.rounded-card, .rounded-bubble, .rounded-tile):hover {
+    translate: 0 -0.125rem;
+  }
+  :is(a, button):is(.rounded-card, .rounded-bubble, .rounded-tile):active {
+    scale: 0.985;
   }
 }

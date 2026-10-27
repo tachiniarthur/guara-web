@@ -47,7 +47,7 @@ export function ConfirmDialog({
         aria-label="Fechar"
         tabIndex={-1}
         onClick={onClose}
-        className="absolute inset-0 border-none bg-[rgba(5,9,7,0.72)]"
+        className="absolute inset-0 animate-fade-in border-none bg-[rgba(5,9,7,0.72)]"
       />
       <div
         ref={panel}
@@ -55,7 +55,8 @@ export function ConfirmDialog({
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "absolute inset-x-0 bottom-0 flex flex-col gap-3.5 rounded-t-[1.75rem] border-t border-line-strong bg-card px-4 pb-7 text-sand",
+          "absolute inset-x-0 bottom-0 flex animate-sheet-in flex-col gap-3.5 rounded-t-[1.75rem] border-t border-line-strong bg-card px-4 pb-7 text-sand md:animate-dialog-in",
+          centered && "animate-dialog-in",
           centered &&
             "inset-x-auto top-1/2 bottom-auto left-1/2 w-[21.25rem] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-[1.75rem] border p-7 shadow-[0_24px_64px_rgba(0,0,0,.5)]",
           "md:inset-x-auto md:top-1/2 md:bottom-auto md:left-1/2 md:w-[32.5rem] md:-translate-x-1/2 md:-translate-y-1/2 md:gap-4 md:rounded-[1.75rem] md:border md:p-7 md:shadow-[0_24px_64px_rgba(0,0,0,.5)] lg:w-[35rem]",

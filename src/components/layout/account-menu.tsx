@@ -41,13 +41,13 @@ export function AccountMenuButton() {
             type="button"
             aria-label="Fechar menu da conta"
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-30 border-none bg-[rgba(5,8,6,0.55)] p-0"
+            className="fixed inset-0 z-30 animate-fade-in border-none bg-[rgba(5,8,6,0.55)] p-0"
           />
           <div
             id={menuId}
             role="menu"
             aria-label="Conta"
-            className="fixed top-[3.625rem] right-3 z-31 flex w-[18.75rem] flex-col gap-0.5 rounded-[1.375rem] border border-line-strong bg-field p-2 shadow-[0_1px_2px_rgba(0,0,0,.4),0_12px_32px_rgba(0,0,0,.45)]"
+            className="fixed top-[3.625rem] right-3 z-31 flex w-[18.75rem] origin-top-right animate-dialog-in flex-col gap-0.5 rounded-[1.375rem] border border-line-strong bg-field p-2 shadow-[0_1px_2px_rgba(0,0,0,.4),0_12px_32px_rgba(0,0,0,.45)]"
           >
             <div className="mb-1 flex items-center gap-3 border-b border-line px-3 pt-2.5 pb-3">
               <UserInitials initials={user.iniciais} size={40} className="text-15" />

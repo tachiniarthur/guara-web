@@ -54,10 +54,10 @@ export function Sidebar({ className }: { className?: string }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex h-12 items-center gap-3.5 rounded-full px-4 text-16 no-underline transition-colors",
+                  "flex h-12 items-center gap-3.5 rounded-full px-4 text-16 no-underline transition-[color,background-color,translate] duration-200 active:scale-[0.98]",
                   active
                     ? "bg-sand font-bold text-canvas"
-                    : "font-medium text-mist hover:bg-shade hover:text-sand",
+                    : "font-medium text-mist hover:translate-x-0.5 hover:bg-shade hover:text-sand",
                 )}
               >
                 <Icon name={item.icon} />

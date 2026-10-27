@@ -31,7 +31,10 @@ type PageProps = {
   children: ReactNode;
 };
 
-/** Conteúdo de uma tela dentro do app shell, com os respiros de cada classe de janela. */
+/**
+ * Conteúdo de uma tela dentro do app shell, com os respiros de cada classe de janela. Os blocos
+ * entram em cascata ao abrir a tela (`stagger`).
+ */
 export function Page({
   header,
   padding = "default",
@@ -47,7 +50,7 @@ export function Page({
       {zoom ? (
         <div className={cn("flex flex-col", paddings[padding], paddingClassName)}>
           <div
-            className={cn("flex flex-col lg:zoom-area", className)}
+            className={cn("flex stagger flex-col lg:zoom-area", className)}
             style={{ "--zoom": zoom } as CSSProperties}
           >
             {children}
@@ -56,7 +59,7 @@ export function Page({
       ) : (
         <div
           className={cn(
-            "flex flex-col",
+            "flex stagger flex-col",
             paddings[padding],
             fill && "lg:min-h-dvh",
             paddingClassName,

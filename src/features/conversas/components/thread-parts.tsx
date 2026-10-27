@@ -32,7 +32,7 @@ export function AgentReply({
   const { nome } = agents[agent];
   const papel = role ?? agents[agent].papel;
   return (
-    <article className={cn("flex flex-col gap-2.5", className)}>
+    <article className={cn("flex animate-fade-up flex-col gap-2.5", className)}>
       <div className="flex items-center gap-2">
         <AgentAvatar agent={agent} size={28} variant="ring" />
         <span className="text-14 font-bold">{nome}</span>

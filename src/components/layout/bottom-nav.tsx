@@ -44,8 +44,8 @@ export function BottomNav({ className }: { className?: string }) {
                 >
                   <span
                     className={cn(
-                      "mt-1 flex h-8 w-13 items-center justify-center rounded-3xl",
-                      active ? "bg-shade text-sand" : "text-mist",
+                      "mt-1 flex h-8 w-13 items-center justify-center rounded-3xl transition-[background-color,color,scale] duration-200",
+                      active ? "scale-105 bg-shade text-sand" : "text-mist",
                     )}
                   >
                     <Icon name={item.icon} size={22} />

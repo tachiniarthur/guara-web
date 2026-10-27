@@ -137,7 +137,7 @@ export function OnboardingShell({
       <div className="lg:flex lg:grow lg:flex-col lg:items-center lg:overflow-y-auto lg:px-20 lg:py-16">
         <main
           className={cn(
-            "flex flex-col gap-5.5 px-4 pt-2 pb-35",
+            "flex stagger flex-col gap-5.5 px-4 pt-2 pb-35",
             "md:relative md:mx-auto md:-mt-[4.375rem] md:mb-10 md:gap-6.5 md:rounded-card md:border md:border-line md:bg-card md:p-10",
             "lg:my-auto lg:w-full lg:zoom-area lg:gap-7 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0",
             tabletWidth,

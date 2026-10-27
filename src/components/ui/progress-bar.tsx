@@ -54,7 +54,10 @@ export function ProgressBar({
       style={{ height: rem(height), borderRadius: rem(height / 2) }}
     >
       <div
-        className={fills[tone ?? tetoTone(pct)]}
+        className={cn(
+          fills[tone ?? tetoTone(pct)],
+          "origin-left animate-grow-x transition-[width] duration-700 ease-[var(--ease-out-soft)]",
+        )}
         style={{ width: `${pct}%`, height: rem(height), borderRadius: rem(height / 2) }}
       />
     </div>

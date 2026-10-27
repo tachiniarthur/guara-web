@@ -39,8 +39,8 @@ export function Rail({ className }: { className?: string }) {
               >
                 <span
                   className={cn(
-                    "flex h-8 w-14 items-center justify-center rounded-3xl",
-                    active ? "bg-shade text-sand" : "text-mist",
+                    "flex h-8 w-14 items-center justify-center rounded-3xl transition-[background-color,color,scale] duration-200",
+                    active ? "scale-105 bg-shade text-sand" : "text-mist hover:bg-shade/60",
                   )}
                 >
                   <Icon name={item.icon} size={22} />
