@@ -34,6 +34,9 @@ describe("Onboarding · Plano (protótipo)", () => {
     expect(screen.getByRole("radio", { name: /Plus/ })).toBeChecked();
     fireEvent.click(screen.getByText("Para acompanhar tudo, sem limites."));
     expect(screen.getByRole("radio", { name: /Pro/ })).toBeChecked();
+    // O Private aparece fechado, com cadeado.
+    expect(screen.getByRole("heading", { level: 2, name: /Private/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Em breve" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Assinar o Pro" }));
     expect(push).toHaveBeenCalledWith("/onboarding/bancos");
   });

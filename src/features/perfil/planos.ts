@@ -87,27 +87,46 @@ export const planPitch: Record<PlanId, string> = {
 /** O plano em destaque na escolha. */
 export const featuredPlan: PlanId = "plus";
 
+/** O 4º plano, ainda fechado: aparece na escolha com cadeado e "Em breve". */
+export const privatePlan = {
+  nome: "Private",
+  preco: "Em breve",
+  pitch: "Com acompanhamento de um advisor.",
+};
+
 /**
- * Recursos linha a linha nos cards da escolha do plano: o texto de cada plano (na ordem de
- * `plans`) ou `null` quando o plano não tem (aparece riscado, com o texto de `off`).
+ * Recursos linha a linha nos cards da escolha do plano, alinhados entre os cards: o texto de cada
+ * plano (Básico, Plus, Pro e Private) ou `null` quando o plano não tem (aparece apagado, com o
+ * texto de `off`).
  */
 export const planFeatureRows: {
   off: string;
-  values: [string | null, string | null, string | null];
+  values: [string | null, string | null, string | null, string | null];
 }[] = [
   {
     off: "Bancos conectados",
-    values: ["1 banco conectado", "4 bancos conectados", "6 bancos conectados"],
+    values: [
+      "1 banco conectado",
+      "4 bancos conectados",
+      "6 bancos conectados",
+      "10 bancos conectados",
+    ],
   },
   {
     off: "Perguntas à IA",
-    values: ["20 perguntas por mês à IA", "40 perguntas por mês à IA", "70 perguntas por mês à IA"],
+    values: [
+      "20 perguntas por mês à IA",
+      "40 perguntas por mês à IA",
+      "70 perguntas por mês à IA",
+      "Mais perguntas por mês à IA",
+    ],
   },
   {
     off: "Assistentes de IA",
     values: [
       "2 assistentes de IA à sua escolha",
       "5 assistentes de IA à sua escolha",
+      "Todos os assistentes de IA",
       "Todos os assistentes de IA",
     ],
   },
@@ -117,30 +136,62 @@ export const planFeatureRows: {
       "Até 2 tetos e 2 alertas de preço",
       "Até 4 tetos e 4 alertas de preço",
       "Tetos e alertas sem limite",
+      "Tetos e alertas sem limite",
     ],
   },
   {
     off: "Histórico",
-    values: ["Histórico de 3 meses", "Histórico de 12 meses", "Histórico completo"],
+    values: [
+      "Histórico de 3 meses",
+      "Histórico de 12 meses",
+      "Histórico completo",
+      "Histórico completo",
+    ],
   },
   {
     off: "Relatórios",
-    values: ["Relatório do mês atual", "Relatórios completos", "Relatórios completos"],
+    values: [
+      "Relatório do mês atual",
+      "Relatórios completos",
+      "Relatórios completos",
+      "Relatórios completos",
+    ],
   },
   {
     off: "Simulador",
-    values: ["1 simulação por mês", "Simulador sem limite", "Simulador sem limite"],
+    values: [
+      "1 simulação por mês",
+      "Simulador sem limite",
+      "Simulador sem limite",
+      "Simulador sem limite",
+    ],
   },
   {
     off: "Exportar relatórios",
-    values: [null, "Exportar em PDF, Excel e CSV", "Exportar em PDF, Excel e CSV"],
+    values: [
+      null,
+      "Exportar em PDF, Excel e CSV",
+      "Exportar em PDF, Excel e CSV",
+      "Exportar em PDF, Excel e CSV",
+    ],
   },
   {
     off: "Metas e simulações salvas",
-    values: [null, "Metas e simulações salvas", "Metas e simulações salvas"],
+    values: [
+      null,
+      "Metas e simulações salvas",
+      "Metas e simulações salvas",
+      "Metas e simulações salvas",
+    ],
   },
-  { off: "Página de cada ativo", values: [null, "Página de cada ativo", "Página de cada ativo"] },
-  { off: "Suporte por WhatsApp", values: [null, null, "Suporte por e-mail e WhatsApp"] },
+  {
+    off: "Página de cada ativo",
+    values: [null, "Página de cada ativo", "Página de cada ativo", "Página de cada ativo"],
+  },
+  {
+    off: "Suporte por WhatsApp",
+    values: [null, null, "Suporte por e-mail e WhatsApp", "Advisor, e-mail e WhatsApp"],
+  },
 ];
 
 export const planUsage = {

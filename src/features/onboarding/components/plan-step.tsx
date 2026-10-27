@@ -14,7 +14,7 @@ import {
   planFeatureRows,
   planPitch,
   plans,
-  type Plan,
+  privatePlan,
   type PlanId,
 } from "@/features/perfil/planos";
 import { cn } from "@/lib/utils";
@@ -22,97 +22,135 @@ import { cn } from "@/lib/utils";
 import { onboardingSteps } from "../data";
 import { OnboardingIntro, OnboardingShell, OnboardingSteps } from "./onboarding-shell";
 
-function PlanColumn({
-  plan,
+/** Linhas de cada card (cabeçalho, recursos e botão): todas alinhadas entre os cards. */
+const CARD_ROWS = planFeatureRows.length + 2;
+
+function FeatureRow({ value, off }: { value: string | null; off: string }) {
+  return (
+    <li
+      className={cn(
+        "flex items-start gap-2.5 px-5 py-1.5 text-14 leading-snug",
+        value ? "text-sand" : "text-caption",
+      )}
+    >
+      <span className={cn("mt-0.5", value ? "text-folha" : "text-caption")}>
+        <Icon name={value ? "check" : "x"} size={16} strokeWidth={2.2} />
+      </span>
+      {value ?? (
+        <span>
+          <span className="sr-only">Não inclui: </span>
+          {off}
+        </span>
+      )}
+    </li>
+  );
+}
+
+/** Card de um plano: as linhas usam o subgrid da grade, então ficam na mesma altura nos quatro. */
+function PlanCard({
+  name,
+  price,
+  pitch,
   index,
-  selected,
-  busy,
+  selected = false,
+  locked = false,
+  featured = false,
+  busy = false,
   onSelect,
   onChoose,
 }: {
-  plan: Plan;
+  name: string;
+  price: string;
+  pitch: string;
   index: number;
-  selected: boolean;
-  busy: boolean;
-  onSelect: () => void;
-  onChoose: () => void;
+  selected?: boolean;
+  locked?: boolean;
+  featured?: boolean;
+  busy?: boolean;
+  onSelect?: () => void;
+  onChoose?: () => void;
 }) {
-  const featured = plan.id === featuredPlan;
+  const id = `plano-${index}`;
   return (
     <section
-      aria-labelledby={`plano-${plan.id}`}
+      aria-labelledby={id}
+      onClick={locked ? undefined : onSelect}
+      style={{ gridRow: `span ${CARD_ROWS}` }}
       className={cn(
-        "relative flex min-w-0 flex-col overflow-hidden rounded-card bg-card transition-colors",
-        selected
-          ? "border-2 border-tucano"
-          : "border border-line hover:border-line-strong hover:bg-shade",
+        "relative grid grid-rows-subgrid rounded-card bg-card transition-[border-color,background-color,box-shadow,transform] duration-200",
+        locked
+          ? "border border-dashed border-line"
+          : selected
+            ? "cursor-pointer border-2 border-tucano shadow-[0_0.75rem_2rem_rgba(0,0,0,0.35)]"
+            : "cursor-pointer border border-line hover:-translate-y-0.5 hover:border-line-strong hover:bg-shade",
       )}
     >
       {featured && (
-        <div
+        <span
           className={cn(
-            "py-1 text-center text-12 font-bold tracking-[0.06em] uppercase",
-            selected ? "bg-tucano text-canvas" : "bg-shade text-sand",
+            "absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-11 font-bold tracking-[0.06em] whitespace-nowrap uppercase transition-colors",
+            selected ? "bg-tucano text-canvas" : "border border-line-strong bg-card text-sand",
           )}
         >
           Mais popular
-        </div>
-      )}
-      {/* O card inteiro escolhe o plano (rádio escondido); o botão escolhe e assina. */}
-      <label className="flex grow cursor-pointer flex-col gap-5 p-5 pb-0">
-        <input
-          type="radio"
-          name="plano"
-          value={plan.id}
-          checked={selected}
-          onChange={onSelect}
-          className="sr-only"
-        />
-        <span className="flex flex-col gap-2">
-          <h2 id={`plano-${plan.id}`} className="m-0 text-20 font-bold">
-            {plan.nome}
-          </h2>
-          <span className="font-display text-34 leading-none font-extrabold tabular-nums">
-            {plan.preco}
-            <span className="ml-1 font-sans text-14 font-medium text-mist">/mês</span>
-          </span>
-          <span className="text-14 leading-normal text-mist">{planPitch[plan.id]}</span>
         </span>
-        <ul className="m-0 flex grow list-none flex-col gap-2.5 p-0">
-          {planFeatureRows.map((row) => {
-            const value = row.values[index];
-            return (
-              <li
-                key={row.off}
-                className={cn(
-                  "flex items-start gap-2.5 text-14 leading-snug",
-                  value ? "text-sand" : "text-caption",
-                )}
-              >
-                <span className={cn("mt-0.5", value ? "text-folha" : "text-caption")}>
-                  <Icon name={value ? "check" : "x"} size={16} strokeWidth={2.2} />
-                </span>
-                {value ?? (
-                  <span>
-                    <span className="sr-only">Não inclui: </span>
-                    {row.off}
-                  </span>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </label>
-      <div className="p-5">
-        <Button
-          variant={selected ? "primary" : "secondary"}
-          size="xl"
-          block
-          disabled={busy}
-          onClick={onChoose}
+      )}
+      <div className="flex flex-col gap-2 px-5 pt-6 pb-3">
+        <h2 id={id} className="m-0 flex items-center gap-2 text-20 font-bold">
+          {name}
+          {locked && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-shade px-2 py-0.5 text-12 font-bold text-mist">
+              <Icon name="lock" size={12} strokeWidth={2.2} />
+              Em breve
+            </span>
+          )}
+        </h2>
+        <span
+          className={cn(
+            "font-display leading-none font-extrabold tabular-nums",
+            locked ? "text-26 text-mist" : "text-34",
+          )}
         >
-          <span>{`Assinar o ${plan.nome}`}</span>
-        </Button>
+          {price}
+          {!locked && <span className="ml-1 font-sans text-14 font-medium text-mist">/mês</span>}
+        </span>
+        <span className="text-14 leading-normal text-mist">{pitch}</span>
+        {!locked && (
+          <input
+            type="radio"
+            name="plano"
+            aria-label={`${name}, ${price} por mês`}
+            checked={selected}
+            onChange={onSelect}
+            className="sr-only"
+          />
+        )}
+      </div>
+      <ul className="contents">
+        {planFeatureRows.map((row) => (
+          <FeatureRow key={row.off} value={row.values[index] ?? null} off={row.off} />
+        ))}
+      </ul>
+      <div className={cn("self-end px-5 pt-4 pb-5", locked && "opacity-70")}>
+        {locked ? (
+          <Button variant="secondary" size="xl" block disabled>
+            <Icon name="lock" size={16} />
+            <span>Em breve</span>
+          </Button>
+        ) : (
+          <Button
+            variant={selected ? "primary" : "secondary"}
+            size="xl"
+            block
+            disabled={busy}
+            onClick={(event) => {
+              event.stopPropagation();
+              onChoose?.();
+            }}
+          >
+            <span>{`Assinar o ${name}`}</span>
+          </Button>
+        )}
       </div>
     </section>
   );
@@ -148,7 +186,7 @@ export function PlanStep() {
       zoom={1.1}
       mobileTop={<MobileHeader />}
       tabletWidth="md:w-[calc(100%-3rem)] md:max-w-[64rem]"
-      desktopWidth="lg:max-w-[64rem]"
+      desktopWidth="lg:max-w-[80rem]"
     >
       <OnboardingSteps current={1} steps={onboardingSteps} />
       <OnboardingIntro title="Escolha seu plano">
@@ -161,19 +199,29 @@ export function PlanStep() {
       <div
         role="radiogroup"
         aria-label="Planos"
-        className="grid gap-4 min-[56rem]:grid-cols-3 lg:grid-cols-3"
+        className="grid gap-x-4 gap-y-6 pt-3 min-[56rem]:grid-cols-2 lg:grid-cols-4"
       >
         {plans.map((plan, index) => (
-          <PlanColumn
+          <PlanCard
             key={plan.id}
-            plan={plan}
+            name={plan.nome}
+            price={plan.preco}
+            pitch={planPitch[plan.id]}
             index={index}
+            featured={plan.id === featuredPlan}
             selected={plan.id === selected}
             busy={choosing !== null}
             onSelect={() => setSelected(plan.id)}
             onChoose={() => choose(plan.id)}
           />
         ))}
+        <PlanCard
+          name={privatePlan.nome}
+          price={privatePlan.preco}
+          pitch={privatePlan.pitch}
+          index={plans.length}
+          locked
+        />
       </div>
     </OnboardingShell>
   );
