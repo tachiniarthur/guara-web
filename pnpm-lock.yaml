@@ -172,6 +172,12 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.9.1
         version: 5.9.1(@standard-schema/spec@1.1.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(react-hook-form@7.89.0(@types/react@19.3.0)(react@19.3.0))(zod@4.6.5)
+      '@supabase/supabase-js':
+        specifier: ^2.118.0
+        version: 2.118.0
+      '@tanstack/react-query':
+        specifier: ^5.105.0
+        version: 5.105.0(@types/react@19.3.0)(react@19.3.0)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -280,7 +286,7 @@ importers:
         version: 17.6.0
       node:
         specifier: runtime:24.x
-        version: runtime:24.21.0
+        version: runtime:24.22.1
       prettier:
         specifier: ^3.9.9
         version: 3.9.9
@@ -1170,6 +1176,38 @@ packages:
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
+  '@supabase/auth-js@2.118.0':
+    resolution: {integrity: sha512-xWfPXyhS2KDSfAneMtI6p/tBnbdiz/5vaRKXEqUfzfC9WCniKr2Ds5o5G7RIGig0bom4z6wUY9zaV07WDVTfnQ==}
+    engines: {node: '>=22.0.0'}
+
+  '@supabase/functions-js@2.118.0':
+    resolution: {integrity: sha512-4ofletPa/noKAU6KHeqsd3FztGzRPUEJRey1MKY0o+PIHaVePqRPShIXtl37gcVyIWaFM+zNg6r9zh0uUSFOSA==}
+    engines: {node: '>=22.0.0'}
+
+  '@supabase/phoenix@0.4.5':
+    resolution: {integrity: sha512-aAn9H9ovVyeApKy11OWOrrOGq8DV68yWeH4ud2lN9fzn4aO8Zb5GLL9m1pUg9nLqIcT+ZDfAcsZe0E/nqdv2lw==}
+
+  '@supabase/postgrest-js@2.118.0':
+    resolution: {integrity: sha512-JXy+37KPApHsyotaQACovv/Jy9E22rfiWLRuT+2UjoEAcAIelDFIrsF/FY47Dy19mO7lI0Tq+zDCX8oJ2Ozfiw==}
+    engines: {node: '>=22.0.0'}
+
+  '@supabase/realtime-js@2.118.0':
+    resolution: {integrity: sha512-pzCIEWjqD5/xqEZQerpt+q9rsgYkcrkgCJgf0W2ULqC4fYUeB/p9CFa3t9vn+IVh6dMN9r4ZCE262lZvUC+Bfw==}
+    engines: {node: '>=22.0.0'}
+
+  '@supabase/storage-js@2.118.0':
+    resolution: {integrity: sha512-5MNkKt2Moy7Jud/sPX7/28BwdDxZMCVHGJT00b8op3KRa9LKSjOAYU5IcfGWIstaasAqY8GkbA6oI3IRDgB1YQ==}
+    engines: {node: '>=22.0.0'}
+
+  '@supabase/supabase-js@2.118.0':
+    resolution: {integrity: sha512-FxI8UXMVC2UG7IkeiI8fuQZqq2oI3JeSuN8MPIC2RLVaoEAxKS0nqE6kii9Ewpq8f9gNPM6git1Y8f0vN/QLFw==}
+    engines: {node: '>=22.0.0'}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0'
+    peerDependenciesMeta:
+      '@opentelemetry/api':
+        optional: true
+
   '@swc/helpers@0.5.23':
     resolution: {integrity: sha512-5lSsMOTXURePglDfvuAQUqkGek9Hg2kksOYay2m0+XR++b2NWYL/4sWyuvVBIs8oKnJaxkdi9whaL/sqN13afw==}
 
@@ -1264,6 +1302,18 @@ packages:
 
   '@tailwindcss/postcss@4.3.3':
     resolution: {integrity: sha512-JTSZZGQi1AyKirbLN3azmjVzef92tcX7h+iSqPdaeStyFpGpDlKvvpxeOE8njhbUanbRwr3z8DyzhICWnMtQeg==}
+
+  '@tanstack/query-core@5.105.0':
+    resolution: {integrity: sha512-7p56vRmT/z4UJ6sctGIdl5WRUQyUv53IUpUwEKi2g97zMbO7zh8ZsCLffGAvCPBR4xD72e3VXsDyLwXHhoNTMQ==}
+
+  '@tanstack/react-query@5.105.0':
+    resolution: {integrity: sha512-y+hMuDERvgg6ay1da0V1a6ZC0ZONt7dELxSFkqRZuwm7p1TTZs0MoXrPlBRflIpRoYjvzQVYxycnLImpFLhWrw==}
+    peerDependencies:
+      '@types/react': ^18 || ^19
+      react: ^18 || ^19
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   '@testing-library/dom@10.4.2':
     resolution: {integrity: sha512-yzr2S9HyAIdhz2/6qHgbs665Q7PKVcDF05vsOlHPxG1mo36gKVesdYVeDLnXgfjJ03CrKRk08knc6+E/9m8v2Q==}
@@ -2594,6 +2644,10 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
+  iceberg-js@0.8.1:
+    resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
+    engines: {node: '>=20.0.0'}
+
   iconv-lite@0.7.3:
     resolution: {integrity: sha512-IKXpvIzjnC9XTAUbVBcMfGS0EPaIXtW6v+zr+RRp+hqULEpo0owZax6wyRwPOJbWbzjYspQwusTsfVr0ifh4uQ==}
     engines: {node: '>=0.10.0'}
@@ -3255,7 +3309,7 @@ packages:
     resolution: {integrity: sha512-kQK9LGGFiHtrWiNhZtA7Qbw17AQz+dmsEKODRIVTXA9+e5MS/2gZEBhYJt13GrAz5/IOZKddH/0Z3TP/Zgo+yw==}
     engines: {node: '>=18'}
 
-  node@runtime:24.21.0:
+  node@runtime:24.22.1:
     resolution:
       type: variations
       variants:
@@ -3263,9 +3317,9 @@ packages:
             archive: tarball
             bin:
               node: bin/node
-            integrity: sha256-rseyRkr7mfB4wZywbSAdVDvTsxHLoHEoK84bF8l+WLs=
+            integrity: sha256-9ie20HmCnmSKS4AP+oidN9viORNQcDADDbhaqGFZGiY=
             type: binary
-            url: https://nodejs.org/download/release/v24.21.0/node-v24.21.0-aix-ppc64.tar.gz
+            url: https://nodejs.org/download/release/v24.22.1/node-v24.22.1-aix-ppc64.tar.gz
           targets:
             - cpu: ppc64
               os: aix
@@ -3273,9 +3327,9 @@ packages:
             archive: tarball
             bin:
               node: bin/node
-            integrity: sha256-vtfupTJeEQjzLOUijd1qXw8IpJnuQqp0Qq6lg3AvYFc=
+            integrity: sha256-icaCWT12zUQjP6U7FWMmTn3py7GJytFpE1xbT637wKc=
             type: binary
-            url: https://nodejs.org/download/release/v24.21.0/node-v24.21.0-darwin-arm64.tar.gz
+            url: https://nodejs.org/download/release/v24.22.1/node-v24.22.1-darwin-arm64.tar.gz
           targets:
             - cpu: arm64
               os: darwin
@@ -3283,9 +3337,9 @@ packages:
             archive: tarball
             bin:
               node: bin/node
-            integrity: sha256-FGLLOzBGuBXPjqQ209pFDsGp8R2sflpGsK2lMF1+gJc=
+            integrity: sha256-0TJVfn7iuFrwiwyMNDOOZcZDDyI40B9ydyjvQtyDsDU=
             type: binary
-            url: https://nodejs.org/download/release/v24.21.0/node-v24.21.0-darwin-x64.tar.gz
+            url: https://nodejs.org/download/release/v24.22.1/node-v24.22.1-darwin-x64.tar.gz
           targets:
             - cpu: x64
               os: darwin
@@ -3293,9 +3347,9 @@ packages:
             archive: tarball
             bin:
               node: bin/node
-            integrity: sha256-ckKCw7Q67JmKqVJzgEZbRdIp4CG1gDX19PYwleq/5dU=
+            integrity: sha256-M8N74jS6i+4EGWEEexkWD019DxZOjiRveL3RD+/xSLM=
             type: binary
-            url: https://nodejs.org/download/release/v24.21.0/node-v24.21.0-linux-arm64.tar.gz
+            url: https://nodejs.org/download/release/v24.22.1/node-v24.22.1-linux-arm64.tar.gz
           targets:
             - cpu: arm64
               os: linux
@@ -3303,9 +3357,9 @@ packages:
             archive: tarball
             bin:
               node: bin/node
-            integrity: sha256-UcXVMGbukpILYXg7A7Buy5nzZhFg97Fcp36EdBFaZ7w=
+            integrity: sha256-nOVyhEUBaynkmtCY96M2Bhql93DRd9knJ4vCb9Ym5kM=
             type: binary
-            url: https://nodejs.org/download/release/v24.21.0/node-v24.21.0-linux-ppc64le.tar.gz
+            url: https://nodejs.org/download/release/v24.22.1/node-v24.22.1-linux-ppc64le.tar.gz
           targets:
             - cpu: ppc64le
               os: linux
@@ -3313,9 +3367,9 @@ packages:
             archive: tarball
             bin:
               node: bin/node
-            integrity: sha256-Xy+jdCLgx13jXBaG/lHXgyTywqj+LMI5pB2cAAop2Tg=
+            integrity: sha256-cZea6xw4W8jugxANODo7HsClIC4D35+ZanBAMwnK/7U=
             type: binary
-            url: https://nodejs.org/download/release/v24.21.0/node-v24.21.0-linux-s390x.tar.gz
+            url: https://nodejs.org/download/release/v24.22.1/node-v24.22.1-linux-s390x.tar.gz
           targets:
             - cpu: s390x
               os: linux
@@ -3323,9 +3377,9 @@ packages:
             archive: tarball
             bin:
               node: bin/node
-            integrity: sha256-PWNAX8ZaDS0pdsHwvC/Se7C9ByEkaecFqsPwOuWrTJw=
+            integrity: sha256-myUNKdariuON0jAZ4sBKbWspFqsdrXIcX24dorKQHGo=
             type: binary
-            url: https://nodejs.org/download/release/v24.21.0/node-v24.21.0-linux-x64-musl.tar.gz
+            url: https://nodejs.org/download/release/v24.22.1/node-v24.22.1-linux-x64-musl.tar.gz
           targets:
             - cpu: x64
               os: linux
@@ -3334,9 +3388,9 @@ packages:
             archive: tarball
             bin:
               node: bin/node
-            integrity: sha256-bh24fvWLiBnl1UAu/xU2SRsY7djre+5e94l4duiNxf8=
+            integrity: sha256-62co53xXajUWLBIsRcyt8iTYn/AKvI2uRswol8YALXw=
             type: binary
-            url: https://nodejs.org/download/release/v24.21.0/node-v24.21.0-linux-x64.tar.gz
+            url: https://nodejs.org/download/release/v24.22.1/node-v24.22.1-linux-x64.tar.gz
           targets:
             - cpu: x64
               os: linux
@@ -3344,10 +3398,10 @@ packages:
             archive: zip
             bin:
               node: node.exe
-            integrity: sha256-h3mxveHTn41CDjtXqmV7OYka9DTT3kSpGQRM7AZ4WSE=
-            prefix: node-v24.21.0-win-arm64
+            integrity: sha256-oMgHMZ/t4kxKDY+EVkyCphm9MTsWsQwAfDg8JgnpkXE=
+            prefix: node-v24.22.1-win-arm64
             type: binary
-            url: https://nodejs.org/download/release/v24.21.0/node-v24.21.0-win-arm64.zip
+            url: https://nodejs.org/download/release/v24.22.1/node-v24.22.1-win-arm64.zip
           targets:
             - cpu: arm64
               os: win32
@@ -3355,10 +3409,10 @@ packages:
             archive: zip
             bin:
               node: node.exe
-            integrity: sha256-FY92hbRN5R9sDfHRU1JsvNPhvHOajfxgdyHO913p5UE=
-            prefix: node-v24.21.0-win-x64
+            integrity: sha256-0gRtKMLD3NIRrFFFwL8w4gR++d+zBmk8jG4uzNi5X6U=
+            prefix: node-v24.22.1-win-x64
             type: binary
-            url: https://nodejs.org/download/release/v24.21.0/node-v24.21.0-win-x64.zip
+            url: https://nodejs.org/download/release/v24.22.1/node-v24.22.1-win-x64.zip
           targets:
             - cpu: x64
               os: win32
@@ -3366,9 +3420,9 @@ packages:
             archive: tarball
             bin:
               node: bin/node
-            integrity: sha256-MEiwgR4VjKDYZytZyDmGF2PhREkpgNjSmzad/uRXR+Q=
+            integrity: sha256-glQSWCWj5eg0vYomDatMgwP3IEZKdBUG7CeYm5uhdps=
             type: binary
-            url: https://unofficial-builds.nodejs.org/download/release/v24.21.0/node-v24.21.0-linux-arm64-musl.tar.gz
+            url: https://unofficial-builds.nodejs.org/download/release/v24.22.1/node-v24.22.1-linux-arm64-musl.tar.gz
           targets:
             - cpu: arm64
               os: linux
@@ -3377,14 +3431,14 @@ packages:
             archive: tarball
             bin:
               node: bin/node
-            integrity: sha256-AacT402pjntNKjGR7nyj+T3QOE0aLvI8N5shYe5uEzo=
+            integrity: sha256-Cp7dzi0ujzrdvpT6RtdRMlstdPf9HOYylhZNNrbfxuU=
             type: binary
-            url: https://unofficial-builds.nodejs.org/download/release/v24.21.0/node-v24.21.0-linux-x64-musl.tar.gz
+            url: https://unofficial-builds.nodejs.org/download/release/v24.22.1/node-v24.22.1-linux-x64-musl.tar.gz
           targets:
             - cpu: x64
               os: linux
               libc: musl
-    version: 24.21.0
+    version: 24.22.1
     hasBin: true
 
   npm-run-path@4.0.1:
@@ -5215,6 +5269,38 @@ snapshots:
 
   '@standard-schema/utils@0.3.0': {}
 
+  '@supabase/auth-js@2.118.0':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/functions-js@2.118.0':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/phoenix@0.4.5': {}
+
+  '@supabase/postgrest-js@2.118.0':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/realtime-js@2.118.0':
+    dependencies:
+      '@supabase/phoenix': 0.4.5
+      tslib: 2.8.1
+
+  '@supabase/storage-js@2.118.0':
+    dependencies:
+      iceberg-js: 0.8.1
+      tslib: 2.8.1
+
+  '@supabase/supabase-js@2.118.0':
+    dependencies:
+      '@supabase/auth-js': 2.118.0
+      '@supabase/functions-js': 2.118.0
+      '@supabase/postgrest-js': 2.118.0
+      '@supabase/realtime-js': 2.118.0
+      '@supabase/storage-js': 2.118.0
+
   '@swc/helpers@0.5.23':
     dependencies:
       tslib: 2.8.1
@@ -5287,6 +5373,15 @@ snapshots:
       '@tailwindcss/oxide': 4.3.3
       postcss: 8.5.28
       tailwindcss: 4.3.3
+
+  '@tanstack/query-core@5.105.0': {}
+
+  '@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.0)':
+    dependencies:
+      '@tanstack/query-core': 5.105.0
+      react: 19.3.0
+    optionalDependencies:
+      '@types/react': 19.3.0
 
   '@testing-library/dom@10.4.2':
     dependencies:
@@ -6745,6 +6840,8 @@ snapshots:
 
   husky@9.1.7: {}
 
+  iceberg-js@0.8.1: {}
+
   iconv-lite@0.7.3:
     dependencies:
       safer-buffer: 2.1.2
@@ -7295,7 +7392,7 @@ snapshots:
 
   node-releases@2.0.57: {}
 
-  node@runtime:24.21.0: {}
+  node@runtime:24.22.1: {}
 
   npm-run-path@4.0.1:
     dependencies:

@@ -8,22 +8,53 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { account } from "@/features/perfil/data";
 import { cn } from "@/lib/utils";
+import { useAuthFlow } from "@/stores/auth-flow";
 
+import { authErrorCode, emailAuthMessage, requestEmailCode } from "../auth";
+import { useSession } from "../session";
 import { disabledButtonClass, WarningBlock } from "./auth-parts";
+import { SocialButtons } from "./social-buttons";
 
 export type LoginState = "pronto" | "sem-conta" | "sem-internet";
 
-/** Entrada por e-mail: o código vai para o e-mail; trata e-mail sem conta e falta de internet. */
+/**
+ * Entrada por e-mail: o código vai para o e-mail; trata e-mail sem conta e falta de internet. Com
+ * login de verdade, pede o código ao Supabase; no protótipo, só aceita o e-mail de exemplo.
+ */
 export function LoginForm({ initialState = "pronto" }: { initialState?: LoginState }) {
   const router = useRouter();
+  const { live } = useSession();
+  const setFlowEmail = useAuthFlow((s) => s.setEmail);
   const [state, setState] = useState<LoginState>(initialState);
   const [email, setEmail] = useState(
-    initialState === "sem-conta" ? "artur@exemplo.com" : account.email,
+    live ? "" : initialState === "sem-conta" ? "artur@exemplo.com" : account.email,
   );
+  const [sending, setSending] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+
+  /** Pede o código (Entrar, ou criar a conta com este e-mail) e vai para a tela do código. */
+  async function sendCode(criarConta: boolean) {
+    const address = email.trim().toLowerCase();
+    setSending(true);
+    setFailure(null);
+    try {
+      await requestEmailCode(address, criarConta);
+      setFlowEmail(address);
+      router.push(criarConta ? "/boas-vindas/codigo" : "/entrar/codigo");
+    } catch (error) {
+      const code = authErrorCode(error);
+      if (code === "sem-conta") setState("sem-conta");
+      else if (code === "sem-internet") setState("sem-internet");
+      else setFailure(emailAuthMessage(code));
+    } finally {
+      setSending(false);
+    }
+  }
 
   function submit(event: FormEvent) {
     event.preventDefault();
     if (typeof navigator !== "undefined" && !navigator.onLine) return setState("sem-internet");
+    if (live) return void sendCode(false);
     if (email.trim().toLowerCase() !== account.email) return setState("sem-conta");
     router.push("/entrar/codigo");
   }
@@ -37,12 +68,8 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
           código. Seu e-mail continua preenchido.
         </WarningBlock>
       )}
-      <ButtonLink href="/" variant="secondary" size="xl" block>
-        <span>Continuar com Google</span>
-      </ButtonLink>
-      <ButtonLink href="/" variant="secondary" size="xl" block>
-        <span>Continuar com Apple</span>
-      </ButtonLink>
+      {failure && <WarningBlock icon="alert-triangle">{failure}</WarningBlock>}
+      <SocialButtons />
       <div className="flex items-center gap-3 text-13 text-caption">
         <span className="h-px grow bg-line" />
         ou com e-mail
@@ -87,9 +114,21 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
               Leva menos de um minuto. Depois você conecta seus bancos pela Malvo, se quiser.
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <ButtonLink href="/boas-vindas/codigo" variant="primary" size="md">
-                <span>Criar conta com este e-mail</span>
-              </ButtonLink>
+              {live ? (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  disabled={sending}
+                  onClick={() => void sendCode(true)}
+                >
+                  <span>Criar conta com este e-mail</span>
+                </Button>
+              ) : (
+                <ButtonLink href="/boas-vindas/codigo" variant="primary" size="md">
+                  <span>Criar conta com este e-mail</span>
+                </ButtonLink>
+              )}
               <Button
                 variant="ghost"
                 size="md"
@@ -109,8 +148,15 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
                 Receber código
               </button>
             ) : (
-              <Button type="submit" variant="primary" size="xl" block className="text-16">
-                <span>Receber código</span>
+              <Button
+                type="submit"
+                variant="primary"
+                size="xl"
+                block
+                className="text-16"
+                disabled={sending}
+              >
+                <span>{sending ? "Enviando…" : "Receber código"}</span>
               </Button>
             )}
             <p className="m-0 text-13 leading-[1.55] text-caption">

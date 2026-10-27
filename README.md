@@ -43,9 +43,17 @@ Os tokens (cores, tipografia, espaçamento e raios) vivem em `src/app/globals.cs
 
 ```bash
 pnpm install
-cp .env.example .env.local   # opcional por enquanto
+cp .env.example .env.local   # sem as variáveis, o site roda como protótipo
 pnpm dev                     # http://localhost:3000
 ```
+
+### Protótipo × login de verdade
+
+Sem `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, o
+site é o protótipo navegável (dados de exemplo, sem login). Com as três, o login é pelo Supabase
+(e-mail com código, Google, Apple) e o site fala com a API do Guará: sem login, abre a entrada;
+sem plano, a etapa de plano do onboarding (todo plano é pago); com plano, o app. Na Vercel, as
+variáveis entram em Settings → Environment Variables (valem a partir do próximo deploy).
 
 ## Scripts
 

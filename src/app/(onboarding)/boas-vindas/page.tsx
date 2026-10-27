@@ -1,8 +1,7 @@
 import Link from "next/link";
 
-import { Button, ButtonLink } from "@/components/ui/button";
-import { Field, FieldLabel, TextInput } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
+import { SignUpForm } from "@/features/acesso/components/signup-form";
 import {
   MataBanner,
   OnboardingIntro,
@@ -16,28 +15,7 @@ export default function BoasVindasPage() {
         Gastos, investimentos e alertas em um só lugar, com seis assistentes acompanhando tudo para
         você.
       </OnboardingIntro>
-      <div className="flex flex-col gap-2.5">
-        <Button variant="secondary" size="xl" block>
-          <span>Continuar com Google</span>
-        </Button>
-        <Button variant="secondary" size="xl" block>
-          <span>Continuar com Apple</span>
-        </Button>
-      </div>
-      <div className="flex items-center gap-3 text-13 text-caption">
-        <span className="h-px flex-1 bg-line" />
-        ou com e-mail
-        <span className="h-px flex-1 bg-line" />
-      </div>
-      <form className="m-0 flex flex-col gap-3.5">
-        <Field>
-          <FieldLabel htmlFor="email">E-mail</FieldLabel>
-          <TextInput id="email" type="email" placeholder="voce@exemplo.com" />
-        </Field>
-        <ButtonLink href="/boas-vindas/codigo" variant="primary" size="xl" block>
-          <span>Criar conta</span>
-        </ButtonLink>
-      </form>
+      <SignUpForm />
       <div className="flex items-start gap-2.5 rounded-tile bg-shade p-3.5 text-14 leading-normal text-mist lg:hidden">
         <span className="text-sand">
           <Icon name="shield" />

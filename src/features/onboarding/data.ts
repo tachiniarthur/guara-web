@@ -1,7 +1,7 @@
 import type { AgentId } from "@/features/assistentes/data";
 import type { IconName } from "@/components/ui/icon";
 
-export const onboardingSteps = ["Bancos", "Perfil", "Assistentes"] as const;
+export const onboardingSteps = ["Plano", "Bancos", "Perfil", "Assistentes"] as const;
 
 export const onboardingHighlights: { icon: IconName; text: string }[] = [
   {

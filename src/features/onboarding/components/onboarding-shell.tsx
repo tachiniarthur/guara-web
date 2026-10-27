@@ -156,7 +156,7 @@ export function OnboardingShell({
   );
 }
 
-/** Etapas do onboarding (1. Bancos, 2. Perfil, 3. Assistentes). */
+/** Etapas do onboarding (1. Plano, 2. Bancos, 3. Perfil, 4. Assistentes). */
 export function OnboardingSteps({ current, steps }: { current: number; steps: readonly string[] }) {
   return (
     <div className="flex flex-col gap-2.5">

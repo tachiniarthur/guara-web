@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { account } from "@/features/perfil/data";
 import { cn } from "@/lib/utils";
+import { useAuthFlow } from "@/stores/auth-flow";
 
+import { authErrorCode, emailAuthMessage, requestEmailCode, verifyEmailCode } from "../auth";
+import { useSession } from "../session";
 import { disabledButtonClass, WarningBlock } from "./auth-parts";
 
 export type CodeState = "digitando" | "erro" | "vencido";
@@ -19,7 +22,8 @@ const DEMO_CODE = "482917";
 
 /**
  * Código de 6 dígitos (entrar ou criar conta): 6 caixas com teclado numérico, reenvio depois de
- * 45 segundos, código incorreto (restam N tentativas) e código vencido.
+ * 45 segundos, código incorreto (restam N tentativas) e código vencido. Com login de verdade,
+ * confere no Supabase e o porteiro da entrada leva ao plano (conta nova) ou ao app.
  */
 export function CodeForm({
   mode,
@@ -29,9 +33,18 @@ export function CodeForm({
   initialState?: CodeState;
 }) {
   const router = useRouter();
+  const { live, refresh } = useSession();
+  const flowEmail = useAuthFlow((s) => s.email);
+  const setFlowEmail = useAuthFlow((s) => s.setEmail);
   const [digits, setDigits] = useState<string[]>(
-    initialState === "digitando" ? ["4", "8", "2", "", "", ""] : ["4", "8", "2", "9", "1", "7"],
+    live
+      ? ["", "", "", "", "", ""]
+      : initialState === "digitando"
+        ? ["4", "8", "2", "", "", ""]
+        : ["4", "8", "2", "9", "1", "7"],
   );
+  const [checking, setChecking] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
   const [state, setState] = useState<CodeState>(initialState);
   const [tries, setTries] = useState(4);
   const [seconds, setSeconds] = useState(initialState === "erro" ? 21 : RESEND_SECONDS);
@@ -67,13 +80,35 @@ export function CodeForm({
     refs.current[Math.min(pasted.length, 5)]?.focus();
   }
 
+  async function verify() {
+    if (!flowEmail) return;
+    setChecking(true);
+    setFailure(null);
+    try {
+      await verifyEmailCode(flowEmail, digits.join(""));
+      setFlowEmail(null);
+      await refresh();
+    } catch (failed) {
+      const code = authErrorCode(failed);
+      if (code === "invalido") {
+        setState("erro");
+        setTries((t) => Math.max(0, t - 1));
+      } else {
+        setFailure(emailAuthMessage(code));
+      }
+    } finally {
+      setChecking(false);
+    }
+  }
+
   function submit() {
     if (!complete) {
       refs.current[firstEmpty]?.focus();
       return;
     }
+    if (live) return void verify();
     if (digits.join("") === DEMO_CODE) {
-      router.push(mode === "criar" ? "/onboarding/bancos" : "/");
+      router.push(mode === "criar" ? "/onboarding/plano" : "/");
       return;
     }
     setState("erro");
@@ -81,6 +116,11 @@ export function CodeForm({
   }
 
   function resend() {
+    if (live && flowEmail) {
+      requestEmailCode(flowEmail, mode === "criar").catch((failed: unknown) =>
+        setFailure(emailAuthMessage(authErrorCode(failed))),
+      );
+    }
     setDigits(["", "", "", "", "", ""]);
     setState("digitando");
     setSeconds(RESEND_SECONDS);
@@ -88,6 +128,11 @@ export function CodeForm({
   }
 
   const changeEmail = mode === "criar" ? "/boas-vindas" : "/entrar";
+
+  // Sem código a caminho (link antigo, outra aba): volta para pedir um.
+  useEffect(() => {
+    if (live && !flowEmail) router.replace(changeEmail);
+  }, [live, flowEmail, changeEmail, router]);
   const minutes = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 
   return (
@@ -95,7 +140,7 @@ export function CodeForm({
       <div className="flex items-center gap-2.5 rounded-tile bg-shade px-3.5 py-3">
         <Icon name="mail" size={18} className="text-mist" />
         <span className="min-w-0 grow text-14 text-mist">
-          Enviado para <strong className="text-sand">{account.email}</strong>
+          Enviado para <strong className="text-sand">{live ? flowEmail : account.email}</strong>
         </span>
         <Link
           href={changeEmail}
@@ -138,6 +183,7 @@ export function CodeForm({
           ))}
         </div>
       </fieldset>
+      {failure && <WarningBlock icon="alert-triangle">{failure}</WarningBlock>}
       {error && (
         <p role="alert" className="m-0 flex gap-2 text-14 leading-normal text-urucum">
           <Icon name="alert-triangle" size={18} />
@@ -183,8 +229,15 @@ export function CodeForm({
               {mode === "criar" ? "Criar conta" : "Entrar"}
             </button>
           ) : (
-            <Button variant="primary" size="xl" block className="text-16" onClick={submit}>
-              <span>{mode === "criar" ? "Criar conta" : "Entrar"}</span>
+            <Button
+              variant="primary"
+              size="xl"
+              block
+              className="text-16"
+              disabled={checking}
+              onClick={submit}
+            >
+              <span>{checking ? "Conferindo…" : mode === "criar" ? "Criar conta" : "Entrar"}</span>
             </Button>
           )}
         </>

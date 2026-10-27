@@ -42,7 +42,7 @@ export function MalvoShell({
       mobileActions={<MobileActionBar>{mobileActions}</MobileActionBar>}
     >
       <div className="hidden md:block">
-        <OnboardingSteps current={1} steps={onboardingSteps} />
+        <OnboardingSteps current={2} steps={onboardingSteps} />
       </div>
       {children}
     </OnboardingShell>

@@ -31,7 +31,7 @@ export default async function AssistentesAvisosPage({
         </MobileActionBar>
       }
     >
-      <OnboardingSteps current={3} steps={onboardingSteps} />
+      <OnboardingSteps current={4} steps={onboardingSteps} />
       <OnboardingIntro title="Conheça seus assistentes">
         Você não precisa escolher nada: é só perguntar que a Capivara chama o assistente certo. Para
         falar com um específico, digite @ no chat.

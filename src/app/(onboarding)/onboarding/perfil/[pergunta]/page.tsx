@@ -57,7 +57,7 @@ export default async function PerguntaPerfilPage({
         </MobileActionBar>
       }
     >
-      <OnboardingSteps current={2} steps={onboardingSteps} />
+      <OnboardingSteps current={3} steps={onboardingSteps} />
       <ProfileQuestionFields
         question={question}
         numero={numero}

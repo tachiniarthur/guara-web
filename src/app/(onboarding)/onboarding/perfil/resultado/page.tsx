@@ -56,7 +56,7 @@ export default function ResultadoPerfilPage() {
         </MobileActionBar>
       }
     >
-      <OnboardingSteps current={2} steps={onboardingSteps} />
+      <OnboardingSteps current={3} steps={onboardingSteps} />
       <div className="grid grid-cols-1 gap-5 md:gap-6.5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-start lg:gap-x-7 lg:gap-y-5.5">
         <div className="flex flex-col gap-2.5">
           <span className="text-13 text-caption">Resultado · 6 de 6 respondidas</span>

@@ -16,7 +16,7 @@ export default function ConectarBancosPage() {
   return (
     <OnboardingShell
       zoom={1.37}
-      mobileTop={<MobileHeader back="/boas-vindas" />}
+      mobileTop={<MobileHeader back="/onboarding/plano" />}
       mobileActions={
         <MobileActionBar>
           <ButtonLink
@@ -35,7 +35,7 @@ export default function ConectarBancosPage() {
         </MobileActionBar>
       }
     >
-      <OnboardingSteps current={1} steps={onboardingSteps} />
+      <OnboardingSteps current={2} steps={onboardingSteps} />
       <OnboardingIntro title="Conecte seus bancos">
         Pelo Open Finance, via Malvo. Você autoriza no app do banco e revoga quando quiser.
       </OnboardingIntro>
