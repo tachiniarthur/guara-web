@@ -230,14 +230,6 @@ export function OnboardingIntro({
 }
 
 /** Ações no fim do card (tablet e desktop). */
-/**
- * Ações da etapa (tablet e desktop): presas no rodapé, para "Continuar" estar sempre à vista sem
- * rolar a tela. No celular, as ações vão na barra fixa (`mobileActions`).
- */
 export function OnboardingActions({ children }: { children: ReactNode }) {
-  return (
-    <div className="sticky bottom-0 z-10 -mx-1 hidden items-center gap-2.5 bg-linear-to-t from-card from-70% to-transparent px-1 pt-6 pb-4 md:flex lg:from-canvas lg:pb-6">
-      {children}
-    </div>
-  );
+  return <div className="hidden gap-2.5 md:flex">{children}</div>;
 }

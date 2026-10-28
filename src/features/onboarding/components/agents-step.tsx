@@ -22,7 +22,7 @@ const intro = Object.fromEntries(agentIntros.map((item) => [item.id, item.texto]
 /** Arrasto mínimo (px) para trocar de assistente no toque ou no mouse. */
 const SWIPE = 48;
 /** Tempo de cada assistente no carrossel antes de passar para o próximo. */
-const AUTOPLAY_MS = 6000;
+const AUTOPLAY_MS = 3500;
 
 /**
  * Escolha dos assistentes do plano num carrossel: um por vez, grande, com a cena do bicho e o
@@ -58,7 +58,7 @@ export function AgentsCarousel({
           : current,
     );
 
-  // Passa sozinho para o próximo a cada 6 s; para com o mouse ou o foco em cima, e não anda com
+  // Passa sozinho para o próximo a cada 3,5 s; para com o mouse ou o foco em cima, e não anda com
   // "reduzir movimento". Cada troca (sozinha ou na mão) recomeça a contagem.
   useEffect(() => {
     if (paused || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;

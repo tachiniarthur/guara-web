@@ -20,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { onboardingSteps, profileAnswers, profileEffects } from "../data";
-import { OnboardingActions, OnboardingSteps } from "./onboarding-shell";
+import { OnboardingSteps } from "./onboarding-shell";
 
 const LEVELS = ["conservador", "moderado", "arrojado", "sofisticado"] as const;
 
@@ -458,7 +458,8 @@ export function ProfileResult() {
           </ul>
         </Panel>
       </div>
-      <OnboardingActions>
+      {/* Tablet e desktop: ações presas embaixo, sempre à vista. */}
+      <div className="sticky bottom-0 z-10 -mx-1 hidden gap-2.5 bg-linear-to-t from-card from-70% to-transparent px-1 pt-6 pb-4 md:flex lg:from-canvas lg:pb-6">
         <ButtonLink href="/onboarding/perfil/1" variant="secondary" size="xl">
           <span>Refazer</span>
         </ButtonLink>
@@ -466,7 +467,7 @@ export function ProfileResult() {
         <ButtonLink href="/onboarding/assistentes" variant="light" size="xl">
           <span>Continuar</span>
         </ButtonLink>
-      </OnboardingActions>
+      </div>
       {pending && (
         <ChangeTerm
           from={suggested}
