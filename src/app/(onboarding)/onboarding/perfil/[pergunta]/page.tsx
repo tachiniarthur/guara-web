@@ -11,7 +11,10 @@ import {
   stepFrame,
   OnboardingSteps,
 } from "@/features/onboarding/components/onboarding-shell";
-import { ProfileQuestionFields } from "@/features/onboarding/components/profile-question";
+import {
+  ProfileQuestionFields,
+  QuestionContinue,
+} from "@/features/onboarding/components/profile-question";
 import { onboardingSteps, profileQuestions } from "@/features/onboarding/data";
 
 const laterClass =
@@ -53,9 +56,7 @@ export default async function PerguntaPerfilPage({
           <Link href="/onboarding/assistentes" className={`${laterClass} px-1.5`}>
             Responder depois
           </Link>
-          <ButtonLink href={next} variant="light" size="xl" className="grow">
-            <span>Continuar</span>
-          </ButtonLink>
+          <QuestionContinue scope="onboarding" numero={numero} href={next} className="grow" />
         </MobileActionBar>
       }
     >
@@ -65,6 +66,7 @@ export default async function PerguntaPerfilPage({
         numero={numero}
         total={total}
         name={`pergunta-${numero}`}
+        scope="onboarding"
       />
       <OnboardingActions>
         <ButtonLink href={back} variant="secondary" size="xl">
@@ -74,9 +76,7 @@ export default async function PerguntaPerfilPage({
         <Link href="/onboarding/assistentes" className={`${laterClass} px-3`}>
           Responder depois
         </Link>
-        <ButtonLink href={next} variant="light" size="xl">
-          <span>Continuar</span>
-        </ButtonLink>
+        <QuestionContinue scope="onboarding" numero={numero} href={next} />
       </OnboardingActions>
     </OnboardingShell>
   );

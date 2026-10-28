@@ -46,6 +46,9 @@ export function GroupDonut({
 }) {
   const { size, radius, stroke } = dims;
   const c = size / 2;
+  // Nome longo ("Conservador") diminui para caber no furo da rosca, com folga dos lados.
+  const hole = 2 * (radius - stroke / 2);
+  const valueSize = Math.min(dims.value, (hole * 0.82) / (Math.max(value.length, 1) * 0.6));
   const circumference = 2 * Math.PI * radius;
   const total = groups.reduce((sum, g) => sum + values[g.id], 0);
   const lengths = groups.map((g) => (values[g.id] / total) * circumference);
@@ -92,7 +95,7 @@ export function GroupDonut({
         x={c}
         y={c + 14}
         textAnchor="middle"
-        fontSize={dims.value}
+        fontSize={valueSize}
         fontWeight="700"
         fill="#F2EFE6"
         style={{ fontFamily: "var(--font-display)" }}

@@ -1,5 +1,9 @@
+"use client";
+
+import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
+import { useProfileAnswers, type QuestionnaireScope } from "@/stores/profile-answers";
 
 import type { ProfileQuestion } from "../data";
 
@@ -9,9 +13,12 @@ export function ProfileQuestionFields({
   numero,
   total,
   name,
+  scope,
   kicker,
   legendClassName = "md:text-28 md:font-extrabold",
 }: {
+  /** De qual questionário são as respostas (onboarding ou refazer). */
+  scope: QuestionnaireScope;
   question: ProfileQuestion;
   numero: number;
   total: number;
@@ -22,6 +29,9 @@ export function ProfileQuestionFields({
   /** Corpo do enunciado (24 no celular, 28 a partir do tablet por padrão). */
   legendClassName?: string;
 }) {
+  // Começa sem nada marcado: a pessoa escolhe (e só avança escolhendo).
+  const chosen = useProfileAnswers((s) => s.answers[scope][numero]);
+  const answer = useProfileAnswers((s) => s.answer);
   return (
     <>
       <fieldset className="m-0 flex flex-col gap-2.5 border-none p-0">
@@ -50,7 +60,8 @@ export function ProfileQuestionFields({
               id={`${name}-${i}`}
               type="radio"
               name={name}
-              defaultChecked={i === question.escolhida}
+              checked={chosen === i}
+              onChange={() => answer(scope, numero, i)}
               className="m-0 size-5.5 shrink-0 accent-sand"
             />
             <span className="leading-[1.35]">{opcao}</span>
@@ -65,5 +76,42 @@ export function ProfileQuestionFields({
         <p className="m-0 mt-1 text-14 leading-[1.6] text-mist">{question.porque}</p>
       </details>
     </>
+  );
+}
+
+/** "Continuar" da pergunta: travado até escolher uma opção. */
+export function QuestionContinue({
+  scope,
+  numero,
+  href,
+  className,
+  size = "xl",
+}: {
+  scope: QuestionnaireScope;
+  numero: number;
+  href: string;
+  className?: string;
+  size?: "md" | "xl";
+}) {
+  const answered = useProfileAnswers((s) => s.answers[scope][numero] !== undefined);
+  if (!answered) {
+    return (
+      <span
+        aria-disabled="true"
+        title="Escolha uma opção para continuar"
+        className={cn(
+          "flex cursor-not-allowed items-center justify-center rounded-full bg-shade px-4.5 font-bold text-caption",
+          size === "xl" ? "h-13 text-15" : "h-11 text-15",
+          className,
+        )}
+      >
+        Continuar
+      </span>
+    );
+  }
+  return (
+    <ButtonLink href={href} variant="light" size={size} className={className}>
+      <span>Continuar</span>
+    </ButtonLink>
   );
 }

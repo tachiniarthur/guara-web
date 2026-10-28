@@ -94,11 +94,14 @@ function ProfilePicker({
 function ProfileComparison({
   base,
   other,
+  suggested,
   onChoose,
   onClose,
 }: {
+  /** O perfil que vale agora (o indicado, ou o escolhido depois do termo). */
   base: ProfileId;
   other: ProfileId;
+  suggested: ProfileId;
   onChoose: () => void;
   onClose: () => void;
 }) {
@@ -126,8 +129,14 @@ function ProfileComparison({
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {[
-          { profile: a, tag: "indicado pelo questionário" },
-          { profile: b, tag: "o que você abriu" },
+          {
+            profile: a,
+            tag: base === suggested ? "seu perfil (indicado)" : "seu perfil agora",
+          },
+          {
+            profile: b,
+            tag: other === suggested ? "indicado pelo questionário" : "o que você abriu",
+          },
         ].map(({ profile, tag }) => (
           <div key={profile.id} className="flex flex-col gap-1 rounded-tile bg-field px-4 py-3.5">
             <span className="text-12 font-bold tracking-[.06em] text-caption uppercase">{tag}</span>
@@ -190,7 +199,7 @@ function ProfileComparison({
       </div>
       <div className="flex flex-wrap items-center gap-2.5">
         <Button variant="light" onClick={onChoose}>
-          <span>Escolher o perfil {b.nome}</span>
+          <span>{other === suggested ? `Voltar ao ${b.nome}` : `Escolher o perfil ${b.nome}`}</span>
         </Button>
         <Button variant="ghost" onClick={onClose}>
           <span>Manter {a.nome}</span>
@@ -360,15 +369,16 @@ export function ProfileResult() {
   const chosen = profile !== suggested;
   const name = profileById[profile].nome;
 
-  // Tocar num perfil abre a comparação com o indicado; tocar no que já vale fecha.
-  const pick = (id: ProfileId) => {
-    if (id === profile) return setViewing(null);
+  // Tocar num perfil abre a comparação com o que vale agora; tocar no que já vale fecha.
+  const pick = (id: ProfileId) => setViewing(id === profile ? null : id);
+  // Escolher na comparação: voltar ao indicado não precisa de termo; outro perfil, sim.
+  const choose = (id: ProfileId) => {
     if (id === suggested) {
-      // Voltar ao perfil do questionário não precisa de termo.
       setProfile(id);
-      return setViewing(null);
+      setViewing(null);
+    } else {
+      setPending(id);
     }
-    setViewing(id);
   };
 
   return (
@@ -388,10 +398,10 @@ export function ProfileResult() {
               </span>
               <button
                 type="button"
-                onClick={() => setProfile(suggested)}
+                onClick={() => setViewing(suggested)}
                 className="cursor-pointer border-none bg-transparent p-0 text-14 font-bold text-sand underline underline-offset-4 hover:text-tucano"
               >
-                Voltar ao {profileById[suggested].nome}
+                Comparar com o {profileById[suggested].nome}
               </button>
             </p>
           ) : (
@@ -408,9 +418,10 @@ export function ProfileResult() {
         </div>
         {viewing && (
           <ProfileComparison
-            base={suggested}
+            base={profile}
             other={viewing}
-            onChoose={() => setPending(viewing)}
+            suggested={suggested}
+            onChoose={() => choose(viewing)}
             onClose={() => setViewing(null)}
           />
         )}

@@ -10,7 +10,10 @@ import { Note } from "@/components/ui/note";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { GroupDetailsList, ProfileLevels } from "@/features/alocacao/components/allocation-parts";
 import { portfolioAllocation, profileById } from "@/features/alocacao/data";
-import { ProfileQuestionFields } from "@/features/onboarding/components/profile-question";
+import {
+  ProfileQuestionFields,
+  QuestionContinue,
+} from "@/features/onboarding/components/profile-question";
 import { profileQuestions } from "@/features/onboarding/data";
 import { QuestionProgress } from "@/features/perfil/components/redo-parts";
 
@@ -37,6 +40,7 @@ export default async function RefazerPerfilPage({
       numero={numero}
       total={total}
       name={name}
+      scope="refazer"
       kicker={`Mesmas ${total} perguntas do início · leva 2 minutos`}
       legendClassName={legendClassName}
     />
@@ -46,11 +50,7 @@ export default async function RefazerPerfilPage({
       Enquanto você não salvar, o perfil {atual} continua valendo.
     </Note>
   );
-  const continueButton = (
-    <ButtonLink href={next} variant="light" className="text-15">
-      <span>Continuar</span>
-    </ButtonLink>
-  );
+  const continueButton = <QuestionContinue scope="refazer" numero={numero} href={next} size="md" />;
 
   return (
     <Page

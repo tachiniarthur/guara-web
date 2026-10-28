@@ -30,6 +30,11 @@ describe("Onboarding · resultado do perfil", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Arrojado");
     expect(screen.getByText(/Escolhido por você/)).toBeInTheDocument();
 
+    // Depois da troca, a comparação parte do perfil escolhido (inclusive para voltar ao indicado).
+    fireEvent.click(screen.getByRole("radio", { name: /Conservador/ }));
+    expect(screen.getByLabelText("Comparação: Arrojado e Conservador")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Comparar com o Moderado" }));
+    expect(screen.getByLabelText("Comparação: Arrojado e Moderado")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Voltar ao Moderado" }));
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Moderado");
   });
