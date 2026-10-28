@@ -51,7 +51,7 @@ export default function ConectarBancosPage() {
         />
       </div>
       <BankPicker />
-      <AccessPanel compact />
+      <AccessPanel />
       <OnboardingActions>
         <ButtonLink href="/onboarding/plano" variant="secondary" size="xl">
           <span>Voltar</span>

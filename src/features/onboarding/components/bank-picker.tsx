@@ -94,12 +94,12 @@ export function BankPicker() {
           {full ? `${lastName} conectado.` : `${lastName} conectado. Quer conectar outro?`}
         </p>
       )}
-      <div className="grid grid-cols-2 items-start gap-2.5 lg:grid-cols-4 lg:gap-2">
+      <div className="grid grid-cols-2 items-start gap-2.5">
         {banks.map((bank) => {
           const on = connected.includes(bank.id);
           const locked = !on && full;
           const className = cn(
-            "flex min-h-15 items-center gap-3 rounded-full px-3.5 text-left text-sand no-underline transition-[background-color,border-color,transform] duration-200 lg:min-h-13 lg:gap-2.5 lg:px-2.5",
+            "flex min-h-15 items-center gap-3 rounded-full px-3.5 text-left text-sand no-underline transition-[background-color,border-color,transform] duration-200 lg:min-h-14",
             on
               ? "border-2 border-folha bg-folha-bg pr-2"
               : locked
@@ -135,10 +135,10 @@ export function BankPicker() {
                   onClick={() => disconnect(bank.id)}
                   aria-label={`Desconectar ${bank.nome}`}
                   title={`Desconectar ${bank.nome}`}
-                  className="flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-full border border-line-strong bg-card px-3 text-12 font-bold text-sand hover:border-urucum-line hover:text-urucum lg:size-8 lg:justify-center lg:px-0"
+                  className="flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-full border border-line-strong bg-card px-3 text-12 font-bold text-sand hover:border-urucum-line hover:text-urucum"
                 >
                   <Icon name="x" size={14} />
-                  <span className="sm:inline hidden lg:hidden">Desconectar</span>
+                  <span className="sm:inline hidden">Desconectar</span>
                 </button>
               </div>
             );

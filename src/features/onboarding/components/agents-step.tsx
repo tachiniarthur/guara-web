@@ -148,12 +148,11 @@ export function AgentsCarousel({
                 aria-label={`${position + 1} de ${agentOrder.length}: ${item.nome}`}
                 aria-hidden={position !== index}
                 className={cn(
-                  "relative flex w-full shrink-0 flex-col overflow-hidden rounded-card border bg-card transition-[border-color] duration-300 lg:h-[17.5rem] lg:flex-row",
+                  "relative flex w-full shrink-0 flex-col overflow-hidden rounded-card border bg-card transition-[border-color] duration-300",
                   selected ? "border-tucano" : "border-line",
                 )}
               >
-                {/* Desktop: cena ao lado do texto (o card cabe na tela sem rolar). */}
-                <div className="relative h-56 overflow-hidden md:h-64 lg:h-full lg:w-[46%] lg:shrink-0">
+                <div className="relative h-56 overflow-hidden md:h-64 lg:h-52">
                   {/* eslint-disable-next-line @next/next/no-img-element -- cena ilustrada */}
                   <img
                     src={item.cena}
@@ -164,7 +163,7 @@ export function AgentsCarousel({
                       position === index ? "scale-100" : "scale-110",
                     )}
                   />
-                  <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,26,22,0)_40%,var(--guara-card)_100%)] lg:bg-[linear-gradient(90deg,rgba(18,26,22,0)_55%,var(--guara-card)_100%)]" />
+                  <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,26,22,0)_40%,var(--guara-card)_100%)]" />
                   {selected && (
                     <span className="absolute top-3 right-3 flex animate-pop items-center gap-1 rounded-full bg-tucano px-2.5 py-1 text-12 font-bold text-canvas">
                       <Icon name="check" size={14} strokeWidth={2.6} />
@@ -172,8 +171,8 @@ export function AgentsCarousel({
                     </span>
                   )}
                 </div>
-                <div className="-mt-10 flex flex-col gap-3 px-5 pb-5 lg:mt-0 lg:min-w-0 lg:grow lg:justify-center lg:gap-2.5 lg:py-5 lg:pr-6 lg:pl-2">
-                  <AgentAvatar agent={id} size={64} className="lg:hidden" />
+                <div className="-mt-10 flex flex-col gap-3 px-5 pb-5">
+                  <AgentAvatar agent={id} size={64} />
                   <div className="flex flex-col gap-0.5">
                     <span className="text-12 font-bold tracking-[0.06em] text-tucano uppercase">
                       {item.area}
@@ -183,7 +182,7 @@ export function AgentsCarousel({
                       {item.cientifico} · {item.bioma}
                     </span>
                   </div>
-                  <p className="m-0 text-16 leading-[1.55] text-mist lg:text-15">{intro[id]}</p>
+                  <p className="m-0 text-16 leading-[1.55] text-mist">{intro[id]}</p>
                   {!all && (
                     <Button
                       variant={selected ? "secondary" : "primary"}
@@ -213,7 +212,7 @@ export function AgentsCarousel({
           type="button"
           onClick={() => go(index - 1)}
           aria-label="Assistente anterior"
-          className="absolute top-28 left-3 flex size-10 items-center justify-center rounded-full border border-line-strong bg-canvas/80 text-sand backdrop-blur transition-transform hover:scale-105 md:top-32 lg:top-1/2 lg:-translate-y-1/2"
+          className="absolute top-28 left-3 flex size-10 items-center justify-center rounded-full border border-line-strong bg-canvas/80 text-sand backdrop-blur transition-transform hover:scale-105 md:top-32"
         >
           <Icon name="chevron-left" size={20} />
         </button>
@@ -221,7 +220,7 @@ export function AgentsCarousel({
           type="button"
           onClick={() => go(index + 1)}
           aria-label="Próximo assistente"
-          className="absolute top-28 right-3 flex size-10 items-center justify-center rounded-full border border-line-strong bg-canvas/80 text-sand backdrop-blur transition-transform hover:scale-105 md:top-32 lg:top-1/2 lg:-translate-y-1/2"
+          className="absolute top-28 right-3 flex size-10 items-center justify-center rounded-full border border-line-strong bg-canvas/80 text-sand backdrop-blur transition-transform hover:scale-105 md:top-32"
         >
           <Icon name="chevron-right" size={20} />
         </button>
