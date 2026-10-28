@@ -3,13 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
+import { Button } from "@/components/ui/button";
+
 import { useSession, type SessionStatus } from "../session";
 
 type Area = "app" | "entrada" | "onboarding";
 
 /** Para onde mandar quem está na área errada; `null` se pode ficar. */
 export function redirectFor(area: Area, status: SessionStatus): string | null {
-  if (status === "loading") return null;
+  if (status === "loading" || status === "unavailable") return null;
   if (area === "app") {
     if (status === "signedOut") return "/boas-vindas";
     if (status === "onboarding") return "/onboarding/plano";
@@ -28,7 +30,7 @@ export function redirectFor(area: Area, status: SessionStatus): string | null {
  * e Supabase) não faz nada: todas as telas abrem com os dados de exemplo.
  */
 export function SessionGate({ area, children }: { area: Area; children: ReactNode }) {
-  const { status, live } = useSession();
+  const { status, live, refresh } = useSession();
   const router = useRouter();
   const target = live ? redirectFor(area, status) : null;
 
@@ -37,10 +39,29 @@ export function SessionGate({ area, children }: { area: Area; children: ReactNod
   }, [target, router]);
 
   if (!live) return children;
+  if (status === "unavailable") {
+    return (
+      <div
+        role="alert"
+        className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center"
+      >
+        <p className="m-0 max-w-[26rem] text-15 leading-normal text-mist">
+          Não conseguimos falar com o Guará agora. Sua conta está salva; tente de novo em instantes.
+        </p>
+        <Button variant="primary" onClick={() => void refresh({ showLoading: true })}>
+          <span>Tentar de novo</span>
+        </Button>
+      </div>
+    );
+  }
   if (status === "loading" || target) {
     return (
-      <div role="status" className="flex min-h-dvh items-center justify-center text-14 text-mist">
-        Carregando…
+      <div
+        role="status"
+        className="flex min-h-dvh flex-col items-center justify-center gap-1.5 px-6 text-center"
+      >
+        <span className="text-15 text-sand">Preparando sua conta…</span>
+        <span className="text-13 text-caption">Pode levar alguns segundos.</span>
       </div>
     );
   }

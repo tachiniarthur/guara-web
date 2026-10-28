@@ -85,8 +85,9 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
   const hasAside = config.aside !== false;
   // As páginas de conversa já são o chat em tela cheia.
   const chatAvailable = !pathname.startsWith("/conversas");
-  // Conversa fixa à direita: aberta pelo usuário ou, no Início, aberta por padrão.
-  const docked = hasAside && (open === true || (open === null && config.aside === "home"));
+  // Conversa fixa à direita só quando a pessoa abre; antes, o painel mostra só o histórico
+  // (recolhido, também no Início ao entrar).
+  const docked = hasAside && open === true;
 
   return (
     <>

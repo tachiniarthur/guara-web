@@ -6,8 +6,8 @@ export type ChatMessage = { id: string; role: "user" | "agent"; text: string };
 
 type ChatPanelState = {
   /**
-   * Painel de conversa aberto. `null` = padrão da tela: no Início o painel começa aberto
-   * nas janelas extragrandes; nas demais telas começa fechado (mostra o histórico).
+   * Painel de conversa aberto. `null` = padrão da tela: começa fechado em todas, inclusive no
+   * Início (o painel da direita mostra só o histórico até a pessoa abrir uma conversa).
    */
   open: boolean | null;
   /** O que o painel mostra quando aparece por cima da tela (tablet, mobile e desktop sem painel fixo). */
