@@ -10,6 +10,10 @@ const segments = [
   { value: otherSpending.valor, color: otherSpending.cor },
 ];
 
+const total = segments.reduce((sum, s) => sum + s.value, 0);
+/** Participação de "outros" nas saídas, calculada (as categorias da lista vêm prontas). */
+const otherPercent = Math.round((otherSpending.valor / total) * 100);
+
 function DonutCenter() {
   return (
     <>
@@ -28,17 +32,25 @@ function DonutCenter() {
 export function CategoryBreakdown({ variant }: { variant: "desktop" | "tablet" | "mobile" }) {
   const mobile = variant === "mobile";
 
+  const desktop = variant === "desktop";
+  const rowClass = cn(
+    "flex items-center gap-3 border-b border-line text-sand no-underline",
+    mobile ? "min-h-[3.5625rem]" : "min-h-[3.3125rem]",
+    // Desktop: as linhas dividem a altura do card (que acompanha Lançamentos ao lado).
+    desktop && "h-full",
+  );
+
   const list = (
-    <ul className={cn("m-0 min-w-0 list-none p-0", !mobile && "grow")}>
+    <ul
+      className={cn(
+        "m-0 min-w-0 list-none p-0",
+        !mobile && "grow",
+        desktop && "flex h-full flex-col",
+      )}
+    >
       {categorySpending.map((c) => (
-        <li key={c.id}>
-          <Link
-            href={`/gastos/categorias/${c.id}`}
-            className={cn(
-              "flex items-center gap-3 border-b border-line text-sand no-underline",
-              mobile ? "min-h-[3.5625rem]" : "min-h-[3.3125rem]",
-            )}
-          >
+        <li key={c.id} className={cn(desktop && "flex-1")}>
+          <Link href={`/gastos/categorias/${c.id}`} className={rowClass}>
             <span
               aria-hidden="true"
               className={cn("w-2.5 shrink-0 rounded-[3px]", mobile ? "h-7" : "h-6.5")}
@@ -57,6 +69,24 @@ export function CategoryBreakdown({ variant }: { variant: "desktop" | "tablet" |
           </Link>
         </li>
       ))}
+      {/* O resto da rosca (cinza): soma das outras categorias, sem página própria. */}
+      <li className={cn(desktop && "flex-1")}>
+        <div className={cn(rowClass, "border-b-0")}>
+          <span
+            aria-hidden="true"
+            className={cn("w-2.5 shrink-0 rounded-[3px]", mobile ? "h-7" : "h-6.5")}
+            style={{ background: otherSpending.cor }}
+          />
+          <span className="flex min-w-0 grow flex-col leading-[1.3]">
+            <span className="font-bold">Outros gastos</span>
+            <span className="text-12 text-caption">
+              {mobile ? "outras categorias" : `outras categorias · ${otherPercent}%`}
+            </span>
+          </span>
+          <span className="font-bold tabular-nums">{otherSpending.valorFormatado}</span>
+          <span aria-hidden="true" className="w-4.5" />
+        </div>
+      </li>
     </ul>
   );
 
@@ -85,9 +115,9 @@ export function CategoryBreakdown({ variant }: { variant: "desktop" | "tablet" |
   }
 
   return (
-    <div className="grid grow grid-cols-[auto_minmax(0,1fr)] items-center gap-10">
+    <div className="grid grow grid-cols-[auto_minmax(0,1fr)] items-stretch gap-10">
       <div className="flex items-center justify-center">
-        <Donut segments={segments} size={240}>
+        <Donut segments={segments} size={260} box={180} radius={79}>
           <DonutCenter />
         </Donut>
       </div>

@@ -60,14 +60,18 @@ function PremiseControl({ field }: { field: PremiseField }) {
             <label htmlFor={field.id} className="font-bold">
               {field.label}
             </label>
-            <span className="font-bold tabular-nums">{field.value}</span>
+            <span className="font-bold tabular-nums">{field.display}</span>
           </div>
           <input
             id={field.id}
             type="range"
-            min={0}
-            max={100}
-            defaultValue={field.position}
+            min={field.min}
+            max={field.max}
+            step={field.step}
+            value={field.value}
+            aria-valuetext={field.display}
+            onChange={(event) => field.onChange?.(Number(event.target.value))}
+            readOnly={!field.onChange}
             className="m-0 h-7 w-full accent-arara"
           />
           <span className="text-12 text-caption">{field.hint}</span>
@@ -77,7 +81,12 @@ function PremiseControl({ field }: { field: PremiseField }) {
       return (
         <Field>
           <FieldLabel htmlFor={field.id}>{field.label}</FieldLabel>
-          <TextInput id={field.id} defaultValue={field.value} />
+          <TextInput
+            id={field.id}
+            value={field.value}
+            onChange={(event) => field.onChange?.(event.target.value)}
+            readOnly={!field.onChange}
+          />
           {field.hint && <FieldHint>{field.hint}</FieldHint>}
         </Field>
       );
@@ -88,7 +97,8 @@ function PremiseControl({ field }: { field: PremiseField }) {
           <ToggleChips
             label={field.label}
             options={field.options}
-            defaultPressed={field.pressed}
+            pressed={field.pressed}
+            onToggle={field.onToggle}
             multiple={field.multiple}
           />
         </div>
@@ -133,29 +143,10 @@ const chartVariants: { variant: ChartVariant; className: string }[] = [
   { variant: "desktop", className: "hidden @desk:block" },
 ];
 
-/** Resultado: valor principal, gráfico da projeção, cenários e ações. */
-export function ResultCard({
-  result,
-  agent,
-  className,
-}: {
-  result: Simulation["result"];
-  agent: Simulation["agent"];
-  className?: string;
-}) {
+/** Gráfico da projeção, legenda e cenários do resultado. */
+function ResultBody({ result }: { result: Simulation["result"] }) {
   return (
-    <SimPanel className={className}>
-      <SimHeader title={result.title} subtitle={result.subtitle} large />
-      <div className="flex flex-col gap-1">
-        <span className="text-14 text-mist">{result.metricLabel}</span>
-        <span className="flex items-baseline gap-1.5">
-          <span className="font-display text-38 leading-[1.05] font-extrabold tracking-[-0.02em] tabular-nums @tab:text-44">
-            {result.metric}
-          </span>
-          <span className="text-15 text-mist">/mês</span>
-        </span>
-        <span className="text-14 text-mist">{result.detail}</span>
-      </div>
+    <>
       {chartVariants.map(({ variant, className: visibility }) => (
         <div key={variant} className={visibility}>
           <ProjectionChart variant={variant} {...result.chart} />
@@ -193,6 +184,40 @@ export function ResultCard({
           </div>
         ))}
       </div>
+    </>
+  );
+}
+
+/** Resultado: valor principal, gráfico da projeção, cenários e ações. */
+export function ResultCard({
+  result,
+  agent,
+  className,
+}: {
+  result: Simulation["result"];
+  agent: Simulation["agent"];
+  className?: string;
+}) {
+  return (
+    <SimPanel className={className}>
+      <SimHeader title={result.title} subtitle={result.subtitle} large />
+      <div className="flex flex-col gap-1">
+        <span className="text-14 text-mist">{result.metricLabel}</span>
+        <span className="flex items-baseline gap-1.5">
+          <span className="font-display text-38 leading-[1.05] font-extrabold tracking-[-0.02em] tabular-nums @tab:text-44">
+            {result.metric}
+          </span>
+          <span className="text-15 text-mist">/mês</span>
+        </span>
+        <span className="text-14 text-mist">{result.detail}</span>
+      </div>
+      {result.empty ? (
+        <p className="m-0 rounded-tile bg-field px-4 py-3.5 text-14 leading-[1.55] text-mist">
+          {result.empty}
+        </p>
+      ) : (
+        <ResultBody result={result} />
+      )}
       <div className="flex flex-wrap gap-2">
         {result.primary.href ? (
           <ButtonLink href={result.primary.href} variant="light">
@@ -264,7 +289,7 @@ function Composition({ section }: { section: Extract<DetailSection, { kind: "com
       <div
         role="img"
         aria-label="Composição"
-        className="flex h-4 gap-0.5 overflow-hidden rounded-full"
+        className="flex h-4 origin-left animate-grow-x gap-0.5 overflow-hidden rounded-full"
       >
         {section.slices.map((slice) => (
           <span key={slice.label} style={{ width: `${slice.width}%`, background: slice.color }} />

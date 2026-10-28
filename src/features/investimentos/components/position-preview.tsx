@@ -35,7 +35,7 @@ function AllocationBar({ label, value, target }: { label: string; value: number;
       </div>
       <div className="relative h-2.5 rounded-full bg-shade">
         <span
-          className="absolute inset-y-0 left-0 rounded-full bg-urucum"
+          className="absolute inset-y-0 left-0 origin-left animate-grow-x rounded-full bg-urucum"
           style={{ width: `${(value / SCALE_MAX) * 100}%` }}
         />
         <span

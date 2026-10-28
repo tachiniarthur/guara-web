@@ -1,16 +1,46 @@
+"use client";
+
+import { useState } from "react";
+
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
 
-import { simulations, type SimulatorId } from "../data";
+import {
+  buildCut,
+  buildGoal,
+  buildRetirement,
+  CUT_START,
+  GOAL_START,
+  RETIREMENT_START,
+  type CutState,
+  type GoalState,
+  type RetirementState,
+} from "../build";
+import type { Simulation, SimulatorId } from "../data";
 import { AskAgentCard, DetailCard, PremisesCard, ResultCard } from "./sections";
 import { SimulatorNav } from "./simulator-nav";
+
+/** A simulação da aba aberta, recalculada a cada mudança nas premissas. */
+function useSimulation(id: SimulatorId): Simulation {
+  const [retirement, setRetirement] = useState<RetirementState>(RETIREMENT_START);
+  const [goal, setGoal] = useState<GoalState>(GOAL_START);
+  const [cut, setCut] = useState<CutState>(CUT_START);
+  switch (id) {
+    case "aposentadoria":
+      return buildRetirement(retirement, (patch) => setRetirement((s) => ({ ...s, ...patch })));
+    case "objetivo":
+      return buildGoal(goal, (patch) => setGoal((s) => ({ ...s, ...patch })));
+    case "corte":
+      return buildCut(cut, (patch) => setCut((s) => ({ ...s, ...patch })));
+  }
+}
 
 /**
  * Molde das três simulações. Desktop: premissas ao lado do resultado, três cards de detalhe
  * e o fechamento ao lado da conversa. Tablet e mobile: resultado primeiro, tudo empilhado.
  */
 export function SimulatorPage({ id }: { id: SimulatorId }) {
-  const simulation = simulations[id];
+  const simulation = useSimulation(id);
   const [first, second, third] = simulation.details;
 
   return (

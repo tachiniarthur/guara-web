@@ -1,3 +1,5 @@
+import { buildAfter, buildBar } from "./primitives";
+
 export type ValueBar = { label: string; value: number; display: string; color: string };
 
 /**
@@ -28,7 +30,7 @@ export function ValueBars({
       viewBox={`0 0 ${width} ${height}`}
       role="img"
       aria-label={label}
-      className="block h-auto w-full animate-reveal-y"
+      className="block h-auto w-full"
     >
       {items.map((item, i) => {
         const cx = 8 + slot * (i + 0.5);
@@ -42,8 +44,10 @@ export function ValueBars({
               height={h.toFixed(1)}
               rx="5"
               fill={item.color}
+              {...buildBar(i)}
             />
             <text
+              {...buildAfter}
               x={cx.toFixed(1)}
               y={(base - h - 4).toFixed(1)}
               textAnchor="middle"

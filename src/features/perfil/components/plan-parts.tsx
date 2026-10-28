@@ -110,7 +110,7 @@ export function UsagePanel({ className }: { className?: string }) {
         </div>
         <div aria-hidden="true" className="relative h-2 rounded-[4px] bg-shade">
           <div
-            className="h-2 rounded-[4px] bg-arara"
+            className="h-2 origin-left animate-grow-x rounded-[4px] bg-arara"
             style={{ width: `${Math.round((perguntas.usadas / perguntas.total) * 100)}%` }}
           />
         </div>

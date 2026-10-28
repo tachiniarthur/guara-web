@@ -3,6 +3,8 @@ import {
   ChartSvg,
   GridLines,
   chartColors,
+  buildAfter,
+  buildBar,
   roundedBar,
 } from "@/components/charts/primitives";
 
@@ -176,7 +178,7 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
   const last = meses.length - 1;
 
   return (
-    <ChartSvg reveal="rise" width={width} height={230} label={descricao}>
+    <ChartSvg reveal="none" width={width} height={230} label={descricao}>
       <GridLines
         ticks={[
           { value: 0, label: "0" },
@@ -206,6 +208,7 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
                 stroke={chartColors.saidas}
                 strokeWidth="1.5"
                 strokeDasharray="4 4"
+                {...buildAfter}
               >
                 <title>{`Setembro: previsão de ${fmt(previsao)} no fim do mês`}</title>
               </rect>
@@ -214,11 +217,13 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
               d={roundedBar(bx, y(mes.valor), bar, BASE)}
               fill={chartColors.saidas}
               fillOpacity={current ? 1 : 0.55}
+              {...buildBar(i)}
             >
               <title>{`${mes.nome}: ${fmt(mes.valor)}${current ? " até o dia 23" : ""}`}</title>
             </path>
             {(i === maxIndex || current) && (
               <text
+                {...buildAfter}
                 x={cx.toFixed(1)}
                 y={(y(current ? previsao : mes.valor) - (current ? 8 : 8)).toFixed(1)}
                 textAnchor="middle"
@@ -268,7 +273,7 @@ export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
     .map((d) => d.rotulo);
 
   return (
-    <ChartSvg reveal="rise" width={width} height={230} label={descricao}>
+    <ChartSvg reveal="none" width={width} height={230} label={descricao}>
       <GridLines
         ticks={[
           { value: 0, label: "0" },
@@ -290,11 +295,13 @@ export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
               d={roundedBar(bx, y(dia.valor), bar, BASE)}
               fill={chartColors.saidas}
               fillOpacity={highlight ? 1 : 0.45}
+              {...buildBar(i)}
             >
               <title>{`${dia.nome}: ${fmt(dia.valor)} por dia, em média`}</title>
             </path>
             {highlight && (
               <text
+                {...buildAfter}
                 x={cx.toFixed(1)}
                 y={(y(dia.valor) - 8).toFixed(1)}
                 textAnchor="middle"

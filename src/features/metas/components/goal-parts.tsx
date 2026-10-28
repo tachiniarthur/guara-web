@@ -53,7 +53,10 @@ export function GoalCard({ goal }: { goal: Goal }) {
       </div>
       <div aria-hidden="true" className="relative h-2.5 rounded-[5px] bg-shade">
         <div
-          className={cn("h-2.5 rounded-[5px]", barColor[goal.status.tom])}
+          className={cn(
+            "h-2.5 origin-left animate-grow-x rounded-[5px]",
+            barColor[goal.status.tom],
+          )}
           style={{ width: `${Math.max(goal.percentual, 1)}%` }}
         />
       </div>

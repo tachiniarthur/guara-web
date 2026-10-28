@@ -64,7 +64,10 @@ function HeroContent({ wide }: { wide?: boolean }) {
         <span className="text-16 font-medium text-mist">{` de ${goal.alvo}`}</span>
       </span>
       <div aria-hidden="true" className="relative h-3 rounded-md bg-[rgba(11,17,14,.55)]">
-        <div className="h-3 rounded-md bg-folha" style={{ width: `${goal.percentual}%` }} />
+        <div
+          className="h-3 origin-left animate-grow-x rounded-md bg-folha"
+          style={{ width: `${goal.percentual}%` }}
+        />
         {[25, 50, 75].map((m) => (
           <span
             key={m}

@@ -23,7 +23,7 @@ import {
 import { MonthForecast } from "@/features/gastos/components/month-forecast";
 import { TetoMeter } from "@/features/gastos/components/teto-meter";
 import { ViewModeToggle } from "@/features/gastos/components/view-mode-toggle";
-import { ledger, otherSpending, tetos } from "@/features/gastos/data";
+import { ledger, tetos } from "@/features/gastos/data";
 import { NewUserSpending } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
 
@@ -267,7 +267,7 @@ export default async function GastosPage({ searchParams }: PageProps<"/gastos">)
             <PanelHeader
               className="hidden @tab:flex"
               title="Por categoria"
-              subtitle={sub(`Outros gastos somam ${otherSpending.valorFormatado}`, true)}
+              subtitle={sub("Clique numa categoria para ver os lançamentos")}
             />
             <StateSwap replacement={body(categoryMain)} className="grow gap-2 @tab:gap-4">
               <div className="flex flex-col gap-2 @tab:hidden">

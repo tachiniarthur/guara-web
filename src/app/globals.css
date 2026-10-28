@@ -130,10 +130,11 @@
   --animate-dialog-in: dialog-in 0.28s var(--ease-out-soft) both;
   --animate-sheet-in: sheet-in 0.42s var(--ease-out-soft) both;
   --animate-panel-in: panel-in 0.42s var(--ease-out-soft) both;
-  --animate-grow-x: grow-x 1.4s var(--ease-out-soft) both;
+  --animate-grow-x: grow-x 1.2s var(--ease-out-soft) both;
   /* Gráficos se desenham ao entrar: linhas da esquerda para a direita, barras de baixo para cima. */
-  --animate-reveal-x: reveal-x 1.5s var(--ease-out-soft) both;
-  --animate-reveal-y: reveal-y 1.4s var(--ease-out-soft) 0.15s both;
+  /* Mesmo ritmo do relatório: linhas em 1,8 s, barras em 1,2 s (build-line e build-bar). */
+  --animate-reveal-x: reveal-x 1.8s var(--ease-out-soft) 0.2s both;
+  --animate-reveal-y: reveal-y 1.2s var(--ease-out-soft) both;
 
   @keyframes fade-up {
     from {
@@ -415,7 +416,7 @@
 }
 @utility animate-sweep {
   mask-image: conic-gradient(#000 var(--sweep), transparent 0);
-  animation: sweep 1.5s var(--ease-out-soft) both;
+  animation: sweep 1.2s var(--ease-out-soft) both;
 }
 
 /*

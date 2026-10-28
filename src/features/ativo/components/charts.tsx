@@ -1,5 +1,6 @@
 import {
   AxisLabel,
+  buildBar,
   ChartSvg,
   GridLines,
   chartColors,
@@ -193,7 +194,7 @@ export function DividendsChart({
 
   return (
     <ChartSvg
-      reveal="rise"
+      reveal="none"
       width={width}
       height={height}
       label="Proventos por ação nos últimos 8 pagamentos, de R$ 0,48 a R$ 1,12. Último: R$ 0,72 em agosto de 2026."
@@ -219,6 +220,7 @@ export function DividendsChart({
               d={roundedBar(bx, y(b.valor), bar, base)}
               fill={chartColors.folha}
               fillOpacity={current ? 1 : 0.5}
+              {...buildBar(i)}
             >
               <title>{`${b.rotulo}: R$ ${b.valor.toFixed(2).replace(".", ",")} por ação`}</title>
             </path>

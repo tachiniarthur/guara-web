@@ -127,7 +127,7 @@ export function WorldCard({ variant }: { variant: Variant }) {
       <div
         role="img"
         aria-label={countryExposure.map((c) => `${c.pais} ${c.percentual}%`).join(", ")}
-        className="flex h-3 gap-0.5 overflow-hidden rounded-full"
+        className="flex h-3 origin-left animate-grow-x gap-0.5 overflow-hidden rounded-full"
       >
         {countryExposure.map((c) => (
           <span key={c.id} className={dotColor[c.cor]} style={{ width: `${c.percentual}%` }} />

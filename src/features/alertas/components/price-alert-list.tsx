@@ -66,7 +66,7 @@ export function PriceAlertList({ items, columns = 1 }: { items: PriceAlert[]; co
           <div aria-hidden="true" className="h-1.5 rounded-[3px] bg-line">
             <div
               className={cn(
-                "h-1.5 rounded-[3px]",
+                "h-1.5 origin-left animate-grow-x rounded-[3px]",
                 item.direcao === "venda" ? "bg-urucum" : "bg-folha",
               )}
               style={{ width: `${item.progresso}%` }}

@@ -1,4 +1,4 @@
-import { ChartSvg, chartColors } from "@/components/charts/primitives";
+import { buildAfter, buildBar, ChartSvg, chartColors } from "@/components/charts/primitives";
 
 type Variant = "desktop" | "tablet" | "mobile";
 
@@ -76,7 +76,7 @@ export function CategoryHistoryChart({
 
   return (
     <ChartSvg
-      reveal="rise"
+      reveal="none"
       width={width}
       height={height}
       label={label}
@@ -115,6 +115,7 @@ export function CategoryHistoryChart({
             height={(base - top).toFixed(1)}
             rx="6"
             fill={fill}
+            {...buildBar(i)}
           />
         );
       })}
@@ -131,7 +132,7 @@ export function CategoryHistoryChart({
             ? chartColors.urucum
             : chartColors.sand;
         return (
-          <g key={m.rotulo}>
+          <g key={m.rotulo} {...buildAfter}>
             <text
               x={cx.toFixed(1)}
               y={(inside ? top + 18 : top - 10).toFixed(1)}

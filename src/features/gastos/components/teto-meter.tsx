@@ -37,7 +37,10 @@ export function TetoBar({ percentual, estado, marcos, size = "sm" }: TetoBarProp
         )}
       />
       <div
-        className={cn("absolute top-0 left-0 h-2.5 rounded-[0.3125rem]", fill[estado])}
+        className={cn(
+          "absolute top-0 left-0 h-2.5 origin-left animate-grow-x rounded-[0.3125rem]",
+          fill[estado],
+        )}
         style={{ width: `${percentual.toFixed(1)}%` }}
       />
       {marcos.map((marco) => {

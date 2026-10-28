@@ -206,7 +206,8 @@ export default async function AssinaturasPage({ searchParams }: PageProps<"/assi
           <ActiveCard state={state} />
           <div className="flex min-w-0 flex-col gap-5">
             <CalendarCard state={state} />
-            <PrimeTip state={state} className="grow" />
+            {/* Do tamanho do texto: esticada, a dica sobrava vazia embaixo. */}
+            <PrimeTip state={state} />
           </div>
         </div>
       </Skeleton>

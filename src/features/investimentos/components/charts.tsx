@@ -1,4 +1,4 @@
-import { ChartSvg, chartColors, roundedBar } from "@/components/charts/primitives";
+import { buildBar, ChartSvg, chartColors, roundedBar } from "@/components/charts/primitives";
 import { rem } from "@/lib/rem";
 import { cn } from "@/lib/utils";
 
@@ -190,7 +190,7 @@ export function ClassComparisonChart({ variant }: { variant: Variant }) {
   const f = (n: number) => n.toFixed(1);
 
   return (
-    <ChartSvg reveal="rise" width={l.width} height={l.height} label={comparisonLabel}>
+    <ChartSvg reveal="none" width={l.width} height={l.height} label={comparisonLabel}>
       {[0, 20, 40, 60].map((v) => (
         <g key={v}>
           <line
@@ -217,6 +217,7 @@ export function ClassComparisonChart({ variant }: { variant: Variant }) {
               d={roundedBar(left, y(slice.atual), l.bar, l.base)}
               fill={slice.cor}
               fillOpacity="1"
+              {...buildBar(i * 2)}
             >
               <title>{`${slice.classe}: ${slice.atual}% da sua carteira`}</title>
             </path>
@@ -227,6 +228,7 @@ export function ClassComparisonChart({ variant }: { variant: Variant }) {
               stroke={slice.cor}
               strokeWidth="1.5"
               strokeDasharray="3 3"
+              {...buildBar(i * 2 + 1)}
             >
               <title>{`${slice.classe}: alvo de ${slice.alvo}% no perfil moderado`}</title>
             </path>

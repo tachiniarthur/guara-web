@@ -59,7 +59,11 @@ function MataBar({
       )}
     >
       <div
-        className={cn(color, large ? "h-3 rounded-md" : "h-2.5 rounded-[5px]")}
+        className={cn(
+          "origin-left animate-grow-x",
+          color,
+          large ? "h-3 rounded-md" : "h-2.5 rounded-[5px]",
+        )}
         style={{ width: `${percentual}%` }}
       />
       {marcos.map((marco) => (
@@ -159,7 +163,7 @@ export function TetoListItem({ teto, last }: { teto: TetoDetail; last?: boolean 
       </div>
       <div aria-hidden="true" className="relative h-2.5 rounded-[5px] bg-shade">
         <div
-          className={cn("h-2.5 rounded-[5px]", fill[teto.estado])}
+          className={cn("h-2.5 origin-left animate-grow-x rounded-[5px]", fill[teto.estado])}
           style={{ width: `${teto.percentual}%` }}
         />
         {teto.marcos

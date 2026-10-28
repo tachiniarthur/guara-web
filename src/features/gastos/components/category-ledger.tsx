@@ -34,7 +34,7 @@ export function CategorySummary({ ledger }: { ledger: CategoryLedger }) {
           </div>
           <div aria-hidden="true" className="relative h-2.5 rounded-[5px] bg-shade">
             <div
-              className="h-2.5 rounded-[5px] bg-tucano"
+              className="h-2.5 origin-left animate-grow-x rounded-[5px] bg-tucano"
               style={{ width: `${teto.percentual}%` }}
             />
             {teto.marcos.map((marco) => (

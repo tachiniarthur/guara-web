@@ -201,7 +201,10 @@ export function TargetBar({
       className={cn("relative bg-shade", lg ? "h-2.5 rounded-[5px]" : "h-2 rounded-[4px]")}
     >
       <div
-        className={cn(lg ? "h-2.5 rounded-[5px]" : "h-2 rounded-[4px]")}
+        className={cn(
+          "origin-left animate-grow-x",
+          lg ? "h-2.5 rounded-[5px]" : "h-2 rounded-[4px]",
+        )}
         style={{ width: `${((atual / scale) * 100).toFixed(1)}%`, background: color }}
       />
       <span

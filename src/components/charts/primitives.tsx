@@ -36,6 +36,18 @@ type ChartSvgProps = {
   children: ReactNode;
 };
 
+/**
+ * Construção desde o zero, no mesmo ritmo em todas as telas (o do relatório): cada barra cresce
+ * da base, uma depois da outra; a linha principal se desenha; o resto (área, marcadores, rótulos)
+ * aparece depois. Espalhe no elemento: `<path {...buildBar(i)} />`.
+ */
+export const buildBar = (index: number) => ({
+  className: "build-bar",
+  style: { animationDelay: `${index * 90}ms` },
+});
+export const buildLine = { pathLength: 1, className: "build-line" } as const;
+export const buildAfter = { className: "build-after" } as const;
+
 export const revealClass = {
   wipe: "animate-reveal-x",
   rise: "animate-reveal-y",
