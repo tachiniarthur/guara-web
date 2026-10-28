@@ -100,6 +100,16 @@ export function MataBanner({ variant }: { variant: "tablet" | "mobile" }) {
   );
 }
 
+/**
+ * Largura e ampliação comuns às 4 etapas do onboarding (plano, bancos, perfil e assistentes):
+ * as mesmas do resultado do perfil, para a tela não mudar de largura de uma etapa para outra.
+ */
+export const stepFrame = {
+  zoom: 1.19,
+  desktopWidth: "lg:max-w-[64rem]",
+  tabletWidth: "md:w-[40rem]",
+} as const;
+
 type OnboardingShellProps = {
   /** Topo do mobile (cabeçalho com voltar ou a faixa da mata). */
   mobileTop: ReactNode;

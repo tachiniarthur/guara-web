@@ -32,7 +32,6 @@ export default async function ErroBancoPage({ params }: { params: Promise<{ banc
   ];
   return (
     <MalvoShell
-      desktopWidth="lg:max-w-[40rem]"
       className="min-h-[49.5rem] justify-center gap-4 md:min-h-0 md:gap-6.5 lg:gap-6"
       mobileActions={
         <>

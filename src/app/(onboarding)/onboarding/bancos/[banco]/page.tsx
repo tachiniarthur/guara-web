@@ -42,7 +42,6 @@ export default async function AutorizarBancoPage({
   );
   return (
     <MalvoShell
-      desktopWidth="lg:max-w-[72.5rem]"
       className="gap-4.5 md:gap-6.5 lg:gap-6"
       mobileActions={
         <>

@@ -8,6 +8,7 @@ import { IconButtonLink } from "@/components/ui/icon-button";
 import {
   OnboardingActions,
   OnboardingShell,
+  stepFrame,
   OnboardingSteps,
 } from "@/features/onboarding/components/onboarding-shell";
 import { ProfileQuestionFields } from "@/features/onboarding/components/profile-question";
@@ -37,6 +38,7 @@ export default async function PerguntaPerfilPage({
 
   return (
     <OnboardingShell
+      {...stepFrame}
       mobileTop={
         <MobileHeader
           title="Perfil de investidor"

@@ -6,7 +6,7 @@ import { usePrivacy } from "@/stores/privacy";
 
 /** Primeiro número de um texto: "R$ 12.480,32" → "12.480,32"; "+11,1%" → "11,1". */
 const NUMBER = /\d[\d.]*(?:,\d+)?/;
-const DURATION = 900;
+const DURATION = 1400;
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
 
 /** Textos que já contaram (uma vez só, mesmo depois de ocultar e mostrar os valores). */

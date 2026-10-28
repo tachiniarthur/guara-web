@@ -7,6 +7,7 @@ import { ProfileLevels } from "@/features/alocacao/components/allocation-parts";
 import {
   OnboardingActions,
   OnboardingShell,
+  stepFrame,
   OnboardingSteps,
 } from "@/features/onboarding/components/onboarding-shell";
 import { onboardingSteps, profileAnswers, profileEffects } from "@/features/onboarding/data";
@@ -14,9 +15,7 @@ import { onboardingSteps, profileAnswers, profileEffects } from "@/features/onbo
 export default function ResultadoPerfilPage() {
   return (
     <OnboardingShell
-      zoom={1.19}
-      desktopWidth="lg:max-w-[64rem]"
-      tabletWidth="md:w-[40rem]"
+      {...stepFrame}
       className="gap-5"
       mobileTop={<MobileHeader title="Perfil de investidor" back="/onboarding/perfil/6" balanced />}
       mobileActions={

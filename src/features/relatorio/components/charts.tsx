@@ -66,17 +66,24 @@ export function BalanceChart({ variant }: { variant: ReportChartVariant }) {
   const eventColor = { arara: chartColors.arara, urucum: chartColors.urucum };
 
   return (
-    <ChartSvg width={width} height={height} label={label}>
+    <ChartSvg reveal="none" width={width} height={height} label={label}>
       {[8000, 12000, 16000].map((tick) => (
         <GridLine key={tick} y={y(tick)} x1={x1} label={`${tick / 1000} mil`} font={font} />
       ))}
-      <path d={`${line} L${x(today).toFixed(1)},${bottom} L${X0}.0,${bottom} Z`} fill={AREA_FILL} />
+      {/* Construído desde o zero: a linha se desenha, depois vêm a área, a previsão e os eventos. */}
+      <path
+        d={`${line} L${x(today).toFixed(1)},${bottom} L${X0}.0,${bottom} Z`}
+        fill={AREA_FILL}
+        className="build-after"
+      />
       <path
         d={line}
+        pathLength={1}
         fill="none"
         stroke={chartColors.arara}
         strokeWidth="2.6"
         strokeLinejoin="round"
+        className="build-line"
       />
       <path
         d={points(projection, today)}
@@ -84,6 +91,7 @@ export function BalanceChart({ variant }: { variant: ReportChartVariant }) {
         stroke={chartColors.arara}
         strokeWidth="2"
         strokeDasharray="5 5"
+        className="build-after"
       />
       <line x1={X0} x2={x1} y1={bottom} y2={bottom} stroke={chartColors.axis} />
       {events.map((event) => {
@@ -91,7 +99,7 @@ export function BalanceChart({ variant }: { variant: ReportChartVariant }) {
         const cy = y(values[event.day - 1]!);
         const labelY = event.labelRow === 0 ? 26 : 46;
         return (
-          <g key={event.day}>
+          <g key={event.day} className="build-after">
             <line
               x1={cx.toFixed(1)}
               x2={cx.toFixed(1)}
@@ -157,7 +165,7 @@ export function WeeklyFlowChart({ variant }: { variant: ReportChartVariant }) {
   const format = compact ? thousands : brl;
 
   return (
-    <ChartSvg reveal="rise" width={width} height={height} label={weeklyFlow.label}>
+    <ChartSvg reveal="none" width={width} height={height} label={weeklyFlow.label}>
       <GridLine y={y(0)} x1={x1} label="0" font={font} solid />
       <GridLine y={y(4000)} x1={x1} label={compact ? "4" : "4 mil"} font={font} />
       <GridLine y={y(8000)} x1={x1} label={compact ? "8" : "8 mil"} font={font} />
@@ -172,6 +180,7 @@ export function WeeklyFlowChart({ variant }: { variant: ReportChartVariant }) {
             {bars.map((item) =>
               item.value > 0 ? (
                 <g key={item.key}>
+                  {/* Cada barra cresce da base, uma depois da outra; o valor aparece depois. */}
                   <rect
                     x={item.x.toFixed(1)}
                     y={y(item.value).toFixed(1)}
@@ -179,8 +188,11 @@ export function WeeklyFlowChart({ variant }: { variant: ReportChartVariant }) {
                     height={(bottom - y(item.value)).toFixed(1)}
                     rx="5"
                     fill={item.color}
+                    className="build-bar"
+                    style={{ animationDelay: `${(i * 2 + (item.key === "saiu" ? 1 : 0)) * 90}ms` }}
                   />
                   <text
+                    className="build-after"
                     x={(item.x + bar / 2).toFixed(1)}
                     y={(y(item.value) - 8).toFixed(1)}
                     textAnchor="middle"

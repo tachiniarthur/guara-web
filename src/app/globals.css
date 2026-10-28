@@ -130,10 +130,10 @@
   --animate-dialog-in: dialog-in 0.28s var(--ease-out-soft) both;
   --animate-sheet-in: sheet-in 0.42s var(--ease-out-soft) both;
   --animate-panel-in: panel-in 0.42s var(--ease-out-soft) both;
-  --animate-grow-x: grow-x 0.9s var(--ease-out-soft) both;
+  --animate-grow-x: grow-x 1.4s var(--ease-out-soft) both;
   /* Gráficos se desenham ao entrar: linhas da esquerda para a direita, barras de baixo para cima. */
-  --animate-reveal-x: reveal-x 0.9s var(--ease-out-soft) both;
-  --animate-reveal-y: reveal-y 0.9s var(--ease-out-soft) 0.1s both;
+  --animate-reveal-x: reveal-x 1.5s var(--ease-out-soft) both;
+  --animate-reveal-y: reveal-y 1.4s var(--ease-out-soft) 0.15s both;
 
   @keyframes fade-up {
     from {
@@ -415,7 +415,37 @@
 }
 @utility animate-sweep {
   mask-image: conic-gradient(#000 var(--sweep), transparent 0);
-  animation: sweep 1s var(--ease-out-soft) both;
+  animation: sweep 1.5s var(--ease-out-soft) both;
+}
+
+/*
+ * Gráfico construído desde o zero (relatório): cada barra cresce da base (o atraso de cada uma
+ * vem em `animation-delay`), a linha se desenha (com `pathLength="1"`) e o resto aparece depois
+ * (`build-after`).
+ */
+@keyframes bar-grow {
+  from {
+    scale: 1 0;
+  }
+}
+@keyframes line-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@utility build-bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: bar-grow 1.2s var(--ease-out-soft) both;
+}
+@utility build-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: line-draw 1.8s var(--ease-out-soft) 0.2s forwards;
+}
+@utility build-after {
+  animation: fade-in 0.8s ease-out both;
+  animation-delay: 1.3s;
 }
 
 /*
@@ -423,8 +453,8 @@
  * entram pelo `stagger`): sobem um depois do outro na ordem em que aparecem no pai.
  */
 .card-enter:not(.stagger > *) {
-  animation: fade-up 0.5s var(--ease-out-soft) both;
-  animation-delay: calc(var(--card-index, 0) * 70ms + 120ms);
+  animation: fade-up 0.65s var(--ease-out-soft) both;
+  animation-delay: calc(var(--card-index, 0) * 90ms + 150ms);
 }
 .card-enter:nth-child(2) {
   --card-index: 1;

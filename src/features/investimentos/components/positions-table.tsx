@@ -12,7 +12,8 @@ const th =
   "border-b border-line-strong px-3.5 pb-3 text-13 font-bold tracking-[.05em] whitespace-nowrap text-mist uppercase";
 const td = "border-b border-line px-3.5 py-3.5 align-middle text-15";
 
-const columns = ["17%", "9%", "10%", "8%", "12%", "7%", "8%", "9%", "8%", "8%", "4%"];
+// Total com folga para "R$ 15.892,10" numa linha só (e "Quantidade" sem encostar em "Preço médio").
+const columns = ["15%", "8%", "9%", "8%", "11%", "8%", "9%", "11%", "8%", "9%", "4%"];
 
 /** Tabela de posições agrupada por classe (desktop). */
 export function PositionsTable() {
@@ -148,7 +149,9 @@ export function PositionsTable() {
                 >
                   {p.precoMedio ?? "—"}
                 </td>
-                <td className={cn(td, "text-right font-bold tabular-nums")}>{p.total}</td>
+                <td className={cn(td, "text-right font-bold whitespace-nowrap tabular-nums")}>
+                  {p.total}
+                </td>
                 <td className={cn(td, "text-right text-soft tabular-nums")}>{p.percentual}</td>
                 <td className={cn(td, "text-right")}>
                   <DayChange change={p.hoje} />
@@ -176,7 +179,7 @@ export function PositionsTable() {
             Outras {portfolio.outras.quantidade} posições{" "}
             <span className="text-caption">· abra &quot;Ver as 12&quot; para ver cada uma</span>
           </th>
-          <td className="border-b border-line-strong px-3.5 py-4 text-right text-15 font-bold tabular-nums">
+          <td className="border-b border-line-strong px-3.5 py-4 text-right text-15 font-bold whitespace-nowrap tabular-nums">
             {portfolio.outras.total}
           </td>
           <td className="border-b border-line-strong px-3.5 py-4 text-right text-15 text-soft tabular-nums">
@@ -189,12 +192,16 @@ export function PositionsTable() {
         <tr>
           <th
             scope="row"
-            colSpan={7}
+            colSpan={6}
             className="px-3.5 pt-4.5 pb-1 text-left font-display text-18 font-bold"
           >
             Total da carteira
           </th>
-          <td className="px-3.5 pt-4.5 pb-1 text-right font-display text-20 font-extrabold tabular-nums">
+          {/* Duas colunas: o total em Fraunces 20 não cabe numa só sem quebrar. */}
+          <td
+            colSpan={2}
+            className="px-3.5 pt-4.5 pb-1 text-right font-display text-20 font-extrabold whitespace-nowrap tabular-nums"
+          >
             {portfolio.patrimonio}
           </td>
           <td className="px-3.5 pt-4.5 pb-1 text-right text-16 font-bold tabular-nums">100%</td>

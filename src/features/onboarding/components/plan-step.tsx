@@ -20,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { onboardingSteps } from "../data";
-import { OnboardingIntro, OnboardingShell, OnboardingSteps } from "./onboarding-shell";
+import { OnboardingIntro, OnboardingShell, OnboardingSteps, stepFrame } from "./onboarding-shell";
 
 /** Linhas de cada card (cabeçalho, recursos e botão): todas alinhadas entre os cards. */
 const CARD_ROWS = planFeatureRows.length + 2;
@@ -182,12 +182,7 @@ export function PlanStep() {
   }
 
   return (
-    <OnboardingShell
-      zoom={1.1}
-      mobileTop={<MobileHeader />}
-      tabletWidth="md:w-[calc(100%-3rem)] md:max-w-[64rem]"
-      desktopWidth="lg:max-w-[80rem]"
-    >
+    <OnboardingShell {...stepFrame} mobileTop={<MobileHeader />}>
       <OnboardingSteps current={1} steps={onboardingSteps} />
       <OnboardingIntro title="Escolha seu plano">
         Todos os planos são mensais e têm os assistentes de IA. Dá para trocar ou cancelar quando

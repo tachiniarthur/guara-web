@@ -22,15 +22,20 @@ describe("Onboarding · Monte sua equipe (protótipo, plano Plus: 5 assistentes)
   it("mostra um assistente por vez, escolhe até o limite do plano e termina no painel", () => {
     renderScreen();
     expect(screen.getByText("Etapa 4 de 4")).toBeInTheDocument();
-    expect(screen.getByText("5 de 5")).toBeInTheDocument();
+    // Nada vem escolhido: sem ninguém na equipe, não dá para seguir.
+    expect(screen.getByText("0 de 5")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Ir para o painel" })[0]).toBeDisabled();
     expect(screen.getByRole("heading", { level: 3, name: "Capivara" })).toBeInTheDocument();
 
-    // A Capivara vem escolhida; tirar libera uma vaga, e o Onça (6º) pode entrar.
-    fireEvent.click(screen.getAllByRole("button", { name: "Tirar da minha equipe" })[0]!);
-    expect(screen.getByText("4 de 5")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Ver Onça" }));
     fireEvent.click(screen.getByRole("button", { name: "Escolher para a minha equipe" }));
+    expect(screen.getByText("1 de 5")).toBeInTheDocument();
+    for (const name of ["Tamanduá", "Pacu", "Caramelo", "Quero-quero"]) {
+      fireEvent.click(screen.getByRole("button", { name: `Ver ${name}` }));
+      fireEvent.click(screen.getByRole("button", { name: "Escolher para a minha equipe" }));
+    }
     expect(screen.getByText("5 de 5")).toBeInTheDocument();
+    // No limite do plano, o 6º (Onça) fica bloqueado.
+    fireEvent.click(screen.getByRole("button", { name: "Ver Onça" }));
     expect(screen.getAllByRole("button", { name: "Limite do plano", hidden: true }).length).toBe(1);
 
     fireEvent.click(screen.getAllByRole("button", { name: "Ir para o painel" })[0]!);

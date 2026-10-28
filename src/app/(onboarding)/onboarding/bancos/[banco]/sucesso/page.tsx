@@ -30,7 +30,6 @@ export default async function SucessoBancoPage({ params }: { params: Promise<{ b
   ];
   return (
     <MalvoShell
-      desktopWidth="lg:max-w-[67.5rem]"
       className="gap-4 md:gap-6.5 lg:gap-6"
       mobileActions={
         <>

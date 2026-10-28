@@ -7,6 +7,7 @@ import {
   OnboardingActions,
   OnboardingIntro,
   OnboardingShell,
+  stepFrame,
   OnboardingSteps,
 } from "@/features/onboarding/components/onboarding-shell";
 import { bankAccess, onboardingSteps } from "@/features/onboarding/data";
@@ -15,7 +16,7 @@ import { cn } from "@/lib/utils";
 export default function ConectarBancosPage() {
   return (
     <OnboardingShell
-      zoom={1.37}
+      {...stepFrame}
       mobileTop={<MobileHeader back="/onboarding/plano" />}
       mobileActions={
         <MobileActionBar>

@@ -84,7 +84,7 @@ export function TotalsCard({ state }: StateProps) {
         </div>
         <div
           aria-hidden="true"
-          className="flex h-3.5 gap-[3px] overflow-hidden rounded-[0.4375rem]"
+          className="flex h-3.5 origin-left animate-grow-x gap-[3px] overflow-hidden rounded-[0.4375rem]"
         >
           {outflowBreakdown.map((item) => (
             <div key={item.label} style={{ flexGrow: item.value, background: item.color }} />
@@ -484,7 +484,7 @@ function MonthBar({
       <span>{month}</span>
       <span className="h-2.5 overflow-hidden rounded-[0.3125rem] bg-line">
         <span
-          className="block h-full rounded-[0.3125rem]"
+          className="block h-full origin-left animate-grow-x rounded-[0.3125rem]"
           style={{ width: `${width}%`, background: color }}
         />
       </span>

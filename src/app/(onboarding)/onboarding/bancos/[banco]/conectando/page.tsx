@@ -19,7 +19,6 @@ export default async function ConectandoBancoPage({
   const bank = bankFromSlug(banco);
   return (
     <MalvoShell
-      desktopWidth="lg:max-w-[40rem]"
       className="min-h-[49.5rem] justify-center gap-4.5 md:min-h-0 md:gap-6.5 lg:gap-7"
       mobileActions={<BackToBanks block />}
     >

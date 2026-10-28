@@ -54,7 +54,7 @@ export const plans: Plan[] = [
       "Histórico de 12 meses",
       "Relatórios com exportação em PDF, Excel e CSV",
       "Simulador sem limite, metas e simulações salvas",
-      "Página de cada ativo",
+      "Análise detalhada de cada investimento: cotação, desempenho e proventos",
     ],
     atual: true,
   },
@@ -185,8 +185,13 @@ export const planFeatureRows: {
     ],
   },
   {
-    off: "Página de cada ativo",
-    values: [null, "Página de cada ativo", "Página de cada ativo", "Página de cada ativo"],
+    off: "Análise detalhada de cada investimento",
+    values: [
+      null,
+      "Análise detalhada de cada investimento",
+      "Análise detalhada de cada investimento",
+      "Análise detalhada de cada investimento",
+    ],
   },
   {
     off: "Suporte por WhatsApp",
@@ -211,6 +216,6 @@ export const planComparison: { recurso: string; valores: [string, string, string
   { recurso: "Exportar relatórios", valores: ["—", "PDF, Excel e CSV", "PDF, Excel e CSV"] },
   { recurso: "Simulador", valores: ["1 por mês", "Sem limite", "Sem limite"] },
   { recurso: "Metas e simulações salvas", valores: ["—", "Sim", "Sim"] },
-  { recurso: "Página do ativo", valores: ["—", "Sim", "Sim"] },
+  { recurso: "Análise de cada investimento", valores: ["—", "Sim", "Sim"] },
   { recurso: "Suporte", valores: ["E-mail", "E-mail", "E-mail e WhatsApp"] },
 ];

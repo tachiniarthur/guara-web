@@ -11,6 +11,7 @@ import {
   OnboardingActions,
   OnboardingIntro,
   OnboardingShell,
+  stepFrame,
   OnboardingSteps,
 } from "./onboarding-shell";
 import { NotificationPermissionAlert } from "./permission-alert";
@@ -24,7 +25,7 @@ export function AgentsScreen({ blocked }: { blocked: boolean }) {
 
   return (
     <OnboardingShell
-      zoom={1.24}
+      {...stepFrame}
       mobileTop={<MobileHeader back="/onboarding/perfil/resultado" />}
       mobileActions={
         <MobileActionBar>

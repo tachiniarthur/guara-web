@@ -8,7 +8,7 @@ import { Icon, type IconName } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 import { banks, onboardingSteps } from "../data";
-import { OnboardingShell, OnboardingSteps } from "./onboarding-shell";
+import { OnboardingShell, OnboardingSteps, stepFrame } from "./onboarding-shell";
 
 /** Banco da rota (/onboarding/bancos/itau) ou 404. */
 export function bankFromSlug(slug: string) {
@@ -22,21 +22,17 @@ export function bankFromSlug(slug: string) {
  * etapas no tablet e no desktop e ações no rodapé (fixas no celular).
  */
 export function MalvoShell({
-  desktopWidth,
   className,
   mobileActions,
   children,
 }: {
-  desktopWidth: string;
   className?: string;
   mobileActions: ReactNode;
   children: ReactNode;
 }) {
   return (
     <OnboardingShell
-      zoom={1.6}
-      desktopWidth={desktopWidth}
-      tabletWidth="md:w-[38.75rem]"
+      {...stepFrame}
       className={cn("pb-30", className)}
       mobileTop={<MobileHeader title="Conectar banco" close="/onboarding/bancos" balanced />}
       mobileActions={<MobileActionBar>{mobileActions}</MobileActionBar>}

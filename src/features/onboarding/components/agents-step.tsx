@@ -231,10 +231,10 @@ export function AgentsCarousel({
 export function useAgentChoice() {
   const plan = usePlanAgents();
   const limit = plan.limite ?? agentOrder.length;
-  // Até a pessoa mexer, a escolha acompanha o plano (que chega da API depois do primeiro render).
-  const [manual, setManual] = useState<AgentId[] | null>(null);
-  const chosen = (manual ?? agentOrder).slice(0, limit);
-  const setChosen = (update: (current: AgentId[]) => AgentId[]) => setManual(update(chosen));
+  // Nada vem escolhido: a pessoa escolhe cada assistente (até o limite do plano).
+  const [picked, setPicked] = useState<AgentId[]>([]);
+  const chosen = picked.slice(0, limit);
+  const setChosen = (update: (current: AgentId[]) => AgentId[]) => setPicked(update(chosen));
   return { chosen, setChosen };
 }
 

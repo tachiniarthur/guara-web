@@ -16,7 +16,9 @@ describe("Início", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: "Resumo de setembro" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Seus assistentes" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Visão geral" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Seus assistentes" })).not.toBeInTheDocument();
+    expect(screen.getByText("Próximas cobranças")).toBeInTheDocument();
   });
 
   it("mostra os primeiros passos para quem ainda não conectou banco", async () => {

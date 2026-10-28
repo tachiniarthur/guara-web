@@ -14,22 +14,14 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextLink } from "@/components/ui/text-link";
-import { agentCards } from "@/features/assistentes/cards";
-import { AgentCard } from "@/features/assistentes/components/agent-card";
 import { CategoryBudgetList } from "@/features/gastos/components/category-budget-list";
 import { TransactionList } from "@/features/gastos/components/transaction-list";
 import { categoryBudgets, recentTransactions } from "@/features/gastos/data";
 import { NewUserHome } from "@/features/inicio/components/new-user-home";
+import { OverviewCards } from "@/features/inicio/components/overview-cards";
 import { PendingCard } from "@/features/inicio/components/pending-card";
 import { SummaryCard } from "@/features/inicio/components/summary-card";
 import { user } from "@/features/usuario/data";
-
-const homeAgents = [
-  agentCards.tamandua,
-  agentCards.pacu,
-  agentCards.caramelo,
-  agentCards["quero-quero"],
-];
 
 /** Início (e o caso de quem ainda não conectou banco: ?estado=novo). */
 export default async function InicioPage({ searchParams }: PageProps<"/">) {
@@ -119,23 +111,14 @@ export default async function InicioPage({ searchParams }: PageProps<"/">) {
           </Skeleton>
         </section>
 
-        <section aria-labelledby="sec-equipe" className="flex min-h-0 flex-col gap-3.5">
+        <section aria-labelledby="sec-visao" className="flex min-h-0 flex-col gap-3.5">
           <SectionHeader
-            id="sec-equipe"
-            title="Seus assistentes"
-            subtitle="Cada um cuida de uma parte do seu dinheiro"
-            aside={<TextLink href="/assistentes">Ver assistentes</TextLink>}
+            id="sec-visao"
+            title="Visão geral"
+            subtitle="Seus investimentos, cobranças, metas e alertas"
           />
           <Skeleton active={loading}>
-            <div className="-mx-4 scrollbar-none flex snap-x snap-mandatory scroll-pl-4 gap-3 overflow-x-auto px-4 pb-1 @tab:mx-0 @tab:grid @tab:grid-cols-2 @tab:gap-4 @tab:overflow-visible @tab:px-0 @tab:pb-0 @desk:grid-cols-4 @desk:gap-6">
-              {homeAgents.map((data) => (
-                <AgentCard
-                  key={data.agent}
-                  data={data}
-                  className="shrink-0 basis-[17.25rem] snap-start @tab:basis-auto @desk:h-[28.875rem]"
-                />
-              ))}
-            </div>
+            <OverviewCards />
           </Skeleton>
         </section>
 
