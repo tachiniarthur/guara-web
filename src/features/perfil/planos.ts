@@ -28,6 +28,8 @@ export const plans: Plan[] = [
     limiteBancos: 1,
     perguntas: "20 perguntas por mês aos assistentes",
     recursos: [
+      "Conta do banco pelo Open Finance, só leitura",
+      "Lançamentos à mão ou pela IA, além do banco",
       "2 assistentes de IA à sua escolha",
       "Até 2 tetos de gasto e 2 alertas de preço",
       "Histórico de 3 meses",
@@ -110,12 +112,21 @@ export const planFeatureRows: {
   values: [string | null, string | null, string | null, string | null];
 }[] = [
   {
-    off: "Bancos conectados",
+    off: "Bancos pelo Open Finance",
     values: [
-      "1 banco conectado",
-      "4 bancos conectados",
-      "6 bancos conectados",
-      "10 bancos conectados",
+      "1 banco conectado pelo Open Finance",
+      "4 bancos conectados pelo Open Finance",
+      "6 bancos conectados pelo Open Finance",
+      "10 bancos conectados pelo Open Finance",
+    ],
+  },
+  {
+    off: "Lançar à mão ou pela IA",
+    values: [
+      "Lançar gastos e investimentos à mão ou pela IA",
+      "Lançar gastos e investimentos à mão ou pela IA",
+      "Lançar gastos e investimentos à mão ou pela IA",
+      "Lançar gastos e investimentos à mão ou pela IA",
     ],
   },
   {
@@ -212,7 +223,8 @@ export const planUsage = {
 };
 
 export const planComparison: { recurso: string; valores: [string, string, string] }[] = [
-  { recurso: "Bancos conectados", valores: ["1", "4", "6"] },
+  { recurso: "Bancos pelo Open Finance", valores: ["1", "4", "6"] },
+  { recurso: "Lançar à mão ou pela IA", valores: ["Sim", "Sim", "Sim"] },
   { recurso: "Perguntas aos assistentes", valores: ["20/mês", "40/mês", "70/mês"] },
   { recurso: "Assistentes de IA", valores: ["2 à escolha", "5 à escolha", "Todos"] },
   { recurso: "Tetos de gasto", valores: ["Até 2", "Até 4", "Sem limite"] },
