@@ -58,7 +58,7 @@ export function BillingToggle({
           </button>
         ))}
       </div>
-      <Tag tone="folha">{`${ANNUAL_DISCOUNT_PERCENT}% de desconto`}</Tag>
+      {value === "annual" && <Tag tone="folha">{`${ANNUAL_DISCOUNT_PERCENT}% de desconto`}</Tag>}
     </div>
   );
 }
