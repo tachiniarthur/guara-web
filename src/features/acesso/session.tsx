@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-import { isLive } from "@/lib/env";
+import { env, isLive } from "@/lib/env";
 import { getSupabase } from "@/lib/supabase";
 import { fetchMyPlan } from "@/features/perfil/api";
 
@@ -39,6 +39,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isLive) return;
+    // A API de teste dorme quando fica parada: o primeiro pedido já a acorda, enquanto a pessoa
+    // ainda lê a tela (assinar o plano e conectar banco ficam rápidos).
+    void fetch(`${env.apiUrl}/health`).catch(() => undefined);
     let active = true;
     const update = () =>
       void resolveStatus().then((next) => {

@@ -2,7 +2,11 @@ import { MobileHeader } from "@/components/layout/mobile-header";
 import { ButtonLink } from "@/components/ui/button";
 import { MobileActionBar, TextInput } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
-import { BankPicker } from "@/features/onboarding/components/bank-picker";
+import {
+  BankPicker,
+  BankStepContinue,
+  BankStepSkip,
+} from "@/features/onboarding/components/bank-picker";
 import {
   OnboardingActions,
   OnboardingIntro,
@@ -20,18 +24,9 @@ export default function ConectarBancosPage() {
       mobileTop={<MobileHeader back="/onboarding/plano" />}
       mobileActions={
         <MobileActionBar>
-          <ButtonLink
-            href="/onboarding/perfil/1"
-            variant="ghost"
-            size="xl"
-            className="hover:bg-transparent"
-          >
-            <span>Pular</span>
-          </ButtonLink>
+          <BankStepSkip label="Pular" />
           <div className="grow">
-            <ButtonLink href="/onboarding/perfil/1" variant="primary" size="xl" block>
-              <span>Continuar</span>
-            </ButtonLink>
+            <BankStepContinue className="w-full" />
           </div>
         </MobileActionBar>
       }
@@ -60,18 +55,9 @@ export default function ConectarBancosPage() {
         <ButtonLink href="/onboarding/plano" variant="secondary" size="xl">
           <span>Voltar</span>
         </ButtonLink>
-        <ButtonLink
-          href="/onboarding/perfil/1"
-          variant="ghost"
-          size="xl"
-          className="hover:bg-transparent"
-        >
-          <span>Pular por agora</span>
-        </ButtonLink>
+        <BankStepSkip label="Pular por agora" />
         <div className="grow" />
-        <ButtonLink href="/onboarding/perfil/1" variant="primary" size="xl">
-          <span>Continuar</span>
-        </ButtonLink>
+        <BankStepContinue />
       </OnboardingActions>
     </OnboardingShell>
   );

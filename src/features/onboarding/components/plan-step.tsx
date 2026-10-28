@@ -174,9 +174,10 @@ export function PlanStep() {
     if (!live) return router.push("/onboarding/bancos");
     setChoosing(planId);
     activate.mutate(planId, {
-      onSuccess: async () => {
-        await refresh();
+      // O plano já vem na resposta (cache de `me.plan`): avança na hora e atualiza a sessão por trás.
+      onSuccess: () => {
         router.push("/onboarding/bancos");
+        void refresh();
       },
       onSettled: () => setChoosing(null),
     });

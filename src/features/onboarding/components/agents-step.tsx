@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 
 import { AgentAvatar } from "@/components/ui/agent-avatar";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ const intro = Object.fromEntries(agentIntros.map((item) => [item.id, item.texto]
 
 /** Arrasto mínimo (px) para trocar de assistente no toque ou no mouse. */
 const SWIPE = 48;
+/** Tempo de cada assistente no carrossel antes de passar para o próximo. */
+const AUTOPLAY_MS = 6000;
 
 /**
  * Escolha dos assistentes do plano num carrossel: um por vez, grande, com a cena do bicho e o
@@ -37,6 +39,7 @@ export function AgentsCarousel({
   const plan = usePlanAgents();
   const limit = plan.limite ?? agentOrder.length;
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
   const dragStart = useRef<number | null>(null);
 
   const all = plan.limite === null;
@@ -54,6 +57,17 @@ export function AgentsCarousel({
           ? [...current, id]
           : current,
     );
+
+  // Passa sozinho para o próximo a cada 6 s; para com o mouse ou o foco em cima, e não anda com
+  // "reduzir movimento". Cada troca (sozinha ou na mão) recomeça a contagem.
+  useEffect(() => {
+    if (paused || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setTimeout(
+      () => setIndex((current) => (current + 1) % agentOrder.length),
+      AUTOPLAY_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [index, paused]);
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === "ArrowRight") go(index + 1);
@@ -114,6 +128,10 @@ export function AgentsCarousel({
         onKeyDown={onKeyDown}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocus={() => setPaused(true)}
+        onBlur={() => setPaused(false)}
         className="relative touch-pan-y overflow-hidden rounded-card outline-none select-none focus-visible:ring-2 focus-visible:ring-tucano"
       >
         <div

@@ -9,6 +9,8 @@ type OnboardingBanksState = {
   /** O último que terminou de conectar (aviso na lista de bancos). */
   justConnected: string | null;
   connect: (bankId: string) => void;
+  /** Tira o banco da lista (desconectar antes de seguir). */
+  disconnect: (bankId: string) => void;
   dismissNotice: () => void;
 };
 
@@ -28,6 +30,11 @@ export const useOnboardingBanks = create<OnboardingBanksState>()(
             ? state.connected
             : [...state.connected, bankId],
           justConnected: bankId,
+        })),
+      disconnect: (bankId) =>
+        set((state) => ({
+          connected: state.connected.filter((id) => id !== bankId),
+          justConnected: state.justConnected === bankId ? null : state.justConnected,
         })),
       dismissNotice: () => set({ justConnected: null }),
     }),

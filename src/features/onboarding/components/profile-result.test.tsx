@@ -13,7 +13,11 @@ describe("Onboarding · resultado do perfil", () => {
     render(<ProfileResult />);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Moderado");
 
+    // Tocar no perfil abre a comparação; o termo só vem ao escolher.
     fireEvent.click(screen.getByRole("radio", { name: /Arrojado/ }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Comparação: Moderado e Arrojado")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Escolher o perfil Arrojado" }));
     expect(screen.getByRole("dialog")).toHaveTextContent(
       "Termo de alteração do perfil de investidor",
     );
