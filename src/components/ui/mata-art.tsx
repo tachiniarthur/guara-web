@@ -1,3 +1,5 @@
+import type { CSSProperties, Ref } from "react";
+
 import { cn } from "@/lib/utils";
 
 /** Lâminas da textura Mata: verdes da mata e o âmbar do tucano, sobrepostos. */
@@ -27,15 +29,42 @@ const ALIGN = {
  * Textura Mata em vetor (nítida em qualquer tamanho), com um grão leve de papel. Preenche o
  * contêiner como um `object-cover`; `align` escolhe o lado que fica visível quando corta.
  */
+/**
+ * Movimento de cada lâmina na versão animada: quanto ela flutua (unidades do desenho), quanto
+ * gira, em quanto tempo e a profundidade no parallax (as âmbar, na frente, andam mais).
+ */
+function motionOf(index: number, fill: string): CSSProperties {
+  const front = fill === "#C28A2F" || fill === "#D9A441";
+  const sign = index % 2 === 0 ? 1 : -1;
+  return {
+    "--dx": `${sign * (5 + (index % 4) * 2)}px`,
+    "--dy": `${-sign * (4 + (index % 3) * 2)}px`,
+    "--rot": `${sign * (0.6 + (index % 3) * 0.4)}deg`,
+    "--dur": `${13 + (index % 5) * 2.5}s`,
+    "--delay": `${-index * 1.7}s`,
+    "--depth": front ? 22 : 5 + (index % 4) * 4,
+  } as CSSProperties;
+}
+
 export function MataArt({
   className,
   align = "center",
+  animated = false,
+  svgRef,
 }: {
   className?: string;
   align?: keyof typeof ALIGN;
+  /**
+   * Lâminas flutuando devagar, cada uma no seu ritmo; com `--mx`/`--my` no svg (de −1 a 1), as
+   * camadas acompanham o ponteiro em profundidade (veja `MataArtLive`). Sem nada com "reduzir
+   * movimento".
+   */
+  animated?: boolean;
+  svgRef?: Ref<SVGSVGElement>;
 }) {
   return (
     <svg
+      ref={svgRef}
       aria-hidden="true"
       focusable="false"
       viewBox="0 0 720 460"
@@ -58,14 +87,30 @@ export function MataArt({
         </radialGradient>
       </defs>
       <rect width="720" height="460" fill="#0D1813" />
-      {SHARDS.map((shard) => (
-        <polygon
-          key={shard.points}
-          points={shard.points}
-          fill={shard.fill}
-          opacity={shard.opacity}
-        />
-      ))}
+      {animated ? (
+        // Um pouco maior que a moldura: as lâminas se mexem sem mostrar a borda.
+        <g transform="translate(360 230) scale(1.06) translate(-360 -230)">
+          {SHARDS.map((shard, index) => (
+            <g key={shard.points} className="mata-layer" style={motionOf(index, shard.fill)}>
+              <polygon
+                className="mata-shard"
+                points={shard.points}
+                fill={shard.fill}
+                opacity={shard.opacity}
+              />
+            </g>
+          ))}
+        </g>
+      ) : (
+        SHARDS.map((shard) => (
+          <polygon
+            key={shard.points}
+            points={shard.points}
+            fill={shard.fill}
+            opacity={shard.opacity}
+          />
+        ))
+      )}
       <rect width="720" height="460" fill="url(#mata-vignette)" />
       <rect width="720" height="460" filter="url(#mata-grain)" />
     </svg>

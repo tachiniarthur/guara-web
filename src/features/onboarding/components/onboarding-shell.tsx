@@ -5,7 +5,7 @@ import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 import { onboardingHighlights } from "../data";
-import { MataArt } from "@/components/ui/mata-art";
+import { MataArtLive } from "@/components/ui/mata-art-live";
 
 /** Textura da mata (vetor) com degradê escuro por cima, preenchendo o contêiner. */
 export function MataPhoto({
@@ -15,9 +15,10 @@ export function MataPhoto({
   position?: "center" | "right" | "top";
   overlay?: string;
 }) {
+  // A mata das telas de entrada é viva: as lâminas flutuam e acompanham o ponteiro.
   return (
     <>
-      <MataArt className="absolute inset-0 size-full" align={position} />
+      <MataArtLive className="absolute inset-0 size-full" align={position} />
       <span aria-hidden="true" className="absolute inset-0" style={{ background: overlay }} />
     </>
   );

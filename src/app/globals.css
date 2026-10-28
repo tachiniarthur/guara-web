@@ -450,6 +450,39 @@
 }
 
 /*
+ * Textura Mata viva (MataArtLive): cada lâmina flutua e gira um pouco, no seu ritmo; cada camada
+ * acompanha o ponteiro (--mx/--my de −1 a 1) na medida da sua profundidade (--depth).
+ */
+@keyframes mata-drift {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  50% {
+    translate: var(--dx) var(--dy);
+    rotate: var(--rot);
+  }
+}
+.mata-shard {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mata-drift var(--dur) ease-in-out var(--delay) infinite;
+}
+.mata-layer {
+  translate: calc(var(--mx, 0) * var(--depth) * 1px) calc(var(--my, 0) * var(--depth) * 1px);
+  transition: translate 0.8s var(--ease-out-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mata-shard {
+    animation: none;
+  }
+  .mata-layer {
+    translate: none;
+  }
+}
+
+/*
  * Cards dentro de grades e colunas também entram em cascata (os filhos diretos da página já
  * entram pelo `stagger`): sobem um depois do outro na ordem em que aparecem no pai.
  */
