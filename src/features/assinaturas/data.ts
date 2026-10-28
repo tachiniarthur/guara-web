@@ -128,3 +128,17 @@ export function subscriptionDetailFor(item: Subscription): SubscriptionDetail {
     uso: "O Guará vê só a cobrança no cartão. Não dá para saber pelo banco se você tem usado.",
   };
 }
+
+/** "R$ 21,90" → 2190 centavos (os valores do protótipo vêm escritos). */
+const centavos = (valor: string) => Number(valor.replace(/\D/g, ""));
+
+/** Resumo do topo de Assinaturas, calculado da lista: total, projeção anual e média por serviço. */
+export const subscriptionStats = (() => {
+  const mensal = subscriptions.reduce((sum, item) => sum + centavos(item.valor), 0);
+  return {
+    ativas: subscriptions.length,
+    mensal,
+    anual: mensal * 12,
+    media: subscriptions.length > 0 ? Math.round(mensal / subscriptions.length) : null,
+  };
+})();

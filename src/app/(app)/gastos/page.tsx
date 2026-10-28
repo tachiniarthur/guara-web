@@ -20,10 +20,10 @@ import {
   SpendingPaceChart,
   WeekdaySpendingChart,
 } from "@/features/gastos/components/spending-charts";
-import { SubscriptionList } from "@/features/gastos/components/subscription-list";
+import { MonthForecast } from "@/features/gastos/components/month-forecast";
 import { TetoMeter } from "@/features/gastos/components/teto-meter";
 import { ViewModeToggle } from "@/features/gastos/components/view-mode-toggle";
-import { activeSubscriptions, ledger, otherSpending, tetos } from "@/features/gastos/data";
+import { ledger, otherSpending, tetos } from "@/features/gastos/data";
 import { NewUserSpending } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +40,7 @@ const anchors = [
   { href: "#g-meses", label: "6 meses" },
   { href: "#g-cat", label: "Categorias" },
   { href: "#g-tetos", label: "Tetos" },
-  { href: "#g-ass", label: "Assinaturas" },
+  { href: "#g-previsao", label: "Previsão" },
   { href: "#g-lanc", label: "Lançamentos" },
 ];
 
@@ -351,26 +351,13 @@ export default async function GastosPage({ searchParams }: PageProps<"/gastos">)
             </StateSwap>
           </Panel>
 
-          <Panel id="g-ass" className="gap-4 p-4 @tab:p-5 @desk:col-span-3">
+          <Panel id="g-previsao" className="gap-4 p-4 @tab:p-5 @desk:col-span-3">
             <PanelHeader
-              title="Assinaturas ativas"
-              subtitle={sub("4 detectadas automaticamente · R$ 101,60/mês", true)}
-              action={
-                !noData && (
-                  <Link href="/assinaturas" className={panelLinkClass}>
-                    Ver todas
-                    <Icon name="chevron-right" size={16} />
-                  </Link>
-                )
-              }
+              title="Previsão do mês"
+              subtitle={sub("No ritmo de setembro, comparado aos últimos meses")}
             />
-            <StateSwap replacement={body()} className="grow gap-4">
-              <div className="@desk:hidden">
-                <SubscriptionList items={activeSubscriptions.slice(0, 3)} />
-              </div>
-              <div className="hidden @desk:block">
-                <SubscriptionList items={activeSubscriptions} />
-              </div>
+            <StateSwap replacement={body()} className="grow">
+              <MonthForecast />
             </StateSwap>
           </Panel>
         </div>

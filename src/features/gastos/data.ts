@@ -217,15 +217,6 @@ export const tetos: TetoProgress[] = [
   },
 ];
 
-export type SubscriptionSummary = { id: string; nome: string; proxima: string; valor: string };
-
-export const activeSubscriptions: SubscriptionSummary[] = [
-  { id: "spotify", nome: "Spotify", proxima: "próxima em 02/out", valor: "R$ 21,90" },
-  { id: "netflix", nome: "Netflix", proxima: "próxima em 08/out", valor: "R$ 44,90" },
-  { id: "amazon", nome: "Amazon Prime", proxima: "próxima em 12/out", valor: "R$ 19,90" },
-  { id: "icloud", nome: "iCloud+", proxima: "próxima em 15/out", valor: "R$ 14,90" },
-];
-
 export type LedgerEntry = {
   id: string;
   descricao: string;
@@ -288,3 +279,32 @@ export const ledger: LedgerEntry[] = [
     tipo: "saida",
   },
 ];
+
+/** Dias de setembro de 2026 (o mês do protótipo). */
+const DIAS_NO_MES = 30;
+
+/**
+ * "Previsão do mês" (Gastos): calculada do ritmo de setembro e dos últimos meses, nada escrito à
+ * mão. Valores em reais inteiros, como o resto dos gráficos.
+ */
+export const monthForecast = (() => {
+  const { hoje, setembro, agosto } = spendingPace;
+  const ateHoje = setembro[hoje - 1] ?? 0;
+  const agostoMesmoDia = agosto[hoje - 1] ?? 0;
+  const { previsao, media } = monthlySpending;
+  return {
+    hoje,
+    diasNoMes: DIAS_NO_MES,
+    diasRestantes: DIAS_NO_MES - hoje,
+    ateHoje,
+    porDia: Math.round(ateHoje / hoje),
+    previsao,
+    media,
+    /** Previsão contra a média dos meses anteriores, em %. */
+    contraMedia: Math.round((previsao / media - 1) * 100),
+    agostoMesmoDia,
+    contraAgosto: ateHoje - agostoMesmoDia,
+    /** Quanto ainda deve sair até o fim do mês. */
+    restante: Math.max(0, previsao - ateHoje),
+  };
+})();
