@@ -1,5 +1,8 @@
 import { isAuthApiError, isAuthRetryableFetchError } from "@supabase/supabase-js";
 
+import { z } from "zod";
+
+import { apiRequest } from "@/lib/api";
 import { getSupabase } from "@/lib/supabase";
 
 /**
@@ -63,6 +66,29 @@ export async function verifyEmailCode(email: string, token: string): Promise<voi
     if (error) throw error;
   } catch (error) {
     throw toEmailAuthError(error);
+  }
+}
+
+const EmailStatusSchema = z.object({
+  exists: z.boolean(),
+  providers: z.array(z.enum(["email", "google", "apple"])),
+});
+export type EmailStatus = z.infer<typeof EmailStatusSchema>;
+
+/**
+ * Se o e-mail já tem conta e por quais meios (`POST /v1/auth/email-status`), para "Criar conta"
+ * avisar em vez de mandar um código de entrada. `null` se a API não responder a tempo: aí o
+ * cadastro segue como antes (não trava quem está criando conta).
+ */
+export async function checkEmail(email: string): Promise<EmailStatus | null> {
+  try {
+    return await apiRequest("/v1/auth/email-status", EmailStatusSchema, {
+      method: "POST",
+      body: { email },
+      signal: AbortSignal.timeout(12_000),
+    });
+  } catch {
+    return null;
   }
 }
 
