@@ -131,6 +131,9 @@
   --animate-sheet-in: sheet-in 0.42s var(--ease-out-soft) both;
   --animate-panel-in: panel-in 0.42s var(--ease-out-soft) both;
   --animate-grow-x: grow-x 0.9s var(--ease-out-soft) both;
+  /* Gráficos se desenham ao entrar: linhas da esquerda para a direita, barras de baixo para cima. */
+  --animate-reveal-x: reveal-x 0.9s var(--ease-out-soft) both;
+  --animate-reveal-y: reveal-y 0.9s var(--ease-out-soft) 0.1s both;
 
   @keyframes fade-up {
     from {
@@ -177,16 +180,33 @@
       scale: 0.95;
     }
   }
+  /* Chat: um deslize curto com fade (não sobe a tela inteira). */
   @keyframes sheet-in {
     from {
-      opacity: 0.4;
-      translate: 0 2.5rem;
+      opacity: 0;
+      translate: 0 3.5rem;
     }
   }
   @keyframes panel-in {
     from {
       opacity: 0;
-      translate: 2rem 0;
+      translate: 2.5rem 0;
+    }
+  }
+  @keyframes reveal-x {
+    from {
+      clip-path: inset(-10% 100% -10% -10%);
+    }
+    to {
+      clip-path: inset(-10% -10% -10% -10%);
+    }
+  }
+  @keyframes reveal-y {
+    from {
+      clip-path: inset(100% -10% -10% -10%);
+    }
+    to {
+      clip-path: inset(-10% -10% -10% -10%);
     }
   }
   @keyframes grow-x {
@@ -374,6 +394,55 @@
   [data-skeleton] .loading-card::after {
     animation-duration: 2.4s;
   }
+}
+
+/*
+ * Roscas se fecham no sentido horário ao entrar (máscara cônica de 0° a 360°, começando às 12h).
+ * Sem suporte a @property, a máscara fica completa e a rosca aparece inteira.
+ */
+@property --sweep {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 360deg;
+}
+@keyframes sweep {
+  from {
+    --sweep: 0deg;
+  }
+  to {
+    --sweep: 360deg;
+  }
+}
+@utility animate-sweep {
+  mask-image: conic-gradient(#000 var(--sweep), transparent 0);
+  animation: sweep 1s var(--ease-out-soft) both;
+}
+
+/*
+ * Cards dentro de grades e colunas também entram em cascata (os filhos diretos da página já
+ * entram pelo `stagger`): sobem um depois do outro na ordem em que aparecem no pai.
+ */
+.card-enter:not(.stagger > *) {
+  animation: fade-up 0.5s var(--ease-out-soft) both;
+  animation-delay: calc(var(--card-index, 0) * 70ms + 120ms);
+}
+.card-enter:nth-child(2) {
+  --card-index: 1;
+}
+.card-enter:nth-child(3) {
+  --card-index: 2;
+}
+.card-enter:nth-child(4) {
+  --card-index: 3;
+}
+.card-enter:nth-child(5) {
+  --card-index: 4;
+}
+.card-enter:nth-child(6) {
+  --card-index: 5;
+}
+.card-enter:nth-child(n + 7) {
+  --card-index: 6;
 }
 
 /*

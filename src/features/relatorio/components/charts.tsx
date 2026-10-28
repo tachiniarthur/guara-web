@@ -157,7 +157,7 @@ export function WeeklyFlowChart({ variant }: { variant: ReportChartVariant }) {
   const format = compact ? thousands : brl;
 
   return (
-    <ChartSvg width={width} height={height} label={weeklyFlow.label}>
+    <ChartSvg reveal="rise" width={width} height={height} label={weeklyFlow.label}>
       <GridLine y={y(0)} x1={x1} label="0" font={font} solid />
       <GridLine y={y(4000)} x1={x1} label={compact ? "4" : "4 mil"} font={font} />
       <GridLine y={y(8000)} x1={x1} label={compact ? "8" : "8 mil"} font={font} />

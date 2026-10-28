@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
+import { CountUpNumbers } from "@/components/layout/count-up-numbers";
 import { SessionProvider } from "@/features/acesso/session";
 
 let browserQueryClient: QueryClient | undefined;
@@ -19,6 +20,8 @@ function getQueryClient() {
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={getQueryClient()}>
+      {/* Antes do app: termina as contagens antes do `ValuesMask` guardar os valores. */}
+      <CountUpNumbers />
       <SessionProvider>{children}</SessionProvider>
     </QueryClientProvider>
   );

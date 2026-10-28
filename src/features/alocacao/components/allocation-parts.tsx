@@ -61,7 +61,7 @@ export function GroupDonut({
       viewBox={`0 0 ${size} ${size}`}
       role="img"
       aria-label={label}
-      className="block shrink-0"
+      className="block shrink-0 animate-sweep"
     >
       <circle cx={c} cy={c} r={radius} fill="none" stroke="#1A241F" strokeWidth={stroke} />
       {arcs.map((arc) => (

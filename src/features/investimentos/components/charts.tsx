@@ -1,5 +1,6 @@
 import { ChartSvg, chartColors, roundedBar } from "@/components/charts/primitives";
 import { rem } from "@/lib/rem";
+import { cn } from "@/lib/utils";
 
 import { allocation, portfolio } from "../data";
 
@@ -87,7 +88,7 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
       viewBox={`0 0 ${l.width} ${l.height}`}
       role="img"
       aria-label="Rentabilidade em 12 meses: carteira +11,1%, CDI +9,9%"
-      className={l.fixed ? "block max-w-full" : "block h-auto w-full"}
+      className={cn(l.fixed ? "block max-w-full" : "block h-auto w-full", "animate-reveal-x")}
       fontFamily="var(--font-figtree), Figtree, system-ui, sans-serif"
     >
       {[0, 5, 10].map((v) => (
@@ -189,7 +190,7 @@ export function ClassComparisonChart({ variant }: { variant: Variant }) {
   const f = (n: number) => n.toFixed(1);
 
   return (
-    <ChartSvg width={l.width} height={l.height} label={comparisonLabel}>
+    <ChartSvg reveal="rise" width={l.width} height={l.height} label={comparisonLabel}>
       {[0, 20, 40, 60].map((v) => (
         <g key={v}>
           <line

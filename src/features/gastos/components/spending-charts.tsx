@@ -176,7 +176,7 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
   const last = meses.length - 1;
 
   return (
-    <ChartSvg width={width} height={230} label={descricao}>
+    <ChartSvg reveal="rise" width={width} height={230} label={descricao}>
       <GridLines
         ticks={[
           { value: 0, label: "0" },
@@ -268,7 +268,7 @@ export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
     .map((d) => d.rotulo);
 
   return (
-    <ChartSvg width={width} height={230} label={descricao}>
+    <ChartSvg reveal="rise" width={width} height={230} label={descricao}>
       <GridLines
         ticks={[
           { value: 0, label: "0" },

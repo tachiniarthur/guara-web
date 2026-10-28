@@ -45,7 +45,7 @@ export function LineChart({
       viewBox={`0 0 ${width} ${height}`}
       role="img"
       aria-label={label}
-      className="block h-auto w-full"
+      className="block h-auto w-full animate-reveal-x"
     >
       {ticks.map((t) => (
         <g key={t}>

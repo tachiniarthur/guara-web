@@ -75,7 +75,13 @@ export function CategoryHistoryChart({
   const y = (v: number) => base - v * scale;
 
   return (
-    <ChartSvg width={width} height={height} label={label} className="block h-auto w-full">
+    <ChartSvg
+      reveal="rise"
+      width={width}
+      height={height}
+      label={label}
+      className="block h-auto w-full"
+    >
       <line x1="0" x2={width} y1={base} y2={base} stroke={chartColors.axis} />
       <line
         x1="0"

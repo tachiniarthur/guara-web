@@ -28,7 +28,7 @@ export function ValueBars({
       viewBox={`0 0 ${width} ${height}`}
       role="img"
       aria-label={label}
-      className="block h-auto w-full"
+      className="block h-auto w-full animate-reveal-y"
     >
       {items.map((item, i) => {
         const cx = 8 + slot * (i + 0.5);

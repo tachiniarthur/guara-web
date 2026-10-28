@@ -193,6 +193,7 @@ export function DividendsChart({
 
   return (
     <ChartSvg
+      reveal="rise"
       width={width}
       height={height}
       label="Proventos por ação nos últimos 8 pagamentos, de R$ 0,48 a R$ 1,12. Último: R$ 0,72 em agosto de 2026."

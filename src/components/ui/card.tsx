@@ -2,12 +2,15 @@ import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-/** Card padrão: folha escura com borda de musgo. Compacto no mobile, mais respiro a partir do tablet. */
+/**
+ * Card padrão: folha escura com borda de musgo. Compacto no mobile, mais respiro a partir do
+ * tablet. Entra em cascata com os vizinhos (`card-enter`).
+ */
 export function Card({ className, ...props }: ComponentProps<"section">) {
   return (
     <section
       className={cn(
-        "relative flex min-w-0 flex-col gap-4.5 overflow-hidden rounded-card border border-line bg-card p-4.5 text-sand @tab:rounded-[1.75rem] @tab:p-6",
+        "card-enter relative flex min-w-0 flex-col gap-4.5 overflow-hidden rounded-card border border-line bg-card p-4.5 text-sand @tab:rounded-[1.75rem] @tab:p-6",
         className,
       )}
       {...props}

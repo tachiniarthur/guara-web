@@ -69,7 +69,7 @@ export function CashFlowChart({ variant }: { variant: "wide" | "compact" }) {
       viewBox={compact ? "-8 0 538 180" : "0 0 660 170"}
       role="img"
       aria-label={descricao}
-      className="block h-auto max-w-full"
+      className="block h-auto max-w-full animate-reveal-x"
       fontFamily={FONT}
     >
       {eixo.map((tick) => (

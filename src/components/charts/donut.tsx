@@ -22,7 +22,7 @@ type DonutProps = {
   children?: ReactNode;
 };
 
-/** Rosca de participação, começando às 12h. */
+/** Rosca de participação, começando às 12h; fecha no sentido horário ao entrar. */
 export function Donut({
   segments,
   size,
@@ -42,41 +42,44 @@ export function Donut({
 
   return (
     <div className="relative shrink-0" style={{ width: rem(size), height: rem(size) }}>
-      <svg
-        width="100%"
-        height="100%"
-        viewBox={`0 0 ${box} ${box}`}
-        role={label ? "img" : undefined}
-        aria-label={label}
-        aria-hidden={label ? undefined : true}
-        className="block -rotate-90"
-      >
-        {track && (
-          <circle
-            cx={c}
-            cy={c}
-            r={radius.toFixed(2)}
-            fill="none"
-            stroke={track}
-            strokeWidth={strokeWidth}
-          />
-        )}
-        {segments.map((segment, i) => (
-          <circle
-            key={i}
-            cx={c}
-            cy={c}
-            r={radius.toFixed(2)}
-            fill="none"
-            stroke={segment.color}
-            strokeWidth={strokeWidth}
-            strokeDasharray={`${((lengths[i] ?? 0) - gap).toFixed(2)} ${circumference.toFixed(2)}`}
-            strokeDashoffset={(-(starts[i] ?? 0)).toFixed(2)}
-          >
-            {segment.title && <title>{segment.title}</title>}
-          </circle>
-        ))}
-      </svg>
+      {/* A máscara fica no wrapper: o svg é girado −90° e a máscara começaria às 9h. */}
+      <div className="size-full animate-sweep">
+        <svg
+          width="100%"
+          height="100%"
+          viewBox={`0 0 ${box} ${box}`}
+          role={label ? "img" : undefined}
+          aria-label={label}
+          aria-hidden={label ? undefined : true}
+          className="block -rotate-90"
+        >
+          {track && (
+            <circle
+              cx={c}
+              cy={c}
+              r={radius.toFixed(2)}
+              fill="none"
+              stroke={track}
+              strokeWidth={strokeWidth}
+            />
+          )}
+          {segments.map((segment, i) => (
+            <circle
+              key={i}
+              cx={c}
+              cy={c}
+              r={radius.toFixed(2)}
+              fill="none"
+              stroke={segment.color}
+              strokeWidth={strokeWidth}
+              strokeDasharray={`${((lengths[i] ?? 0) - gap).toFixed(2)} ${circumference.toFixed(2)}`}
+              strokeDashoffset={(-(starts[i] ?? 0)).toFixed(2)}
+            >
+              {segment.title && <title>{segment.title}</title>}
+            </circle>
+          ))}
+        </svg>
+      </div>
       {children && (
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
           {children}

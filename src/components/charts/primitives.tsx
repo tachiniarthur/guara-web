@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { cn } from "@/lib/utils";
+
 /** Cores fixas dos gráficos (os SVGs não leem as classes do Tailwind). */
 export const chartColors = {
   grid: "#25322B",
@@ -26,8 +28,19 @@ type ChartSvgProps = {
   fluid?: boolean;
   viewBox?: string;
   className?: string;
+  /**
+   * Como o gráfico se desenha ao entrar: `wipe` da esquerda para a direita (linhas, áreas),
+   * `rise` de baixo para cima (barras) ou `none`.
+   */
+  reveal?: "wipe" | "rise" | "none";
   children: ReactNode;
 };
+
+export const revealClass = {
+  wipe: "animate-reveal-x",
+  rise: "animate-reveal-y",
+  none: "",
+} as const;
 
 export function ChartSvg({
   width,
@@ -36,6 +49,7 @@ export function ChartSvg({
   fluid = true,
   viewBox,
   className,
+  reveal = "wipe",
   children,
 }: ChartSvgProps) {
   return (
@@ -45,7 +59,7 @@ export function ChartSvg({
       viewBox={viewBox ?? `0 0 ${width} ${height}`}
       role="img"
       aria-label={label}
-      className={className ?? "block h-auto"}
+      className={cn(className ?? "block h-auto", revealClass[reveal])}
       fontFamily={CHART_FONT}
     >
       {children}
