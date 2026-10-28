@@ -73,7 +73,7 @@ export function Rail({ className }: { className?: string }) {
               <li key={id}>
                 <OpenChat
                   agent={id}
-                  aria-label={`Conversar com ${agent.nome}, ${agent.papel}${id === "quero-quero" ? ", 1 alerta novo" : ""}`}
+                  aria-label={`Conversar com ${agent.nome}, ${agent.papel}${id === "quero_quero" ? ", 1 alerta novo" : ""}`}
                   title={`${agent.nome} · ${agent.papel}`}
                   className="flex min-h-11 w-[4.5rem] flex-col items-center gap-1 border-none bg-transparent p-0 landscape:min-h-8 landscape:w-8"
                 >
@@ -84,7 +84,7 @@ export function Rail({ className }: { className?: string }) {
                       variant="ring"
                       className="landscape:size-8!"
                     />
-                    {id === "quero-quero" && (
+                    {id === "quero_quero" && (
                       <span
                         aria-hidden="true"
                         className="absolute -top-px -right-px size-[0.6875rem] rounded-full bg-urucum shadow-[0_0_0_2px_var(--guara-canvas)]"

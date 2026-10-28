@@ -101,6 +101,6 @@ export const agentMentions: { id: AgentId; handle: string; descricao: string }[]
   { id: "pacu", handle: "@pacu", descricao: "Investimentos e simulações" },
   { id: "caramelo", handle: "@caramelo", descricao: "Alertas de preço" },
   { id: "tamandua", handle: "@tamandua", descricao: "Organização de gastos" },
-  { id: "quero-quero", handle: "@queroquero", descricao: "Compras fora do padrão" },
+  { id: "quero_quero", handle: "@queroquero", descricao: "Compras fora do padrão" },
   { id: "onca", handle: "@onca", descricao: "Metas e objetivos" },
 ];

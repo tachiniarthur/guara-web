@@ -126,7 +126,7 @@ const starters: { agent: AgentId; pergunta: string }[] = [
   { agent: "pacu", pergunta: "Minha carteira está no meu perfil?" },
   { agent: "caramelo", pergunta: "Me avisa se o Bitcoin passar de R$ 650.000" },
   { agent: "onca", pergunta: "Quanto falta para a reserva de emergência?" },
-  { agent: "quero-quero", pergunta: "Teve alguma compra fora do padrão?" },
+  { agent: "quero_quero", pergunta: "Teve alguma compra fora do padrão?" },
 ];
 
 /** Conversa nova: a equipe pronta, a apresentação do chat e perguntas para começar. */

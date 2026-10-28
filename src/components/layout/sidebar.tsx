@@ -17,7 +17,7 @@ import { UserInitials } from "./user-chip";
 import { MataArt } from "@/components/ui/mata-art";
 
 /** Assistentes com algo novo para mostrar (bolinha urucum no menu). */
-const agentsWithNews = new Set(["quero-quero"]);
+const agentsWithNews = new Set(["quero_quero"]);
 
 /** A turma no menu fica curta; os demais assistentes estão em "Ver todos os assistentes". */
 const sidebarAgents = agentOrder.filter((id) => id !== "caramelo" && id !== "onca");

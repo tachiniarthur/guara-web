@@ -51,7 +51,7 @@ export type PendingItem = {
 export const pendingItems: PendingItem[] = [
   {
     id: "compra-0214",
-    agent: "quero-quero",
+    agent: "quero_quero",
     titulo: "Compra de R$ 1.249,90 às 02:14",
     detalhe: "Loja de eletrônicos · 3,8x sua média",
     origem: "Quero-quero · Fora do padrão",

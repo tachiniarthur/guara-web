@@ -81,8 +81,8 @@ export const agentCards: Record<AgentId, AgentCardData> = {
     quote: "Tô de guarda. Bateu no preço, eu lato.",
     link: { label: "Ver alertas", href: "/alertas" },
   },
-  "quero-quero": {
-    agent: "quero-quero",
+  quero_quero: {
+    agent: "quero_quero",
     status: "1 alerta",
     statusAlert: true,
     metric: "1 compra",

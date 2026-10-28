@@ -58,7 +58,7 @@ export function OffPatternCheck() {
   const [answer, setAnswer] = useState<"sim" | "nao" | null>(null);
   return (
     <AgentTip
-      agent="quero-quero"
+      agent="quero_quero"
       named
       action={
         answer ? undefined : (

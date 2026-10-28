@@ -49,7 +49,7 @@ export type AlertHistoryItem = {
 export const alertHistory: AlertHistoryItem[] = [
   {
     id: "h1",
-    agent: "quero-quero",
+    agent: "quero_quero",
     texto: "Compra fora do padrão: R$ 1.249,90 em eletrônicos",
     quando: "Hoje, 02:15 · celular e e-mail",
     pendente: "Aguardando sua resposta",

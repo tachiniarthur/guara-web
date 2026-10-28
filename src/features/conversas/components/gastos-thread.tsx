@@ -31,7 +31,7 @@ export function GastosThread() {
           rendendo.
         </MessageText>
       </AgentMessage>
-      <AgentMessage agent="quero-quero" tag="entrou na conversa" tagTone="urucum">
+      <AgentMessage agent="quero_quero" tag="entrou na conversa" tagTone="urucum">
         <MessageText>
           Quero-quero! Antes disso: a compra das 02:14 ainda tá sem resposta.
         </MessageText>

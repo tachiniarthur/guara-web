@@ -161,7 +161,7 @@ export default async function LancamentosPage({ searchParams }: PageProps<"/gast
               replacement={failed ? <ErrorBlock compact /> : empty && <NoDataBlock compact />}
               overlayClassName="rounded-bubble bg-shade p-4"
             >
-              <AgentTip agent="quero-quero" named>
+              <AgentTip agent="quero_quero" named>
                 A compra de R$ 1.249,90 às 02:14 está fora do seu padrão. Clique nela para confirmar
                 se foi você.
               </AgentTip>

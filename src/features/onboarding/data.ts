@@ -114,7 +114,7 @@ export const agentIntros: { id: AgentId; texto: string }[] = [
   { id: "pacu", texto: "Tira dúvidas, monta simulações e analisa sua carteira." },
   { id: "caramelo", texto: "Vigia os preços que você escolher e avisa na hora." },
   { id: "tamandua", texto: "Organiza seus gastos e responde quanto foi para onde." },
-  { id: "quero-quero", texto: "Percebe compras fora do seu padrão e confirma com você." },
+  { id: "quero_quero", texto: "Percebe compras fora do seu padrão e confirma com você." },
   {
     id: "onca",
     texto: "Acompanha suas metas, como viagem e reserva, e avisa se o ritmo está bom.",

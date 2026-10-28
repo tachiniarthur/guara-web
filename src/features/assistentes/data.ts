@@ -1,4 +1,4 @@
-export type AgentId = "capivara" | "tamandua" | "pacu" | "caramelo" | "quero-quero" | "onca";
+export type AgentId = "capivara" | "tamandua" | "pacu" | "caramelo" | "quero_quero" | "onca";
 
 export type Agent = {
   id: AgentId;
@@ -61,8 +61,8 @@ export const agents: Record<AgentId, Agent> = {
     retrato: "/images/assistentes/caramelo.jpg",
     cena: "/images/cenas/caramelo.jpg",
   },
-  "quero-quero": {
-    id: "quero-quero",
+  quero_quero: {
+    id: "quero_quero",
     nome: "Quero-quero",
     cientifico: "Vanellus chilensis",
     area: "Fora do padrão",
@@ -91,6 +91,6 @@ export const agentOrder: AgentId[] = [
   "tamandua",
   "pacu",
   "caramelo",
-  "quero-quero",
+  "quero_quero",
   "onca",
 ];
