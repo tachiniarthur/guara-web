@@ -4,10 +4,17 @@ import { useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { BankMark } from "./bank-mark";
 import { chipClass } from "./chip";
 import { Icon, type IconName } from "./icon";
 
-export type FilterChipOption = { value: string; label: string; icon?: IconName };
+export type FilterChipOption = {
+  value: string;
+  label: string;
+  icon?: IconName;
+  /** Filtro de banco: a marca do banco (id ou nome) antes do nome. */
+  bank?: string;
+};
 
 type FilterChipsProps = {
   options: FilterChipOption[];
@@ -48,6 +55,7 @@ export function FilterChips({
           className={chipClass(option.value === value, size)}
         >
           {option.icon && <Icon name={option.icon} size={16} />}
+          {option.bank && <BankMark bank={option.bank} size={20} />}
           {option.label}
         </button>
       ))}

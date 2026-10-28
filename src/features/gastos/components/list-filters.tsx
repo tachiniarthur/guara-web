@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { dropdownPillClass, filterChipClass } from "@/components/ui/chip";
 import { Icon, type IconName } from "@/components/ui/icon";
+import { BankMark } from "@/components/ui/bank-mark";
 import { cn } from "@/lib/utils";
 
 export const ALL_BANKS = "Todos os bancos";
@@ -35,6 +36,7 @@ export function BankFilter({
           onClick={() => setCurrent(bank)}
           className={filterChipClass(bank === current)}
         >
+          {bank !== ALL_BANKS && <BankMark bank={bank} size={20} />}
           {bank}
         </button>
       ))}

@@ -10,8 +10,8 @@ import {
   stepFrame,
   OnboardingSteps,
 } from "@/features/onboarding/components/onboarding-shell";
-import { bankAccess, onboardingSteps } from "@/features/onboarding/data";
-import { cn } from "@/lib/utils";
+import { AccessPanel } from "@/features/onboarding/components/access-panel";
+import { onboardingSteps } from "@/features/onboarding/data";
 
 export default function ConectarBancosPage() {
   return (
@@ -55,19 +55,7 @@ export default function ConectarBancosPage() {
         />
       </div>
       <BankPicker />
-      <div className="flex flex-col gap-2.5 rounded-bubble bg-shade p-4">
-        <strong className="text-14">O que o Guará acessa</strong>
-        <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
-          {bankAccess.map((item) => (
-            <li key={item.text} className="flex items-center gap-2 text-14 text-mist">
-              <span className={cn(item.allowed ? "text-folha" : "text-urucum")}>
-                <Icon name={item.allowed ? "check" : "x"} size={16} strokeWidth={2.2} />
-              </span>
-              {item.text}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <AccessPanel />
       <OnboardingActions>
         <ButtonLink href="/onboarding/plano" variant="secondary" size="xl">
           <span>Voltar</span>

@@ -87,6 +87,12 @@ export const planPitch: Record<PlanId, string> = {
 /** O plano em destaque na escolha. */
 export const featuredPlan: PlanId = "plus";
 
+/**
+ * Mostra o Private na escolha do plano (com cadeado e "Em breve"). Escondido por enquanto
+ * (decisão de 28/10/2026); os dados ficam para quando ele voltar.
+ */
+export const showPrivatePlan = false;
+
 /** O 4º plano, ainda fechado: aparece na escolha com cadeado e "Em breve". */
 export const privatePlan = {
   nome: "Private",

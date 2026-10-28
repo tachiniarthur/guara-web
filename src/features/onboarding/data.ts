@@ -23,13 +23,15 @@ export const banks = [
   { id: "c6", nome: "C6 Bank", sigla: "C6" },
 ];
 
-export const bankAccess = [
-  { allowed: true, text: "Vemos: Saldos e extratos" },
-  { allowed: true, text: "Vemos: Cartões e faturas" },
-  { allowed: true, text: "Vemos: Investimentos" },
-  { allowed: false, text: "Nunca: Sua senha do banco" },
-  { allowed: false, text: "Nunca: Fazer pagamentos ou Pix" },
-];
+/** "O que o Guará acessa": o que ele lê do banco e o que nunca faz. */
+export const bankAccess = {
+  sees: ["Saldos e extratos", "Cartões e faturas", "Investimentos"],
+  never: [
+    "Ver ou guardar a senha do seu banco",
+    "Fazer pagamentos, Pix ou transferências",
+    "Mover o seu dinheiro",
+  ],
+};
 
 export type ProfileQuestion = {
   pergunta: string;

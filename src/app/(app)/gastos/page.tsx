@@ -31,8 +31,8 @@ const SAIDAS = "#E0935A";
 
 const bankOptions = [
   { value: "todos", label: "Todos os bancos", icon: "grid" as const },
-  { value: "nubank", label: "Nubank" },
-  { value: "itau", label: "Itaú" },
+  { value: "nubank", label: "Nubank", bank: "nubank" },
+  { value: "itau", label: "Itaú", bank: "itau" },
 ];
 
 const anchors = [

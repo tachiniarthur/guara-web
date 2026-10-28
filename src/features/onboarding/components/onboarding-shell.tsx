@@ -60,11 +60,11 @@ export function OnboardingAside() {
       </div>
       <div
         aria-hidden="true"
-        className="absolute inset-x-0 bottom-0 h-[min(28.75rem,45dvh)] overflow-hidden"
+        className="absolute inset-x-0 bottom-0 h-[min(40rem,62dvh)] overflow-hidden"
       >
         <MataPhoto
           position="center"
-          overlay="linear-gradient(180deg, #1A241F 0%, rgba(26,36,31,0) 45%, rgba(26,36,31,0.55) 100%)"
+          overlay="linear-gradient(180deg, #1A241F 0%, rgba(26,36,31,0) 35%, rgba(26,36,31,0.5) 100%)"
         />
       </div>
       <span className="relative z-10 self-start rounded-full bg-[rgba(11,17,14,0.78)] px-3 py-1.5 text-13 text-sand">

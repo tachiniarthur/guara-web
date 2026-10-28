@@ -8,6 +8,7 @@ import { Panel, PanelHeader, panelLinkClass } from "@/components/ui/panel";
 import { SegmentedTiles } from "@/components/ui/segmented-tiles";
 import { DeviceNotificationsAlert } from "@/features/notificacoes/components/device-notifications-alert";
 import { user } from "@/features/usuario/data";
+import { BankMark } from "@/components/ui/bank-mark";
 import { cn } from "@/lib/utils";
 
 import {
@@ -92,12 +93,7 @@ function BankItem({ bank }: { bank: BankConnection }) {
       )}
     >
       <div className="flex items-center gap-3">
-        <span
-          aria-hidden="true"
-          className="flex size-[2.875rem] shrink-0 items-center justify-center rounded-xl border border-line bg-canvas font-display text-17 font-bold"
-        >
-          {bank.inicial}
-        </span>
+        <BankMark bank={bank.id} size={46} />
         <span className="flex min-w-0 grow flex-col leading-[1.3]">
           <strong className="text-16">{bank.nome}</strong>
           <span

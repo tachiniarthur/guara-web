@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BankMark } from "@/components/ui/bank-mark";
 import { ButtonLink } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { banks } from "@/features/onboarding/data";
@@ -25,8 +26,8 @@ export default async function SucessoBancoPage({ params }: { params: Promise<{ b
   const { banco } = await params;
   const bank = bankFromSlug(banco);
   const connected = [
-    { sigla: "N", nome: "Nubank", quando: "Hoje, 14:30" },
-    { sigla: bank.sigla, nome: bank.nome, quando: "Agora" },
+    { id: "nubank", nome: "Nubank", quando: "Hoje, 14:30" },
+    { id: bank.id, nome: bank.nome, quando: "Agora" },
   ];
   return (
     <MalvoShell
@@ -78,12 +79,7 @@ export default async function SucessoBancoPage({ params }: { params: Promise<{ b
                 key={item.nome}
                 className="flex items-center gap-3 rounded-[1.125rem] border border-line bg-field p-3.5"
               >
-                <span
-                  aria-hidden="true"
-                  className="flex size-[2.875rem] shrink-0 items-center justify-center rounded-xl border border-line bg-canvas font-display text-17 font-bold"
-                >
-                  {item.sigla}
-                </span>
+                <BankMark bank={item.id} size={46} />
                 <span className="flex min-w-0 grow flex-col leading-[1.3]">
                   <strong className="text-16">{item.nome}</strong>
                   <span className="inline-flex items-center gap-1.5 text-13 font-bold text-folha">

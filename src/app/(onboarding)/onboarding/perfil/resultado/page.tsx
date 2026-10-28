@@ -1,69 +1,8 @@
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { ButtonLink } from "@/components/ui/button";
 import { MobileActionBar } from "@/components/ui/form";
-import { Icon } from "@/components/ui/icon";
-import { Panel, PanelHeader } from "@/components/ui/panel";
-import {
-  donutSizes,
-  GroupDonut,
-  GroupSwatch,
-  ProfileLevels,
-} from "@/features/alocacao/components/allocation-parts";
-import { formatPercent, groups, portfolioAllocation, profileById } from "@/features/alocacao/data";
-import {
-  OnboardingActions,
-  OnboardingShell,
-  stepFrame,
-  OnboardingSteps,
-} from "@/features/onboarding/components/onboarding-shell";
-import { onboardingSteps, profileAnswers, profileEffects } from "@/features/onboarding/data";
-
-/**
- * Carteira-alvo do perfil: rosca e percentual de cada grupo, sem comparar com a carteira (a
- * comparação fica em Investimentos › Alocação).
- */
-function TargetAllocation() {
-  const target = profileById[portfolioAllocation.perfil];
-  return (
-    <Panel className="animate-fade-up gap-4 p-4.5 [animation-delay:160ms] md:p-5.5 lg:col-span-2 lg:p-6">
-      <PanelHeader
-        title={`Carteira-alvo do perfil ${target.nome}`}
-        subtitle="Como o Guará vai dividir as sugestões de investimento"
-        titleClassName="text-18 tracking-normal"
-      />
-      <div className="flex flex-col items-center gap-5 md:flex-row md:items-center md:gap-8">
-        <GroupDonut
-          values={target.alvo}
-          dims={donutSizes.result}
-          caption="Alvo"
-          value={target.nome}
-          label={`Carteira-alvo do perfil ${target.nome}: ${groups
-            .map((g) => `${g.nome} ${formatPercent(target.alvo[g.id])}`)
-            .join(", ")}`}
-        />
-        <ul className="m-0 w-full min-w-0 grow list-none p-0">
-          {groups.map((g) => (
-            <li
-              key={g.id}
-              className="flex items-center gap-2.5 border-b border-line py-2 text-14 last:border-b-0"
-            >
-              <GroupSwatch id={g.id} />
-              <span className="min-w-0 grow">{g.nome}</span>
-              <strong className="tabular-nums">{formatPercent(target.alvo[g.id])}</strong>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <p className="m-0 flex items-start gap-2 text-13 leading-[1.5] text-mist">
-        <Icon name="info" size={16} className="mt-px shrink-0" />
-        <span>
-          Para comparar com a sua carteira e ver a alocação completa, acesse{" "}
-          <strong className="text-sand">Investimentos</strong> depois do cadastro.
-        </span>
-      </p>
-    </Panel>
-  );
-}
+import { OnboardingShell, stepFrame } from "@/features/onboarding/components/onboarding-shell";
+import { ProfileResult } from "@/features/onboarding/components/profile-result";
 
 export default function ResultadoPerfilPage() {
   return (
@@ -82,73 +21,7 @@ export default function ResultadoPerfilPage() {
         </MobileActionBar>
       }
     >
-      <OnboardingSteps current={3} steps={onboardingSteps} />
-      <div className="grid grid-cols-1 gap-5 md:gap-6.5 lg:grid-cols-2 lg:gap-x-7 lg:gap-y-5.5">
-        <div className="flex animate-fade-up flex-col gap-2.5 lg:col-span-2">
-          <span className="text-13 text-caption">Resultado · 6 de 6 respondidas</span>
-          <h1 className="m-0 font-display text-26 leading-[1.2] font-extrabold tracking-[-0.01em] md:text-30 lg:text-32">
-            Seu perfil é <span className="text-tucano">Moderado</span>
-          </h1>
-          <p className="m-0 text-15 leading-[1.55] text-mist">
-            Você aceita alguma oscilação para ganhar mais que a renda fixa, mas quer a maior parte
-            do dinheiro protegida. Seu prazo de 3 a 10 anos e a parte pequena que talvez precise
-            resgatar combinam com uma carteira equilibrada.
-          </p>
-        </div>
-        <div className="animate-fade-up [animation-delay:80ms] lg:col-span-2">
-          <ProfileLevels />
-        </div>
-        <TargetAllocation />
-        {/* As duas colunas com a mesma altura (a grade estica as células da linha). */}
-        <Panel className="animate-fade-up gap-3.5 p-4.5 [animation-delay:240ms] md:p-5.5 lg:p-6">
-          <PanelHeader title="Suas respostas" titleClassName="text-16 tracking-normal md:text-18" />
-          <dl className="m-0 grid grid-cols-2 gap-x-3.5 gap-y-3 text-13">
-            {profileAnswers.map((answer) => (
-              <div key={answer.pergunta} className="flex min-w-0 flex-col gap-0.5">
-                <dt className="text-caption">{answer.pergunta}</dt>
-                <dd className="m-0 font-semibold text-sand">{answer.resposta}</dd>
-              </div>
-            ))}
-          </dl>
-        </Panel>
-        <Panel className="animate-fade-up gap-3.5 p-4.5 [animation-delay:320ms] md:p-5.5 lg:p-6">
-          <PanelHeader
-            title="O que o perfil muda no app"
-            titleClassName="text-18 tracking-normal"
-          />
-          <ul className="m-0 flex list-none flex-col p-0">
-            {profileEffects.map((effect, i) => (
-              <li
-                key={effect.titulo}
-                className={`flex items-center gap-3 py-3 ${i < profileEffects.length - 1 ? "border-b border-line" : ""}`}
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-shade text-mist"
-                >
-                  <Icon name={effect.icon} />
-                </span>
-                <span className="flex min-w-0 grow flex-col leading-[1.35]">
-                  <span className="font-medium">{effect.titulo}</span>
-                  <span className="text-12 text-caption">{effect.texto}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Panel>
-        <p className="m-0 text-13 leading-[1.55] text-caption lg:col-span-2">
-          O perfil vale só para Investimentos. Você pode refazer quando quiser em Meu perfil.
-        </p>
-      </div>
-      <OnboardingActions>
-        <ButtonLink href="/onboarding/perfil/1" variant="secondary" size="xl">
-          <span>Refazer</span>
-        </ButtonLink>
-        <div className="grow" />
-        <ButtonLink href="/onboarding/assistentes" variant="light" size="xl">
-          <span>Continuar</span>
-        </ButtonLink>
-      </OnboardingActions>
+      <ProfileResult />
     </OnboardingShell>
   );
 }

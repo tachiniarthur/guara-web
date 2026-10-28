@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BankMark } from "@/components/ui/bank-mark";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
@@ -63,9 +64,14 @@ export function OriginInfo({ origin }: { origin: Origin }) {
   const icon = origin.tipo === "open-finance" ? "link" : origin.tipo === "chat" ? "chat" : "user";
   return (
     <span className="inline-flex items-start gap-1.5 text-13 leading-[1.35] text-soft">
-      <span className="mt-0.5">
-        <Icon name={icon} size={14} />
-      </span>
+      {origin.tipo === "open-finance" ? (
+        // Conta de banco: a marca do banco no lugar do ícone ("Itaú · Open Finance").
+        <BankMark bank={origin.texto.split(" · ")[0] ?? origin.texto} size={16} className="mt-px" />
+      ) : (
+        <span className="mt-0.5">
+          <Icon name={icon} size={14} />
+        </span>
+      )}
       <span className="flex flex-col whitespace-nowrap">
         {origin.texto}
         {"atualizado" in origin && <span className="text-12 text-mist">{origin.atualizado}</span>}

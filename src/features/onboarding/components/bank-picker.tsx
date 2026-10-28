@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
+import { BankMark } from "@/components/ui/bank-mark";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 import { useOnboardingBanks } from "@/stores/onboarding-banks";
@@ -52,12 +53,7 @@ export function BankPicker() {
           );
           const content = (
             <>
-              <span
-                aria-hidden="true"
-                className="flex size-[2.25rem] shrink-0 items-center justify-center rounded-[0.625rem] border border-line bg-canvas font-display text-14 font-bold"
-              >
-                {bank.sigla}
-              </span>
+              <BankMark bank={bank.id} size={36} />
               <span className="flex min-w-0 flex-col leading-[1.3]">
                 <span className="text-15 font-bold">{bank.nome}</span>
                 {on ? (

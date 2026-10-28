@@ -1,67 +1,39 @@
 import type { ReactNode } from "react";
 
-import { Icon, type IconName } from "@/components/ui/icon";
+import { BankMark } from "@/components/ui/bank-mark";
+import type { IconName } from "@/components/ui/icon";
 import { Panel } from "@/components/ui/panel";
+import { bankBrand } from "@/lib/banks";
 import { cn } from "@/lib/utils";
 
-const sharedData: { icon: IconName; titulo: string; texto: string }[] = [
+import { AccessPanel } from "./access-panel";
+
+const sharedData: { icon: IconName; title: string; text: string }[] = [
   {
     icon: "user",
-    titulo: "Dados cadastrais",
-    texto: "Nome e CPF, para confirmar que a conta é sua",
+    title: "Dados cadastrais",
+    text: "Nome e CPF, para confirmar que a conta é sua",
   },
-  { icon: "wallet", titulo: "Contas", texto: "Saldos e extratos dos últimos 12 meses" },
-  { icon: "tag", titulo: "Cartões de crédito", texto: "Faturas, limites e lançamentos" },
-  { icon: "trending-up", titulo: "Investimentos", texto: "Posições, aplicações e rendimentos" },
+  { icon: "wallet", title: "Contas", text: "Saldos e extratos dos últimos 12 meses" },
+  { icon: "tag", title: "Cartões de crédito", text: "Faturas, limites e lançamentos" },
+  { icon: "trending-up", title: "Investimentos", text: "Posições, aplicações e rendimentos" },
 ];
 
 export type ConsentPeriod = { label: string; value: string }[];
 
 type MalvoConsentProps = {
-  banco: { nome: string; sigla: string };
+  banco: { id: string; nome: string };
   title: string;
   subtitle: string;
   intro: string;
   period: ConsentPeriod;
 };
 
-function BankBadge({ sigla }: { sigla: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className="flex size-[3.625rem] shrink-0 items-center justify-center rounded-tile border border-line bg-canvas font-display text-22 font-bold"
-    >
-      {sigla}
-    </span>
-  );
-}
-
 function SectionTitle({ children, large }: { children: ReactNode; large?: boolean }) {
   return (
     <h2 className={cn("m-0 font-display leading-[1.25] font-bold", large ? "text-19" : "text-17")}>
       {children}
     </h2>
-  );
-}
-
-function SharedList() {
-  return (
-    <ul className="m-0 flex list-none flex-col p-0">
-      {sharedData.map((item) => (
-        <li key={item.titulo} className="flex items-start gap-3 border-b border-line py-2.5">
-          <span
-            aria-hidden="true"
-            className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-folha-bg text-folha"
-          >
-            <Icon name={item.icon} />
-          </span>
-          <span className="flex flex-col leading-[1.4]">
-            <strong className="text-15">{item.titulo}</strong>
-            <span className="text-13 text-mist">{item.texto}</span>
-          </span>
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -75,20 +47,6 @@ function PeriodList({ period }: { period: ConsentPeriod }) {
         </div>
       ))}
     </dl>
-  );
-}
-
-function NeverNote() {
-  return (
-    <div className="flex items-start gap-2.5 rounded-[0.875rem] bg-urucum-bg px-3.5 py-3 text-13 leading-normal text-sand">
-      <span className="mt-px text-urucum">
-        <Icon name="lock" size={16} />
-      </span>
-      <span>
-        <strong>Nunca:</strong> senha do banco, pagamentos, Pix ou transferências. O Guará só lê
-        dados.
-      </span>
-    </div>
   );
 }
 
@@ -138,8 +96,12 @@ export function MalvoConsentHeader({
 }: Omit<MalvoConsentProps, "period">) {
   return (
     <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-3">
-      <div className="flex items-center gap-3.5">
-        <BankBadge sigla={banco.sigla} />
+      {/* Faixa com a cor do banco: dá para ver de relance com qual banco é a conexão. */}
+      <div
+        className="flex items-center gap-3.5 rounded-card border-l-4 py-1 pl-3.5"
+        style={{ borderColor: bankBrand(banco.id).background }}
+      >
+        <BankMark bank={banco.id} size={58} />
         <div className="flex min-w-0 flex-col gap-0.5">
           <h1 className="m-0 font-display text-24 leading-[1.2] font-extrabold">{title}</h1>
           <span className="text-14 text-mist">{subtitle}</span>
@@ -166,11 +128,7 @@ export function MalvoConsentDetails({
   if (cards) {
     return (
       <div className="grid grid-cols-2 items-stretch gap-5">
-        <Panel className="gap-3.5 p-6">
-          <SectionTitle large>O que será compartilhado</SectionTitle>
-          <SharedList />
-          <NeverNote />
-        </Panel>
+        <AccessPanel bank={banco} sees={sharedData} />
         <div className="flex min-w-0 flex-col gap-5">
           <Panel className="gap-3.5 p-6">
             <SectionTitle large>Por quanto tempo</SectionTitle>
@@ -187,11 +145,9 @@ export function MalvoConsentDetails({
   }
   return (
     <>
-      <SectionTitle>O que será compartilhado</SectionTitle>
-      <SharedList />
+      <AccessPanel bank={banco} sees={sharedData} />
       <SectionTitle>Por quanto tempo</SectionTitle>
       <PeriodList period={period} />
-      <NeverNote />
       <SectionTitle>Como funciona</SectionTitle>
       <HowItWorks banco={banco} />
       <RevokeNote banco={banco} />

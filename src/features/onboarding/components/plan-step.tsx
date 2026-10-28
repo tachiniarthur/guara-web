@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   planPitch,
   plans,
   privatePlan,
+  showPrivatePlan,
   type PlanId,
 } from "@/features/perfil/planos";
 import { cn } from "@/lib/utils";
@@ -194,7 +195,8 @@ export function PlanStep() {
       <div
         role="radiogroup"
         aria-label="Planos"
-        className="grid gap-x-4 gap-y-6 pt-3 min-[56rem]:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-x-4 gap-y-6 pt-3 min-[56rem]:grid-cols-2 lg:grid-cols-[repeat(var(--plans),minmax(0,1fr))]"
+        style={{ "--plans": plans.length + (showPrivatePlan ? 1 : 0) } as CSSProperties}
       >
         {plans.map((plan, index) => (
           <PlanCard
@@ -210,13 +212,15 @@ export function PlanStep() {
             onChoose={() => choose(plan.id)}
           />
         ))}
-        <PlanCard
-          name={privatePlan.nome}
-          price={privatePlan.preco}
-          pitch={privatePlan.pitch}
-          index={plans.length}
-          locked
-        />
+        {showPrivatePlan && (
+          <PlanCard
+            name={privatePlan.nome}
+            price={privatePlan.preco}
+            pitch={privatePlan.pitch}
+            index={plans.length}
+            locked
+          />
+        )}
       </div>
     </OnboardingShell>
   );
