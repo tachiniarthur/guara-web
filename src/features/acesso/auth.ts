@@ -96,7 +96,12 @@ export async function checkEmail(email: string): Promise<EmailStatus | null> {
 export async function signInWithProvider(provider: "google" | "apple"): Promise<void> {
   const { error } = await getSupabase().auth.signInWithOAuth({
     provider,
-    options: { redirectTo: `${window.location.origin}/` },
+    options: {
+      redirectTo: `${window.location.origin}/`,
+      // Google: mostra sempre a escolha de conta. Sem isso, ele entra direto com a conta já
+      // logada no navegador e não deixa trocar (a tela de permissão só aparece na 1ª vez).
+      ...(provider === "google" ? { queryParams: { prompt: "select_account" } } : {}),
+    },
   });
   if (error) throw error;
 }
