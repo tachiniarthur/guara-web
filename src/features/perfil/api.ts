@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { apiRequest } from "@/lib/api";
 
-import type { PlanId } from "./planos";
+import type { BillingPeriod, PlanId } from "./planos";
 
 const limit = z.number().int().nullable();
 const counter = z.object({ used: z.number().int(), limit });
@@ -28,7 +28,12 @@ export const MyPlanSchema = z.object({
     .loose()
     .nullable(),
   subscription: z
-    .object({ status: z.enum(["active", "canceled"]), currentPeriodEnd: z.string().nullable() })
+    .object({
+      status: z.enum(["active", "canceled"]),
+      billingPeriod: z.enum(["monthly", "annual"]),
+      currentPeriodEnd: z.string().nullable(),
+    })
+    .loose()
     .nullable(),
   usage: z.object({ month: z.string(), aiQuestions: counter, simulationRuns: counter }).nullable(),
   assistants: z
@@ -60,8 +65,21 @@ export function useMyPlan({ enabled = true }: { enabled?: boolean } = {}) {
 export function useActivatePlan() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (planId: PlanId) =>
-      apiRequest("/v1/me/plan", MyPlanSchema, { method: "POST", body: { planId } }),
+    mutationFn: (body: { planId: PlanId; billingPeriod: BillingPeriod }) =>
+      apiRequest("/v1/me/plan", MyPlanSchema, { method: "POST", body }),
+    onSuccess: (plan) => queryClient.setQueryData(planKeys.mine, plan),
+  });
+}
+
+/** Troca entre mensal e anual (`PUT /v1/me/plan/billing-period`). */
+export function useChangeBillingPeriod() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (billingPeriod: BillingPeriod) =>
+      apiRequest("/v1/me/plan/billing-period", MyPlanSchema, {
+        method: "PUT",
+        body: { billingPeriod },
+      }),
     onSuccess: (plan) => queryClient.setQueryData(planKeys.mine, plan),
   });
 }

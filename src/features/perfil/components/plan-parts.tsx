@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Note } from "@/components/ui/note";
@@ -5,12 +7,14 @@ import { Panel, PanelHeader } from "@/components/ui/panel";
 import { Tag } from "@/components/ui/tag";
 import { cn } from "@/lib/utils";
 
-import { planComparison, plans, planUsage, type Plan } from "../planos";
+import { billingPeriodLabel, planComparison, plans, planUsage, type Plan } from "../planos";
+import { PlanPrice, useContractedPeriod, usePlansPeriod } from "./billing";
 
 const current = plans.find((p) => p.atual)!;
 
 /** Card de um plano. "compact": rótulos curtos do tablet e do desktop ("Escolher este"). */
 export function PlanCard({ plan, compact }: { plan: Plan; compact?: boolean }) {
+  const viewing = usePlansPeriod((s) => s.viewing);
   return (
     <section
       className={cn(
@@ -27,13 +31,7 @@ export function PlanCard({ plan, compact }: { plan: Plan; compact?: boolean }) {
           </Tag>
         )}
       </div>
-      <div className="flex flex-col gap-0.5">
-        <span className="font-display text-30 leading-[1.1] font-extrabold tracking-[-0.01em] tabular-nums">
-          {plan.preco}
-          <span className="text-16 font-medium text-mist"> /mês</span>
-        </span>
-        <span className="text-13 text-caption">cobrado todo mês</span>
-      </div>
+      <PlanPrice plan={plan} period={viewing} />
       <div className="flex flex-col gap-2 rounded-[0.875rem] bg-field px-3.5 py-3">
         <span className="flex items-center gap-2 font-bold">
           <span className="text-mist">
@@ -78,11 +76,12 @@ export function PlanCard({ plan, compact }: { plan: Plan; compact?: boolean }) {
 /** Uso do plano atual: bancos conectados e perguntas aos assistentes no mês. */
 export function UsagePanel({ className }: { className?: string }) {
   const { bancos, perguntas } = planUsage;
+  const contracted = useContractedPeriod();
   return (
     <Panel className={cn("p-5", className)}>
       <PanelHeader
         title={`Seu uso no plano ${current.nome}`}
-        subtitle={planUsage.renova}
+        subtitle={`Assinatura ${billingPeriodLabel[contracted].toLowerCase()} · renova em 10/10/2026`}
         titleClassName="text-18 tracking-normal"
       />
       <div className="flex min-w-0 flex-col gap-2">

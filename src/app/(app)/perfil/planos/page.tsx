@@ -5,6 +5,7 @@ import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Panel, PanelHeader } from "@/components/ui/panel";
+import { BillingSummary, PlansPeriodToggle } from "@/features/perfil/components/billing";
 import { PlanCard, PlanComparison, UsagePanel } from "@/features/perfil/components/plan-parts";
 import { plans } from "@/features/perfil/planos";
 
@@ -21,6 +22,9 @@ const byId = Object.fromEntries(plans.map((p) => [p.id, p]));
 /** No celular, o plano atual vem primeiro. */
 const mobileOrder = [byId.plus!, byId.pro!, byId.basic!];
 
+const current = plans.find((p) => p.atual)!;
+
+/** "Cobrança": o período contratado, a troca entre mensal e anual e a regra da mudança de plano. */
 function BillingPanel({
   note,
   className,
@@ -32,11 +36,8 @@ function BillingPanel({
 }) {
   return (
     <Panel className={className ?? "p-5"}>
-      <PanelHeader
-        title="Cobrança"
-        subtitle="Mensal, sem fidelidade"
-        titleClassName="text-18 tracking-normal"
-      />
+      <PanelHeader title="Cobrança" titleClassName="text-18 tracking-normal" />
+      <BillingSummary plan={current} />
       <p className="m-0 text-13 leading-[1.55] text-caption">{note}</p>
       {children}
     </Panel>
@@ -63,6 +64,8 @@ export default function PlanosPage() {
       {/* Celular */}
       <div className="flex flex-col gap-4 @tab:hidden">
         <UsagePanel />
+        <BillingPanel note="Ao trocar de período, o valor novo vale a partir da próxima cobrança." />
+        <PlansPeriodToggle />
         {mobileOrder.map((plan) => (
           <PlanCard key={plan.id} plan={plan} />
         ))}
@@ -79,6 +82,7 @@ export default function PlanosPage() {
           <UsagePanel />
           <BillingPanel note="A mudança vale na hora. Ao subir, você paga só a diferença proporcional até 10/10." />
         </div>
+        <PlansPeriodToggle />
         <div className="grid grid-cols-3 items-stretch gap-3.5">
           {plans.map((plan) => (
             <PlanCard key={plan.id} plan={plan} compact />
@@ -90,6 +94,7 @@ export default function PlanosPage() {
 
       {/* Desktop */}
       <div className="hidden flex-col gap-6 @desk:flex">
+        <PlansPeriodToggle />
         <div className="grid grid-cols-3 items-stretch gap-5">
           {plans.map((plan) => (
             <PlanCard key={plan.id} plan={plan} compact />

@@ -1,14 +1,25 @@
 /**
- * Planos do Guará (decisão de 27/10/2026; o mesmo catálogo de `GET /v1/plans` da API). Todos
- * são pagos e mensais; o Private ainda não está à venda. No protótipo, o usuário está no Plus.
+ * Planos do Guará (decisão de 27/10/2026; preços, anual e limites do Plus revistos em 28/10/2026;
+ * o mesmo catálogo de `GET /v1/plans` da API). Todos são pagos, por mês ou por ano; o Private
+ * ainda não está à venda. No protótipo, o usuário está no Plus, no mensal.
  */
 
 export type PlanId = "basic" | "plus" | "pro";
+export type BillingPeriod = "monthly" | "annual";
+
+/**
+ * Desconto do anual, em pontos percentuais (um lugar só). O anual de cada plano é guardado
+ * explícito e o teste confere que bate com mensal × 12 × (100 − desconto) / 100.
+ */
+export const ANNUAL_DISCOUNT_PERCENT = 10;
 
 export type Plan = {
   id: PlanId;
   nome: string;
-  preco: string;
+  /** Preço do mês, em centavos. */
+  mensal: number;
+  /** Total cobrado no anual (com o desconto), em centavos. */
+  anual: number;
   bancos: string;
   /** Limite de bancos conectados. */
   limiteBancos: number;
@@ -23,7 +34,8 @@ export const plans: Plan[] = [
   {
     id: "basic",
     nome: "Básico",
-    preco: "R$ 15,90",
+    mensal: 1790,
+    anual: 19332,
     bancos: "1 banco",
     limiteBancos: 1,
     perguntas: "20 perguntas por mês aos assistentes",
@@ -45,14 +57,15 @@ export const plans: Plan[] = [
   {
     id: "plus",
     nome: "Plus",
-    preco: "R$ 39,90",
+    mensal: 4390,
+    anual: 47412,
     bancos: "4 bancos",
     limiteBancos: 4,
     perguntas: "40 perguntas por mês aos assistentes",
     recursos: [
       "Tudo do Básico",
       "5 assistentes de IA à sua escolha",
-      "Até 4 tetos de gasto e 4 alertas de preço",
+      "Até 6 tetos de gasto e 6 alertas de preço",
       "Histórico de 12 meses",
       "Relatórios com exportação em PDF, Excel e CSV",
       "Simulador sem limite, metas e simulações salvas",
@@ -63,7 +76,8 @@ export const plans: Plan[] = [
   {
     id: "pro",
     nome: "Pro",
-    preco: "R$ 69,90",
+    mensal: 7690,
+    anual: 83052,
     bancos: "6 bancos",
     limiteBancos: 6,
     perguntas: "70 perguntas por mês aos assistentes",
@@ -78,6 +92,21 @@ export const plans: Plan[] = [
 ];
 
 export const planById = (id: PlanId): Plan => plans.find((p) => p.id === id)!;
+
+/** Preço anual pela regra: mensal × 12 × (100 − desconto) / 100, em centavos inteiros. */
+export const annualFromMonthly = (monthly: number, discountPercent = ANNUAL_DISCOUNT_PERCENT) =>
+  Math.round((monthly * 12 * (100 - discountPercent)) / 100);
+
+/** O total do anual dividido por 12 (o "por mês" do anual). */
+export const annualPerMonth = (plan: Plan) => Math.round(plan.anual / 12);
+
+/** Quanto economiza no ano contra 12 mensais. */
+export const annualSavings = (plan: Plan) => plan.mensal * 12 - plan.anual;
+
+export const billingPeriodLabel: Record<BillingPeriod, string> = {
+  monthly: "Mensal",
+  annual: "Anual",
+};
 
 /** Frase curta de cada plano (cards lado a lado da escolha do plano). */
 export const planPitch: Record<PlanId, string> = {
@@ -151,7 +180,7 @@ export const planFeatureRows: {
     off: "Tetos de gasto e alertas de preço",
     values: [
       "Até 2 tetos e 2 alertas de preço",
-      "Até 4 tetos e 4 alertas de preço",
+      "Até 6 tetos e 6 alertas de preço",
       "Tetos e alertas sem limite",
       "Tetos e alertas sem limite",
     ],
@@ -217,6 +246,8 @@ export const planFeatureRows: {
 ];
 
 export const planUsage = {
+  /** Período contratado no protótipo. */
+  periodo: "monthly" as BillingPeriod,
   renova: "Assinatura mensal · renova em 10/10/2026",
   bancos: { usados: 2, total: 4 },
   perguntas: { usadas: 12, total: 40, mes: "setembro" },
@@ -227,8 +258,8 @@ export const planComparison: { recurso: string; valores: [string, string, string
   { recurso: "Lançar à mão ou pela IA", valores: ["Sim", "Sim", "Sim"] },
   { recurso: "Perguntas aos assistentes", valores: ["20/mês", "40/mês", "70/mês"] },
   { recurso: "Assistentes de IA", valores: ["2 à escolha", "5 à escolha", "Todos"] },
-  { recurso: "Tetos de gasto", valores: ["Até 2", "Até 4", "Sem limite"] },
-  { recurso: "Alertas de preço", valores: ["Até 2", "Até 4", "Sem limite"] },
+  { recurso: "Tetos de gasto", valores: ["Até 2", "Até 6", "Sem limite"] },
+  { recurso: "Alertas de preço", valores: ["Até 2", "Até 6", "Sem limite"] },
   { recurso: "Histórico", valores: ["3 meses", "12 meses", "Completo"] },
   { recurso: "Relatórios", valores: ["Só o mês atual", "Completos", "Completos"] },
   { recurso: "Exportar relatórios", valores: ["—", "PDF, Excel e CSV", "PDF, Excel e CSV"] },

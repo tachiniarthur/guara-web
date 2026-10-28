@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Icon } from "@/components/ui/icon";
 import { WarningBlock } from "@/features/acesso/components/auth-parts";
 import { useSession } from "@/features/acesso/session";
 import { useActivatePlan } from "@/features/perfil/api";
+import { BillingToggle, PlanPrice, pricePerMonth } from "@/features/perfil/components/billing";
 import {
   featuredPlan,
   planFeatureRows,
@@ -16,8 +17,10 @@ import {
   plans,
   privatePlan,
   showPrivatePlan,
+  type BillingPeriod,
   type PlanId,
 } from "@/features/perfil/planos";
+import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 import { onboardingSteps } from "../data";
@@ -51,6 +54,7 @@ function FeatureRow({ value, off }: { value: string | null; off: string }) {
 function PlanCard({
   name,
   price,
+  priceLabel,
   pitch,
   index,
   selected = false,
@@ -61,7 +65,10 @@ function PlanCard({
   onChoose,
 }: {
   name: string;
-  price: string;
+  /** Bloco do preço (no anual: por mês, o total do ano e a economia). */
+  price: ReactNode;
+  /** Preço falado ("R$ 16,11 por mês no anual"). */
+  priceLabel?: string;
   pitch: string;
   index: number;
   selected?: boolean;
@@ -106,21 +113,19 @@ function PlanCard({
             </span>
           )}
         </h2>
-        <span
-          className={cn(
-            "font-display leading-none font-extrabold tabular-nums",
-            locked ? "text-26 text-mist" : "text-34",
-          )}
-        >
-          {price}
-          {!locked && <span className="ml-1 font-sans text-14 font-medium text-mist">/mês</span>}
-        </span>
+        {locked ? (
+          <span className="font-display text-26 leading-none font-extrabold text-mist">
+            {price}
+          </span>
+        ) : (
+          price
+        )}
         <span className="text-14 leading-normal text-mist">{pitch}</span>
         {!locked && (
           <input
             type="radio"
             name="plano"
-            aria-label={`${name}, ${price} por mês`}
+            aria-label={`${name}, ${priceLabel}`}
             checked={selected}
             onChange={onSelect}
             className="sr-only"
@@ -168,28 +173,34 @@ export function PlanStep() {
   const activate = useActivatePlan();
   const [choosing, setChoosing] = useState<PlanId | null>(null);
   const [selected, setSelected] = useState<PlanId>(featuredPlan);
+  // O anual vem escolhido (10% de desconto); a pessoa pode trocar para o mensal.
+  const [period, setPeriod] = useState<BillingPeriod>("annual");
 
   function choose(planId: PlanId) {
     setSelected(planId);
     if (!live) return router.push("/onboarding/bancos");
     setChoosing(planId);
-    activate.mutate(planId, {
-      // O plano já vem na resposta (cache de `me.plan`): avança na hora e atualiza a sessão por trás.
-      onSuccess: () => {
-        router.push("/onboarding/bancos");
-        void refresh();
+    activate.mutate(
+      { planId, billingPeriod: period },
+      {
+        // O plano já vem na resposta (cache de `me.plan`): avança na hora e atualiza a sessão por trás.
+        onSuccess: () => {
+          router.push("/onboarding/bancos");
+          void refresh();
+        },
+        onSettled: () => setChoosing(null),
       },
-      onSettled: () => setChoosing(null),
-    });
+    );
   }
 
   return (
     <OnboardingShell {...stepFrame} mobileTop={<MobileHeader />}>
       <OnboardingSteps current={1} steps={onboardingSteps} />
       <OnboardingIntro title="Escolha seu plano">
-        Todos os planos são mensais e têm os assistentes de IA. Dá para trocar ou cancelar quando
-        quiser, em Meu perfil.
+        Todos os planos têm os assistentes de IA. Pague por mês ou por ano, com 10% de desconto no
+        anual. Dá para trocar ou cancelar quando quiser, em Meu perfil.
       </OnboardingIntro>
+      <BillingToggle value={period} onChange={setPeriod} />
       {activate.error && (
         <WarningBlock icon="alert-triangle">{activate.error.message}</WarningBlock>
       )}
@@ -203,7 +214,12 @@ export function PlanStep() {
           <PlanCard
             key={plan.id}
             name={plan.nome}
-            price={plan.preco}
+            price={<PlanPrice plan={plan} period={period} valueClassName="text-34" />}
+            priceLabel={
+              period === "annual"
+                ? `${formatCurrency(pricePerMonth(plan, period))} por mês no anual, cobrado ${formatCurrency(plan.anual)} por ano`
+                : `${formatCurrency(plan.mensal)} por mês`
+            }
             pitch={planPitch[plan.id]}
             index={index}
             featured={plan.id === featuredPlan}
