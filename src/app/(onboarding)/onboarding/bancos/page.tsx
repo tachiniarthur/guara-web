@@ -21,6 +21,7 @@ export default function ConectarBancosPage() {
   return (
     <OnboardingShell
       {...stepFrame}
+      className="lg:gap-5"
       mobileTop={<MobileHeader back="/onboarding/plano" />}
       mobileActions={
         <MobileActionBar>
@@ -50,7 +51,7 @@ export default function ConectarBancosPage() {
         />
       </div>
       <BankPicker />
-      <AccessPanel />
+      <AccessPanel compact />
       <OnboardingActions>
         <ButtonLink href="/onboarding/plano" variant="secondary" size="xl">
           <span>Voltar</span>

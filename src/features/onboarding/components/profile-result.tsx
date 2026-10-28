@@ -20,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { onboardingSteps, profileAnswers, profileEffects } from "../data";
-import { OnboardingSteps } from "./onboarding-shell";
+import { OnboardingActions, OnboardingSteps } from "./onboarding-shell";
 
 const LEVELS = ["conservador", "moderado", "arrojado", "sofisticado"] as const;
 
@@ -348,8 +348,7 @@ function TargetAllocation({ profile }: { profile: ProfileId }) {
 
 /**
  * Resultado do questionário: o perfil indicado, a escala para escolher outro (com termo de
- * troca), a carteira-alvo, as respostas e o que muda no app. As ações ficam presas no rodapé no
- * tablet e no desktop, para "Continuar" estar sempre à vista.
+ * troca), a carteira-alvo, as respostas e o que muda no app.
  */
 export function ProfileResult() {
   const suggested = portfolioAllocation.perfil;
@@ -458,8 +457,7 @@ export function ProfileResult() {
           </ul>
         </Panel>
       </div>
-      {/* Tablet e desktop: ações presas embaixo, sempre à vista. */}
-      <div className="sticky bottom-0 z-10 -mx-1 hidden gap-2.5 bg-linear-to-t from-card from-70% to-transparent px-1 pt-6 pb-4 md:flex lg:from-canvas lg:pb-6">
+      <OnboardingActions>
         <ButtonLink href="/onboarding/perfil/1" variant="secondary" size="xl">
           <span>Refazer</span>
         </ButtonLink>
@@ -467,7 +465,7 @@ export function ProfileResult() {
         <ButtonLink href="/onboarding/assistentes" variant="light" size="xl">
           <span>Continuar</span>
         </ButtonLink>
-      </div>
+      </OnboardingActions>
       {pending && (
         <ChangeTerm
           from={suggested}

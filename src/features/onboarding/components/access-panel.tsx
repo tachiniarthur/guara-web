@@ -12,8 +12,11 @@ export type AccessItem = { icon?: IconName; title: string; text?: string };
 export function AccessPanel({
   bank,
   sees = bankAccess.sees.map((title) => ({ title })),
+  compact = false,
   className,
 }: {
+  /** Desktop: título ao lado das duas colunas, para caber na tela sem rolar (lista de bancos). */
+  compact?: boolean;
   /** Nome do banco, quando a conexão é com um banco só. */
   bank?: string;
   /** O que é lido (com ícone e detalhe na tela de autorização). */
@@ -25,10 +28,14 @@ export function AccessPanel({
       aria-label={bank ? `O que o Guará acessa no ${bank}` : "O que o Guará acessa"}
       className={cn(
         "flex flex-col gap-4 rounded-card border border-folha/35 bg-card p-4.5 md:p-5.5",
+        compact &&
+          "lg:grid lg:grid-cols-[13rem_minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:gap-3 lg:p-4",
         className,
       )}
     >
-      <div className="flex items-center gap-3">
+      <div
+        className={cn("flex items-center gap-3", compact && "lg:flex-col lg:items-start lg:gap-2")}
+      >
         <span
           aria-hidden="true"
           className="flex size-11 shrink-0 items-center justify-center rounded-full bg-folha-bg text-folha"
@@ -44,7 +51,7 @@ export function AccessPanel({
           </span>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div className={cn("grid grid-cols-1 gap-3 md:grid-cols-2", compact && "lg:contents")}>
         <div className="flex flex-col gap-2.5 rounded-tile bg-folha-bg/60 p-3.5">
           <span className="text-12 font-bold tracking-[.06em] text-folha uppercase">
             O Guará vê
@@ -79,7 +86,12 @@ export function AccessPanel({
           </ul>
         </div>
       </div>
-      <p className="m-0 flex items-start gap-2 text-13 leading-normal text-mist">
+      <p
+        className={cn(
+          "m-0 flex items-start gap-2 text-13 leading-normal text-mist",
+          compact && "lg:hidden",
+        )}
+      >
         <Icon name="info" size={16} className="mt-0.5" />
         Você autoriza no app do banco e pode revogar quando quiser, aqui em Meu perfil ou no próprio
         banco.

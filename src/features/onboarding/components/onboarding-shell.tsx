@@ -144,7 +144,7 @@ export function OnboardingShell({
       <OnboardingAside />
       <MataBanner variant="tablet" />
       {mobileTop}
-      <div className="lg:flex lg:grow lg:flex-col lg:items-center lg:overflow-y-auto lg:px-20 lg:py-16">
+      <div className="lg:flex lg:grow lg:flex-col lg:items-center lg:overflow-y-auto lg:px-20 lg:py-10">
         <main
           className={cn(
             "flex stagger flex-col gap-5.5 px-4 pt-2 pb-35",

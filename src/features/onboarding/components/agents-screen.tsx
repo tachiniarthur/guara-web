@@ -26,6 +26,7 @@ export function AgentsScreen({ blocked }: { blocked: boolean }) {
   return (
     <OnboardingShell
       {...stepFrame}
+      className="lg:gap-5"
       mobileTop={<MobileHeader back="/onboarding/perfil/resultado" />}
       mobileActions={
         <MobileActionBar>
@@ -41,9 +42,14 @@ export function AgentsScreen({ blocked }: { blocked: boolean }) {
         responde; para falar com um específico, digite @.
       </OnboardingIntro>
       <AgentsCarousel chosen={chosen} setChosen={setChosen} />
-      <fieldset className="m-0 flex flex-col border-none p-0">
-        <Legend className="mb-1.5 text-16">Como quer ser avisado?</Legend>
-        {blocked && <NotificationPermissionAlert />}
+      {/* Desktop: as duas opções lado a lado, para a tela caber sem rolar. */}
+      <fieldset className="m-0 flex flex-col border-none p-0 lg:grid lg:grid-cols-2 lg:gap-x-6">
+        <Legend className="mb-1.5 text-16 lg:col-span-2">Como quer ser avisado?</Legend>
+        {blocked && (
+          <div className="lg:col-span-2">
+            <NotificationPermissionAlert />
+          </div>
+        )}
         <CheckboxRow
           id="aviso-celular"
           label="Notificação no celular"
