@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { WarningBlock } from "@/features/acesso/components/auth-parts";
 import { useSession } from "@/features/acesso/session";
-import { useActivatePlan } from "@/features/perfil/api";
+import { useActivatePlan, useMe } from "@/features/perfil/api";
 import { BillingToggle, PlanPrice, pricePerMonth } from "@/features/perfil/components/billing";
 import {
   featuredPlan,
@@ -171,10 +171,17 @@ export function PlanStep() {
   const router = useRouter();
   const { live, refresh } = useSession();
   const activate = useActivatePlan();
+  const me = useMe({ enabled: live });
   const [choosing, setChoosing] = useState<PlanId | null>(null);
   const [selected, setSelected] = useState<PlanId>(featuredPlan);
   // O anual vem escolhido (10% de desconto); a pessoa pode trocar para o mensal.
   const [period, setPeriod] = useState<BillingPeriod>("annual");
+
+  // O CPF vem antes do plano: quem chegou aqui sem ele (URL digitada) volta para informá-lo.
+  const missingCpf = live && me.isSuccess && !me.data.cpfMasked;
+  useEffect(() => {
+    if (missingCpf) router.replace("/onboarding/cpf");
+  }, [missingCpf, router]);
 
   function choose(planId: PlanId) {
     setSelected(planId);
