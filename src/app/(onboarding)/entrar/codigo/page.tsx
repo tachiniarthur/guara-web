@@ -13,11 +13,12 @@ export default async function CodigoEntrarPage({
   const initialState = states.find((s) => s === estado) ?? "digitando";
   return (
     <OnboardingShell mobileTop={<MataBanner variant="mobile" />} {...authShell}>
-      <AuthBackLink href="/entrar" />
+      <AuthBackLink href="/entrar/esqueci" />
       <AuthIntro title="Digite o código">
-        Enviamos 6 números para o seu e-mail. O código vale por 10 minutos.
+        Enviamos 6 números para o seu e-mail. Depois de confirmar, você cria uma senha nova. O
+        código vale por 10 minutos.
       </AuthIntro>
-      <CodeForm key={initialState} mode="entrar" initialState={initialState} />
+      <CodeForm key={initialState} mode="recuperar" initialState={initialState} />
     </OnboardingShell>
   );
 }

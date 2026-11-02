@@ -5,21 +5,29 @@ import { useEffect, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 
+import { useAuthFlow } from "@/stores/auth-flow";
+
 import { useSession, type SessionStatus } from "../session";
 
 type Area = "app" | "entrada" | "onboarding";
 
 /** Para onde mandar quem está na área errada; `null` se pode ficar. */
-export function redirectFor(area: Area, status: SessionStatus): string | null {
+export function redirectFor(
+  area: Area,
+  status: SessionStatus,
+  { passwordPending = false }: { passwordPending?: boolean } = {},
+): string | null {
   if (status === "loading" || status === "unavailable") return null;
   if (area === "app") {
     if (status === "signedOut") return "/boas-vindas";
-    if (status === "onboarding") return "/onboarding/plano";
+    if (status === "onboarding") return "/onboarding/cpf";
     return null;
   }
   if (area === "entrada") {
+    // Depois do código do "Esqueci minha senha" a conta está aberta, mas a senha nova vem antes.
+    if (passwordPending) return null;
     if (status === "signedIn") return "/";
-    if (status === "onboarding") return "/onboarding/plano";
+    if (status === "onboarding") return "/onboarding/cpf";
     return null;
   }
   return status === "signedOut" ? "/boas-vindas" : null;
@@ -32,7 +40,8 @@ export function redirectFor(area: Area, status: SessionStatus): string | null {
 export function SessionGate({ area, children }: { area: Area; children: ReactNode }) {
   const { status, live, refresh } = useSession();
   const router = useRouter();
-  const target = live ? redirectFor(area, status) : null;
+  const passwordPending = useAuthFlow((state) => state.passwordPending);
+  const target = live ? redirectFor(area, status, { passwordPending }) : null;
 
   useEffect(() => {
     if (target) router.replace(target);

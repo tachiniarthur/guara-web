@@ -7,17 +7,24 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, FieldLabel, TextInput } from "@/components/ui/form";
 import { useAuthFlow } from "@/stores/auth-flow";
 
+import { isValidCpf } from "@/lib/cpf";
+import { PASSWORD_MAX_LENGTH, passwordProblem } from "@/lib/password";
+
 import {
-  authErrorCode,
   checkEmail,
-  emailAuthMessage,
-  requestEmailCode,
+  passwordAuthCode,
+  passwordAuthMessage,
   signInWithProvider,
+  signUpWithPassword,
   type EmailStatus,
 } from "../auth";
 import { useSession } from "../session";
 import { WarningBlock } from "./auth-parts";
+import { CpfField, FieldError, PasswordField } from "./fields";
 import { SocialButtons } from "./social-buttons";
+
+/** E-mail plausível antes de pedir à API (o servidor tem a palavra final). */
+const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 
 /** Boas-vindas: Google, Apple ou criar a conta com e-mail (na tela seguinte, nome e e-mail). */
 export function WelcomeOptions() {
@@ -38,9 +45,12 @@ export function WelcomeOptions() {
   );
 }
 
+type SignUpField = "nome" | "email" | "cpf" | "senha" | "confirmacao";
+
 /**
- * Criar conta com e-mail: nome e e-mail. Com login de verdade, pede o código ao Supabase (a conta
- * nasce quando o código é confirmado); no protótipo, só avança.
+ * Criar conta com e-mail: nome, e-mail, CPF e senha. Com login de verdade, cria a conta no Supabase
+ * com a senha e ele manda o código de 6 dígitos para confirmar o e-mail (tela seguinte); no
+ * protótipo, só avança.
  */
 export function SignUpForm() {
   const router = useRouter();
@@ -48,58 +58,72 @@ export function SignUpForm() {
   const startFlow = useAuthFlow((s) => s.start);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [errors, setErrors] = useState<Partial<Record<SignUpField, string>>>({});
   const [sending, setSending] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
-  /** O e-mail já tem conta: em vez de mandar código, oferece entrar. */
+  /** O e-mail já tem conta: em vez de criar outra, oferece entrar. */
   const [existing, setExisting] = useState<EmailStatus | null>(null);
+
+  const clear = (field: SignUpField) =>
+    setErrors((all) => (all[field] ? { ...all, [field]: undefined } : all));
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!live) return router.push("/boas-vindas/codigo");
     const nome = name.trim();
     const address = email.trim().toLowerCase();
+    const found: Partial<Record<SignUpField, string>> = {
+      nome: nome ? undefined : "Conte como quer ser chamado.",
+      email: isValidEmail(address) ? undefined : "Confira o e-mail: falta algo no endereço.",
+      cpf: isValidCpf(cpf) ? undefined : "Confira o CPF: são 11 números.",
+      senha: passwordProblem(password) ?? undefined,
+      confirmacao: password === confirmation ? undefined : "As senhas não são iguais.",
+    };
+    setErrors(found);
+    if (Object.values(found).some(Boolean)) return;
+
     setSending(true);
     setFailure(null);
     setExisting(null);
     try {
-      const status = await checkEmail(address);
+      const status = await checkEmail(address, cpf);
       if (status?.exists) {
         setExisting(status);
         return;
       }
-      await requestEmailCode(address, true, nome);
-      startFlow(address, nome);
+      if (status?.cpfRegistered) {
+        setErrors({ cpf: "Esse CPF já tem uma conta no Guará. Entre com o CPF e a senha." });
+        return;
+      }
+      await signUpWithPassword(address, password, nome);
+      startFlow(address, nome, cpf);
       router.push("/boas-vindas/codigo");
     } catch (error) {
-      setFailure(emailAuthMessage(authErrorCode(error)));
+      const code = passwordAuthCode(error);
+      if (code === "senha-fraca") setErrors({ senha: "Essa senha é fraca. Escolha outra." });
+      else if (code === "ja-existe")
+        setExisting({ exists: true, providers: ["email"], cpfRegistered: false });
+      else setFailure(passwordAuthMessage(code));
     } finally {
       setSending(false);
     }
   }
 
-  async function signInWithCode() {
-    const address = email.trim().toLowerCase();
-    setSending(true);
-    setFailure(null);
-    try {
-      await requestEmailCode(address, false);
-      startFlow(address, null);
-      router.push("/entrar/codigo");
-    } catch (error) {
-      setFailure(emailAuthMessage(authErrorCode(error)));
-    } finally {
-      setSending(false);
-    }
+  function goToSignIn() {
+    startFlow(email.trim().toLowerCase(), null);
+    router.push("/entrar");
   }
 
   return (
-    <form className="m-0 flex flex-col gap-3.5" onSubmit={submit}>
+    <form className="m-0 flex flex-col gap-3.5" onSubmit={submit} noValidate>
       {failure && <WarningBlock icon="alert-triangle">{failure}</WarningBlock>}
       {existing && (
         <ExistingAccount
           status={existing}
-          busy={sending}
-          onCode={signInWithCode}
+          onSignIn={goToSignIn}
           onOtherEmail={() => {
             setExisting(null);
             setEmail("");
@@ -114,9 +138,15 @@ export function SignUpForm() {
           placeholder="Como quer ser chamado"
           value={name}
           maxLength={80}
-          onChange={(event) => setName(event.target.value)}
-          required={live}
+          onChange={(event) => {
+            setName(event.target.value);
+            clear("nome");
+          }}
+          aria-invalid={errors.nome ? true : undefined}
+          aria-describedby={errors.nome ? "nome-erro" : undefined}
+          className={errors.nome ? "border-urucum" : undefined}
         />
+        {errors.nome && <FieldError id="nome-erro">{errors.nome}</FieldError>}
       </Field>
       <Field>
         <FieldLabel htmlFor="email">E-mail</FieldLabel>
@@ -126,15 +156,58 @@ export function SignUpForm() {
           autoComplete="email"
           placeholder="voce@exemplo.com"
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required={live}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            clear("email");
+          }}
+          aria-invalid={errors.email ? true : undefined}
+          aria-describedby={errors.email ? "email-erro" : undefined}
+          className={errors.email ? "border-urucum" : undefined}
         />
+        {errors.email && <FieldError id="email-erro">{errors.email}</FieldError>}
       </Field>
+      <CpfField
+        id="cpf"
+        label="CPF"
+        value={cpf}
+        onValueChange={(value) => {
+          setCpf(value);
+          clear("cpf");
+        }}
+        error={errors.cpf}
+        hint="Usado para identificar você. Guardamos criptografado."
+      />
+      <PasswordField
+        id="senha"
+        label="Senha"
+        mode="new"
+        value={password}
+        maxLength={PASSWORD_MAX_LENGTH}
+        placeholder="Pelo menos 8 caracteres"
+        onChange={(event) => {
+          setPassword(event.target.value);
+          clear("senha");
+        }}
+        error={errors.senha}
+        hint="Misture letras e números."
+      />
+      <PasswordField
+        id="confirmacao"
+        label="Confirmar senha"
+        mode="new"
+        value={confirmation}
+        maxLength={PASSWORD_MAX_LENGTH}
+        onChange={(event) => {
+          setConfirmation(event.target.value);
+          clear("confirmacao");
+        }}
+        error={errors.confirmacao}
+      />
       <Button type="submit" variant="primary" size="xl" block disabled={sending}>
-        <span>{sending ? "Enviando…" : "Receber código"}</span>
+        <span>{sending ? "Criando…" : "Criar conta"}</span>
       </Button>
       <p className="m-0 text-13 leading-[1.55] text-caption">
-        Enviamos um código de 6 dígitos para o seu e-mail. Não tem senha para lembrar.
+        Depois de criar, enviamos um código de 6 dígitos para confirmar o seu e-mail.
       </p>
     </form>
   );
@@ -144,20 +217,19 @@ const PROVIDER_NAMES = { google: "o Google", apple: "a Apple", email: "o e-mail"
 
 /**
  * "Criar conta" com um e-mail que já tem conta: avisa e oferece entrar pelos meios dela (Google,
- * Apple ou código no e-mail), ou trocar o e-mail.
+ * Apple ou e-mail e senha), ou trocar o e-mail.
  */
 function ExistingAccount({
   status,
-  busy,
-  onCode,
+  onSignIn,
   onOtherEmail,
 }: {
   status: EmailStatus;
-  busy: boolean;
-  onCode: () => void;
+  onSignIn: () => void;
   onOtherEmail: () => void;
 }) {
   const social = status.providers.filter((p) => p !== "email");
+  const hasPassword = status.providers.includes("email");
   const via = social.length > 0 ? ` com ${social.map((p) => PROVIDER_NAMES[p]).join(" e ")}` : "";
   return (
     <div
@@ -182,12 +254,11 @@ function ExistingAccount({
         ))}
         <Button
           type="button"
-          variant={social.length > 0 ? "secondary" : "primary"}
+          variant={social.length > 0 && !hasPassword ? "secondary" : "primary"}
           size="md"
-          disabled={busy}
-          onClick={onCode}
+          onClick={onSignIn}
         >
-          <span>{busy ? "Enviando…" : "Entrar com código no e-mail"}</span>
+          <span>Entrar com e-mail e senha</span>
         </Button>
         <Button type="button" variant="ghost" size="md" onClick={onOtherEmail}>
           <span>Usar outro e-mail</span>

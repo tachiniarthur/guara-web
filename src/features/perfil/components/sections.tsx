@@ -369,6 +369,10 @@ export function SecurityCard({ className, idSuffix }: WithIds) {
         </ul>
       </div>
       <div className="flex flex-col gap-1">
+        <Link href="/perfil/senha" className={panelLinkClass}>
+          Criar ou trocar a senha de acesso
+          <Icon name="chevron-right" size={16} />
+        </Link>
         <a href="#" className={panelLinkClass}>
           Sair de todos os aparelhos
           <Icon name="chevron-right" size={16} />

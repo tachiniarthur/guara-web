@@ -13,6 +13,8 @@ export type ApiErrorCode =
   | "plan_limit_reached"
   | "subscription_required"
   | "rate_limited"
+  | "invalid_credentials"
+  | "cpf_already_registered"
   | "internal"
   | "unavailable"
   | "network";
@@ -30,6 +32,9 @@ const SERVER_CODES: Record<string, ApiErrorCode> = {
   INTERNAL_ERROR: "internal",
   UPSTREAM_UNAVAILABLE: "unavailable",
   AI_USAGE_LIMIT_REACHED: "rate_limited",
+  RATE_LIMITED: "rate_limited",
+  INVALID_CREDENTIALS: "invalid_credentials",
+  CPF_ALREADY_REGISTERED: "cpf_already_registered",
 };
 
 function codeFromStatus(status: number): ApiErrorCode {

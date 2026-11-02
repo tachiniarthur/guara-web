@@ -84,6 +84,42 @@ export function useChangeBillingPeriod() {
   });
 }
 
+const MeSchema = z
+  .object({
+    id: z.string(),
+    displayName: z.string().nullable(),
+    /** CPF só com o miolo (`***.456.789-**`); `null` = ainda não informado. */
+    cpfMasked: z.string().nullable(),
+  })
+  .loose();
+export type Me = z.infer<typeof MeSchema>;
+
+export const meKeys = { me: ["perfil", "eu"] as const };
+
+/** O usuário logado (`GET /v1/me`): nome e o CPF mascarado. */
+export function useMe({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: meKeys.me,
+    queryFn: ({ signal }) => apiRequest("/v1/me", MeSchema, { signal }),
+    enabled,
+    staleTime: 30 * 60_000,
+  });
+}
+
+/** Grava o CPF da conta (`PUT /v1/me/cpf`); ele não muda depois de informado. */
+export function saveCpf(cpf: string): Promise<Me> {
+  return apiRequest("/v1/me/cpf", MeSchema, { method: "PUT", body: { cpf } });
+}
+
+/** `saveCpf` como mutação: atualiza o `useMe` com a resposta. */
+export function useSetCpf() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: saveCpf,
+    onSuccess: (me) => queryClient.setQueryData(meKeys.me, me),
+  });
+}
+
 /** Grava o nome do perfil (`PATCH /v1/me`), depois de criar a conta. */
 export function saveDisplayName(displayName: string): Promise<unknown> {
   return apiRequest("/v1/me", z.unknown(), { method: "PATCH", body: { displayName } });

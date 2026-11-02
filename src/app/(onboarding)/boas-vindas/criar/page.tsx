@@ -7,7 +7,7 @@ export default function CriarContaPage() {
     <OnboardingShell mobileTop={<MataBanner variant="mobile" />} {...authShell}>
       <AuthBackLink href="/boas-vindas" />
       <AuthIntro title="Criar sua conta">
-        Seu nome e o e-mail onde você vai receber o código de acesso.
+        Seus dados e a senha de acesso. Vamos confirmar o e-mail com um código de 6 dígitos.
       </AuthIntro>
       <SignUpForm />
     </OnboardingShell>

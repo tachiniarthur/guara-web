@@ -8,10 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { account } from "@/features/perfil/data";
 import { cn } from "@/lib/utils";
-import { saveDisplayName } from "@/features/perfil/api";
+import { saveCpf, saveDisplayName } from "@/features/perfil/api";
 import { useAuthFlow } from "@/stores/auth-flow";
 
-import { authErrorCode, emailAuthMessage, requestEmailCode, verifyEmailCode } from "../auth";
+import {
+  authErrorCode,
+  emailAuthMessage,
+  passwordAuthCode,
+  passwordAuthMessage,
+  requestEmailCode,
+  resendSignUpCode,
+  verifyEmailCode,
+  verifySignUpCode,
+} from "../auth";
 import { useSession } from "../session";
 import { disabledButtonClass, WarningBlock } from "./auth-parts";
 
@@ -22,22 +31,25 @@ const RESEND_SECONDS = 45;
 const DEMO_CODE = "482917";
 
 /**
- * Código de 6 dígitos (entrar ou criar conta): 6 caixas com teclado numérico, reenvio depois de
- * 45 segundos, código incorreto (restam N tentativas) e código vencido. Com login de verdade,
- * confere no Supabase e o porteiro da entrada leva ao plano (conta nova) ou ao app.
+ * Código de 6 dígitos (criar conta ou "Esqueci minha senha"): 6 caixas com teclado numérico,
+ * reenvio depois de 45 segundos, código incorreto (restam N tentativas) e código vencido. Com
+ * login de verdade, confere no Supabase; ao criar conta, o porteiro da entrada leva ao onboarding
+ * e, na recuperação, a próxima tela pede a senha nova.
  */
 export function CodeForm({
   mode,
   initialState = "digitando",
 }: {
-  mode: "entrar" | "criar";
+  mode: "recuperar" | "criar";
   initialState?: CodeState;
 }) {
   const router = useRouter();
   const { live, refresh } = useSession();
   const flowEmail = useAuthFlow((s) => s.email);
   const flowName = useAuthFlow((s) => s.name);
+  const flowCpf = useAuthFlow((s) => s.cpf);
   const clearFlow = useAuthFlow((s) => s.clear);
+  const setPasswordPending = useAuthFlow((s) => s.setPasswordPending);
   const [digits, setDigits] = useState<string[]>(
     live
       ? ["", "", "", "", "", ""]
@@ -87,18 +99,34 @@ export function CodeForm({
     setChecking(true);
     setFailure(null);
     try {
-      await verifyEmailCode(flowEmail, digits.join(""));
-      // O nome do cadastro vai para o perfil; se a API falhar, dá para editar depois.
-      if (mode === "criar" && flowName) await saveDisplayName(flowName).catch(() => undefined);
-      clearFlow();
-      await refresh();
+      if (mode === "criar") {
+        await verifySignUpCode(flowEmail, digits.join(""));
+        // Nome e CPF do cadastro vão para a conta; se a API falhar, o nome se edita depois e o
+        // onboarding pede o CPF de novo.
+        if (flowName) await saveDisplayName(flowName).catch(() => undefined);
+        if (flowCpf) await saveCpf(flowCpf).catch(() => undefined);
+        clearFlow();
+        await refresh();
+      } else {
+        // Antes de confirmar: o login que o código abre não pode mandar a pessoa para o app, a
+        // senha nova vem primeiro.
+        setPasswordPending(true);
+        await verifyEmailCode(flowEmail, digits.join(""));
+        router.push("/entrar/nova-senha");
+      }
     } catch (failed) {
-      const code = authErrorCode(failed);
-      if (code === "invalido") {
+      if (mode === "recuperar") setPasswordPending(false);
+      const invalid =
+        authErrorCode(failed) === "invalido" || passwordAuthCode(failed) === "codigo-invalido";
+      if (invalid) {
         setState("erro");
         setTries((t) => Math.max(0, t - 1));
       } else {
-        setFailure(emailAuthMessage(code));
+        setFailure(
+          mode === "criar"
+            ? passwordAuthMessage(passwordAuthCode(failed))
+            : emailAuthMessage(authErrorCode(failed)),
+        );
       }
     } finally {
       setChecking(false);
@@ -112,7 +140,7 @@ export function CodeForm({
     }
     if (live) return void verify();
     if (digits.join("") === DEMO_CODE) {
-      router.push(mode === "criar" ? "/onboarding/plano" : "/");
+      router.push(mode === "criar" ? "/onboarding/plano" : "/entrar/nova-senha");
       return;
     }
     setState("erro");
@@ -121,8 +149,14 @@ export function CodeForm({
 
   function resend() {
     if (live && flowEmail) {
-      requestEmailCode(flowEmail, mode === "criar", flowName ?? undefined).catch(
-        (failed: unknown) => setFailure(emailAuthMessage(authErrorCode(failed))),
+      const sent =
+        mode === "criar" ? resendSignUpCode(flowEmail) : requestEmailCode(flowEmail, false);
+      sent.catch((failed: unknown) =>
+        setFailure(
+          mode === "criar"
+            ? passwordAuthMessage(passwordAuthCode(failed))
+            : emailAuthMessage(authErrorCode(failed)),
+        ),
       );
     }
     setDigits(["", "", "", "", "", ""]);
@@ -131,7 +165,7 @@ export function CodeForm({
     refs.current[0]?.focus();
   }
 
-  const changeEmail = mode === "criar" ? "/boas-vindas/criar" : "/entrar";
+  const changeEmail = mode === "criar" ? "/boas-vindas/criar" : "/entrar/esqueci";
 
   // Sem código a caminho (link antigo, outra aba): volta para pedir um.
   useEffect(() => {
@@ -230,7 +264,7 @@ export function CodeForm({
           </div>
           {error ? (
             <button type="button" disabled className={disabledButtonClass}>
-              {mode === "criar" ? "Criar conta" : "Entrar"}
+              {mode === "criar" ? "Criar conta" : "Continuar"}
             </button>
           ) : (
             <Button
@@ -241,7 +275,9 @@ export function CodeForm({
               disabled={checking}
               onClick={submit}
             >
-              <span>{checking ? "Conferindo…" : mode === "criar" ? "Criar conta" : "Entrar"}</span>
+              <span>
+                {checking ? "Conferindo…" : mode === "criar" ? "Criar conta" : "Continuar"}
+              </span>
             </Button>
           )}
         </>

@@ -2,7 +2,7 @@ import { AuthBackLink, AuthIntro, authShell } from "@/features/acesso/components
 import { LoginForm, type LoginState } from "@/features/acesso/components/login-form";
 import { MataBanner, OnboardingShell } from "@/features/onboarding/components/onboarding-shell";
 
-const states: LoginState[] = ["pronto", "sem-conta", "sem-internet"];
+const states: LoginState[] = ["pronto", "credenciais", "sem-internet"];
 
 export default async function EntrarPage({
   searchParams,
@@ -15,7 +15,7 @@ export default async function EntrarPage({
     <OnboardingShell mobileTop={<MataBanner variant="mobile" />} {...authShell}>
       <AuthBackLink href="/boas-vindas" />
       <AuthIntro title="Entrar no Guará">
-        Use a mesma forma de entrada de quando criou a conta.
+        Use o e-mail ou o CPF e a senha, ou a mesma forma de entrada de quando criou a conta.
       </AuthIntro>
       <LoginForm key={initialState} initialState={initialState} />
     </OnboardingShell>
