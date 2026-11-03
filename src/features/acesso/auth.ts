@@ -72,6 +72,8 @@ export async function verifyEmailCode(email: string, token: string): Promise<voi
 const EmailStatusSchema = z.object({
   exists: z.boolean(),
   providers: z.array(z.enum(["email", "google", "apple"])),
+  /** A conta tem senha (a criada só com o código no e-mail, ou com Google e Apple, não tem). */
+  hasPassword: z.boolean().default(false),
   /** O CPF enviado já tem conta (`false` se nenhum foi enviado). */
   cpfRegistered: z.boolean().default(false),
 });
@@ -194,6 +196,12 @@ export async function signInWithPassword(identifier: string, password: string): 
 }
 
 /**
+ * Marca nos metadados do usuário que a pessoa escolheu uma senha. Contas criadas só com o código no
+ * e-mail ganham do Supabase uma senha aleatória, então a API (`auth_email_has_password`) lê isto.
+ */
+const PASSWORD_SET = { password_set: true } as const;
+
+/**
  * Cria a conta com e-mail e senha; o Supabase manda o código de 6 dígitos e a conta só abre
  * quando `verifySignUpCode` o confirma. O `nome` vai para os metadados do usuário.
  */
@@ -206,7 +214,7 @@ export async function signUpWithPassword(
     const { error } = await getSupabase().auth.signUp({
       email,
       password,
-      options: { data: { name: nome } },
+      options: { data: { name: nome, ...PASSWORD_SET } },
     });
     if (error) throw error;
   } catch (error) {
@@ -237,7 +245,7 @@ export async function resendSignUpCode(email: string): Promise<void> {
 /** Cria ou troca a senha da conta que está logada (também depois do "Esqueci minha senha"). */
 export async function updatePassword(password: string): Promise<void> {
   try {
-    const { error } = await getSupabase().auth.updateUser({ password });
+    const { error } = await getSupabase().auth.updateUser({ password, data: PASSWORD_SET });
     if (error) throw error;
   } catch (error) {
     throw toPasswordAuthError(error);

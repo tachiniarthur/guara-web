@@ -27,7 +27,12 @@ vi.mock("../auth", async (importOriginal) => ({
 beforeEach(() => {
   vi.clearAllMocks();
   live = false;
-  checkEmail.mockResolvedValue({ exists: false, providers: [], cpfRegistered: false });
+  checkEmail.mockResolvedValue({
+    exists: false,
+    providers: [],
+    hasPassword: false,
+    cpfRegistered: false,
+  });
   signUpWithPassword.mockResolvedValue(undefined);
   useAuthFlow.getState().clear();
 });
@@ -144,7 +149,12 @@ describe("Criar conta", () => {
     });
 
     it("leva para o Entrar com o e-mail preenchido quando o e-mail já tem conta", async () => {
-      checkEmail.mockResolvedValue({ exists: true, providers: ["email"], cpfRegistered: true });
+      checkEmail.mockResolvedValue({
+        exists: true,
+        providers: ["email"],
+        hasPassword: true,
+        cpfRegistered: true,
+      });
       render(<SignUpForm />);
       identify();
       await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar"));
@@ -157,15 +167,41 @@ describe("Criar conta", () => {
     });
 
     it("leva para o Entrar com o CPF preenchido quando só o CPF tem conta", async () => {
-      checkEmail.mockResolvedValue({ exists: false, providers: [], cpfRegistered: true });
+      checkEmail.mockResolvedValue({
+        exists: false,
+        providers: [],
+        hasPassword: false,
+        cpfRegistered: true,
+      });
       render(<SignUpForm />);
       identify();
       await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar"));
       expect(useAuthFlow.getState().signInHint?.identifier).toBe("529.982.247-25");
     });
 
+    it('conta sem senha (criada só com o código): aponta para o "Esqueci minha senha"', async () => {
+      checkEmail.mockResolvedValue({
+        exists: true,
+        providers: ["email"],
+        hasPassword: false,
+        cpfRegistered: false,
+      });
+      render(<SignUpForm />);
+      identify();
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar"));
+      expect(useAuthFlow.getState().signInHint).toMatchObject({
+        identifier: "arthur@exemplo.com",
+        notice: expect.stringMatching(/ainda sem senha. Clique em "Esqueci minha senha"/),
+      });
+    });
+
     it("conta feita com o Google: aponta para o botão ou para criar uma senha", async () => {
-      checkEmail.mockResolvedValue({ exists: true, providers: ["google"], cpfRegistered: false });
+      checkEmail.mockResolvedValue({
+        exists: true,
+        providers: ["google"],
+        hasPassword: false,
+        cpfRegistered: false,
+      });
       render(<SignUpForm />);
       identify();
       await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar"));
@@ -176,8 +212,18 @@ describe("Criar conta", () => {
 
     it("confere de novo ao criar, caso o e-mail tenha mudado na segunda etapa", async () => {
       checkEmail
-        .mockResolvedValueOnce({ exists: false, providers: [], cpfRegistered: false })
-        .mockResolvedValueOnce({ exists: true, providers: ["email"], cpfRegistered: false });
+        .mockResolvedValueOnce({
+          exists: false,
+          providers: [],
+          hasPassword: false,
+          cpfRegistered: false,
+        })
+        .mockResolvedValueOnce({
+          exists: true,
+          providers: ["email"],
+          hasPassword: true,
+          cpfRegistered: false,
+        });
       render(<SignUpForm />);
       identify();
       await screen.findByLabelText("Nome");

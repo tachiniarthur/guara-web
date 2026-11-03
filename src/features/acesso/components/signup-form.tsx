@@ -129,7 +129,10 @@ export function SignUpForm() {
       const code = passwordAuthCode(error);
       if (code === "senha-fraca") setErrors({ senha: "Essa senha é fraca. Escolha outra." });
       else if (code === "ja-existe")
-        goToSignIn({ exists: true, providers: ["email"], cpfRegistered: false }, address);
+        goToSignIn(
+          { exists: true, providers: ["email"], hasPassword: true, cpfRegistered: false },
+          address,
+        );
       else setFailure(passwordAuthMessage(code));
     } finally {
       setSending(false);
@@ -260,16 +263,24 @@ function signInHintFor(status: EmailStatus, email: string, cpf: string): SignInH
         "Esse CPF já tem uma conta no Guará. Entre com a senha ou do mesmo jeito que criou a conta.",
     };
   }
-  const social = status.providers.flatMap((p) => (p === "email" ? [] : [PROVIDER_NAMES[p]]));
-  if (status.providers.includes("email") || social.length === 0) {
+  if (status.hasPassword) {
     return {
       identifier: email,
       notice: "Esse e-mail já tem uma conta no Guará. Entre com a senha.",
     };
   }
-  const via = social.join(" e ");
+  const social = status.providers.flatMap((p) => (p === "email" ? [] : [PROVIDER_NAMES[p]]));
+  if (social.length > 0) {
+    const via = social.join(" e ");
+    return {
+      identifier: email,
+      notice: `Esse e-mail já tem uma conta no Guará, criada com ${via}. Continue com ${via} ou clique em "Esqueci minha senha" para criar uma senha.`,
+    };
+  }
+  // Criada antes da senha existir (só com o código no e-mail).
   return {
     identifier: email,
-    notice: `Esse e-mail já tem uma conta no Guará, criada com ${via}. Continue com ${via} ou clique em "Esqueci minha senha" para criar uma senha.`,
+    notice:
+      'Esse e-mail já tem uma conta no Guará, ainda sem senha. Clique em "Esqueci minha senha": enviamos um código para o e-mail e você cria a senha.',
   };
 }
