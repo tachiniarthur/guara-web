@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -10,6 +10,8 @@ import { useProfileAnswers, type QuestionnaireScope } from "@/stores/profile-ans
 
 import type { ProfileQuestion } from "../data";
 
+const subscribeNothing = () => () => {};
+
 /**
  * O perfil de investidor do onboarding é obrigatório: quem abre uma pergunta (ou o resultado, com
  * `before` = total + 1) pelo endereço, sem ter respondido as anteriores, volta para a primeira
@@ -17,6 +19,13 @@ import type { ProfileQuestion } from "../data";
  */
 export function RequireEarlierAnswers({ before }: { before: number }) {
   const router = useRouter();
+  // Durante a hidratação a store mostra o estado inicial (vazio), não as respostas guardadas na aba:
+  // sem esperar, recarregar a página no meio do questionário voltava para a pergunta 1.
+  const hydrated = useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false,
+  );
   const missing = useProfileAnswers((s) => {
     for (let numero = 1; numero < before; numero += 1) {
       if (s.answers.onboarding[numero] === undefined) return numero;
@@ -24,8 +33,8 @@ export function RequireEarlierAnswers({ before }: { before: number }) {
     return null;
   });
   useEffect(() => {
-    if (missing) router.replace(`/onboarding/perfil/${missing}`);
-  }, [missing, router]);
+    if (hydrated && missing) router.replace(`/onboarding/perfil/${missing}`);
+  }, [hydrated, missing, router]);
   return null;
 }
 

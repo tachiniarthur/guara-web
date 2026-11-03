@@ -12,14 +12,24 @@ import {
   offTargetGroups,
   portfolioAllocation,
   profileById,
+  type ProfileId,
 } from "../data";
 import { GroupSwatch } from "./allocation-parts";
 
 const pct = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 
 /** "Sua carteira está fora do alvo em 3 de 5 grupos: Renda variável Brasil 17,2 p.p. acima, …" */
-export function OffTargetNote({ className, after }: { className?: string; after?: string }) {
-  const fora = offTargetGroups();
+export function OffTargetNote({
+  className,
+  after,
+  profile,
+}: {
+  className?: string;
+  after?: string;
+  /** Perfil cujo alvo a carteira é comparada (padrão: o perfil salvo). */
+  profile?: ProfileId;
+}) {
+  const fora = offTargetGroups(profile);
   return (
     <Note icon="alert-triangle" tone="warning" className={cn("gap-2.5", className)}>
       Sua carteira está fora do alvo em {fora.length} de {groups.length} grupos:{" "}

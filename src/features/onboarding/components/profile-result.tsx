@@ -13,17 +13,13 @@ import {
   GroupDonut,
   GroupSwatch,
 } from "@/features/alocacao/components/allocation-parts";
-import {
-  formatPercent,
-  groups,
-  portfolioAllocation,
-  profileById,
-  type ProfileId,
-} from "@/features/alocacao/data";
+import { formatPercent, groups, profileById, type ProfileId } from "@/features/alocacao/data";
 import { useTweenNumber } from "@/hooks/use-tween";
 import { cn } from "@/lib/utils";
 
-import { onboardingSteps, profileAnswers, profileEffects } from "../data";
+import { onboardingSteps, profileEffects } from "../data";
+import { answersSummary, estimateProfile, profileDescription } from "../profile";
+import { useResultAnswers } from "../use-result-answers";
 import { OnboardingActions, OnboardingSteps } from "./onboarding-shell";
 
 const LEVELS = ["conservador", "moderado", "arrojado", "sofisticado"] as const;
@@ -384,8 +380,12 @@ function TargetAllocation({ profile }: { profile: ProfileId }) {
  * troca), a carteira-alvo, as respostas e o que muda no app.
  */
 export function ProfileResult() {
-  const suggested = portfolioAllocation.perfil;
-  const [profile, setProfile] = useState<ProfileId>(suggested);
+  const answers = useResultAnswers("onboarding");
+  const suggested = estimateProfile(answers);
+  // Outro perfil escolhido pela pessoa (depois do termo); `null` = vale o do questionário.
+  const [override, setOverride] = useState<ProfileId | null>(null);
+  const profile = override ?? suggested;
+  const setProfile = (id: ProfileId) => setOverride(id === suggested ? null : id);
   /**
    * Comparação aberta: o perfil que valia ao abrir e o que a pessoa abriu (ainda não escolhido).
    * Fica guardada enquanto a comparação fecha, para ela recolher sem trocar de conteúdo.
@@ -439,10 +439,8 @@ export function ProfileResult() {
             </p>
           ) : (
             <p className="m-0 text-15 leading-[1.55] text-mist">
-              Você aceita alguma oscilação para ganhar mais que a renda fixa, mas quer a maior parte
-              do dinheiro protegida. Seu prazo de 3 a 10 anos e a parte pequena que talvez precise
-              resgatar combinam com uma carteira equilibrada. Quer ver outro? Toque num perfil
-              abaixo para comparar.
+              {profileDescription(profile, answers)} Quer ver outro? Toque num perfil abaixo para
+              comparar.
             </p>
           )}
         </div>
@@ -464,7 +462,7 @@ export function ProfileResult() {
         <Panel className="animate-fade-up gap-3.5 p-4.5 [animation-delay:240ms] md:p-5.5 lg:p-5">
           <PanelHeader title="Suas respostas" titleClassName="text-18 tracking-normal" />
           <dl className="m-0 grid grid-cols-2 gap-x-3.5 gap-y-3 text-13">
-            {profileAnswers.map((answer) => (
+            {answersSummary(answers).map((answer) => (
               <div key={answer.pergunta} className="flex min-w-0 flex-col gap-0.5">
                 <dt className="text-caption">{answer.pergunta}</dt>
                 <dd className="m-0 font-semibold text-sand">{answer.resposta}</dd>

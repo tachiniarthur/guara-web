@@ -42,7 +42,11 @@ export const bankAccess = {
 
 export type ProfileQuestion = {
   pergunta: string;
+  /** Rótulo curto da pergunta em "Suas respostas". */
+  resumo: string;
   opcoes: string[];
+  /** Cada opção em poucas palavras, para "Suas respostas". */
+  curtas: string[];
   /** Resposta marcada no protótipo. */
   escolhida: number;
   porque: string;
@@ -52,11 +56,18 @@ export type ProfileQuestion = {
 export const profileQuestions: ProfileQuestion[] = [
   {
     pergunta: "Qual é o seu principal objetivo ao investir?",
+    resumo: "Objetivo",
     opcoes: [
       "Proteger o que já tenho",
       "Juntar para um objetivo nos próximos anos",
       "Fazer o patrimônio crescer no longo prazo",
       "Ter uma renda extra todo mês",
+    ],
+    curtas: [
+      "Proteger o que já tem",
+      "Juntar para um objetivo",
+      "Crescer no longo prazo",
+      "Renda extra todo mês",
     ],
     escolhida: 1,
     porque:
@@ -64,30 +75,41 @@ export const profileQuestions: ProfileQuestion[] = [
   },
   {
     pergunta: "Por quanto tempo você pretende deixar o dinheiro investido?",
+    resumo: "Prazo",
     opcoes: ["Menos de 1 ano", "De 1 a 3 anos", "De 3 a 10 anos", "Mais de 10 anos"],
+    curtas: ["Menos de 1 ano", "1 a 3 anos", "3 a 10 anos", "Mais de 10 anos"],
     escolhida: 2,
     porque:
       "Quanto mais longo o prazo, mais tempo o investimento tem para se recuperar de quedas. Prazos curtos pedem aplicações que não oscilam.",
   },
   {
     pergunta: "Se seus investimentos caíssem 15% em um mês, o que você faria?",
+    resumo: "Queda de 15%",
     opcoes: [
       "Venderia tudo para não perder mais",
       "Venderia uma parte",
       "Manteria e esperaria recuperar",
       "Aproveitaria para investir mais",
     ],
+    curtas: ["Venderia tudo", "Venderia uma parte", "Manteria e esperaria", "Investiria mais"],
     escolhida: 2,
     porque:
       "Seu perfil ajuda a montar simulações que combinam com você. Ele vale só para Investimentos e pode ser refeito quando quiser em Meu perfil.",
   },
   {
     pergunta: "Quanto você conhece de investimentos?",
+    resumo: "Experiência",
     opcoes: [
       "Nunca investi",
       "Conheço poupança e renda fixa (CDB, Tesouro)",
       "Invisto em renda fixa e fundos, e um pouco em ações",
       "Invisto há anos em vários tipos, inclusive exterior, cripto e estruturados",
+    ],
+    curtas: [
+      "Nunca investiu",
+      "Poupança e renda fixa",
+      "Renda fixa, fundos e um pouco de ações",
+      "Vários tipos, inclusive exterior, cripto e estruturados",
     ],
     escolhida: 2,
     porque:
@@ -95,7 +117,9 @@ export const profileQuestions: ProfileQuestion[] = [
   },
   {
     pergunta: "Quanto da sua renda mensal você consegue investir?",
+    resumo: "Parte da renda",
     opcoes: ["Nada por enquanto", "Até 10%", "De 10% a 25%", "Mais de 25%"],
+    curtas: ["Nada por enquanto", "Até 10%", "10% a 25%", "Mais de 25%"],
     escolhida: 2,
     porque:
       "Quem investe uma parte maior da renda tem mais folga para enfrentar oscilações. Usamos isso só para calibrar o perfil, não para julgar seus gastos.",
@@ -103,12 +127,14 @@ export const profileQuestions: ProfileQuestion[] = [
   {
     pergunta:
       "Se precisar de dinheiro de repente, quanto do que investiu você talvez tenha que resgatar?",
+    resumo: "Resgate de surpresa",
     opcoes: [
       "Quase tudo",
       "Mais da metade",
       "Uma parte pequena",
       "Nada, tenho uma reserva separada",
     ],
+    curtas: ["Quase tudo", "Mais da metade", "Uma parte pequena", "Nada, tem reserva separada"],
     escolhida: 2,
     porque:
       "Dinheiro que pode ser resgatado a qualquer momento precisa ficar em aplicações com liquidez diária. Isso muda a divisão da carteira.",

@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { useProfileAnswers } from "@/stores/profile-answers";
+
 import { ProfileResult } from "./profile-result";
 
 const push = vi.fn();
@@ -56,5 +58,17 @@ describe("Onboarding · resultado do perfil", () => {
     render(<ProfileResult />);
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
     expect(push).toHaveBeenCalledWith("/onboarding/assistentes");
+  });
+
+  it("o perfil sai das respostas: as mais ousadas, com experiência, dão Sofisticado", () => {
+    [2, 3, 3, 3, 3, 3].forEach((option, i) =>
+      useProfileAnswers.getState().answer("onboarding", i + 1, option),
+    );
+    render(<ProfileResult />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Sofisticado");
+    expect(
+      screen.getByText("Vários tipos, inclusive exterior, cripto e estruturados"),
+    ).toBeInTheDocument();
+    useProfileAnswers.setState({ answers: { onboarding: {}, refazer: {} } });
   });
 });
