@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { Button, ButtonLink } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { PendingLinkButton } from "@/components/ui/pending-link-button";
 import { Icon } from "@/components/ui/icon";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import {
@@ -17,6 +18,7 @@ import {
   profileById,
   type ProfileId,
 } from "@/features/alocacao/data";
+import { useTweenNumber } from "@/hooks/use-tween";
 import { cn } from "@/lib/utils";
 
 import { onboardingSteps, profileAnswers, profileEffects } from "../data";
@@ -29,6 +31,18 @@ const riskShare = (id: ProfileId) => {
   const alvo = profileById[id].alvo;
   return alvo["rv-br"] + alvo["rv-int"] + alvo.cripto;
 };
+
+/** Percentual que anda até o valor novo quando o perfil muda (em vez de pular). */
+function TweenPercent({ value }: { value: number }) {
+  return formatPercent(useTweenNumber(value));
+}
+
+/** Diferença entre dois perfis num grupo ("+5%", "−10%", "igual"), andando junto com os números. */
+function TweenDiff({ value }: { value: number }) {
+  const shown = useTweenNumber(value);
+  if (shown === 0) return "igual";
+  return `${shown > 0 ? "+" : "\u2212"}${formatPercent(Math.abs(shown))}`;
+}
 
 /** Escala dos 4 perfis, clicável: o do questionário vem marcado e tem a etiqueta "indicado". */
 function ProfilePicker({
@@ -110,7 +124,7 @@ function ProfileComparison({
   return (
     <Panel
       aria-label={`Comparação: ${a.nome} e ${b.nome}`}
-      className="animate-fade-up gap-4 border-sand/40 p-4.5 md:p-5.5 lg:col-span-3 lg:p-6"
+      className="gap-4 border-sand/40 p-4.5 md:p-5.5 lg:p-6"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <PanelHeader
@@ -138,12 +152,19 @@ function ProfileComparison({
             tag: other === suggested ? "indicado pelo questionário" : "o que você abriu",
           },
         ].map(({ profile, tag }) => (
-          <div key={profile.id} className="flex flex-col gap-1 rounded-tile bg-field px-4 py-3.5">
+          // A chave troca com o perfil: o card novo entra esmaecendo em vez de trocar seco.
+          <div
+            key={profile.id}
+            className="flex animate-fade-in flex-col gap-1 rounded-tile bg-field px-4 py-3.5"
+          >
             <span className="text-12 font-bold tracking-[.06em] text-caption uppercase">{tag}</span>
             <strong className="font-display text-20">{profile.nome}</strong>
             <span className="text-13 text-mist">{profile.paraQuem}</span>
             <span className="text-13 text-sand">
-              <strong>{riskShare(profile.id)}%</strong> em renda variável e cripto
+              <strong>
+                <TweenPercent value={riskShare(profile.id)} />
+              </strong>{" "}
+              em renda variável e cripto
             </span>
           </div>
         ))}
@@ -177,21 +198,19 @@ function ProfileComparison({
                 <span className="truncate">{g.nome}</span>
               </span>
               <span role="cell" className="text-right tabular-nums">
-                {formatPercent(a.alvo[g.id])}
+                <TweenPercent value={a.alvo[g.id]} />
               </span>
               <span role="cell" className="text-right font-bold tabular-nums">
-                {formatPercent(b.alvo[g.id])}
+                <TweenPercent value={b.alvo[g.id]} />
               </span>
               <span
                 role="cell"
                 className={cn(
-                  "text-right font-bold tabular-nums",
+                  "text-right font-bold tabular-nums transition-colors duration-300",
                   diff > 0 ? "text-tucano" : diff < 0 ? "text-arara" : "text-caption",
                 )}
               >
-                {diff === 0
-                  ? "igual"
-                  : `${diff > 0 ? "+" : "\u2212"}${formatPercent(Math.abs(diff))}`}
+                <TweenDiff value={diff} />
               </span>
             </div>
           );
@@ -320,9 +339,8 @@ function TargetAllocation({ profile }: { profile: ProfileId }) {
         titleClassName="text-18 tracking-normal"
       />
       <div className="flex flex-col items-center gap-4 md:flex-row md:gap-8 lg:flex-col lg:gap-3">
-        {/* A rosca é refeita (e anima de novo) quando o perfil muda. */}
+        {/* Quando o perfil muda, os arcos e os percentuais andam até os valores novos. */}
         <GroupDonut
-          key={profile}
           values={target.alvo}
           dims={donutSizes.card}
           caption="Alvo"
@@ -339,7 +357,9 @@ function TargetAllocation({ profile }: { profile: ProfileId }) {
             >
               <GroupSwatch id={g.id} />
               <span className="min-w-0 grow">{g.nome}</span>
-              <strong className="tabular-nums">{formatPercent(target.alvo[g.id])}</strong>
+              <strong className="tabular-nums">
+                <TweenPercent value={target.alvo[g.id]} />
+              </strong>
             </li>
           ))}
         </ul>
@@ -362,20 +382,29 @@ function TargetAllocation({ profile }: { profile: ProfileId }) {
 export function ProfileResult() {
   const suggested = portfolioAllocation.perfil;
   const [profile, setProfile] = useState<ProfileId>(suggested);
-  /** Perfil aberto na comparação (ainda não escolhido). */
-  const [viewing, setViewing] = useState<ProfileId | null>(null);
+  /**
+   * Comparação aberta: o perfil que valia ao abrir e o que a pessoa abriu (ainda não escolhido).
+   * Fica guardada enquanto a comparação fecha, para ela recolher sem trocar de conteúdo.
+   */
+  const [compare, setCompare] = useState<{ base: ProfileId; other: ProfileId } | null>(null);
+  const [open, setOpen] = useState(false);
+  const viewing = open ? (compare?.other ?? null) : null;
   /** Perfil a confirmar no termo. */
   const [pending, setPending] = useState<ProfileId | null>(null);
   const chosen = profile !== suggested;
   const name = profileById[profile].nome;
 
+  const show = (id: ProfileId) => {
+    setCompare({ base: profile, other: id });
+    setOpen(true);
+  };
   // Tocar num perfil abre a comparação com o que vale agora; tocar no que já vale fecha.
-  const pick = (id: ProfileId) => setViewing(id === profile ? null : id);
+  const pick = (id: ProfileId) => (id === profile ? setOpen(false) : show(id));
   // Escolher na comparação: voltar ao indicado não precisa de termo; outro perfil, sim.
   const choose = (id: ProfileId) => {
     if (id === suggested) {
       setProfile(id);
-      setViewing(null);
+      setOpen(false);
     } else {
       setPending(id);
     }
@@ -398,7 +427,7 @@ export function ProfileResult() {
               </span>
               <button
                 type="button"
-                onClick={() => setViewing(suggested)}
+                onClick={() => show(suggested)}
                 className="cursor-pointer border-none bg-transparent p-0 text-14 font-bold text-sand underline underline-offset-4 hover:text-tucano"
               >
                 Comparar com o {profileById[suggested].nome}
@@ -415,16 +444,32 @@ export function ProfileResult() {
         </div>
         <div className="animate-fade-up [animation-delay:80ms] lg:col-span-3">
           <ProfilePicker current={profile} viewing={viewing} suggested={suggested} onPick={pick} />
+          {compare && (
+            // Abre e recolhe deslizando (altura de 0 até a do conteúdo); depois de recolhida, sai.
+            <div
+              inert={!open}
+              onTransitionEnd={(event) => {
+                if (event.target === event.currentTarget && !open) setCompare(null);
+              }}
+              className={cn(
+                "grid transition-[grid-template-rows,opacity] duration-500 ease-(--ease-out-soft) starting:grid-rows-[0fr] starting:opacity-0",
+                open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+              )}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div className="pt-5 md:pt-6">
+                  <ProfileComparison
+                    base={compare.base}
+                    other={compare.other}
+                    suggested={suggested}
+                    onChoose={() => choose(compare.other)}
+                    onClose={() => setOpen(false)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        {viewing && (
-          <ProfileComparison
-            base={profile}
-            other={viewing}
-            suggested={suggested}
-            onChoose={() => choose(viewing)}
-            onClose={() => setViewing(null)}
-          />
-        )}
         <TargetAllocation profile={profile} />
         <Panel className="animate-fade-up gap-3.5 p-4.5 [animation-delay:240ms] md:p-5.5 lg:p-5">
           <PanelHeader title="Suas respostas" titleClassName="text-18 tracking-normal" />
@@ -469,13 +514,13 @@ export function ProfileResult() {
         </Panel>
       </div>
       <OnboardingActions>
-        <ButtonLink href="/onboarding/perfil/1" variant="secondary" size="xl">
+        <PendingLinkButton href="/onboarding/perfil/1" variant="secondary" size="xl">
           <span>Refazer</span>
-        </ButtonLink>
+        </PendingLinkButton>
         <div className="grow" />
-        <ButtonLink href="/onboarding/assistentes" variant="light" size="xl">
+        <PendingLinkButton href="/onboarding/assistentes" variant="light" size="xl">
           <span>Continuar</span>
-        </ButtonLink>
+        </PendingLinkButton>
       </OnboardingActions>
       {pending && (
         <ChangeTerm
@@ -485,7 +530,7 @@ export function ProfileResult() {
           onConfirm={() => {
             setProfile(pending);
             setPending(null);
-            setViewing(null);
+            setOpen(false);
           }}
         />
       )}

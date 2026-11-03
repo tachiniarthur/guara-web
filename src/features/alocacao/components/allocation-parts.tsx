@@ -2,6 +2,8 @@ import { Icon } from "@/components/ui/icon";
 import { rem } from "@/lib/rem";
 import { cn } from "@/lib/utils";
 
+import { DonutArcs } from "./donut-arcs";
+
 import {
   diffColor,
   formatDiff,
@@ -49,14 +51,6 @@ export function GroupDonut({
   // Nome longo ("Conservador") diminui para caber no furo da rosca, com folga dos lados.
   const hole = 2 * (radius - stroke / 2);
   const valueSize = Math.min(dims.value, (hole * 0.82) / (Math.max(value.length, 1) * 0.6));
-  const circumference = 2 * Math.PI * radius;
-  const total = groups.reduce((sum, g) => sum + values[g.id], 0);
-  const lengths = groups.map((g) => (values[g.id] / total) * circumference);
-  const arcs = groups.flatMap((g, i) => {
-    const start = lengths.slice(0, i).reduce((sum, l) => sum + l, 0);
-    const length = lengths[i] ?? 0;
-    return values[g.id] > 0 ? [{ id: g.id, color: g.cor, length, start }] : [];
-  });
   return (
     <svg
       width={rem(size)}
@@ -67,20 +61,12 @@ export function GroupDonut({
       className="block shrink-0 animate-sweep"
     >
       <circle cx={c} cy={c} r={radius} fill="none" stroke="#1A241F" strokeWidth={stroke} />
-      {arcs.map((arc) => (
-        <circle
-          key={arc.id}
-          cx={c}
-          cy={c}
-          r={radius}
-          fill="none"
-          stroke={arc.color}
-          strokeWidth={stroke}
-          strokeDasharray={`${(arc.length - 2).toFixed(1)} ${(circumference - arc.length + 2).toFixed(1)}`}
-          strokeDashoffset={(-arc.start).toFixed(1)}
-          transform={`rotate(-90 ${c} ${c})`}
-        />
-      ))}
+      <DonutArcs
+        arcs={groups.map((g) => ({ id: g.id, color: g.cor, value: values[g.id] }))}
+        center={c}
+        radius={radius}
+        stroke={stroke}
+      />
       <text
         x={c}
         y={c - 6}
@@ -91,7 +77,10 @@ export function GroupDonut({
       >
         {caption}
       </text>
+      {/* O nome troca com um esmaecer quando a rosca muda de perfil. */}
       <text
+        key={value}
+        className="animate-fade-in"
         x={c}
         y={c + 14}
         textAnchor="middle"

@@ -2,9 +2,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 import { ProfileResult } from "./profile-result";
 
+const push = vi.fn();
 vi.mock("next/navigation", () => ({
   usePathname: () => "/onboarding/perfil/resultado",
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ push, replace: vi.fn(), prefetch: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));
 
@@ -37,5 +38,22 @@ describe("Onboarding · resultado do perfil", () => {
     expect(screen.getByLabelText("Comparação: Arrojado e Moderado")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Voltar ao Moderado" }));
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Moderado");
+  });
+
+  it("fecha a comparação recolhendo (sem foco lá dentro) e tira da tela no fim", () => {
+    render(<ProfileResult />);
+    fireEvent.click(screen.getByRole("radio", { name: /Arrojado/ }));
+    const panel = screen.getByLabelText("Comparação: Moderado e Arrojado");
+    fireEvent.click(screen.getByRole("button", { name: "Fechar a comparação" }));
+    const wrapper = panel.closest("[inert]");
+    expect(wrapper).not.toBeNull();
+    fireEvent.transitionEnd(wrapper!);
+    expect(screen.queryByLabelText("Comparação: Moderado e Arrojado")).not.toBeInTheDocument();
+  });
+
+  it("Continuar leva às assistentes", () => {
+    render(<ProfileResult />);
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    expect(push).toHaveBeenCalledWith("/onboarding/assistentes");
   });
 });
