@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { Button, ForestBackdrop } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { ConversationList } from "@/features/conversas/components/conversation-list";
@@ -152,11 +152,13 @@ export function HistoryHandle({ className }: { className?: string }) {
       onClick={restoreHistory}
       data-motion="panel"
       className={cn(
-        "fixed top-[calc(50%-1.75rem)] right-0 z-20 h-14 w-10 pressable items-center justify-center rounded-l-2xl border border-r-0 border-line-strong bg-card text-mist shadow-[0_8px_24px_rgba(0,0,0,.35)] hover:bg-shade hover:text-sand",
+        // Fundo com a textura Mata do Guará, como os botões "forest" (ex.: Nova conversa).
+        "fixed top-[calc(50%-2.5rem)] right-0 isolate z-20 h-20 w-14 pressable items-center justify-center overflow-hidden rounded-l-3xl border border-r-0 border-sand/35 bg-mata text-sand shadow-[0_8px_24px_rgba(0,0,0,.35)]",
         className,
       )}
     >
-      <Icon name="chat" size={20} />
+      <ForestBackdrop overlay="flat" />
+      <Icon name="chat" size={24} />
     </button>
   );
 }
