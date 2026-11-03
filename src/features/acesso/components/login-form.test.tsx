@@ -73,4 +73,16 @@ describe("Entrar", () => {
     expect(push).toHaveBeenCalledWith("/entrar/esqueci");
     expect(useAuthFlow.getState().email).toBe("arthur@exemplo.com");
   });
+
+  it("abre com o e-mail ou o CPF e o aviso de quem veio do Criar conta", () => {
+    useAuthFlow.getState().setSignInHint({
+      identifier: "529.982.247-25",
+      notice: "Esse CPF já tem uma conta no Guará.",
+    });
+    render(<LoginForm />);
+    expect(screen.getByLabelText("E-mail ou CPF")).toHaveValue("529.982.247-25");
+    expect(screen.getByText("Esse CPF já tem uma conta no Guará.")).toBeInTheDocument();
+    // O aviso aparece uma vez só.
+    expect(useAuthFlow.getState().signInHint).toBeNull();
+  });
 });

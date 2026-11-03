@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+/** "Criar conta" achou uma conta: o "Entrar" abre com o e-mail ou o CPF e este aviso. */
+export type SignInHint = { identifier: string; notice: string };
+
 type AuthFlowState = {
   /** E-mail para onde o código foi mandado (`null` sem código a caminho). */
   email: string | null;
@@ -10,9 +13,12 @@ type AuthFlowState = {
   cpf: string | null;
   /** O código do "Esqueci minha senha" foi confirmado: falta criar a senha nova. */
   passwordPending: boolean;
+  /** Só na memória (pode levar o CPF). */
+  signInHint: SignInHint | null;
   setEmail: (email: string | null) => void;
   start: (email: string, name: string | null, cpf?: string | null) => void;
   setPasswordPending: (pending: boolean) => void;
+  setSignInHint: (hint: SignInHint | null) => void;
   clear: () => void;
 };
 
@@ -24,15 +30,18 @@ export const useAuthFlow = create<AuthFlowState>()(
       name: null,
       cpf: null,
       passwordPending: false,
+      signInHint: null,
       setEmail: (email) => set({ email }),
       start: (email, name, cpf = null) => set({ email, name, cpf, passwordPending: false }),
       setPasswordPending: (passwordPending) => set({ passwordPending }),
-      clear: () => set({ email: null, name: null, cpf: null, passwordPending: false }),
+      setSignInHint: (signInHint) => set({ signInHint }),
+      clear: () =>
+        set({ email: null, name: null, cpf: null, passwordPending: false, signInHint: null }),
     }),
     {
       name: "guara-auth-flow",
       storage: createJSONStorage(() => sessionStorage),
-      // O CPF nunca vai para o storage do navegador.
+      // O CPF (e o aviso do "Entrar", que pode trazê-lo) nunca vai para o storage do navegador.
       partialize: ({ email, name, passwordPending }) => ({ email, name, passwordPending }),
     },
   ),

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, TextInput } from "@/components/ui/form";
@@ -27,18 +27,28 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
   const { live, refresh } = useSession();
   const savedEmail = useAuthFlow((s) => s.email);
   const startFlow = useAuthFlow((s) => s.start);
+  const signInHint = useAuthFlow((s) => s.signInHint);
+  const setSignInHint = useAuthFlow((s) => s.setSignInHint);
+  // Veio do "Criar conta" com um e-mail ou um CPF que já tem conta.
+  const [hint] = useState(signInHint);
   const [state, setState] = useState<LoginState>(initialState);
   const [identifier, setIdentifier] = useState(
-    live
-      ? (savedEmail ?? "")
-      : initialState === "credenciais"
-        ? "artur@exemplo.com"
-        : account.email,
+    hint
+      ? hint.identifier
+      : live
+        ? (savedEmail ?? "")
+        : initialState === "credenciais"
+          ? "artur@exemplo.com"
+          : account.email,
   );
   const [password, setPassword] = useState("");
   const [missing, setMissing] = useState(false);
   const [signing, setSigning] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (signInHint) setSignInHint(null);
+  }, [signInHint, setSignInHint]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -85,6 +95,7 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
         </WarningBlock>
       )}
       {failure && <WarningBlock icon="alert-triangle">{failure}</WarningBlock>}
+      {hint && <WarningBlock icon="user">{hint.notice}</WarningBlock>}
       <SocialButtons />
       <div className="flex items-center gap-3 text-13 text-caption">
         <span className="h-px grow bg-line" />
