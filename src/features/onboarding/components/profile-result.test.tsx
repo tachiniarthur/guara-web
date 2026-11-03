@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { ProfileResult } from "./profile-result";
 
@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Onboarding · resultado do perfil", () => {
-  it("troca de perfil só com o termo aceito, e volta ao indicado", () => {
+  it("troca de perfil só com o termo aceito, e volta ao indicado", async () => {
     render(<ProfileResult />);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Moderado");
 
@@ -27,7 +27,8 @@ describe("Onboarding · resultado do perfil", () => {
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(confirm);
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    // O termo sai animado e depois some.
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Arrojado");
     expect(screen.getByText(/Escolhido por você/)).toBeInTheDocument();
 

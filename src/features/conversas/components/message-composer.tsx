@@ -5,6 +5,7 @@ import { useEffect, useId, useState, type ReactNode } from "react";
 import { AgentAvatar } from "@/components/ui/agent-avatar";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Presence } from "@/components/ui/presence";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { Note } from "@/components/ui/note";
@@ -440,7 +441,9 @@ export function MessageComposer({
           </div>
         </form>
       )}
-      {state === "anexar" && <AttachDialog onClose={idle} onPick={() => setState("previa")} />}
+      <Presence show={state === "anexar"}>
+        {state === "anexar" && <AttachDialog onClose={idle} onPick={() => setState("previa")} />}
+      </Presence>
       {footer}
     </div>
   );

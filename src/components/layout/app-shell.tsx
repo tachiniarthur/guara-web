@@ -5,6 +5,7 @@ import { Suspense, useEffect, type ReactNode } from "react";
 
 import { ReportChatAside } from "@/features/relatorio/components/report-chat-aside";
 import { ErrorToast, OfflineToast } from "@/components/states/status-toast";
+import { Presence } from "@/components/ui/presence";
 import { shellConfig } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
@@ -103,9 +104,12 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
         ) : (
           <HistoryPanel className="hidden lg:flex" wide={config.aside === "home"} />
         ))}
-      {chatAvailable && open === true && (
-        <ChatOverlay className={hasAside ? "xl:hidden" : undefined} />
-      )}
+      {/* O chat por cima entra deslizando e, ao fechar, sai pelo mesmo caminho. */}
+      <Presence show={chatAvailable && open === true}>
+        {chatAvailable && open === true && (
+          <ChatOverlay className={hasAside ? "xl:hidden" : undefined} />
+        )}
+      </Presence>
       {config.fab && !(chatAvailable && open === true) && (
         <ConversarFab className={cn("hidden md:flex", hasAside && "lg:hidden")} />
       )}

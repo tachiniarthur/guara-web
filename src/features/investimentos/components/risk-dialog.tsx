@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Presence } from "@/components/ui/presence";
 import { DetailList } from "@/components/ui/detail-list";
 import { RadioCard } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
@@ -23,11 +24,15 @@ const fallbackReasons = (h: Holding) => [
  */
 export function RiskDialog() {
   const params = useSearchParams();
+  const holding = findHolding(params.get("risco"));
+  return <Presence show={Boolean(holding)}>{holding && <RiskPanel holding={holding} />}</Presence>;
+}
+
+const findHolding = (id: string | null) => allHoldings.find((h) => h.id === id);
+
+function RiskPanel({ holding }: { holding: NonNullable<ReturnType<typeof findHolding>> }) {
   const router = useRouter();
   const pathname = usePathname();
-  const holding = allHoldings.find((h) => h.id === params.get("risco"));
-  if (!holding) return null;
-
   const close = () => router.replace(pathname, { scroll: false });
   const reasons = riskReasons[holding.id] ?? fallbackReasons(holding);
 

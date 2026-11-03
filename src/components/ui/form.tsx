@@ -20,7 +20,7 @@ export function FieldHint({ className, ...props }: ComponentProps<"span">) {
 
 /** Campo de texto em pílula (fundo rebaixado, borda de controle). */
 export const inputClass =
-  "h-13 w-full rounded-full border border-line-strong bg-field px-3.5 text-16 text-sand";
+  "h-13 w-full rounded-full border border-line-strong bg-field px-3.5 text-16 text-sand hover:border-grid focus:border-mist";
 
 export function TextInput({ className, ...props }: ComponentProps<"input">) {
   return <input type="text" className={cn(inputClass, className)} {...props} />;

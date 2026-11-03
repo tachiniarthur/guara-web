@@ -4,7 +4,12 @@ import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-/** Alternância em pílulas sobre trilho rebaixado (34px), a opção atual em areia. */
+import { SlidingGroup } from "./sliding-group";
+
+/**
+ * Alternância em pílulas sobre trilho rebaixado (34px), a opção atual em areia. A pílula da opção
+ * marcada desliza até a nova.
+ */
 export function PillToggle<T extends string>({
   options,
   label,
@@ -30,8 +35,9 @@ export function PillToggle<T extends string>({
   const [own, setOwn] = useState(defaultValue ?? options[0]?.value);
   const current = value ?? own;
   return (
-    <div
-      role="group"
+    <SlidingGroup
+      active={current}
+      indicatorClassName="bg-sand"
       aria-label={label}
       className={cn("inline-flex gap-1 self-start rounded-full bg-field p-1", className)}
     >
@@ -45,7 +51,7 @@ export function PillToggle<T extends string>({
             onChange?.(option.value);
           }}
           className={cn(
-            "flex h-8.5 items-center justify-center rounded-full border-none px-3.5 font-semibold whitespace-nowrap transition-colors",
+            "flex h-8.5 pressable items-center justify-center rounded-full border-none px-3.5 font-semibold whitespace-nowrap",
             textClassName,
             itemClassName,
             current === option.value
@@ -56,6 +62,6 @@ export function PillToggle<T extends string>({
           {option.label}
         </button>
       ))}
-    </div>
+    </SlidingGroup>
   );
 }

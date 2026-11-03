@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Button, ButtonLink } from "@/components/ui/button";
+import { Presence } from "@/components/ui/presence";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DetailList } from "@/components/ui/detail-list";
 import { RadioCard } from "@/components/ui/form";
@@ -19,6 +20,12 @@ import { exportFormats } from "../data";
  * (`?exportado`).
  */
 export function ExportDialogs() {
+  const params = useSearchParams();
+  const open = params.has("exportar") || params.has("exportado");
+  return <Presence show={open}>{open && <ExportPanels />}</Presence>;
+}
+
+function ExportPanels() {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();

@@ -7,6 +7,7 @@ import type { FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { dropdownPillClass } from "@/components/ui/chip";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Presence } from "@/components/ui/presence";
 import { RadioCard } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
 import { PillToggle } from "@/components/ui/pill-toggle";
@@ -73,9 +74,14 @@ export function ChartControls({
  */
 export function CompareDialog({ current }: { current: string }) {
   const params = useSearchParams();
+  const open = params.has("escolher");
+  return <Presence show={open}>{open && <ComparePanel current={current} />}</Presence>;
+}
+
+function ComparePanel({ current }: { current: string }) {
+  const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  if (!params.has("escolher")) return null;
   const picked = compareOptions.find((option) => option.value === params.get("escolher"));
 
   const close = () => {

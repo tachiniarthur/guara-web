@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { ButtonLink } from "@/components/ui/button";
 import { ConfirmDialog, DialogText } from "@/components/ui/confirm-dialog";
+import { Presence } from "@/components/ui/presence";
 import { RadioCard } from "@/components/ui/form";
 import { Note } from "@/components/ui/note";
 
@@ -12,10 +13,13 @@ import { bankConnections as banks, plan } from "../data";
 /** "Desconectar o Nubank?" (`?desconectar=<banco>`): manter ou apagar o histórico importado. */
 export function DisconnectDialog() {
   const params = useSearchParams();
+  const bank = banks.find((b) => b.id === params.get("desconectar"));
+  return <Presence show={Boolean(bank)}>{bank && <DisconnectPanel bank={bank} />}</Presence>;
+}
+
+function DisconnectPanel({ bank }: { bank: (typeof banks)[number] }) {
   const router = useRouter();
   const pathname = usePathname();
-  const bank = banks.find((b) => b.id === params.get("desconectar"));
-  if (!bank) return null;
 
   return (
     <ConfirmDialog

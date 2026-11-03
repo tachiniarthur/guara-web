@@ -8,7 +8,7 @@ import { ForestBackdrop } from "./button";
 import { Icon, type IconName } from "./icon";
 
 export const iconButtonVariants = cva(
-  "relative isolate inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border p-0 text-mist transition-colors",
+  "relative isolate inline-flex shrink-0 pressable items-center justify-center overflow-hidden rounded-full border p-0 text-mist disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {

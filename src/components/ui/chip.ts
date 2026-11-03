@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 /** Pílula de filtro (36px; 40px em "base"; 44px em "md"). Ativa em areia. */
 export const chipClass = (pressed: boolean, size: "sm" | "base" | "md" = "sm") =>
   cn(
-    "flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 font-sans text-14 font-medium whitespace-nowrap transition-colors",
+    "flex shrink-0 pressable items-center gap-1.5 rounded-full border px-3.5 font-sans text-14 font-medium whitespace-nowrap",
     size === "sm" ? "h-9" : size === "base" ? "h-10" : "h-11",
     pressed ? "border-sand bg-sand text-canvas" : "border-line bg-card text-mist hover:text-sand",
   );
@@ -13,7 +13,7 @@ export const segmentTrackClass = "gap-1 rounded-tile bg-shade p-1";
 
 export const segmentItemClass = (current: boolean) =>
   cn(
-    "flex h-11 min-w-0 items-center justify-center rounded-full px-3 text-14 whitespace-nowrap no-underline transition-colors",
+    "flex h-11 min-w-0 pressable items-center justify-center rounded-full px-3 text-14 whitespace-nowrap no-underline",
     current
       ? "bg-card font-bold text-sand shadow-[0_1px_2px_rgba(0,0,0,.08)]"
       : "bg-transparent font-medium text-mist hover:text-sand",
@@ -22,7 +22,7 @@ export const segmentItemClass = (current: boolean) =>
 /** Pílula de alternância (36px, negrito 13px), como "Incluir na conta" no Simulador. */
 export const toggleChipClass = (pressed: boolean) =>
   cn(
-    "h-9 rounded-full border px-3.5 text-13 font-bold whitespace-nowrap transition-colors",
+    "h-9 pressable rounded-full border px-3.5 text-13 font-bold whitespace-nowrap",
     pressed
       ? "border-sand bg-sand text-canvas"
       : "border-line-strong bg-transparent text-mist hover:text-sand",
@@ -31,7 +31,7 @@ export const toggleChipClass = (pressed: boolean) =>
 /** Pílula de filtro das listas completas (36px, semibold). Ativa em areia. */
 export const filterChipClass = (pressed: boolean) =>
   cn(
-    "flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-14 font-semibold whitespace-nowrap transition-colors",
+    "flex h-9 shrink-0 pressable items-center gap-1.5 rounded-full border px-3.5 text-14 font-semibold whitespace-nowrap",
     pressed
       ? "border-sand bg-sand text-canvas"
       : "border-line-strong bg-card text-mist hover:text-sand",
@@ -39,4 +39,4 @@ export const filterChipClass = (pressed: boolean) =>
 
 /** Menu em pílula (período, categoria, ordenação): ícone, rótulo e seta. */
 export const dropdownPillClass =
-  "inline-flex h-9 items-center gap-1.5 rounded-full border border-line-strong bg-transparent px-3 text-14 font-semibold whitespace-nowrap text-sand hover:bg-shade";
+  "pressable inline-flex h-9 items-center gap-1.5 rounded-full border border-line-strong bg-transparent px-3 text-14 font-semibold whitespace-nowrap text-sand hover:bg-shade";

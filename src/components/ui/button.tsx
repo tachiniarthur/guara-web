@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { MataArt } from "@/components/ui/mata-art";
 
 export const buttonVariants = cva(
-  "relative isolate inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-full border font-bold whitespace-nowrap no-underline transition-[color,background-color,border-color,box-shadow,scale,opacity] duration-200 ease-out active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+  "relative isolate inline-flex shrink-0 pressable items-center justify-center gap-2 overflow-hidden rounded-full border font-bold whitespace-nowrap no-underline disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {

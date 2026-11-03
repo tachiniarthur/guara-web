@@ -19,7 +19,7 @@ export function ActionList({ items, className }: { items: ActionItem[]; classNam
     <ul className={cn("m-0 flex list-none flex-col p-0", className)}>
       {items.map((item) => {
         const rowClass = cn(
-          "flex min-h-[3.8125rem] w-full items-center gap-3.5 border-b border-line bg-transparent px-1.5 py-1 text-left no-underline hover:bg-shade/40",
+          "flex min-h-[3.8125rem] w-full items-center gap-3.5 border-b border-line bg-transparent px-1.5 py-1 text-left no-underline hover:bg-shade/40 active:bg-shade/70",
           item.danger ? "text-urucum" : "text-sand",
         );
         const content = (

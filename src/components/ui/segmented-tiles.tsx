@@ -5,6 +5,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 import { segmentItemClass, segmentTrackClass } from "./chip";
+import { SlidingGroup } from "./sliding-group";
 
 /** Escolha única em trilho segmentado (raio 16, opção atual em card), como "Tamanho do texto". */
 export function SegmentedTiles<T extends string>({
@@ -22,7 +23,12 @@ export function SegmentedTiles<T extends string>({
 }) {
   const [value, setValue] = useState<T | undefined>(defaultValue ?? options[0]?.value);
   return (
-    <div role="group" aria-label={label} className={cn("flex", segmentTrackClass, className)}>
+    <SlidingGroup
+      active={value}
+      indicatorClassName="bg-card shadow-[0_1px_2px_rgba(0,0,0,.08)]"
+      aria-label={label}
+      className={cn("flex", segmentTrackClass, className)}
+    >
       {options.map((option) => (
         <button
           key={option.value}
@@ -38,6 +44,6 @@ export function SegmentedTiles<T extends string>({
           {option.label}
         </button>
       ))}
-    </div>
+    </SlidingGroup>
   );
 }

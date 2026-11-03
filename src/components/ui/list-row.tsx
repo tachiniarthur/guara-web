@@ -72,10 +72,7 @@ export function ListRow({
   return (
     <li>
       {href ? (
-        <Link
-          href={href}
-          className={cn(rowClass, "transition-colors duration-200 hover:bg-shade/40")}
-        >
+        <Link href={href} className={cn(rowClass, "hover:bg-shade/40 active:bg-shade/70")}>
           {content}
         </Link>
       ) : (

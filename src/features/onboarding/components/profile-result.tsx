@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Collapse } from "@/components/ui/collapse";
 import { PendingLinkButton } from "@/components/ui/pending-link-button";
+import { Presence } from "@/components/ui/presence";
 import { Icon } from "@/components/ui/icon";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import {
@@ -263,7 +265,8 @@ function ChangeTerm({
         aria-label="Fechar"
         tabIndex={-1}
         onClick={onCancel}
-        className="absolute inset-0 animate-fade-in border-none bg-[rgba(5,9,7,0.72)]"
+        data-motion="backdrop"
+        className="absolute inset-0 border-none bg-[rgba(5,9,7,0.72)]"
       />
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-4 lg:left-[35rem]">
         <div
@@ -271,7 +274,8 @@ function ChangeTerm({
           role="dialog"
           aria-modal="true"
           aria-label={`Trocar para o perfil ${toName}?`}
-          className="pointer-events-auto flex max-h-full w-full max-w-[35rem] animate-dialog-in flex-col gap-4 overflow-y-auto rounded-card border border-line-strong bg-card p-6"
+          data-motion="dialog"
+          className="pointer-events-auto flex max-h-full w-full max-w-[35rem] flex-col gap-4 overflow-y-auto rounded-card border border-line-strong bg-card p-6"
         >
           <h2 className="m-0 font-display text-22 leading-tight font-extrabold">
             Trocar para o perfil {toName}?
@@ -445,29 +449,15 @@ export function ProfileResult() {
         <div className="animate-fade-up [animation-delay:80ms] lg:col-span-3">
           <ProfilePicker current={profile} viewing={viewing} suggested={suggested} onPick={pick} />
           {compare && (
-            // Abre e recolhe deslizando (altura de 0 até a do conteúdo); depois de recolhida, sai.
-            <div
-              inert={!open}
-              onTransitionEnd={(event) => {
-                if (event.target === event.currentTarget && !open) setCompare(null);
-              }}
-              className={cn(
-                "grid transition-[grid-template-rows,opacity] duration-500 ease-(--ease-out-soft) starting:grid-rows-[0fr] starting:opacity-0",
-                open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
-              )}
-            >
-              <div className="min-h-0 overflow-hidden">
-                <div className="pt-5 md:pt-6">
-                  <ProfileComparison
-                    base={compare.base}
-                    other={compare.other}
-                    suggested={suggested}
-                    onChoose={() => choose(compare.other)}
-                    onClose={() => setOpen(false)}
-                  />
-                </div>
-              </div>
-            </div>
+            <Collapse open={open} className="pt-5 md:pt-6">
+              <ProfileComparison
+                base={compare.base}
+                other={compare.other}
+                suggested={suggested}
+                onChoose={() => choose(compare.other)}
+                onClose={() => setOpen(false)}
+              />
+            </Collapse>
           )}
         </div>
         <TargetAllocation profile={profile} />
@@ -522,18 +512,20 @@ export function ProfileResult() {
           <span>Continuar</span>
         </PendingLinkButton>
       </OnboardingActions>
-      {pending && (
-        <ChangeTerm
-          from={suggested}
-          to={pending}
-          onCancel={() => setPending(null)}
-          onConfirm={() => {
-            setProfile(pending);
-            setPending(null);
-            setOpen(false);
-          }}
-        />
-      )}
+      <Presence show={pending !== null}>
+        {pending && (
+          <ChangeTerm
+            from={suggested}
+            to={pending}
+            onCancel={() => setPending(null)}
+            onConfirm={() => {
+              setProfile(pending);
+              setPending(null);
+              setOpen(false);
+            }}
+          />
+        )}
+      </Presence>
     </>
   );
 }

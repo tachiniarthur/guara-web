@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { Icon, type IconName } from "@/components/ui/icon";
+import { Presence } from "@/components/ui/presence";
 import { cn } from "@/lib/utils";
 
 const tones = {
@@ -40,48 +41,52 @@ export function StatusToast({
     () => true,
     () => false,
   );
-  if (!open || !mounted) return null;
+  if (!mounted) return null;
 
+  // A saída acontece dentro do portal (o `data-presence` precisa ficar acima do aviso no DOM).
   return createPortal(
-    <div
-      className={cn(
-        "pointer-events-none z-40 flex justify-center px-3 md:px-0",
-        position === "top"
-          ? "absolute inset-x-0 top-16 md:top-6 lg:top-5"
-          : "fixed inset-x-0 bottom-24 md:bottom-25 lg:bottom-27.5",
-      )}
-    >
+    <Presence show={open}>
       <div
-        role={tone === "error" ? "alert" : "status"}
         className={cn(
-          "pointer-events-auto flex w-full items-center gap-3 rounded-[1.125rem] border bg-field px-3.5 py-3 shadow-[0_12px_32px_rgba(0,0,0,.45)] md:w-140 lg:w-155 lg:zoom-area lg:[--zoom:1.35]",
-          tones[tone].border,
+          "pointer-events-none z-40 flex justify-center px-3 md:px-0",
+          position === "top"
+            ? "absolute inset-x-0 top-16 md:top-6 lg:top-5"
+            : "fixed inset-x-0 bottom-24 md:bottom-25 lg:bottom-27.5",
         )}
       >
-        <span
-          aria-hidden="true"
+        <div
+          role={tone === "error" ? "alert" : "status"}
+          data-motion={position === "top" ? "toast-top" : "toast-bottom"}
           className={cn(
-            "flex size-9 shrink-0 items-center justify-center rounded-xl",
-            tones[tone].icon,
+            "pointer-events-auto flex w-full items-center gap-3 rounded-[1.125rem] border bg-field px-3.5 py-3 shadow-[0_12px_32px_rgba(0,0,0,.45)] md:w-140 lg:w-155 lg:zoom-area lg:[--zoom:1.35]",
+            tones[tone].border,
           )}
         >
-          <Icon name={icon} size={18} />
-        </span>
-        <span className="flex min-w-0 grow flex-col leading-[1.35]">
-          <strong className="text-15">{title}</strong>
-          <span className="text-13 text-mist">{children}</span>
-        </span>
-        {action}
-        <button
-          type="button"
-          aria-label="Fechar aviso"
-          onClick={() => setOpen(false)}
-          className="flex size-9 shrink-0 items-center justify-center rounded-full border-none bg-transparent text-mist hover:bg-shade"
-        >
-          <Icon name="x" size={16} />
-        </button>
+          <span
+            aria-hidden="true"
+            className={cn(
+              "flex size-9 shrink-0 items-center justify-center rounded-xl",
+              tones[tone].icon,
+            )}
+          >
+            <Icon name={icon} size={18} />
+          </span>
+          <span className="flex min-w-0 grow flex-col leading-[1.35]">
+            <strong className="text-15">{title}</strong>
+            <span className="text-13 text-mist">{children}</span>
+          </span>
+          {action}
+          <button
+            type="button"
+            aria-label="Fechar aviso"
+            onClick={() => setOpen(false)}
+            className="flex size-9 shrink-0 items-center justify-center rounded-full border-none bg-transparent text-mist hover:bg-shade"
+          >
+            <Icon name="x" size={16} />
+          </button>
+        </div>
       </div>
-    </div>,
+    </Presence>,
     document.body,
   );
 }

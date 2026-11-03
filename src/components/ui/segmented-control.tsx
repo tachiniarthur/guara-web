@@ -4,6 +4,8 @@ import { useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { SlidingGroup } from "./sliding-group";
+
 export type SegmentOption<T extends string> = { value: T; label: ReactNode; ariaLabel?: string };
 
 type SegmentedControlProps<T extends string> = {
@@ -19,7 +21,10 @@ type SegmentedControlProps<T extends string> = {
   itemClassName?: string;
 };
 
-/** Grupo de botões alternáveis em pílula (ex.: "Tudo junto / Por banco", "Mês / Ano"). */
+/**
+ * Grupo de botões alternáveis em pílula (ex.: "Tudo junto / Por banco", "Mês / Ano"). A pílula da
+ * opção marcada desliza até a nova.
+ */
 export function SegmentedControl<T extends string>({
   options,
   defaultValue,
@@ -32,10 +37,10 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   const [internal, setInternal] = useState<T | undefined>(defaultValue ?? options[0]?.value);
   const value = controlled ?? internal;
-
   return (
-    <div
-      role="group"
+    <SlidingGroup
+      active={value}
+      indicatorClassName="bg-sand"
       aria-label={label}
       className={cn("flex gap-1 rounded-full bg-shade p-1", className)}
     >
@@ -52,7 +57,7 @@ export function SegmentedControl<T extends string>({
               onValueChange?.(option.value);
             }}
             className={cn(
-              "inline-flex items-center justify-center gap-1.5 rounded-full border-none px-4 whitespace-nowrap transition-colors",
+              "inline-flex pressable items-center justify-center gap-1.5 rounded-full border-none px-4 whitespace-nowrap",
               size === "md" ? "h-10 text-14" : "h-9 text-13",
               pressed
                 ? "bg-sand font-bold text-canvas"
@@ -64,6 +69,6 @@ export function SegmentedControl<T extends string>({
           </button>
         );
       })}
-    </div>
+    </SlidingGroup>
   );
 }

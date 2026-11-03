@@ -19,13 +19,14 @@ export function Switch({
       />
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 rounded-full bg-line-strong peer-checked:bg-tucano"
+        className="pointer-events-none absolute inset-0 rounded-full bg-line-strong transition-colors duration-(--duration-hover) peer-checked:bg-tucano"
       />
       <span
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute top-[3px] left-[3px] rounded-full bg-mist peer-checked:right-[3px] peer-checked:left-auto peer-checked:bg-canvas",
-          md ? "size-5.5" : "size-4.5",
+          // A bolinha desliza até o outro lado (e encolhe um pouco enquanto aperta).
+          "pointer-events-none absolute top-[3px] left-[3px] rounded-full bg-mist transition-[translate,background-color,scale] duration-(--duration-move) ease-out-soft peer-checked:bg-canvas peer-active:scale-90",
+          md ? "size-5.5 peer-checked:translate-x-5" : "size-4.5 peer-checked:translate-x-4",
         )}
       />
     </span>

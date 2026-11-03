@@ -67,6 +67,21 @@
   --input: var(--guara-line-strong);
   --ring: var(--guara-tucano);
   --radius: 1.5rem;
+
+  /*
+   * Durações do movimento (docs/ux/README.md). No Tailwind: `duration-(--duration-press)`.
+   * Interface abaixo de 300 ms; saída mais rápida que a entrada.
+   */
+  --duration-press: 140ms;
+  --duration-hover: 180ms;
+  --duration-move: 240ms;
+  --duration-popover: 200ms;
+  --duration-dialog: 260ms;
+  --duration-sheet: 380ms;
+  --duration-exit: 170ms;
+  --duration-expand: 300ms;
+  --duration-enter: 420ms;
+  --duration-chart: 1200ms;
 }
 
 @theme inline {
@@ -122,6 +137,9 @@
    * movimento no sistema não vê nenhuma (bloco prefers-reduced-motion no fim do arquivo).
    */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Algo que anda na tela (indicador de aba, valor que muda) e gavetas que deslizam. */
+  --ease-in-out-soft: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --animate-fade-up: fade-up 0.45s var(--ease-out-soft) both;
   --animate-fade-in: fade-in 0.35s ease-out both;
   --animate-scale-in: scale-in 0.3s var(--ease-out-soft) both;
@@ -139,7 +157,7 @@
   @keyframes fade-up {
     from {
       opacity: 0;
-      transform: translateY(0.75rem);
+      transform: translateY(0.5rem);
     }
     to {
       opacity: 1;
@@ -302,6 +320,17 @@
   }
   button {
     cursor: pointer;
+  }
+  /*
+   * Troca de cor no hover e no foco sempre suave, em qualquer link, botão ou campo. `:where` deixa
+   * a especificidade zero: qualquer `transition-*` do componente vale por cima.
+   */
+  :where(a, button, summary, label, input, select, textarea, [role="button"]) {
+    transition:
+      color var(--duration-hover) ease,
+      background-color var(--duration-hover) ease,
+      border-color var(--duration-hover) ease,
+      text-decoration-color var(--duration-hover) ease;
   }
   input::placeholder,
   textarea::placeholder {
@@ -487,8 +516,8 @@
  * entram pelo `stagger`): sobem um depois do outro na ordem em que aparecem no pai.
  */
 .card-enter:not(.stagger > *) {
-  animation: fade-up 0.65s var(--ease-out-soft) both;
-  animation-delay: calc(var(--card-index, 0) * 90ms + 150ms);
+  animation: fade-up var(--duration-enter) var(--ease-out-soft) both;
+  animation-delay: calc(var(--card-index, 0) * 60ms + 80ms);
 }
 .card-enter:nth-child(2) {
   --card-index: 1;
@@ -511,38 +540,30 @@
 
 /*
  * Entrada em cascata: os filhos diretos sobem e aparecem um depois do outro (páginas, onboarding).
- * A partir do 10º, entram juntos com o 10º para a tela não demorar a ficar pronta.
+ * Curta, porque acontece a cada navegação: a partir do 7º entram juntos, e o último assenta em
+ * ~0,65 s.
  */
 @utility stagger {
   & > * {
-    animation: fade-up 0.5s var(--ease-out-soft) both;
+    animation: fade-up var(--duration-enter) var(--ease-out-soft) both;
   }
   & > :nth-child(2) {
-    animation-delay: 50ms;
+    animation-delay: 40ms;
   }
   & > :nth-child(3) {
-    animation-delay: 100ms;
+    animation-delay: 80ms;
   }
   & > :nth-child(4) {
-    animation-delay: 150ms;
+    animation-delay: 120ms;
   }
   & > :nth-child(5) {
-    animation-delay: 200ms;
+    animation-delay: 160ms;
   }
   & > :nth-child(6) {
-    animation-delay: 250ms;
+    animation-delay: 200ms;
   }
-  & > :nth-child(7) {
-    animation-delay: 300ms;
-  }
-  & > :nth-child(8) {
-    animation-delay: 340ms;
-  }
-  & > :nth-child(9) {
-    animation-delay: 380ms;
-  }
-  & > :nth-child(n + 10) {
-    animation-delay: 420ms;
+  & > :nth-child(n + 7) {
+    animation-delay: 240ms;
   }
 }
 
@@ -567,20 +588,199 @@
 
 /*
  * Cards clicáveis (links e botões com o raio de card) sobem um pouco ao passar o mouse e afundam
- * ao tocar: o mesmo retorno em todo o app, sem repetir classes em cada tela.
+ * ao tocar: o mesmo retorno em todo o app, sem repetir classes em cada tela. Subir só com mouse:
+ * no toque, o hover "grudaria" depois de tocar.
  */
 @layer components {
   :is(a, button):is(.rounded-card, .rounded-bubble, .rounded-tile) {
     transition:
-      translate 0.2s var(--ease-out-soft),
-      background-color 0.2s ease-out,
-      border-color 0.2s ease-out,
-      scale 0.15s ease-out;
+      translate var(--duration-hover) var(--ease-out-soft),
+      background-color var(--duration-hover) ease,
+      border-color var(--duration-hover) ease,
+      scale var(--duration-press) var(--ease-out-soft);
   }
-  :is(a, button):is(.rounded-card, .rounded-bubble, .rounded-tile):hover {
-    translate: 0 -0.125rem;
+  @media (hover: hover) and (pointer: fine) {
+    :is(a, button):is(.rounded-card, .rounded-bubble, .rounded-tile):hover {
+      translate: 0 -0.125rem;
+    }
   }
   :is(a, button):is(.rounded-card, .rounded-bubble, .rounded-tile):active {
     scale: 0.985;
+  }
+}
+
+/*
+ * Resposta ao apertar (botões, chips, ícones, opções de segmentado): encolhe um pouco e volta
+ * rápido. As cores trocam no ritmo do hover. Desabilitado não encolhe.
+ */
+@utility pressable {
+  transition:
+    scale var(--duration-press) var(--ease-out-soft),
+    color var(--duration-hover) ease,
+    background-color var(--duration-hover) ease,
+    border-color var(--duration-hover) ease,
+    box-shadow var(--duration-hover) ease,
+    opacity var(--duration-hover) ease;
+  &:active:not(:disabled, [aria-disabled="true"]) {
+    scale: 0.97;
+  }
+}
+
+/*
+ * Overlays (components/ui/presence.tsx): cada peça diz o que é em `data-motion` e o CSS cuida da
+ * entrada e da saída. A saída sai pelo mesmo caminho da entrada, mais rápida. `sheet-dialog` e
+ * `sheet-panel` são folha de baixo no celular e diálogo (ou painel à direita) a partir do tablet.
+ */
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes dialog-out {
+  to {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+@keyframes sheet-out {
+  to {
+    opacity: 0;
+    translate: 0 3.5rem;
+  }
+}
+@keyframes panel-out {
+  to {
+    opacity: 0;
+    translate: 2.5rem 0;
+  }
+}
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+@keyframes menu-out {
+  to {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+@keyframes toast-top-in {
+  from {
+    opacity: 0;
+    translate: 0 -0.75rem;
+  }
+}
+@keyframes toast-top-out {
+  to {
+    opacity: 0;
+    translate: 0 -0.75rem;
+  }
+}
+@keyframes toast-bottom-in {
+  from {
+    opacity: 0;
+    translate: 0 0.75rem;
+  }
+}
+@keyframes toast-bottom-out {
+  to {
+    opacity: 0;
+    translate: 0 0.75rem;
+  }
+}
+
+[data-motion="backdrop"] {
+  animation: fade-in var(--duration-dialog) ease-out both;
+}
+[data-motion="dialog"] {
+  animation: dialog-in var(--duration-dialog) var(--ease-out-soft) both;
+}
+[data-motion="menu"] {
+  animation: menu-in var(--duration-popover) var(--ease-out-soft) both;
+}
+[data-motion="sheet"],
+[data-motion="sheet-dialog"],
+[data-motion="sheet-panel"],
+[data-motion="sheet-menu"] {
+  animation: sheet-in var(--duration-sheet) var(--ease-drawer) both;
+}
+[data-motion="panel"] {
+  animation: panel-in var(--duration-sheet) var(--ease-drawer) both;
+}
+[data-motion="toast-top"] {
+  animation: toast-top-in var(--duration-dialog) var(--ease-out-soft) both;
+}
+[data-motion="toast-bottom"] {
+  animation: toast-bottom-in var(--duration-dialog) var(--ease-out-soft) both;
+}
+@media (min-width: 37.5rem) {
+  [data-motion="sheet-dialog"] {
+    animation: dialog-in var(--duration-dialog) var(--ease-out-soft) both;
+  }
+  [data-motion="sheet-panel"] {
+    animation: panel-in var(--duration-sheet) var(--ease-drawer) both;
+  }
+  [data-motion="sheet-menu"] {
+    animation: menu-in var(--duration-popover) var(--ease-out-soft) both;
+  }
+}
+
+/* Grupo com indicador deslizante (components/ui/sliding-group.tsx): o fundo vem do indicador. */
+[data-indicator-ready] > [aria-pressed="true"] {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+[data-presence="closing"] {
+  pointer-events: none;
+}
+[data-presence="closing"] [data-motion="backdrop"] {
+  animation: fade-out var(--duration-exit) ease-out both;
+}
+[data-presence="closing"] [data-motion="menu"] {
+  animation: menu-out var(--duration-exit) ease-out both;
+}
+[data-presence="closing"] [data-motion="dialog"] {
+  animation: dialog-out var(--duration-exit) ease-out both;
+}
+[data-presence="closing"]
+  :is(
+    [data-motion="sheet"],
+    [data-motion="sheet-dialog"],
+    [data-motion="sheet-panel"],
+    [data-motion="sheet-menu"]
+  ) {
+  animation: sheet-out var(--duration-exit) ease-out both;
+}
+[data-presence="closing"] [data-motion="panel"] {
+  animation: panel-out var(--duration-exit) ease-out both;
+}
+[data-presence="closing"] [data-motion="toast-top"] {
+  animation: toast-top-out var(--duration-exit) ease-out both;
+}
+[data-presence="closing"] [data-motion="toast-bottom"] {
+  animation: toast-bottom-out var(--duration-exit) ease-out both;
+}
+@media (min-width: 37.5rem) {
+  [data-presence="closing"] [data-motion="sheet-dialog"] {
+    animation: dialog-out var(--duration-exit) ease-out both;
+  }
+  [data-presence="closing"] [data-motion="sheet-panel"] {
+    animation: panel-out var(--duration-exit) ease-out both;
+  }
+  [data-presence="closing"] [data-motion="sheet-menu"] {
+    animation: menu-out var(--duration-exit) ease-out both;
+  }
+}
+
+/*
+ * Menos movimento pedido no sistema: sem deslocamentos (o bloco acima já zera as durações).
+ * Fica no fim para valer sobre os comportamentos acima.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :is(a, button):is(.rounded-card, .rounded-bubble, .rounded-tile):hover {
+    translate: none;
   }
 }

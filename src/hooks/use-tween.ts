@@ -9,7 +9,9 @@ const easeOut = (t: number) => 1 - (1 - t) ** 3;
 const SKIP = process.env.NODE_ENV === "test";
 
 const reducedMotion = () =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
  * Os `values` a caminho do valor novo: quando mudam (outro perfil), cada um anda do que está na
