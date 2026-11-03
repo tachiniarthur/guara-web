@@ -85,4 +85,13 @@ describe("Entrar", () => {
     // O aviso aparece uma vez só.
     expect(useAuthFlow.getState().signInHint).toBeNull();
   });
+
+  it("usa os campos do design do Entrar (borda de 1,5 px e 16 px de recuo)", () => {
+    render(<LoginForm />);
+    const identifier = screen.getByLabelText("E-mail ou CPF");
+    expect(identifier).toHaveClass("border-[1.5px]", "px-4");
+    expect(identifier).not.toHaveClass("border", "px-3.5");
+    const password = screen.getByLabelText("Senha");
+    expect(password).toHaveClass("border-[1.5px]", "pl-4", "pr-12");
+  });
 });

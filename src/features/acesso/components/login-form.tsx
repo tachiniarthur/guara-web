@@ -7,6 +7,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, TextInput } from "@/components/ui/form";
 import { account } from "@/features/perfil/data";
+import { cn } from "@/lib/utils";
 import { useAuthFlow } from "@/stores/auth-flow";
 
 import { passwordAuthCode, passwordAuthMessage, signInWithPassword } from "../auth";
@@ -14,6 +15,9 @@ import { useSession } from "../session";
 import { WarningBlock } from "./auth-parts";
 import { PasswordField } from "./fields";
 import { SocialButtons } from "./social-buttons";
+
+/** Campos do "Entrar" no design: borda de 1,5 px e 16 px de recuo (os do cadastro têm 1 px e 14 px). */
+const ENTRAR_FIELD = "border-[1.5px]";
 
 export type LoginState = "pronto" | "credenciais" | "sem-internet";
 
@@ -119,12 +123,13 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
               if (wrong) setState("pronto");
             }}
             aria-invalid={error ? true : undefined}
-            className={error ? "border-urucum" : undefined}
+            className={cn(ENTRAR_FIELD, "px-4", error && "border-urucum")}
           />
         </Field>
         <PasswordField
           id="ent-senha"
           label="Senha"
+          className={cn(ENTRAR_FIELD, "pl-4")}
           value={password}
           onChange={(event) => {
             setPassword(event.target.value);
