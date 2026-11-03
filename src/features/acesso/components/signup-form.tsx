@@ -8,7 +8,8 @@ import { Field, FieldLabel, TextInput } from "@/components/ui/form";
 import { useAuthFlow, type SignInHint } from "@/stores/auth-flow";
 
 import { cpfProblem, formatCpf } from "@/lib/cpf";
-import { PASSWORD_HINT, PASSWORD_MAX_LENGTH, passwordProblem } from "@/lib/password";
+import { PASSWORD_MAX_LENGTH, passwordProblem } from "@/lib/password";
+import { phoneProblem } from "@/lib/phone";
 
 import {
   checkEmail,
@@ -19,7 +20,7 @@ import {
 } from "../auth";
 import { useSession } from "../session";
 import { AuthBackButton, AuthBackLink, AuthIntro, WarningBlock } from "./auth-parts";
-import { CpfField, FieldError, PasswordField } from "./fields";
+import { CpfField, FieldError, PasswordField, PhoneField } from "./fields";
 import { SocialButtons } from "./social-buttons";
 
 /** E-mail plausível antes de pedir à API (o servidor tem a palavra final). */
@@ -49,11 +50,11 @@ export function WelcomeOptions() {
   );
 }
 
-type SignUpField = "nome" | "email" | "cpf" | "senha" | "confirmacao";
+type SignUpField = "nome" | "email" | "cpf" | "celular" | "senha" | "confirmacao";
 
 /**
  * Criar conta com e-mail, em duas etapas. Primeiro o e-mail e o CPF: se um deles já tem conta, vai
- * para o "Entrar" com ele preenchido. Depois, com os dois mantidos, o nome e a senha; com login de
+ * para o "Entrar" com ele preenchido. Depois, com os dois mantidos, o nome, o celular e a senha; com login de
  * verdade, o Supabase cria a conta e manda o código de 6 dígitos (tela seguinte). No protótipo,
  * só avança.
  */
@@ -66,6 +67,7 @@ export function SignUpForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [errors, setErrors] = useState<Partial<Record<SignUpField, string>>>({});
@@ -119,6 +121,7 @@ export function SignUpForm() {
     const found: Partial<Record<SignUpField, string>> = {
       ...identityErrors(address),
       nome: nome ? undefined : "Conte como quer ser chamado.",
+      celular: phoneProblem(phone) ?? undefined,
       senha: passwordProblem(password) ?? undefined,
       confirmacao: password === confirmation ? undefined : "As senhas não são iguais.",
     };
@@ -132,7 +135,7 @@ export function SignUpForm() {
       const status = await checkEmail(address, cpf);
       if (status?.exists || status?.cpfRegistered) return goToSignIn(status, address);
       await signUpWithPassword(address, password, nome);
-      startFlow(address, nome, cpf);
+      startFlow(address, nome, cpf, phone);
       router.push("/boas-vindas/codigo");
     } catch (error) {
       const code = passwordAuthCode(error);
@@ -164,7 +167,7 @@ export function SignUpForm() {
       <AuthIntro title="Criar sua conta">
         {identify
           ? "Comece pelo e-mail e o CPF. Se você já tiver conta, levamos você para entrar nela."
-          : "Agora seu nome e a senha de acesso. Vamos confirmar o e-mail com um código de 6 dígitos."}
+          : "Agora seu nome, o celular e a senha de acesso. Vamos confirmar o e-mail com um código de 6 dígitos."}
       </AuthIntro>
       <form className="m-0 flex flex-col gap-3.5" onSubmit={identify ? next : submit} noValidate>
         {failure && <WarningBlock icon="alert-triangle">{failure}</WarningBlock>}
@@ -222,6 +225,17 @@ export function SignUpForm() {
               />
               {errors.nome && <FieldError id="nome-erro">{errors.nome}</FieldError>}
             </Field>
+            <PhoneField
+              id="celular"
+              label="Celular"
+              value={phone}
+              onValueChange={(value) => {
+                setPhone(value);
+                clear("celular");
+              }}
+              error={errors.celular}
+              hint="Com DDD. Usado para avisos importantes da sua conta."
+            />
             <PasswordField
               id="senha"
               label="Senha"
@@ -234,13 +248,14 @@ export function SignUpForm() {
                 clear("senha");
               }}
               error={errors.senha}
-              hint={PASSWORD_HINT}
+              rules
             />
             <PasswordField
               id="confirmacao"
               label="Confirmar senha"
               mode="new"
               value={confirmation}
+              matches={password}
               maxLength={PASSWORD_MAX_LENGTH}
               onChange={(event) => {
                 setConfirmation(event.target.value);

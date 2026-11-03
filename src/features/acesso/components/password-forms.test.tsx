@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 import type * as OriginalAuth from "../auth";
 import { useAuthFlow } from "@/stores/auth-flow";
@@ -68,9 +68,31 @@ describe("Senha nova", () => {
     useAuthFlow.getState().setPasswordPending(true);
     render(<NewPasswordForm />);
     fill("12345678", "outra");
-    expect(screen.getByText("Inclua pelo menos uma letra maiúscula.")).toBeInTheDocument();
+    // A regra que falta fica vermelha na lista, sem repetir o erro embaixo do campo.
+    const rules = screen.getByRole("list", { name: "A senha precisa ter" });
+    expect(within(rules).getByText("Uma letra maiúscula").parentElement).toHaveClass("text-urucum");
+    expect(screen.queryByText("Inclua pelo menos uma letra maiúscula.")).not.toBeInTheDocument();
     expect(screen.getByText("As senhas não são iguais.")).toBeInTheDocument();
     expect(updatePassword).not.toHaveBeenCalled();
+  });
+
+  it("marca as regras e a confirmação enquanto a pessoa digita", () => {
+    useAuthFlow.getState().setPasswordPending(true);
+    render(<NewPasswordForm />);
+    const rules = screen.getByRole("list", { name: "A senha precisa ter" });
+    const done = () =>
+      within(rules)
+        .getAllByRole("listitem")
+        .filter((item) => item.textContent?.includes("(feito)")).length;
+    expect(done()).toBe(0);
+    fireEvent.change(screen.getByLabelText("Senha nova"), { target: { value: "Senha2026" } });
+    expect(done()).toBe(3);
+    fireEvent.change(screen.getByLabelText("Senha nova"), { target: { value: "Senha@2026" } });
+    expect(done()).toBe(4);
+    fireEvent.change(screen.getByLabelText("Confirmar senha"), { target: { value: "Senha@" } });
+    expect(screen.getByText("As senhas ainda não são iguais.")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Confirmar senha"), { target: { value: "Senha@2026" } });
+    expect(screen.getByText("As senhas são iguais.")).toBeInTheDocument();
   });
 
   it("salva a senha, libera a sessão e abre o app", async () => {

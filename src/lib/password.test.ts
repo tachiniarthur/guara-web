@@ -1,4 +1,4 @@
-import { PASSWORD_MAX_LENGTH, passwordProblem } from "./password";
+import { PASSWORD_MAX_LENGTH, passwordChecks, passwordProblem } from "./password";
 
 describe("passwordProblem", () => {
   it.each(["Senha@2026", "Ção#1234", "A1!aaaaa", "Guará 2026!"])("aceita %s", (password) => {
@@ -26,5 +26,20 @@ describe("passwordProblem", () => {
     expect(passwordProblem(`A1!${"x".repeat(PASSWORD_MAX_LENGTH)}`)).toBe(
       "Use no máximo 72 caracteres.",
     );
+  });
+});
+
+describe("passwordChecks", () => {
+  const met = (password: string) =>
+    passwordChecks(password)
+      .filter((check) => check.ok)
+      .map((check) => check.id);
+
+  it("marca cada regra cumprida enquanto a pessoa digita", () => {
+    expect(met("")).toEqual([]);
+    expect(met("senha")).toEqual([]);
+    expect(met("Senha")).toEqual(["upper"]);
+    expect(met("Senha2026")).toEqual(["length", "upper", "digit"]);
+    expect(met("Senha@2026")).toEqual(["length", "upper", "digit", "special"]);
   });
 });

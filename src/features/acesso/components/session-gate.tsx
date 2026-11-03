@@ -15,7 +15,10 @@ type Area = "app" | "entrada" | "onboarding";
 export function redirectFor(
   area: Area,
   status: SessionStatus,
-  { passwordPending = false }: { passwordPending?: boolean } = {},
+  {
+    passwordPending = false,
+    signUpPending = false,
+  }: { passwordPending?: boolean; signUpPending?: boolean } = {},
 ): string | null {
   if (status === "loading" || status === "unavailable") return null;
   if (area === "app") {
@@ -25,7 +28,9 @@ export function redirectFor(
   }
   if (area === "entrada") {
     // Depois do código do "Esqueci minha senha" a conta está aberta, mas a senha nova vem antes.
-    if (passwordPending) return null;
+    // Depois do código do cadastro, espera o nome, o CPF e o celular chegarem à conta: sem isso o
+    // onboarding abria antes e pedia o CPF de novo.
+    if (passwordPending || signUpPending) return null;
     if (status === "signedIn") return "/";
     if (status === "onboarding") return "/onboarding/cpf";
     return null;
@@ -41,7 +46,8 @@ export function SessionGate({ area, children }: { area: Area; children: ReactNod
   const { status, live, refresh } = useSession();
   const router = useRouter();
   const passwordPending = useAuthFlow((state) => state.passwordPending);
-  const target = live ? redirectFor(area, status, { passwordPending }) : null;
+  const signUpPending = useAuthFlow((state) => state.signUpPending);
+  const target = live ? redirectFor(area, status, { passwordPending, signUpPending }) : null;
 
   useEffect(() => {
     if (target) router.replace(target);

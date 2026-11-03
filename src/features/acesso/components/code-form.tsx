@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
 
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { account } from "@/features/perfil/data";
 import { cn } from "@/lib/utils";
-import { saveCpf, saveDisplayName } from "@/features/perfil/api";
+import { meKeys, saveCpf, saveDisplayName, savePhone } from "@/features/perfil/api";
 import { useAuthFlow } from "@/stores/auth-flow";
 
 import {
@@ -48,6 +49,9 @@ export function CodeForm({
   const flowEmail = useAuthFlow((s) => s.email);
   const flowName = useAuthFlow((s) => s.name);
   const flowCpf = useAuthFlow((s) => s.cpf);
+  const flowPhone = useAuthFlow((s) => s.phone);
+  const setSignUpPending = useAuthFlow((s) => s.setSignUpPending);
+  const queryClient = useQueryClient();
   const clearFlow = useAuthFlow((s) => s.clear);
   const setPasswordPending = useAuthFlow((s) => s.setPasswordPending);
   const [digits, setDigits] = useState<string[]>(
@@ -100,11 +104,16 @@ export function CodeForm({
     setFailure(null);
     try {
       if (mode === "criar") {
+        // A sessão abre no `verifySignUpCode` e o porteiro levaria ao onboarding na hora, antes de
+        // o CPF chegar à conta (e a etapa do CPF apareceria). Ele espera até o `clearFlow`.
+        setSignUpPending(true);
         await verifySignUpCode(flowEmail, digits.join(""));
-        // Nome e CPF do cadastro vão para a conta; se a API falhar, o nome se edita depois e o
-        // onboarding pede o CPF de novo.
+        // Nome, celular e CPF do cadastro vão para a conta; se a API falhar, o nome se edita depois
+        // e o onboarding pede o CPF e o celular de novo.
         if (flowName) await saveDisplayName(flowName).catch(() => undefined);
+        if (flowPhone) await savePhone(flowPhone).catch(() => undefined);
         if (flowCpf) await saveCpf(flowCpf).catch(() => undefined);
+        await queryClient.invalidateQueries({ queryKey: meKeys.me });
         clearFlow();
         await refresh();
       } else {
@@ -116,6 +125,7 @@ export function CodeForm({
       }
     } catch (failed) {
       if (mode === "recuperar") setPasswordPending(false);
+      else setSignUpPending(false);
       const invalid =
         authErrorCode(failed) === "invalido" || passwordAuthCode(failed) === "codigo-invalido";
       if (invalid) {

@@ -51,7 +51,13 @@ function identify(overrides: Record<string, string> = {}) {
 
 /** Etapa 2: nome e senha. */
 function fillDetails(overrides: Record<string, string> = {}) {
-  fill({ Nome: " Arthur ", Senha: "Senha@2026", "Confirmar senha": "Senha@2026", ...overrides });
+  fill({
+    Nome: " Arthur ",
+    Celular: "11987654321",
+    Senha: "Senha@2026",
+    "Confirmar senha": "Senha@2026",
+    ...overrides,
+  });
 }
 
 const submit = () => fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
@@ -122,14 +128,17 @@ describe("Criar conta", () => {
       expect(checkEmail).not.toHaveBeenCalled();
     });
 
-    it("recusa nome vazio, senha fraca e confirmação diferente", async () => {
+    it("recusa nome vazio, celular incompleto, senha fraca e confirmação diferente", async () => {
       render(<SignUpForm />);
       identify();
       await screen.findByLabelText("Nome");
-      fillDetails({ Nome: " ", Senha: "curta", "Confirmar senha": "outra" });
+      fillDetails({ Nome: " ", Celular: "1198", Senha: "curta", "Confirmar senha": "outra" });
       submit();
       expect(screen.getByText("Conte como quer ser chamado.")).toBeInTheDocument();
-      expect(screen.getByText("Use pelo menos 8 caracteres.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Faltam números: o celular tem DDD e 9 dígitos."),
+      ).toBeInTheDocument();
+      expect(screen.getByText("8 caracteres ou mais").parentElement).toHaveClass("text-urucum");
       expect(screen.getByText("As senhas não são iguais.")).toBeInTheDocument();
       expect(signUpWithPassword).not.toHaveBeenCalled();
     });
@@ -147,8 +156,10 @@ describe("Criar conta", () => {
         email: "arthur@exemplo.com",
         name: "Arthur",
         cpf: "52998224725",
+        phone: "11987654321",
       });
       expect(sessionStorage.getItem("guara-auth-flow")).not.toContain("52998224725");
+      expect(sessionStorage.getItem("guara-auth-flow")).not.toContain("987654321");
     });
 
     it("leva para o Entrar com o e-mail preenchido quando o e-mail já tem conta", async () => {

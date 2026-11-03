@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
 import { apiRequest } from "@/lib/api";
+import { toE164 } from "@/lib/phone";
 
 import type { BillingPeriod, PlanId } from "./planos";
 
@@ -90,6 +91,8 @@ const MeSchema = z
     displayName: z.string().nullable(),
     /** CPF só com o miolo (`***.456.789-**`); `null` = ainda não informado. */
     cpfMasked: z.string().nullable(),
+    /** Celular em E.164 (`+5511987654321`); `null` = ainda não informado. */
+    phone: z.string().nullable().optional(),
   })
   .loose();
 export type Me = z.infer<typeof MeSchema>;
@@ -123,6 +126,20 @@ export function useSetCpf() {
 /** Grava o nome do perfil (`PATCH /v1/me`), depois de criar a conta. */
 export function saveDisplayName(displayName: string): Promise<unknown> {
   return apiRequest("/v1/me", z.unknown(), { method: "PATCH", body: { displayName } });
+}
+
+/** Grava o celular (`PATCH /v1/me`), com os 11 dígitos com DDD. */
+export function savePhone(digits: string): Promise<Me> {
+  return apiRequest("/v1/me", MeSchema, { method: "PATCH", body: { phone: toE164(digits) } });
+}
+
+/** `savePhone` como mutação: atualiza o `useMe` com a resposta. */
+export function useSetPhone() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: savePhone,
+    onSuccess: (me) => queryClient.setQueryData(meKeys.me, me),
+  });
 }
 
 /** Troca os assistentes escolhidos (`PUT /v1/me/plan/assistants`), na ordem de preferência. */

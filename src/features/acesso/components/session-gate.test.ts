@@ -20,6 +20,11 @@ describe("porteiro da sessão", () => {
     expect(redirectFor("entrada", "signedIn", { passwordPending: false })).toBe("/");
   });
 
+  it("entrada: depois do código do cadastro, espera o nome, o CPF e o celular chegarem à conta", () => {
+    expect(redirectFor("entrada", "onboarding", { signUpPending: true })).toBeNull();
+    expect(redirectFor("entrada", "onboarding", { signUpPending: false })).toBe("/onboarding/cpf");
+  });
+
   it("onboarding: só para quem tem conta (com ou sem plano)", () => {
     expect(redirectFor("onboarding", "signedOut")).toBe("/boas-vindas");
     expect(redirectFor("onboarding", "onboarding")).toBeNull();

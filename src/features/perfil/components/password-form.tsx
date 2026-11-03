@@ -8,7 +8,7 @@ import { Note } from "@/components/ui/note";
 import { passwordAuthCode, updatePassword } from "@/features/acesso/auth";
 import { PasswordField } from "@/features/acesso/components/fields";
 import { useSession } from "@/features/acesso/session";
-import { PASSWORD_HINT, PASSWORD_MAX_LENGTH, passwordProblem } from "@/lib/password";
+import { PASSWORD_MAX_LENGTH, passwordProblem } from "@/lib/password";
 
 /**
  * "Senha de acesso": cria a senha de quem entrou com Google ou Apple, ou troca a atual. Com ela, a
@@ -67,13 +67,14 @@ export function PasswordForm() {
           setErrors({});
         }}
         error={errors.senha}
-        hint={PASSWORD_HINT}
+        rules
       />
       <PasswordField
         id="senha-confirmacao"
         label="Confirmar senha"
         mode="new"
         value={confirmation}
+        matches={password}
         maxLength={PASSWORD_MAX_LENGTH}
         onChange={(event) => {
           setConfirmation(event.target.value);

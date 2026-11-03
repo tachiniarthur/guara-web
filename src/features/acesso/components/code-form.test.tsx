@@ -1,4 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render as renderUi, screen, waitFor } from "@testing-library/react";
+import type { ReactElement } from "react";
 
 import type * as OriginalAuth from "../auth";
 import { useAuthFlow } from "@/stores/auth-flow";
@@ -26,10 +28,16 @@ vi.mock("../auth", async (importOriginal) => ({
 
 const saveCpf = vi.fn();
 const saveDisplayName = vi.fn();
+const savePhone = vi.fn();
 vi.mock("@/features/perfil/api", () => ({
+  meKeys: { me: ["perfil", "eu"] },
   saveCpf: (...args: unknown[]) => saveCpf(...args),
   saveDisplayName: (...args: unknown[]) => saveDisplayName(...args),
+  savePhone: (...args: unknown[]) => savePhone(...args),
 }));
+
+const render = (ui: ReactElement) =>
+  renderUi(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -38,6 +46,7 @@ beforeEach(() => {
   resendSignUpCode.mockResolvedValue(undefined);
   saveCpf.mockResolvedValue({});
   saveDisplayName.mockResolvedValue({});
+  savePhone.mockResolvedValue({});
   useAuthFlow.getState().clear();
 });
 
@@ -51,15 +60,28 @@ function typeCode(code: string, button: string) {
 }
 
 describe("Código", () => {
-  it("criar conta: confirma o e-mail e grava nome e CPF na conta", async () => {
-    useAuthFlow.getState().start("arthur@exemplo.com", "Arthur", "52998224725");
+  it("criar conta: confirma o e-mail e grava nome, celular e CPF na conta", async () => {
+    useAuthFlow.getState().start("arthur@exemplo.com", "Arthur", "52998224725", "11987654321");
+    // O porteiro fica parado enquanto os dados vão para a conta (senão o onboarding pediria o CPF).
+    const pendingWhileSaving: boolean[] = [];
+    saveCpf.mockImplementation(() => {
+      pendingWhileSaving.push(useAuthFlow.getState().signUpPending);
+      return Promise.resolve({});
+    });
     render(<CodeForm mode="criar" />);
     typeCode("482917", "Criar conta");
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     expect(verifySignUpCode).toHaveBeenCalledWith("arthur@exemplo.com", "482917");
     expect(saveDisplayName).toHaveBeenCalledWith("Arthur");
+    expect(savePhone).toHaveBeenCalledWith("11987654321");
     expect(saveCpf).toHaveBeenCalledWith("52998224725");
-    expect(useAuthFlow.getState()).toMatchObject({ email: null, cpf: null });
+    expect(pendingWhileSaving).toEqual([true]);
+    expect(useAuthFlow.getState()).toMatchObject({
+      email: null,
+      cpf: null,
+      phone: null,
+      signUpPending: false,
+    });
   });
 
   it("criar conta: código errado gasta uma tentativa e não abre a conta", async () => {
@@ -70,6 +92,7 @@ describe("Código", () => {
     expect(await screen.findByText(/Código incorreto/)).toBeInTheDocument();
     expect(refresh).not.toHaveBeenCalled();
     expect(saveCpf).not.toHaveBeenCalled();
+    expect(useAuthFlow.getState().signUpPending).toBe(false);
   });
 
   it("recuperar senha: trava o porteiro antes de confirmar e segue para a senha nova", async () => {
