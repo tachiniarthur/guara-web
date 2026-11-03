@@ -1,4 +1,6 @@
+import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
 import { buildAfter, buildBar, ChartSvg, chartColors } from "@/components/charts/primitives";
+import { formatCurrency } from "@/lib/format";
 
 type Variant = "desktop" | "tablet" | "mobile";
 
@@ -73,98 +75,121 @@ export function CategoryHistoryChart({
   const slot = (width - pad * 2) / months.length;
   const bar = slot * barRatio;
   const y = (v: number) => base - v * scale;
+  const points = months.map((m, i) => ({
+    x: pad + slot * i + slot / 2,
+    title: m.atual ? `${m.rotulo} (até hoje)` : m.rotulo,
+    rows: [
+      {
+        label: m.valor > teto ? "passou do teto" : "gasto",
+        value: formatCurrency(m.valor * 100),
+        color: m.valor > teto ? chartColors.urucum : m.atual ? chartColors.arara : PAST,
+      },
+      { label: "teto novo", value: formatCurrency(teto * 100), color: chartColors.tucano },
+      { label: "média", value: formatCurrency(media * 100), color: chartColors.mist },
+    ],
+  }));
 
   return (
-    <ChartSvg
-      reveal="none"
-      width={width}
-      height={height}
-      label={label}
-      className="block h-auto w-full"
-    >
-      <line x1="0" x2={width} y1={base} y2={base} stroke={chartColors.axis} />
-      <line
-        x1="0"
-        x2={width}
-        y1={y(media).toFixed(1)}
-        y2={y(media).toFixed(1)}
-        stroke={chartColors.label}
-        strokeWidth="1.5"
-        strokeDasharray="2 5"
-      />
-      <line
-        x1="0"
-        x2={width}
-        y1={y(teto).toFixed(1)}
-        y2={y(teto).toFixed(1)}
-        stroke={chartColors.tucano}
-        strokeWidth="2"
-        strokeDasharray="6 5"
-      />
-      {months.map((m, i) => {
-        const cx = pad + slot * i + slot / 2;
-        const top = y(m.valor);
-        const over = m.valor > teto;
-        const fill = over ? chartColors.urucum : m.atual ? chartColors.arara : PAST;
-        return (
-          <rect
-            key={m.rotulo}
-            x={(cx - bar / 2).toFixed(1)}
-            y={top.toFixed(1)}
-            width={bar.toFixed(1)}
-            height={(base - top).toFixed(1)}
-            rx="6"
-            fill={fill}
-            {...buildBar(i)}
-          />
-        );
-      })}
-      {months.map((m, i) => {
-        const cx = pad + slot * i + slot / 2;
-        const top = y(m.valor);
-        const over = m.valor > teto;
-        const bright = over || m.atual;
-        const valueColor = inside
-          ? bright
-            ? chartColors.canvas
-            : chartColors.sand
-          : over
-            ? chartColors.urucum
-            : chartColors.sand;
-        return (
-          <g key={m.rotulo} {...buildAfter}>
-            <text
-              x={cx.toFixed(1)}
-              y={(inside ? top + 18 : top - 10).toFixed(1)}
-              textAnchor="middle"
-              fontSize={valueSize}
-              fontWeight="700"
-              fill={valueColor}
-            >
-              {fmt(m.valor)}
-            </text>
-            <text
-              x={cx.toFixed(1)}
-              y={height - 12}
-              textAnchor="middle"
-              fontSize={monthSize}
-              fill={chartColors.label}
-            >
-              {m.rotulo}
-            </text>
-          </g>
-        );
-      })}
-      <text
-        x={width - 4}
-        y={(y(teto) - 8).toFixed(1)}
-        textAnchor="end"
-        fontSize={monthSize}
-        fontWeight="700"
-        fill={chartColors.tucano}
+    <ChartInspector points={points} label="Gasto da categoria por mês">
+      <ChartSvg
+        reveal="none"
+        width={width}
+        height={height}
+        label={label}
+        className="block h-auto w-full"
       >
-        teto novo {fmt(teto)}
-      </text>
-    </ChartSvg>
+        <line x1="0" x2={width} y1={base} y2={base} stroke={chartColors.axis} />
+        <line
+          x1="0"
+          x2={width}
+          y1={y(media).toFixed(1)}
+          y2={y(media).toFixed(1)}
+          stroke={chartColors.label}
+          strokeWidth="1.5"
+          strokeDasharray="2 5"
+        />
+        <line
+          x1="0"
+          x2={width}
+          y1={y(teto).toFixed(1)}
+          y2={y(teto).toFixed(1)}
+          stroke={chartColors.tucano}
+          strokeWidth="2"
+          strokeDasharray="6 5"
+        />
+        {months.map((m, i) => {
+          const cx = pad + slot * i + slot / 2;
+          const top = y(m.valor);
+          const over = m.valor > teto;
+          const fill = over ? chartColors.urucum : m.atual ? chartColors.arara : PAST;
+          return (
+            <rect
+              key={m.rotulo}
+              x={(cx - bar / 2).toFixed(1)}
+              y={top.toFixed(1)}
+              width={bar.toFixed(1)}
+              height={(base - top).toFixed(1)}
+              rx="6"
+              fill={fill}
+              {...buildBar(i)}
+            />
+          );
+        })}
+        {months.map((m, i) => {
+          const cx = pad + slot * i + slot / 2;
+          const top = y(m.valor);
+          const over = m.valor > teto;
+          const bright = over || m.atual;
+          const valueColor = inside
+            ? bright
+              ? chartColors.canvas
+              : chartColors.sand
+            : over
+              ? chartColors.urucum
+              : chartColors.sand;
+          return (
+            <g key={m.rotulo} {...buildAfter}>
+              <text
+                x={cx.toFixed(1)}
+                y={(inside ? top + 18 : top - 10).toFixed(1)}
+                textAnchor="middle"
+                fontSize={valueSize}
+                fontWeight="700"
+                fill={valueColor}
+              >
+                {fmt(m.valor)}
+              </text>
+              <text
+                x={cx.toFixed(1)}
+                y={height - 12}
+                textAnchor="middle"
+                fontSize={monthSize}
+                fill={chartColors.label}
+              >
+                {m.rotulo}
+              </text>
+            </g>
+          );
+        })}
+        <text
+          x={width - 4}
+          y={(y(teto) - 8).toFixed(1)}
+          textAnchor="end"
+          fontSize={monthSize}
+          fontWeight="700"
+          fill={chartColors.tucano}
+        >
+          teto novo {fmt(teto)}
+        </text>
+        <InspectorLayer
+          x0={pad}
+          x1={width - pad}
+          top={4}
+          bottom={base}
+          mode="band"
+          bandWidth={slot}
+        />
+      </ChartSvg>
+    </ChartInspector>
   );
 }

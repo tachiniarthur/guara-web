@@ -1,4 +1,6 @@
+import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
 import { ChartSvg, chartColors } from "@/components/charts/primitives";
+import { formatCurrency } from "@/lib/format";
 
 type Variant = "desktop" | "tablet" | "mobile";
 
@@ -88,113 +90,124 @@ export function PriceHistoryChart({
   const min = prices[minIndex] ?? 0;
   const f = (n: number) => n.toFixed(1);
   const gradientId = `price-gradient-${variant}`;
+  const points = prices.map((p, i) => ({
+    x: x(i),
+    title: i === last ? "Hoje" : `Há ${last - i} ${last - i === 1 ? "dia" : "dias"}`,
+    rows: [
+      { label: "Cotação", value: formatCurrency(p * 100), color: chartColors.sand, y: y(p) },
+      { label: "Alvo do alerta", value: formatCurrency(alert * 100), color: chartColors.urucum },
+    ],
+  }));
 
   return (
-    <ChartSvg width={width} height={height} label={label} className="block h-auto w-full">
-      <defs>
-        <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor={chartColors.sand} stopOpacity=".18" />
-          <stop offset="1" stopColor={chartColors.sand} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {[low, mid].map((v) => (
-        <g key={v}>
-          <line
-            x1={x0}
-            x2={x1}
-            y1={f(y(v))}
-            y2={f(y(v))}
-            stroke={chartColors.grid}
-            strokeDasharray="2 4"
-          />
+    <ChartInspector points={points} label="Cotação nos últimos 30 dias">
+      <ChartSvg width={width} height={height} label={label} className="block h-auto w-full">
+        <defs>
+          <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stopColor={chartColors.sand} stopOpacity=".18" />
+            <stop offset="1" stopColor={chartColors.sand} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[low, mid].map((v) => (
+          <g key={v}>
+            <line
+              x1={x0}
+              x2={x1}
+              y1={f(y(v))}
+              y2={f(y(v))}
+              stroke={chartColors.grid}
+              strokeDasharray="2 4"
+            />
+            <text
+              x={x0 - 10}
+              y={f(y(v) + font * 0.4)}
+              textAnchor="end"
+              fontSize={font}
+              fill={chartColors.label}
+            >
+              {mil(v)}
+            </text>
+          </g>
+        ))}
+        <rect
+          x={x0}
+          y={f(y(alert))}
+          width={x1 - x0}
+          height={f(y(now) - y(alert))}
+          fill={chartColors.urucum}
+          opacity=".08"
+        />
+        <line
+          x1={x0}
+          x2={x1}
+          y1={f(y(alert))}
+          y2={f(y(alert))}
+          stroke={chartColors.urucum}
+          strokeWidth="2"
+          strokeDasharray="6 5"
+        />
+        <text
+          x={x0 - 10}
+          y={f(y(alert) + font * 0.4)}
+          textAnchor="end"
+          fontSize={font}
+          fontWeight="700"
+          fill={chartColors.urucum}
+        >
+          {mil(alert)}
+        </text>
+        <text
+          x={x0 + 8}
+          y={f(y(alert) - 10)}
+          fontSize={title}
+          fontWeight="700"
+          fill={chartColors.urucum}
+        >
+          Alerta de venda: R$ {mil(alert)}
+        </text>
+        <path
+          d={`${line} L${f(x(last))},${f(yLow)} L${f(x0)},${f(yLow)} Z`}
+          fill={`url(#${gradientId})`}
+        />
+        <path
+          d={line}
+          fill="none"
+          stroke={chartColors.sand}
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+        <circle
+          cx={f(x(last))}
+          cy={f(y(now))}
+          r="6"
+          fill={chartColors.card}
+          stroke={chartColors.sand}
+          strokeWidth="2.5"
+        />
+        <circle cx={f(x(minIndex))} cy={f(y(min))} r="4" fill={chartColors.label} />
+        <text
+          x={f(x(minIndex))}
+          y={f(y(min) + minGap)}
+          textAnchor="middle"
+          fontSize={font}
+          fill={chartColors.mist}
+        >
+          mín. {mil(min)}
+        </text>
+        {ticks.map((tick) => (
           <text
-            x={x0 - 10}
-            y={f(y(v) + font * 0.4)}
-            textAnchor="end"
+            key={tick.index}
+            x={f(x(tick.index))}
+            y={height - 10}
+            textAnchor={tick.index === 0 ? "start" : tick.index === last ? "end" : "middle"}
             fontSize={font}
             fill={chartColors.label}
           >
-            {mil(v)}
+            {tick.label}
           </text>
-        </g>
-      ))}
-      <rect
-        x={x0}
-        y={f(y(alert))}
-        width={x1 - x0}
-        height={f(y(now) - y(alert))}
-        fill={chartColors.urucum}
-        opacity=".08"
-      />
-      <line
-        x1={x0}
-        x2={x1}
-        y1={f(y(alert))}
-        y2={f(y(alert))}
-        stroke={chartColors.urucum}
-        strokeWidth="2"
-        strokeDasharray="6 5"
-      />
-      <text
-        x={x0 - 10}
-        y={f(y(alert) + font * 0.4)}
-        textAnchor="end"
-        fontSize={font}
-        fontWeight="700"
-        fill={chartColors.urucum}
-      >
-        {mil(alert)}
-      </text>
-      <text
-        x={x0 + 8}
-        y={f(y(alert) - 10)}
-        fontSize={title}
-        fontWeight="700"
-        fill={chartColors.urucum}
-      >
-        Alerta de venda: R$ {mil(alert)}
-      </text>
-      <path
-        d={`${line} L${f(x(last))},${f(yLow)} L${f(x0)},${f(yLow)} Z`}
-        fill={`url(#${gradientId})`}
-      />
-      <path
-        d={line}
-        fill="none"
-        stroke={chartColors.sand}
-        strokeWidth="2.5"
-        strokeLinejoin="round"
-      />
-      <circle
-        cx={f(x(last))}
-        cy={f(y(now))}
-        r="6"
-        fill={chartColors.card}
-        stroke={chartColors.sand}
-        strokeWidth="2.5"
-      />
-      <circle cx={f(x(minIndex))} cy={f(y(min))} r="4" fill={chartColors.label} />
-      <text
-        x={f(x(minIndex))}
-        y={f(y(min) + minGap)}
-        textAnchor="middle"
-        fontSize={font}
-        fill={chartColors.mist}
-      >
-        mín. {mil(min)}
-      </text>
-      {ticks.map((tick) => (
-        <text
-          key={tick.index}
-          x={f(x(tick.index))}
-          y={height - 10}
-          textAnchor={tick.index === 0 ? "start" : tick.index === last ? "end" : "middle"}
-          fontSize={font}
-          fill={chartColors.label}
-        >
-          {tick.label}
-        </text>
-      ))}
-    </ChartSvg>
+        ))}
+        <InspectorLayer x0={x0 - 6} x1={x1 + 6} top={yHigh - 20} bottom={yLow} />
+      </ChartSvg>
+    </ChartInspector>
   );
 }

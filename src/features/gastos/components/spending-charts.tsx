@@ -7,6 +7,8 @@ import {
   buildBar,
   roundedBar,
 } from "@/components/charts/primitives";
+import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
+import { formatCurrency } from "@/lib/format";
 
 import { monthlySpending, spendingPace, weekdaySpending } from "../data";
 
@@ -24,6 +26,8 @@ const paceLayout: Record<
 };
 
 const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR")}`;
+/** Valor da leitura (os dados do design estão em reais inteiros). */
+const brl = (reais: number) => formatCurrency(reais * 100);
 
 /** Gasto acumulado do mês contra o mês anterior (linha tracejada). */
 export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
@@ -39,110 +43,122 @@ export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
   const agoHoje = agosto[hoje - 1] ?? 0;
   const agoFim = agosto[agosto.length - 1] ?? 0;
 
+  const points = setembro.map((v, i) => ({
+    x: x(i + 1),
+    title: i + 1 === hoje ? `Hoje, dia ${hoje}` : `Dia ${i + 1}`,
+    rows: [
+      { label: "Setembro", value: brl(v), color: chartColors.saidas, y: y(v) },
+      {
+        label: "Agosto",
+        value: brl(agosto[i] ?? 0),
+        color: chartColors.label,
+        y: y(agosto[i] ?? 0),
+      },
+    ],
+  }));
+
   return (
-    <ChartSvg width={width} height={230} label={descricao}>
-      <GridLines
-        ticks={[
-          { value: 0, label: "0" },
-          { value: 2000, label: "2 mil" },
-          { value: 4000, label: "4 mil" },
-          { value: 6000, label: "6 mil" },
-        ]}
-        x0={x0}
-        x1={x1}
-        y={y}
-        labelX={x0 - 8}
-      />
-      <path
-        d={line(agosto)}
-        fill="none"
-        stroke={chartColors.label}
-        strokeWidth="2"
-        strokeDasharray="6 5"
-        strokeLinejoin="round"
-      />
-      <path
-        d={`${line(setembro)} L${xHoje.toFixed(1)},${BASE} L${x0.toFixed(1)},${BASE} Z`}
-        fill={chartColors.saidas}
-        fillOpacity=".12"
-      />
-      <path
-        d={line(setembro)}
-        fill="none"
-        stroke={chartColors.saidas}
-        strokeWidth="2.5"
-        strokeLinejoin="round"
-      />
-      {setembro.map((v, i) => (
-        <circle key={i} cx={x(i + 1).toFixed(1)} cy={y(v).toFixed(1)} r="9" fill="transparent">
-          <title>{`Dia ${i + 1}: setembro ${fmt(v)} · agosto ${fmt(agosto[i] ?? 0)}`}</title>
-        </circle>
-      ))}
-      <line
-        x1={xHoje.toFixed(1)}
-        x2={xHoje.toFixed(1)}
-        y1="18"
-        y2={BASE}
-        stroke={chartColors.axis}
-      />
-      <circle
-        cx={xHoje.toFixed(1)}
-        cy={y(setHoje).toFixed(1)}
-        r="5"
-        fill={chartColors.saidas}
-        stroke={chartColors.card}
-        strokeWidth="2"
-      />
-      {labelSide === "left" ? (
-        <text
-          x={(xHoje - 10).toFixed(1)}
-          y={(y(setHoje) - 2).toFixed(1)}
-          textAnchor="end"
-          fontSize="13"
-          fontWeight="800"
-          fill={chartColors.sand}
-        >
-          Setembro {fmt(setHoje)}
-        </text>
-      ) : (
+    <ChartInspector points={points} label="Ritmo de gastos do mês, dia a dia">
+      <ChartSvg width={width} height={230} label={descricao}>
+        <GridLines
+          ticks={[
+            { value: 0, label: "0" },
+            { value: 2000, label: "2 mil" },
+            { value: 4000, label: "4 mil" },
+            { value: 6000, label: "6 mil" },
+          ]}
+          x0={x0}
+          x1={x1}
+          y={y}
+          labelX={x0 - 8}
+        />
+        <path
+          d={line(agosto)}
+          fill="none"
+          stroke={chartColors.label}
+          strokeWidth="2"
+          strokeDasharray="6 5"
+          strokeLinejoin="round"
+        />
+        <path
+          d={`${line(setembro)} L${xHoje.toFixed(1)},${BASE} L${x0.toFixed(1)},${BASE} Z`}
+          fill={chartColors.saidas}
+          fillOpacity=".12"
+        />
+        <path
+          d={line(setembro)}
+          fill="none"
+          stroke={chartColors.saidas}
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+        <line
+          x1={xHoje.toFixed(1)}
+          x2={xHoje.toFixed(1)}
+          y1="18"
+          y2={BASE}
+          stroke={chartColors.axis}
+        />
+        <circle
+          cx={xHoje.toFixed(1)}
+          cy={y(setHoje).toFixed(1)}
+          r="5"
+          fill={chartColors.saidas}
+          stroke={chartColors.card}
+          strokeWidth="2"
+        />
+        {labelSide === "left" ? (
+          <text
+            x={(xHoje - 10).toFixed(1)}
+            y={(y(setHoje) - 2).toFixed(1)}
+            textAnchor="end"
+            fontSize="13"
+            fontWeight="800"
+            fill={chartColors.sand}
+          >
+            Setembro {fmt(setHoje)}
+          </text>
+        ) : (
+          <text
+            x={(xHoje + 10).toFixed(1)}
+            y={(y(setHoje) + 4).toFixed(1)}
+            fontSize="13"
+            fontWeight="800"
+            fill={chartColors.sand}
+          >
+            Setembro {fmt(setHoje)}
+          </text>
+        )}
         <text
           x={(xHoje + 10).toFixed(1)}
-          y={(y(setHoje) + 4).toFixed(1)}
-          fontSize="13"
-          fontWeight="800"
-          fill={chartColors.sand}
+          y={(y(agoHoje) + 14).toFixed(1)}
+          fontSize="12"
+          fill={chartColors.mist}
         >
-          Setembro {fmt(setHoje)}
+          Agosto {fmt(agoHoje)}
         </text>
-      )}
-      <text
-        x={(xHoje + 10).toFixed(1)}
-        y={(y(agoHoje) + 14).toFixed(1)}
-        fontSize="12"
-        fill={chartColors.mist}
-      >
-        Agosto {fmt(agoHoje)}
-      </text>
-      <circle
-        cx={xHoje.toFixed(1)}
-        cy={y(agoHoje).toFixed(1)}
-        r="4"
-        fill={chartColors.label}
-        stroke={chartColors.card}
-        strokeWidth="2"
-      />
-      {showClose && (
-        <text x={x1 + 6} y={(y(agoFim) + 4).toFixed(1)} fontSize="12" fill={chartColors.label}>
-          {fmt(agoFim)}
-        </text>
-      )}
-      <line x1={x0} x2={x1} y1={BASE} y2={BASE} stroke={chartColors.axis} />
-      {[1, 10, 20, hoje, agosto.length].map((day) => (
-        <AxisLabel key={day} x={x(day)} y={208} highlight={day === hoje}>
-          {day === hoje ? "hoje" : day}
-        </AxisLabel>
-      ))}
-    </ChartSvg>
+        <circle
+          cx={xHoje.toFixed(1)}
+          cy={y(agoHoje).toFixed(1)}
+          r="4"
+          fill={chartColors.label}
+          stroke={chartColors.card}
+          strokeWidth="2"
+        />
+        {showClose && (
+          <text x={x1 + 6} y={(y(agoFim) + 4).toFixed(1)} fontSize="12" fill={chartColors.label}>
+            {fmt(agoFim)}
+          </text>
+        )}
+        <line x1={x0} x2={x1} y1={BASE} y2={BASE} stroke={chartColors.axis} />
+        {[1, 10, 20, hoje, agosto.length].map((day) => (
+          <AxisLabel key={day} x={x(day)} y={208} highlight={day === hoje}>
+            {day === hoje ? "hoje" : day}
+          </AxisLabel>
+        ))}
+        <InspectorLayer x0={x0 - 6} x1={x1 + 6} top={14} bottom={BASE} />
+      </ChartSvg>
+    </ChartInspector>
   );
 }
 
@@ -159,13 +175,20 @@ function barLayout(
   const x1 = variant === "wide" ? 520 : 352;
   const slot = (x1 - x0) / count;
   const shift = variant === "wide" ? 0 : -2;
-  return { width, x0, x1, bar, barX: (i: number) => x0 + i * slot + (slot - bar) / 2 + shift };
+  return {
+    width,
+    x0,
+    x1,
+    bar,
+    slot,
+    barX: (i: number) => x0 + i * slot + (slot - bar) / 2 + shift,
+  };
 }
 
 /** Total gasto por mês, com a média dos meses anteriores e a previsão do mês atual. */
 export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
   const { meses, previsao, media, descricao } = monthlySpending;
-  const { width, x0, x1, bar, barX } = barLayout(
+  const { width, x0, x1, bar, slot, barX } = barLayout(
     variant,
     meses.length,
     { x0: 48, bar: 40 },
@@ -176,91 +199,101 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
     .slice(0, -1)
     .reduce((best, m, i, arr) => (m.valor > (arr[best]?.valor ?? 0) ? i : best), 0);
   const last = meses.length - 1;
+  const points = meses.map((mes, i) => ({
+    x: barX(i) + bar / 2,
+    title: i === last ? `${mes.nome} (até hoje)` : mes.nome,
+    rows: [
+      { label: "Gasto", value: brl(mes.valor), color: chartColors.saidas },
+      ...(i === last
+        ? [{ label: "Previsão do mês", value: brl(previsao), color: chartColors.saidas }]
+        : []),
+      { label: "Média", value: brl(media), color: chartColors.mist },
+    ],
+  }));
 
   return (
-    <ChartSvg reveal="none" width={width} height={230} label={descricao}>
-      <GridLines
-        ticks={[
-          { value: 0, label: "0" },
-          { value: 2000, label: "2 mil" },
-          { value: 4000, label: "4 mil" },
-          { value: 6000, label: "6 mil" },
-        ]}
-        x0={x0}
-        x1={x1}
-        y={y}
-        labelX={x0 - 8}
-      />
-      {meses.map((mes, i) => {
-        const bx = barX(i);
-        const cx = bx + bar / 2;
-        const current = i === last;
-        return (
-          <g key={mes.rotulo}>
-            {current && (
-              <rect
-                x={bx.toFixed(1)}
-                y={y(previsao).toFixed(1)}
-                width={bar}
-                height={(BASE - y(previsao)).toFixed(1)}
-                rx="4"
-                fill="none"
-                stroke={chartColors.saidas}
-                strokeWidth="1.5"
-                strokeDasharray="4 4"
-                {...buildAfter}
-              >
-                <title>{`Setembro: previsão de ${fmt(previsao)} no fim do mês`}</title>
-              </rect>
-            )}
-            <path
-              d={roundedBar(bx, y(mes.valor), bar, BASE)}
-              fill={chartColors.saidas}
-              fillOpacity={current ? 1 : 0.55}
-              {...buildBar(i)}
-            >
-              <title>{`${mes.nome}: ${fmt(mes.valor)}${current ? " até o dia 23" : ""}`}</title>
-            </path>
-            {(i === maxIndex || current) && (
-              <text
-                {...buildAfter}
-                x={cx.toFixed(1)}
-                y={(y(current ? previsao : mes.valor) - (current ? 8 : 8)).toFixed(1)}
-                textAnchor="middle"
-                fontSize="12"
-                fontWeight="800"
-                fill={chartColors.sand}
-              >
-                {fmt(mes.valor)}
-              </text>
-            )}
-            <AxisLabel x={cx} y={208} highlight={current}>
-              {mes.rotulo}
-            </AxisLabel>
-          </g>
-        );
-      })}
-      <line
-        x1={x0}
-        x2={x1}
-        y1={y(media).toFixed(1)}
-        y2={y(media).toFixed(1)}
-        stroke={chartColors.mist}
-        strokeWidth="1.5"
-        strokeDasharray="2 4"
-      />
-      <text x={x0 + 4} y={(y(media) - 6).toFixed(1)} fontSize="12" fill={chartColors.mist}>
-        média {fmt(media)}
-      </text>
-      <line x1={x0} x2={x1} y1={BASE} y2={BASE} stroke={chartColors.axis} />
-    </ChartSvg>
+    <ChartInspector points={points} label="Gasto por mês">
+      <ChartSvg reveal="none" width={width} height={230} label={descricao}>
+        <GridLines
+          ticks={[
+            { value: 0, label: "0" },
+            { value: 2000, label: "2 mil" },
+            { value: 4000, label: "4 mil" },
+            { value: 6000, label: "6 mil" },
+          ]}
+          x0={x0}
+          x1={x1}
+          y={y}
+          labelX={x0 - 8}
+        />
+        {meses.map((mes, i) => {
+          const bx = barX(i);
+          const cx = bx + bar / 2;
+          const current = i === last;
+          return (
+            <g key={mes.rotulo}>
+              {current && (
+                <rect
+                  x={bx.toFixed(1)}
+                  y={y(previsao).toFixed(1)}
+                  width={bar}
+                  height={(BASE - y(previsao)).toFixed(1)}
+                  rx="4"
+                  fill="none"
+                  stroke={chartColors.saidas}
+                  strokeWidth="1.5"
+                  strokeDasharray="4 4"
+                  {...buildAfter}
+                />
+              )}
+              <path
+                d={roundedBar(bx, y(mes.valor), bar, BASE)}
+                fill={chartColors.saidas}
+                fillOpacity={current ? 1 : 0.55}
+                {...buildBar(i)}
+              />
+              {(i === maxIndex || current) && (
+                <text
+                  {...buildAfter}
+                  x={cx.toFixed(1)}
+                  y={(y(current ? previsao : mes.valor) - (current ? 8 : 8)).toFixed(1)}
+                  textAnchor="middle"
+                  fontSize="12"
+                  fontWeight="800"
+                  fill={chartColors.sand}
+                >
+                  {fmt(mes.valor)}
+                </text>
+              )}
+              <AxisLabel x={cx} y={208} highlight={current}>
+                {mes.rotulo}
+              </AxisLabel>
+            </g>
+          );
+        })}
+        <line
+          x1={x0}
+          x2={x1}
+          y1={y(media).toFixed(1)}
+          y2={y(media).toFixed(1)}
+          stroke={chartColors.mist}
+          strokeWidth="1.5"
+          strokeDasharray="2 4"
+        />
+        <text x={x0 + 4} y={(y(media) - 6).toFixed(1)} fontSize="12" fill={chartColors.mist}>
+          média {fmt(media)}
+        </text>
+        <line x1={x0} x2={x1} y1={BASE} y2={BASE} stroke={chartColors.axis} />
+        <InspectorLayer x0={x0} x1={x1} top={14} bottom={BASE} mode="band" bandWidth={slot} />
+      </ChartSvg>
+    </ChartInspector>
   );
 }
 
 /** Gasto médio por dia da semana; os dois dias mais caros ficam em destaque. */
 export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
   const { dias, descricao } = weekdaySpending;
-  const { width, x0, x1, bar, barX } = barLayout(
+  const { width, x0, x1, bar, slot, barX } = barLayout(
     variant,
     dias.length,
     { x0: 48, bar: 36 },
@@ -271,54 +304,60 @@ export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
     .sort((a, b) => b.valor - a.valor)
     .slice(0, 2)
     .map((d) => d.rotulo);
+  const points = dias.map((dia, i) => ({
+    x: barX(i) + bar / 2,
+    title: dia.nome,
+    rows: [{ label: "por dia, em média", value: brl(dia.valor), color: chartColors.saidas }],
+  }));
 
   return (
-    <ChartSvg reveal="none" width={width} height={230} label={descricao}>
-      <GridLines
-        ticks={[
-          { value: 0, label: "0" },
-          { value: 100, label: "100" },
-          { value: 200, label: "200" },
-        ]}
-        x0={x0}
-        x1={x1}
-        y={y}
-        labelX={x0 - 8}
-      />
-      {dias.map((dia, i) => {
-        const bx = barX(i);
-        const cx = bx + bar / 2;
-        const highlight = top.includes(dia.rotulo);
-        return (
-          <g key={dia.rotulo}>
-            <path
-              d={roundedBar(bx, y(dia.valor), bar, BASE)}
-              fill={chartColors.saidas}
-              fillOpacity={highlight ? 1 : 0.45}
-              {...buildBar(i)}
-            >
-              <title>{`${dia.nome}: ${fmt(dia.valor)} por dia, em média`}</title>
-            </path>
-            {highlight && (
-              <text
-                {...buildAfter}
-                x={cx.toFixed(1)}
-                y={(y(dia.valor) - 8).toFixed(1)}
-                textAnchor="middle"
-                fontSize="12"
-                fontWeight="800"
-                fill={chartColors.sand}
-              >
-                {fmt(dia.valor)}
-              </text>
-            )}
-            <AxisLabel x={cx} y={208} highlight={highlight}>
-              {dia.rotulo}
-            </AxisLabel>
-          </g>
-        );
-      })}
-      <line x1={x0} x2={x1} y1={BASE} y2={BASE} stroke={chartColors.axis} />
-    </ChartSvg>
+    <ChartInspector points={points} label="Gasto médio por dia da semana">
+      <ChartSvg reveal="none" width={width} height={230} label={descricao}>
+        <GridLines
+          ticks={[
+            { value: 0, label: "0" },
+            { value: 100, label: "100" },
+            { value: 200, label: "200" },
+          ]}
+          x0={x0}
+          x1={x1}
+          y={y}
+          labelX={x0 - 8}
+        />
+        {dias.map((dia, i) => {
+          const bx = barX(i);
+          const cx = bx + bar / 2;
+          const highlight = top.includes(dia.rotulo);
+          return (
+            <g key={dia.rotulo}>
+              <path
+                d={roundedBar(bx, y(dia.valor), bar, BASE)}
+                fill={chartColors.saidas}
+                fillOpacity={highlight ? 1 : 0.45}
+                {...buildBar(i)}
+              />
+              {highlight && (
+                <text
+                  {...buildAfter}
+                  x={cx.toFixed(1)}
+                  y={(y(dia.valor) - 8).toFixed(1)}
+                  textAnchor="middle"
+                  fontSize="12"
+                  fontWeight="800"
+                  fill={chartColors.sand}
+                >
+                  {fmt(dia.valor)}
+                </text>
+              )}
+              <AxisLabel x={cx} y={208} highlight={highlight}>
+                {dia.rotulo}
+              </AxisLabel>
+            </g>
+          );
+        })}
+        <line x1={x0} x2={x1} y1={BASE} y2={BASE} stroke={chartColors.axis} />
+        <InspectorLayer x0={x0} x1={x1} top={14} bottom={BASE} mode="band" bandWidth={slot} />
+      </ChartSvg>
+    </ChartInspector>
   );
 }

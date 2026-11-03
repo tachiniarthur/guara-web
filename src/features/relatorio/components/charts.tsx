@@ -1,4 +1,6 @@
+import { ChartInspector, InspectorLayer, type InspectPoint } from "@/components/charts/inspector";
 import { ChartSvg, chartColors } from "@/components/charts/primitives";
+import { formatCurrency } from "@/lib/format";
 
 import { dailyBalance, weeklyFlow } from "../data";
 
@@ -64,90 +66,127 @@ export function BalanceChart({ variant }: { variant: ReportChartVariant }) {
       .join(" ");
   const line = points(values, 1);
   const eventColor = { arara: chartColors.arara, urucum: chartColors.urucum };
+  // Leitura: o saldo de cada dia até hoje; dali em diante, a previsão.
+  const inspect: InspectPoint[] = [
+    ...values.map((v, i) => ({
+      x: x(i + 1),
+      title: i + 1 === today ? `Hoje, dia ${today}` : `Dia ${i + 1}`,
+      rows: [
+        {
+          label: "Saldo",
+          value: formatCurrency(v * 100),
+          color: chartColors.arara,
+          y: y(v),
+        },
+        ...events
+          .filter((event) => event.day === i + 1)
+          .map((event) => ({
+            label: "pesou no saldo",
+            value: event.label,
+            color: eventColor[event.tone as keyof typeof eventColor],
+          })),
+      ],
+    })),
+    ...projection.slice(1).map((v, i) => ({
+      x: x(today + i + 1),
+      title: `Dia ${today + i + 1} (previsão)`,
+      rows: [
+        {
+          label: "Saldo previsto",
+          value: formatCurrency(v * 100),
+          color: chartColors.arara,
+          y: y(v),
+        },
+      ],
+    })),
+  ];
 
   return (
-    <ChartSvg reveal="none" width={width} height={height} label={label}>
-      {[8000, 12000, 16000].map((tick) => (
-        <GridLine key={tick} y={y(tick)} x1={x1} label={`${tick / 1000} mil`} font={font} />
-      ))}
-      {/* Construído desde o zero: a linha se desenha, depois vêm a área, a previsão e os eventos. */}
-      <path
-        d={`${line} L${x(today).toFixed(1)},${bottom} L${X0}.0,${bottom} Z`}
-        fill={AREA_FILL}
-        className="build-after"
-      />
-      <path
-        d={line}
-        pathLength={1}
-        fill="none"
-        stroke={chartColors.arara}
-        strokeWidth="2.6"
-        strokeLinejoin="round"
-        className="build-line"
-      />
-      <path
-        d={points(projection, today)}
-        fill="none"
-        stroke={chartColors.arara}
-        strokeWidth="2"
-        strokeDasharray="5 5"
-        className="build-after"
-      />
-      <line x1={X0} x2={x1} y1={bottom} y2={bottom} stroke={chartColors.axis} />
-      {events.map((event) => {
-        const cx = x(event.day);
-        const cy = y(values[event.day - 1]!);
-        const labelY = event.labelRow === 0 ? 26 : 46;
-        return (
-          <g key={event.day} className="build-after">
-            <line
-              x1={cx.toFixed(1)}
-              x2={cx.toFixed(1)}
-              y1={(labelY + 6).toFixed(1)}
-              y2={(cy - 7).toFixed(1)}
-              stroke={eventColor[event.tone]}
-              strokeWidth="1"
-              opacity=".7"
-            />
-            <circle
-              cx={cx.toFixed(1)}
-              cy={cy.toFixed(1)}
-              r="5.5"
-              fill={chartColors.card}
-              stroke={eventColor[event.tone]}
-              strokeWidth="2.4"
-            />
-            <text
-              x={cx.toFixed(1)}
-              y={labelY.toFixed(1)}
-              textAnchor="middle"
-              fontSize={font}
-              fontWeight="700"
-              fill={event.tone === "urucum" ? chartColors.urucum : chartColors.sand}
-            >
-              {event.label}
-            </text>
-          </g>
-        );
-      })}
-      {[
-        ...axisDays.filter((day) => day < today),
-        today,
-        ...axisDays.filter((day) => day > today),
-      ].map((day) => (
-        <text
-          key={day}
-          x={x(day).toFixed(1)}
-          y={height - 10}
-          textAnchor="middle"
-          fontSize={font}
-          fill={day === today ? chartColors.sand : chartColors.label}
-          fontWeight={day === today ? "700" : "400"}
-        >
-          {day === today ? "hoje" : day}
-        </text>
-      ))}
-    </ChartSvg>
+    <ChartInspector points={inspect} label="Saldo dia a dia">
+      <ChartSvg reveal="none" width={width} height={height} label={label}>
+        {[8000, 12000, 16000].map((tick) => (
+          <GridLine key={tick} y={y(tick)} x1={x1} label={`${tick / 1000} mil`} font={font} />
+        ))}
+        {/* Construído desde o zero: a linha se desenha, depois vêm a área, a previsão e os eventos. */}
+        <path
+          d={`${line} L${x(today).toFixed(1)},${bottom} L${X0}.0,${bottom} Z`}
+          fill={AREA_FILL}
+          className="build-after"
+        />
+        <path
+          d={line}
+          pathLength={1}
+          fill="none"
+          stroke={chartColors.arara}
+          strokeWidth="2.6"
+          strokeLinejoin="round"
+          className="build-line"
+        />
+        <path
+          d={points(projection, today)}
+          fill="none"
+          stroke={chartColors.arara}
+          strokeWidth="2"
+          strokeDasharray="5 5"
+          className="build-after"
+        />
+        <line x1={X0} x2={x1} y1={bottom} y2={bottom} stroke={chartColors.axis} />
+        {events.map((event) => {
+          const cx = x(event.day);
+          const cy = y(values[event.day - 1]!);
+          const labelY = event.labelRow === 0 ? 26 : 46;
+          return (
+            <g key={event.day} className="build-after">
+              <line
+                x1={cx.toFixed(1)}
+                x2={cx.toFixed(1)}
+                y1={(labelY + 6).toFixed(1)}
+                y2={(cy - 7).toFixed(1)}
+                stroke={eventColor[event.tone]}
+                strokeWidth="1"
+                opacity=".7"
+              />
+              <circle
+                cx={cx.toFixed(1)}
+                cy={cy.toFixed(1)}
+                r="5.5"
+                fill={chartColors.card}
+                stroke={eventColor[event.tone]}
+                strokeWidth="2.4"
+              />
+              <text
+                x={cx.toFixed(1)}
+                y={labelY.toFixed(1)}
+                textAnchor="middle"
+                fontSize={font}
+                fontWeight="700"
+                fill={event.tone === "urucum" ? chartColors.urucum : chartColors.sand}
+              >
+                {event.label}
+              </text>
+            </g>
+          );
+        })}
+        {[
+          ...axisDays.filter((day) => day < today),
+          today,
+          ...axisDays.filter((day) => day > today),
+        ].map((day) => (
+          <text
+            key={day}
+            x={x(day).toFixed(1)}
+            y={height - 10}
+            textAnchor="middle"
+            fontSize={font}
+            fill={day === today ? chartColors.sand : chartColors.label}
+            fontWeight={day === today ? "700" : "400"}
+          >
+            {day === today ? "hoje" : day}
+          </text>
+        ))}
+        <InspectorLayer x0={X0 - 6} x1={x1 + 6} top={TOP - 10} bottom={bottom} />
+      </ChartSvg>
+    </ChartInspector>
   );
 }
 
@@ -163,71 +202,91 @@ export function WeeklyFlowChart({ variant }: { variant: ReportChartVariant }) {
   const group = (x1 - X0) / weeklyFlow.weeks.length;
   const bar = Math.min(46, group * 0.28);
   const format = compact ? thousands : brl;
+  const inspect = weeklyFlow.weeks.map((week, i) => ({
+    x: X0 + (i + 0.5) * group,
+    title: week.label.replace("*", " (até hoje)"),
+    rows: [
+      { label: "Entrou", value: formatCurrency(week.entrou * 100), color: chartColors.arara },
+      { label: "Saiu", value: formatCurrency(week.saiu * 100), color: chartColors.urucum },
+    ],
+  }));
 
   return (
-    <ChartSvg reveal="none" width={width} height={height} label={weeklyFlow.label}>
-      <GridLine y={y(0)} x1={x1} label="0" font={font} solid />
-      <GridLine y={y(4000)} x1={x1} label={compact ? "4" : "4 mil"} font={font} />
-      <GridLine y={y(8000)} x1={x1} label={compact ? "8" : "8 mil"} font={font} />
-      {weeklyFlow.weeks.map((week, i) => {
-        const center = X0 + (i + 0.5) * group;
-        const bars = [
-          { key: "entrou", value: week.entrou, x: center - 2 - bar, color: chartColors.arara },
-          { key: "saiu", value: week.saiu, x: center + 2, color: chartColors.urucum },
-        ];
-        return (
-          <g key={week.label}>
-            {bars.map((item) =>
-              item.value > 0 ? (
-                <g key={item.key}>
-                  {/* Cada barra cresce da base, uma depois da outra; o valor aparece depois. */}
-                  <rect
-                    x={item.x.toFixed(1)}
-                    y={y(item.value).toFixed(1)}
-                    width={bar.toFixed(1)}
-                    height={(bottom - y(item.value)).toFixed(1)}
-                    rx="5"
-                    fill={item.color}
-                    className="build-bar"
-                    style={{ animationDelay: `${(i * 2 + (item.key === "saiu" ? 1 : 0)) * 90}ms` }}
-                  />
+    <ChartInspector points={inspect} label="Entradas e saídas por semana">
+      <ChartSvg reveal="none" width={width} height={height} label={weeklyFlow.label}>
+        <GridLine y={y(0)} x1={x1} label="0" font={font} solid />
+        <GridLine y={y(4000)} x1={x1} label={compact ? "4" : "4 mil"} font={font} />
+        <GridLine y={y(8000)} x1={x1} label={compact ? "8" : "8 mil"} font={font} />
+        {weeklyFlow.weeks.map((week, i) => {
+          const center = X0 + (i + 0.5) * group;
+          const bars = [
+            { key: "entrou", value: week.entrou, x: center - 2 - bar, color: chartColors.arara },
+            { key: "saiu", value: week.saiu, x: center + 2, color: chartColors.urucum },
+          ];
+          return (
+            <g key={week.label}>
+              {bars.map((item) =>
+                item.value > 0 ? (
+                  <g key={item.key}>
+                    {/* Cada barra cresce da base, uma depois da outra; o valor aparece depois. */}
+                    <rect
+                      x={item.x.toFixed(1)}
+                      y={y(item.value).toFixed(1)}
+                      width={bar.toFixed(1)}
+                      height={(bottom - y(item.value)).toFixed(1)}
+                      rx="5"
+                      fill={item.color}
+                      className="build-bar"
+                      style={{
+                        animationDelay: `${(i * 2 + (item.key === "saiu" ? 1 : 0)) * 90}ms`,
+                      }}
+                    />
+                    <text
+                      className="build-after"
+                      x={(item.x + bar / 2).toFixed(1)}
+                      y={(y(item.value) - 8).toFixed(1)}
+                      textAnchor="middle"
+                      fontSize={font}
+                      fontWeight="700"
+                      fill={item.color}
+                    >
+                      {format(item.value)}
+                    </text>
+                  </g>
+                ) : (
                   <text
-                    className="build-after"
+                    key={item.key}
                     x={(item.x + bar / 2).toFixed(1)}
-                    y={(y(item.value) - 8).toFixed(1)}
+                    y={(bottom - 8).toFixed(1)}
                     textAnchor="middle"
                     fontSize={font}
-                    fontWeight="700"
-                    fill={item.color}
+                    fill={chartColors.label}
                   >
-                    {format(item.value)}
+                    0
                   </text>
-                </g>
-              ) : (
-                <text
-                  key={item.key}
-                  x={(item.x + bar / 2).toFixed(1)}
-                  y={(bottom - 8).toFixed(1)}
-                  textAnchor="middle"
-                  fontSize={font}
-                  fill={chartColors.label}
-                >
-                  0
-                </text>
-              ),
-            )}
-            <text
-              x={center.toFixed(1)}
-              y={height - 10}
-              textAnchor="middle"
-              fontSize={font}
-              fill={chartColors.label}
-            >
-              {compact ? week.short : week.label}
-            </text>
-          </g>
-        );
-      })}
-    </ChartSvg>
+                ),
+              )}
+              <text
+                x={center.toFixed(1)}
+                y={height - 10}
+                textAnchor="middle"
+                fontSize={font}
+                fill={chartColors.label}
+              >
+                {compact ? week.short : week.label}
+              </text>
+            </g>
+          );
+        })}
+        <InspectorLayer
+          x0={X0}
+          x1={x1}
+          top={TOP - 10}
+          bottom={bottom}
+          mode="band"
+          bandWidth={group}
+        />
+      </ChartSvg>
+    </ChartInspector>
   );
 }

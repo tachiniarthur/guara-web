@@ -110,6 +110,8 @@ export type Simulation = {
       color: "arara" | "folha";
       goal?: { value: number; label: string };
       ticks: { index: number; label: string }[];
+      /** Nome de cada ponto da série na leitura do gráfico. */
+      pointLabels: string[];
       label: string;
     };
     legend: { label: string; swatch: "line" | "dashed"; color: string }[];

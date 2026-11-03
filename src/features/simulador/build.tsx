@@ -184,6 +184,7 @@ export function buildRetirement(s: RetirementState, set?: Setter<RetirementState
         color: "arara",
         goal: { value: r.goal, label: `Meta ${millions(r.goal, 1)}` },
         ticks,
+        pointLabels: r.points.map((_, i) => String(START.year + i)),
         label: `Patrimônio projetado de ${START.year} a ${r.retireYear}, chegando a ${longAmount(r.final)}. A área cinza mostra quanto vem dos seus aportes.`,
       },
       legend: [
@@ -431,6 +432,7 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
         color: "folha",
         goal: { value: s.cost, label: `Meta ${reais(s.cost)}` },
         ticks,
+        pointLabels: r.points.map((_, i) => shortMonth(START, i)),
         label: `Dinheiro guardado mês a mês até ${longMonth(START, s.months)}, chegando a ${reais(r.final)}.`,
       },
       legend: [
@@ -692,6 +694,9 @@ export function buildCut(s: CutState, set?: Setter<CutState>): Simulation {
           index,
           label: index === 0 ? "hoje" : `${index} anos`,
         })),
+        pointLabels: (r?.points ?? [null]).map((_, i) =>
+          i === 0 ? "Hoje" : `Em ${i} ${i === 1 ? "ano" : "anos"}`,
+        ),
         label: r
           ? `Economia de ${reais(savings)} por mês investida por 10 anos, chegando a cerca de ${thousands(r.tenYears)}.`
           : "Sem histórico para projetar.",

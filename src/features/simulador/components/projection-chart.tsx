@@ -1,4 +1,6 @@
+import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
 import { ChartSvg, chartColors } from "@/components/charts/primitives";
+import { formatCurrency } from "@/lib/format";
 
 import type { ProjectionSeries } from "../projection";
 
@@ -25,6 +27,8 @@ export type ProjectionChartProps = {
   /** Linha tracejada da meta e o rótulo dela. */
   goal?: { value: number; label: string };
   ticks: { index: number; label: string }[];
+  /** Nome de cada ponto da série na leitura ("2031", "abr/28", "Em 3 anos"). */
+  pointLabels: string[];
   label: string;
 };
 
@@ -35,6 +39,7 @@ export function ProjectionChart({
   color,
   goal,
   ticks,
+  pointLabels,
   label,
 }: ProjectionChartProps) {
   const { width, height, goalFont, axisFont } = boxes[variant];
@@ -50,74 +55,91 @@ export function ProjectionChart({
   const stroke = chartColors[color];
   const gradient = `projecao-${variant}-${color}`;
   const endY = y(series.projected[last] ?? 0);
+  const money = (v: number) => formatCurrency(Math.round(v * 100));
+  const points = series.projected.map((v, i) => ({
+    x: x(i),
+    title: pointLabels[i] ?? "",
+    rows: [
+      { label: "Projetado", value: money(v), color: stroke, y: y(v) },
+      {
+        label: "Depositado",
+        value: money(series.deposited[i] ?? 0),
+        color: chartColors.label,
+        y: y(series.deposited[i] ?? 0),
+      },
+    ],
+  }));
 
   return (
-    <ChartSvg width={width} height={height} label={label}>
-      <defs>
-        <linearGradient id={gradient} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor={stroke} stopOpacity=".35" />
-          <stop offset="1" stopColor={stroke} stopOpacity=".03" />
-        </linearGradient>
-      </defs>
-      <path d={area(series.deposited)} fill={chartColors.grid} opacity=".9" />
-      <path d={area(series.projected)} fill={`url(#${gradient})`} />
-      <path
-        d={line(series.deposited)}
-        fill="none"
-        stroke={chartColors.label}
-        strokeWidth="1.6"
-        strokeDasharray="5 4"
-      />
-      <path
-        d={line(series.projected)}
-        fill="none"
-        stroke={stroke}
-        strokeWidth="2.6"
-        strokeLinejoin="round"
-      />
-      {goal && (
-        <>
-          <line
-            x1={PAD_X}
-            x2={width - PAD_X}
-            y1={y(goal.value).toFixed(1)}
-            y2={y(goal.value).toFixed(1)}
-            stroke={chartColors.tucano}
-            strokeWidth="1.6"
-            strokeDasharray="3 4"
-          />
+    <ChartInspector points={points} label="Projeção, ponto a ponto">
+      <ChartSvg width={width} height={height} label={label}>
+        <defs>
+          <linearGradient id={gradient} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stopColor={stroke} stopOpacity=".35" />
+            <stop offset="1" stopColor={stroke} stopOpacity=".03" />
+          </linearGradient>
+        </defs>
+        <path d={area(series.deposited)} fill={chartColors.grid} opacity=".9" />
+        <path d={area(series.projected)} fill={`url(#${gradient})`} />
+        <path
+          d={line(series.deposited)}
+          fill="none"
+          stroke={chartColors.label}
+          strokeWidth="1.6"
+          strokeDasharray="5 4"
+        />
+        <path
+          d={line(series.projected)}
+          fill="none"
+          stroke={stroke}
+          strokeWidth="2.6"
+          strokeLinejoin="round"
+        />
+        {goal && (
+          <>
+            <line
+              x1={PAD_X}
+              x2={width - PAD_X}
+              y1={y(goal.value).toFixed(1)}
+              y2={y(goal.value).toFixed(1)}
+              stroke={chartColors.tucano}
+              strokeWidth="1.6"
+              strokeDasharray="3 4"
+            />
+            <text
+              x="12"
+              y={(y(goal.value) - 8).toFixed(1)}
+              fontSize={goalFont}
+              fontWeight="700"
+              fill={chartColors.tucano}
+            >
+              {goal.label}
+            </text>
+          </>
+        )}
+        <circle
+          cx={x(last).toFixed(1)}
+          cy={endY.toFixed(1)}
+          r="5"
+          fill={chartColors.card}
+          stroke={stroke}
+          strokeWidth="2.4"
+        />
+        <line x1={PAD_X} x2={width - PAD_X} y1={bottom} y2={bottom} stroke={chartColors.axis} />
+        {ticks.map((tick) => (
           <text
-            x="12"
-            y={(y(goal.value) - 8).toFixed(1)}
-            fontSize={goalFont}
-            fontWeight="700"
-            fill={chartColors.tucano}
+            key={tick.index}
+            x={x(tick.index).toFixed(1)}
+            y={height - 8}
+            textAnchor={tick.index === 0 ? "start" : tick.index === last ? "end" : "middle"}
+            fontSize={axisFont}
+            fill={chartColors.label}
           >
-            {goal.label}
+            {tick.label}
           </text>
-        </>
-      )}
-      <circle
-        cx={x(last).toFixed(1)}
-        cy={endY.toFixed(1)}
-        r="5"
-        fill={chartColors.card}
-        stroke={stroke}
-        strokeWidth="2.4"
-      />
-      <line x1={PAD_X} x2={width - PAD_X} y1={bottom} y2={bottom} stroke={chartColors.axis} />
-      {ticks.map((tick) => (
-        <text
-          key={tick.index}
-          x={x(tick.index).toFixed(1)}
-          y={height - 8}
-          textAnchor={tick.index === 0 ? "start" : tick.index === last ? "end" : "middle"}
-          fontSize={axisFont}
-          fill={chartColors.label}
-        >
-          {tick.label}
-        </text>
-      ))}
-    </ChartSvg>
+        ))}
+        <InspectorLayer x0={0} x1={width} top={TOP - 10} bottom={bottom} />
+      </ChartSvg>
+    </ChartInspector>
   );
 }
