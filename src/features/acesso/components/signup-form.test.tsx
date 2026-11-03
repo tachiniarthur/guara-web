@@ -57,16 +57,19 @@ function fillDetails(overrides: Record<string, string> = {}) {
 const submit = () => fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
 
 describe("Criar conta", () => {
-  it("boas-vindas: Google, Apple e criar com e-mail, sem pedir o e-mail ali", () => {
+  it("boas-vindas: Criar conta e Entrar em destaque, e Google e Apple, sem pedir dados ali", () => {
     render(
       <SessionProvider>
         <WelcomeOptions />
       </SessionProvider>,
     );
-    expect(screen.getByRole("link", { name: "Criar conta com e-mail" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Criar conta" })).toHaveAttribute(
       "href",
       "/boas-vindas/criar",
     );
+    expect(screen.getByRole("link", { name: "Entrar" })).toHaveAttribute("href", "/entrar");
+    expect(screen.getByRole("link", { name: "Continuar com Google" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Continuar com Apple" })).toBeInTheDocument();
     expect(screen.queryByLabelText("E-mail")).not.toBeInTheDocument();
   });
 
@@ -157,10 +160,11 @@ describe("Criar conta", () => {
       });
       render(<SignUpForm />);
       identify();
-      await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar"));
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar/email"));
       expect(screen.queryByLabelText("Nome")).not.toBeInTheDocument();
       expect(useAuthFlow.getState().signInHint).toEqual({
         identifier: "arthur@exemplo.com",
+        social: false,
         notice: "Esse e-mail já tem uma conta no Guará. Entre com a senha.",
       });
       expect(sessionStorage.getItem("guara-auth-flow")).not.toContain("52998224725");
@@ -175,7 +179,7 @@ describe("Criar conta", () => {
       });
       render(<SignUpForm />);
       identify();
-      await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar"));
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar/email"));
       expect(useAuthFlow.getState().signInHint?.identifier).toBe("529.982.247-25");
     });
 
@@ -188,7 +192,7 @@ describe("Criar conta", () => {
       });
       render(<SignUpForm />);
       identify();
-      await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar"));
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar/email"));
       expect(useAuthFlow.getState().signInHint).toMatchObject({
         identifier: "arthur@exemplo.com",
         notice: expect.stringMatching(/ainda sem senha. Clique em "Esqueci minha senha"/),
@@ -204,7 +208,9 @@ describe("Criar conta", () => {
       });
       render(<SignUpForm />);
       identify();
+      // Conta só do Google: abre na escolha do "Entrar", onde está o botão dele.
       await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar"));
+      expect(useAuthFlow.getState().signInHint?.social).toBe(true);
       expect(useAuthFlow.getState().signInHint?.notice).toMatch(
         /criada com o Google. Continue com o Google ou clique em "Esqueci minha senha"/,
       );
@@ -230,7 +236,7 @@ describe("Criar conta", () => {
       fill({ "E-mail": "outra@exemplo.com" });
       fillDetails();
       submit();
-      await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar"));
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/entrar/email"));
       expect(signUpWithPassword).not.toHaveBeenCalled();
       expect(useAuthFlow.getState().signInHint?.identifier).toBe("outra@exemplo.com");
     });

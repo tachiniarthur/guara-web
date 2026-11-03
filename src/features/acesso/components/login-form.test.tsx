@@ -4,7 +4,7 @@ import type * as OriginalAuth from "../auth";
 import { useAuthFlow } from "@/stores/auth-flow";
 
 import { PasswordAuthError } from "../auth";
-import { LoginForm } from "./login-form";
+import { LoginForm, SignInOptions } from "./login-form";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }) }));
@@ -78,6 +78,7 @@ describe("Entrar", () => {
     useAuthFlow.getState().setSignInHint({
       identifier: "529.982.247-25",
       notice: "Esse CPF já tem uma conta no Guará.",
+      social: false,
     });
     render(<LoginForm />);
     expect(screen.getByLabelText("E-mail ou CPF")).toHaveValue("529.982.247-25");
@@ -93,5 +94,39 @@ describe("Entrar", () => {
     expect(identifier).not.toHaveClass("border", "px-3.5");
     const password = screen.getByLabelText("Senha");
     expect(password).toHaveClass("border-[1.5px]", "pl-4", "pr-12");
+  });
+
+  it("só os campos de e-mail ou CPF e senha, sem Google e Apple (eles ficam na escolha)", () => {
+    render(<LoginForm />);
+    expect(screen.queryByRole("button", { name: "Continuar com Google" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Criar conta" })).toHaveAttribute(
+      "href",
+      "/boas-vindas/criar",
+    );
+  });
+});
+
+describe("Entrar · escolha", () => {
+  it("oferece Google, Apple e e-mail ou CPF, sem campos", () => {
+    render(<SignInOptions />);
+    expect(screen.getByRole("button", { name: "Continuar com Google" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Continuar com Apple" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Entrar com e-mail ou CPF" })).toHaveAttribute(
+      "href",
+      "/entrar/email",
+    );
+    expect(screen.queryByLabelText("Senha")).not.toBeInTheDocument();
+  });
+
+  it("mostra o aviso de quem veio do Criar conta com uma conta só do Google", () => {
+    useAuthFlow.getState().setSignInHint({
+      identifier: "ana@exemplo.com",
+      notice: "Esse e-mail já tem uma conta no Guará, criada com o Google.",
+      social: true,
+    });
+    render(<SignInOptions />);
+    expect(
+      screen.getByText("Esse e-mail já tem uma conta no Guará, criada com o Google."),
+    ).toBeInTheDocument();
   });
 });

@@ -2,7 +2,12 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 /** "Criar conta" achou uma conta: o "Entrar" abre com o e-mail ou o CPF e este aviso. */
-export type SignInHint = { identifier: string; notice: string };
+export type SignInHint = {
+  identifier: string;
+  notice: string;
+  /** A conta é só do Google ou da Apple (sem senha): o aviso aparece na escolha do "Entrar". */
+  social: boolean;
+};
 
 type AuthFlowState = {
   /** E-mail para onde o código foi mandado (`null` sem código a caminho). */

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { Field, FieldLabel, TextInput } from "@/components/ui/form";
 import { account } from "@/features/perfil/data";
 import { cn } from "@/lib/utils";
@@ -22,7 +23,33 @@ const ENTRAR_FIELD = "border-[1.5px]";
 export type LoginState = "pronto" | "credenciais" | "sem-internet";
 
 /**
- * Entrada com e-mail ou CPF e senha (ou Google e Apple). Com login de verdade, entra pela API; no
+ * "Entrar" (escolha): Google, Apple ou "Entrar com e-mail ou CPF", que abre os campos na tela
+ * seguinte. Quem veio do "Criar conta" com uma conta só do Google ou da Apple vê o aviso aqui.
+ */
+export function SignInOptions() {
+  const hint = useAuthFlow((s) => s.signInHint);
+  return (
+    <>
+      {hint?.social && <WarningBlock icon="user">{hint.notice}</WarningBlock>}
+      <div className="flex flex-col gap-2.5">
+        <SocialButtons />
+        <ButtonLink href="/entrar/email" variant="secondary" size="xl" block>
+          <Icon name="mail" size={20} />
+          <span>Entrar com e-mail ou CPF</span>
+        </ButtonLink>
+      </div>
+      <p className="m-0 text-center text-14 text-mist">
+        Ainda não tem conta?{" "}
+        <Link href="/boas-vindas/criar" className="font-bold text-sand underline">
+          Criar conta
+        </Link>
+      </p>
+    </>
+  );
+}
+
+/**
+ * Entrada com e-mail ou CPF e senha. Com login de verdade, entra pela API; no
  * protótipo, só aceita o e-mail de exemplo. O erro de credencial é sempre o mesmo (não diz se a
  * conta existe).
  */
@@ -100,12 +127,6 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
       )}
       {failure && <WarningBlock icon="alert-triangle">{failure}</WarningBlock>}
       {hint && <WarningBlock icon="user">{hint.notice}</WarningBlock>}
-      <SocialButtons />
-      <div className="flex items-center gap-3 text-13 text-caption">
-        <span className="h-px grow bg-line" />
-        ou com e-mail ou CPF
-        <span className="h-px grow bg-line" />
-      </div>
       <form id="entrar" onSubmit={submit} className="contents" noValidate>
         <Field>
           <FieldLabel htmlFor="ent-identificador">E-mail ou CPF</FieldLabel>
@@ -160,7 +181,7 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
       </form>
       <p className="m-0 text-center text-14 text-mist">
         Ainda não tem conta?{" "}
-        <Link href="/boas-vindas" className="font-bold text-sand underline">
+        <Link href="/boas-vindas/criar" className="font-bold text-sand underline">
           Criar conta
         </Link>
       </p>

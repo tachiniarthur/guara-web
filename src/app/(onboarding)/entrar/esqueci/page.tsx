@@ -5,7 +5,7 @@ import { MataBanner, OnboardingShell } from "@/features/onboarding/components/on
 export default function EsqueciSenhaPage() {
   return (
     <OnboardingShell mobileTop={<MataBanner variant="mobile" />} {...authShell}>
-      <AuthBackLink href="/entrar" />
+      <AuthBackLink href="/entrar/email" />
       <AuthIntro title="Esqueci minha senha">
         Digite o e-mail da sua conta. Enviamos um código de 6 dígitos e, depois, você cria uma senha
         nova.

@@ -25,21 +25,26 @@ import { SocialButtons } from "./social-buttons";
 /** E-mail plausível antes de pedir à API (o servidor tem a palavra final). */
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 
-/** Boas-vindas: Google, Apple ou criar a conta com e-mail (na tela seguinte, nome e e-mail). */
+/** Boas-vindas: criar a conta ou entrar (os dados vêm na tela seguinte), ou Google e Apple. */
 export function WelcomeOptions() {
   return (
     <>
       <div className="flex flex-col gap-2.5">
-        <SocialButtons prototypeHref="/onboarding/plano" />
+        <ButtonLink href="/boas-vindas/criar" variant="primary" size="xl" block>
+          <span>Criar conta</span>
+        </ButtonLink>
+        <ButtonLink href="/entrar" variant="outline" size="xl" block>
+          <span>Entrar</span>
+        </ButtonLink>
       </div>
       <div className="flex items-center gap-3 text-13 text-caption">
         <span className="h-px flex-1 bg-line" />
         ou
         <span className="h-px flex-1 bg-line" />
       </div>
-      <ButtonLink href="/boas-vindas/criar" variant="primary" size="xl" block>
-        <span>Criar conta com e-mail</span>
-      </ButtonLink>
+      <div className="flex flex-col gap-2.5">
+        <SocialButtons prototypeHref="/onboarding/plano" />
+      </div>
     </>
   );
 }
@@ -75,10 +80,14 @@ export function SignUpForm() {
     cpf: isValidCpf(cpf) ? undefined : "Confira o CPF: são 11 números.",
   });
 
-  /** O e-mail ou o CPF já tem conta: vai para o "Entrar" com ele preenchido. */
+  /**
+   * O e-mail ou o CPF já tem conta: vai para o "Entrar" com ele preenchido (a conta só com Google
+   * ou Apple abre na escolha, onde estão os botões deles).
+   */
   function goToSignIn(status: EmailStatus, address: string) {
-    setSignInHint(signInHintFor(status, address, cpf));
-    router.push("/entrar");
+    const hint = signInHintFor(status, address, cpf);
+    setSignInHint(hint);
+    router.push(hint.social ? "/entrar" : "/entrar/email");
   }
 
   /** Etapa 1: confere o e-mail e o CPF antes de pedir o resto. */
@@ -259,6 +268,7 @@ function signInHintFor(status: EmailStatus, email: string, cpf: string): SignInH
   if (!status.exists) {
     return {
       identifier: formatCpf(cpf),
+      social: false,
       notice:
         "Esse CPF já tem uma conta no Guará. Entre com a senha ou do mesmo jeito que criou a conta.",
     };
@@ -266,6 +276,7 @@ function signInHintFor(status: EmailStatus, email: string, cpf: string): SignInH
   if (status.hasPassword) {
     return {
       identifier: email,
+      social: false,
       notice: "Esse e-mail já tem uma conta no Guará. Entre com a senha.",
     };
   }
@@ -274,12 +285,14 @@ function signInHintFor(status: EmailStatus, email: string, cpf: string): SignInH
     const via = social.join(" e ");
     return {
       identifier: email,
+      social: true,
       notice: `Esse e-mail já tem uma conta no Guará, criada com ${via}. Continue com ${via} ou clique em "Esqueci minha senha" para criar uma senha.`,
     };
   }
   // Criada antes da senha existir (só com o código no e-mail).
   return {
     identifier: email,
+    social: false,
     notice:
       'Esse e-mail já tem uma conta no Guará, ainda sem senha. Clique em "Esqueci minha senha": enviamos um código para o e-mail e você cria a senha.',
   };
