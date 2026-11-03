@@ -20,7 +20,7 @@ type Mode = "docked" | "overlay";
 
 /** Cabeçalho, conversa e campo de mensagem. Igual nos dois modos; só os botões do topo mudam. */
 function ChatPanelBody({ mode }: { mode: Mode }) {
-  const { conversationId, draft, send, close, showHistory, newConversation } = useChatPanel();
+  const { conversationId, draft, send, close, showHistory } = useChatPanel();
   const endRef = useRef<HTMLDivElement>(null);
   const count = useChatPanel((state) =>
     conversationId ? (state.messages[conversationId]?.length ?? 0) : 0,
@@ -58,27 +58,27 @@ function ChatPanelBody({ mode }: { mode: Mode }) {
           size={buttonSize}
           onClick={docked ? close : showHistory}
         />
-        <IconButton
-          icon="plus"
-          label="Nova conversa"
-          variant="forest"
-          size={buttonSize}
-          onClick={() => newConversation()}
-        />
-        {!docked && (
-          <Link
-            href={conversationId ? `/conversas/${conversationId}` : "/conversas/nova"}
-            aria-label="Abrir em tela cheia"
-            onClick={close}
-            className="flex size-12 shrink-0 items-center justify-center rounded-full border border-line-strong text-mist hover:bg-shade"
-          >
-            <Icon name="expand" />
-          </Link>
-        )}
+        {/* Abre esta conversa em tela cheia (uma nova conversa começa pelo histórico). */}
+        <Link
+          href={conversationId ? `/conversas/${conversationId}` : "/conversas/nova"}
+          aria-label="Abrir em tela cheia"
+          onClick={close}
+          className={cn(
+            "flex shrink-0 items-center justify-center rounded-full border border-line-strong text-mist hover:bg-shade hover:text-sand",
+            docked ? "size-12" : "size-11",
+          )}
+        >
+          <Icon name="expand" />
+        </Link>
       </header>
       <div className="scrollbar-none flex grow flex-col overflow-y-auto p-4 md:p-6">
         {/* mt-auto: a conversa curta fica embaixo; a longa rola desde o começo. */}
-        <div ref={endRef} className="mt-auto flex flex-col gap-5">
+        {/* Trocar de conversa (ou começar uma nova) entra com uma subida curta, sem trocar seco. */}
+        <div
+          ref={endRef}
+          key={conversationId ?? "nova"}
+          className="mt-auto flex animate-fade-up flex-col gap-5 [animation-duration:var(--duration-dialog)]"
+        >
           <PanelThread conversationId={conversationId} />
         </div>
       </div>

@@ -40,6 +40,8 @@ export function HistoryPanel({
   return (
     <aside
       aria-label="Histórico de conversas"
+      // No desktop, o painel entra deslizando da direita (ao reabrir pelo atalho ou ao fechar a conversa).
+      data-motion={sheet ? undefined : "panel"}
       className={cn(
         "flex-col bg-card",
         sheet
@@ -92,8 +94,8 @@ export function HistoryPanel({
             />
             {wide && (
               <Link
-                href="/conversas"
-                aria-label="Abrir em tela cheia"
+                href="/conversas/nova"
+                aria-label="Nova conversa em tela cheia"
                 className="flex size-10 shrink-0 items-center justify-center rounded-full text-mist hover:bg-shade"
               >
                 <Icon name="expand" />
@@ -158,7 +160,7 @@ export function HistoryHandle({ className }: { className?: string }) {
       )}
     >
       <ForestBackdrop overlay="flat" />
-      <Icon name="chat" size={24} />
+      <Icon name="chat" size={32} strokeWidth={1.8} />
     </button>
   );
 }

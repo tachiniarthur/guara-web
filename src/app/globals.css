@@ -761,6 +761,24 @@
   }
 }
 
+/*
+ * Gráfico que já se desenhou (components/charts/chart-fit.tsx): se outra variante aparece porque a
+ * largura mudou, ela entra pronta, sem refazer a entrada (fica no estado final das animações).
+ */
+[data-chart-settled]
+  :is(
+    .animate-reveal-x,
+    .animate-reveal-y,
+    .animate-sweep,
+    .animate-grow-x,
+    .build-bar,
+    .build-line,
+    .build-after
+  ) {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+}
+
 /* Grupo com indicador deslizante (components/ui/sliding-group.tsx): o fundo vem do indicador. */
 [data-indicator-ready] > [aria-pressed="true"] {
   background-color: transparent;
