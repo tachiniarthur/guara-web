@@ -6,7 +6,8 @@ import { SessionProvider } from "@/features/acesso/session";
 import { PlanStep } from "./plan-step";
 
 const push = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }) }));
+const replace = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace }) }));
 
 function renderStep() {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
@@ -38,5 +39,15 @@ describe("Onboarding · Plano (protótipo)", () => {
     expect(screen.queryByRole("heading", { level: 2, name: /Private/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Assinar o Pro" }));
     expect(push).toHaveBeenCalledWith("/onboarding/bancos");
+  });
+
+  it("volta para a escolha de como entrar (no celular, pela seta do topo)", async () => {
+    renderStep();
+    const [header, inline] = screen.getAllByRole("button", { name: "Voltar" });
+    fireEvent.click(header!);
+    await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/boas-vindas"));
+    replace.mockClear();
+    fireEvent.click(inline!);
+    await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/boas-vindas"));
   });
 });

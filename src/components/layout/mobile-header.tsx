@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { IconButtonLink } from "@/components/ui/icon-button";
+import { IconButton, IconButtonLink } from "@/components/ui/icon-button";
 import { user } from "@/features/usuario/data";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,8 @@ type MobileHeaderProps = {
   subtitle?: string;
   /** Link de volta (seta) ou de fechar (x) à esquerda. */
   back?: string;
+  /** Seta de volta que executa uma ação, em vez de um link. */
+  onBack?: () => void;
   close?: string;
   /** Ações à direita (antes do botão da conta). */
   actions?: ReactNode;
@@ -32,6 +34,7 @@ export function MobileHeader({
   title,
   subtitle,
   back,
+  onBack,
   close,
   actions,
   account = false,
@@ -52,6 +55,8 @@ export function MobileHeader({
         <>
           {back ? (
             <IconButtonLink href={back} icon="chevron-left" label="Voltar" variant="ghost" />
+          ) : onBack ? (
+            <IconButton icon="chevron-left" label="Voltar" variant="ghost" onClick={onBack} />
           ) : close ? (
             <IconButtonLink href={close} icon="x" label="Fechar" variant="ghost" />
           ) : (

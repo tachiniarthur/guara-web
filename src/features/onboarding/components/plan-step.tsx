@@ -24,6 +24,7 @@ import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 import { onboardingSteps } from "../data";
+import { LeaveOnboardingLink, useLeaveOnboarding } from "./leave-onboarding";
 import { OnboardingIntro, OnboardingShell, OnboardingSteps, stepFrame } from "./onboarding-shell";
 
 /** Linhas de cada card (cabeçalho, recursos e botão): todas alinhadas entre os cards. */
@@ -172,6 +173,7 @@ export function PlanStep() {
   const { live, refresh } = useSession();
   const activate = useActivatePlan();
   const me = useMe({ enabled: live });
+  const leave = useLeaveOnboarding();
   const [choosing, setChoosing] = useState<PlanId | null>(null);
   const [selected, setSelected] = useState<PlanId>(featuredPlan);
   // O anual vem escolhido (10% de desconto); a pessoa pode trocar para o mensal.
@@ -201,7 +203,8 @@ export function PlanStep() {
   }
 
   return (
-    <OnboardingShell {...stepFrame} mobileTop={<MobileHeader />}>
+    <OnboardingShell {...stepFrame} mobileTop={<MobileHeader onBack={() => void leave()} />}>
+      <LeaveOnboardingLink className="max-md:hidden" />
       <OnboardingSteps current={1} steps={onboardingSteps} />
       <OnboardingIntro title="Escolha seu plano">
         Todos os planos têm os assistentes de IA. Pague por mês ou por ano, com 10% de desconto no

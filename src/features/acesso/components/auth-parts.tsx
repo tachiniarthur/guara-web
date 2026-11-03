@@ -4,16 +4,36 @@ import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
+const backClass =
+  "inline-flex min-h-11 items-center gap-1.5 self-start text-15 font-semibold text-mist no-underline hover:text-sand";
+
 /** "‹ Voltar" no topo das telas de entrada. */
 export function AuthBackLink({ href }: { href: string }) {
   return (
-    <Link
-      href={href}
-      className="inline-flex min-h-11 items-center gap-1.5 self-start text-15 font-semibold text-mist no-underline hover:text-sand"
-    >
+    <Link href={href} className={backClass}>
       <Icon name="chevron-left" size={18} />
       Voltar
     </Link>
+  );
+}
+
+/** "‹ Voltar" que executa uma ação (ex.: fechar a sessão antes de voltar à entrada). */
+export function AuthBackButton({
+  onClick,
+  className,
+}: {
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(backClass, "cursor-pointer border-0 bg-transparent p-0", className)}
+    >
+      <Icon name="chevron-left" size={18} />
+      Voltar
+    </button>
   );
 }
 
