@@ -5,7 +5,7 @@ import { useEffect, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, TextInput } from "@/components/ui/form";
-import { PASSWORD_MAX_LENGTH, passwordProblem } from "@/lib/password";
+import { PASSWORD_HINT, PASSWORD_MAX_LENGTH, passwordProblem } from "@/lib/password";
 import { useAuthFlow } from "@/stores/auth-flow";
 
 import {
@@ -149,7 +149,7 @@ export function NewPasswordForm() {
           setErrors({});
         }}
         error={errors.senha}
-        hint="Misture letras e números."
+        hint={PASSWORD_HINT}
       />
       <PasswordField
         id="nova-confirmacao"

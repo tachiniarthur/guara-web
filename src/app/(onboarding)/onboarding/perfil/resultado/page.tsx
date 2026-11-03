@@ -2,7 +2,9 @@ import { MobileHeader } from "@/components/layout/mobile-header";
 import { ButtonLink } from "@/components/ui/button";
 import { MobileActionBar } from "@/components/ui/form";
 import { OnboardingShell, stepFrame } from "@/features/onboarding/components/onboarding-shell";
+import { RequireEarlierAnswers } from "@/features/onboarding/components/profile-question";
 import { ProfileResult } from "@/features/onboarding/components/profile-result";
+import { profileQuestions } from "@/features/onboarding/data";
 
 export default function ResultadoPerfilPage() {
   return (
@@ -21,6 +23,7 @@ export default function ResultadoPerfilPage() {
         </MobileActionBar>
       }
     >
+      <RequireEarlierAnswers before={profileQuestions.length + 1} />
       <ProfileResult />
     </OnboardingShell>
   );

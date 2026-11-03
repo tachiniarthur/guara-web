@@ -3,7 +3,12 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useProfileAnswers } from "@/stores/profile-answers";
 
 import { profileQuestions } from "../data";
-import { ProfileQuestionFields, QuestionContinue } from "./profile-question";
+import { ProfileQuestionFields, QuestionContinue, RequireEarlierAnswers } from "./profile-question";
+
+const replace = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace, push: vi.fn() }) }));
+
+beforeEach(() => replace.mockClear());
 
 describe("Onboarding · pergunta do perfil", () => {
   it("começa sem resposta e só deixa continuar depois de escolher", () => {
@@ -30,5 +35,17 @@ describe("Onboarding · pergunta do perfil", () => {
       "href",
       "/onboarding/perfil/2",
     );
+  });
+
+  it("pelo endereço, não pula perguntas: volta para a primeira sem resposta", () => {
+    act(() => useProfileAnswers.setState({ answers: { onboarding: { 1: 0 }, refazer: {} } }));
+    render(<RequireEarlierAnswers before={5} />);
+    expect(replace).toHaveBeenCalledWith("/onboarding/perfil/2");
+  });
+
+  it("com as anteriores respondidas, fica", () => {
+    act(() => useProfileAnswers.setState({ answers: { onboarding: { 1: 0, 2: 1 }, refazer: {} } }));
+    render(<RequireEarlierAnswers before={3} />);
+    expect(replace).not.toHaveBeenCalled();
   });
 });

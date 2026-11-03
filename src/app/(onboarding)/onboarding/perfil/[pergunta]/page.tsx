@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { ButtonLink } from "@/components/ui/button";
 import { MobileActionBar } from "@/components/ui/form";
-import { IconButtonLink } from "@/components/ui/icon-button";
 import {
   OnboardingActions,
   OnboardingShell,
@@ -14,16 +12,15 @@ import {
 import {
   ProfileQuestionFields,
   QuestionContinue,
+  RequireEarlierAnswers,
 } from "@/features/onboarding/components/profile-question";
 import { onboardingSteps, profileQuestions } from "@/features/onboarding/data";
-
-const laterClass =
-  "flex h-13 items-center text-15 font-semibold whitespace-nowrap text-mist underline underline-offset-3 hover:text-sand";
 
 export function generateStaticParams() {
   return profileQuestions.map((_, i) => ({ pergunta: String(i + 1) }));
 }
 
+/** Onboarding 3 · uma pergunta do perfil de investidor. Obrigatório: não há "responder depois". */
 export default async function PerguntaPerfilPage({
   params,
 }: {
@@ -42,24 +39,14 @@ export default async function PerguntaPerfilPage({
   return (
     <OnboardingShell
       {...stepFrame}
-      mobileTop={
-        <MobileHeader
-          title="Perfil de investidor"
-          back={back}
-          actions={
-            <IconButtonLink href="/" icon="x" label="Sair do questionário" variant="ghost" />
-          }
-        />
-      }
+      mobileTop={<MobileHeader title="Perfil de investidor" back={back} balanced />}
       mobileActions={
         <MobileActionBar>
-          <Link href="/onboarding/assistentes" className={`${laterClass} px-1.5`}>
-            Responder depois
-          </Link>
           <QuestionContinue scope="onboarding" numero={numero} href={next} className="grow" />
         </MobileActionBar>
       }
     >
+      <RequireEarlierAnswers before={numero} />
       <OnboardingSteps current={3} steps={onboardingSteps} />
       <ProfileQuestionFields
         question={question}
@@ -73,9 +60,6 @@ export default async function PerguntaPerfilPage({
           <span>Voltar</span>
         </ButtonLink>
         <div className="grow" />
-        <Link href="/onboarding/assistentes" className={`${laterClass} px-3`}>
-          Responder depois
-        </Link>
         <QuestionContinue scope="onboarding" numero={numero} href={next} />
       </OnboardingActions>
     </OnboardingShell>

@@ -51,7 +51,7 @@ function identify(overrides: Record<string, string> = {}) {
 
 /** Etapa 2: nome e senha. */
 function fillDetails(overrides: Record<string, string> = {}) {
-  fill({ Nome: " Arthur ", Senha: "Senha2026", "Confirmar senha": "Senha2026", ...overrides });
+  fill({ Nome: " Arthur ", Senha: "Senha@2026", "Confirmar senha": "Senha@2026", ...overrides });
 }
 
 const submit = () => fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
@@ -142,7 +142,7 @@ describe("Criar conta", () => {
       fillDetails();
       submit();
       await waitFor(() => expect(push).toHaveBeenCalledWith("/boas-vindas/codigo"));
-      expect(signUpWithPassword).toHaveBeenCalledWith("arthur@exemplo.com", "Senha2026", "Arthur");
+      expect(signUpWithPassword).toHaveBeenCalledWith("arthur@exemplo.com", "Senha@2026", "Arthur");
       expect(useAuthFlow.getState()).toMatchObject({
         email: "arthur@exemplo.com",
         name: "Arthur",

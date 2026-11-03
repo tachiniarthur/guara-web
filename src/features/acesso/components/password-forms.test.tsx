@@ -68,7 +68,7 @@ describe("Senha nova", () => {
     useAuthFlow.getState().setPasswordPending(true);
     render(<NewPasswordForm />);
     fill("12345678", "outra");
-    expect(screen.getByText("Misture letras e números.")).toBeInTheDocument();
+    expect(screen.getByText("Inclua pelo menos uma letra maiúscula.")).toBeInTheDocument();
     expect(screen.getByText("As senhas não são iguais.")).toBeInTheDocument();
     expect(updatePassword).not.toHaveBeenCalled();
   });
@@ -76,9 +76,9 @@ describe("Senha nova", () => {
   it("salva a senha, libera a sessão e abre o app", async () => {
     useAuthFlow.getState().setPasswordPending(true);
     render(<NewPasswordForm />);
-    fill("Senha2026");
+    fill("Senha@2026");
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
-    expect(updatePassword).toHaveBeenCalledWith("Senha2026");
+    expect(updatePassword).toHaveBeenCalledWith("Senha@2026");
     expect(useAuthFlow.getState().passwordPending).toBe(false);
     expect(refresh).toHaveBeenCalled();
   });

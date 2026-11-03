@@ -35,16 +35,16 @@ function fill(identifier: string, password: string) {
 describe("Entrar", () => {
   it("entra com e-mail e senha e relê a sessão", async () => {
     render(<LoginForm />);
-    fill("arthur@exemplo.com", "Senha2026");
+    fill("arthur@exemplo.com", "Senha@2026");
     await waitFor(() => expect(refresh).toHaveBeenCalled());
-    expect(signInWithPassword).toHaveBeenCalledWith("arthur@exemplo.com", "Senha2026");
+    expect(signInWithPassword).toHaveBeenCalledWith("arthur@exemplo.com", "Senha@2026");
   });
 
   it("entra com o CPF do jeito que foi digitado", async () => {
     render(<LoginForm />);
-    fill("529.982.247-25", "Senha2026");
+    fill("529.982.247-25", "Senha@2026");
     await waitFor(() => expect(refresh).toHaveBeenCalled());
-    expect(signInWithPassword).toHaveBeenCalledWith("529.982.247-25", "Senha2026");
+    expect(signInWithPassword).toHaveBeenCalledWith("529.982.247-25", "Senha@2026");
   });
 
   it("pede os dois campos", () => {

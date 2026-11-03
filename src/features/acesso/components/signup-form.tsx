@@ -8,7 +8,7 @@ import { Field, FieldLabel, TextInput } from "@/components/ui/form";
 import { useAuthFlow, type SignInHint } from "@/stores/auth-flow";
 
 import { cpfProblem, formatCpf } from "@/lib/cpf";
-import { PASSWORD_MAX_LENGTH, passwordProblem } from "@/lib/password";
+import { PASSWORD_HINT, PASSWORD_MAX_LENGTH, passwordProblem } from "@/lib/password";
 
 import {
   checkEmail,
@@ -234,7 +234,7 @@ export function SignUpForm() {
                 clear("senha");
               }}
               error={errors.senha}
-              hint="Misture letras e números."
+              hint={PASSWORD_HINT}
             />
             <PasswordField
               id="confirmacao"

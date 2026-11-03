@@ -1,11 +1,33 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 import { useProfileAnswers, type QuestionnaireScope } from "@/stores/profile-answers";
 
 import type { ProfileQuestion } from "../data";
+
+/**
+ * O perfil de investidor do onboarding é obrigatório: quem abre uma pergunta (ou o resultado, com
+ * `before` = total + 1) pelo endereço, sem ter respondido as anteriores, volta para a primeira
+ * que falta. Voltar sempre pode; avançar, só respondendo.
+ */
+export function RequireEarlierAnswers({ before }: { before: number }) {
+  const router = useRouter();
+  const missing = useProfileAnswers((s) => {
+    for (let numero = 1; numero < before; numero += 1) {
+      if (s.answers.onboarding[numero] === undefined) return numero;
+    }
+    return null;
+  });
+  useEffect(() => {
+    if (missing) router.replace(`/onboarding/perfil/${missing}`);
+  }, [missing, router]);
+  return null;
+}
 
 /** Uma pergunta do questionário de perfil: enunciado, 4 opções em cards e o "por que". */
 export function ProfileQuestionFields({
