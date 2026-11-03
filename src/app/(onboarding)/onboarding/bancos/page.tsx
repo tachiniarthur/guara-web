@@ -2,11 +2,7 @@ import { MobileHeader } from "@/components/layout/mobile-header";
 import { ButtonLink } from "@/components/ui/button";
 import { MobileActionBar, TextInput } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
-import {
-  BankPicker,
-  BankStepContinue,
-  BankStepSkip,
-} from "@/features/onboarding/components/bank-picker";
+import { BankPicker, BankStepContinue } from "@/features/onboarding/components/bank-picker";
 import {
   OnboardingActions,
   OnboardingIntro,
@@ -25,7 +21,6 @@ export default function ConectarBancosPage() {
       mobileTop={<MobileHeader back="/onboarding/plano" />}
       mobileActions={
         <MobileActionBar>
-          <BankStepSkip label="Pular" />
           <div className="grow">
             <BankStepContinue className="w-full" />
           </div>
@@ -34,8 +29,16 @@ export default function ConectarBancosPage() {
     >
       <OnboardingSteps current={2} steps={onboardingSteps} />
       <OnboardingIntro title="Conecte seus bancos">
-        Pelo Open Finance Brasil. Você autoriza no app do banco e revoga quando quiser.
+        Pelo Open Finance Brasil. Conecte pelo menos um banco em seu nome: ele confirma o seu CPF.
+        Você autoriza no app do banco e revoga quando quiser.
       </OnboardingIntro>
+      <p className="m-0 flex items-start gap-2 text-13 leading-[1.55] text-caption">
+        <Icon name="shield" size={16} />
+        <span>
+          Todos os bancos precisam estar no mesmo CPF da sua conta. Banco em outro CPF não é
+          conectado.
+        </span>
+      </p>
       <div className="relative">
         <label htmlFor="buscar-banco" className="sr-only">
           Buscar banco
@@ -56,7 +59,6 @@ export default function ConectarBancosPage() {
         <ButtonLink href="/onboarding/plano" variant="secondary" size="xl">
           <span>Voltar</span>
         </ButtonLink>
-        <BankStepSkip label="Pular por agora" />
         <div className="grow" />
         <BankStepContinue />
       </OnboardingActions>

@@ -160,12 +160,13 @@ export function BankPicker() {
 }
 
 /**
- * "Continuar" da etapa de bancos: travado enquanto houver mais bancos conectados do que o plano
- * deixa.
+ * "Continuar" da etapa de bancos: travado sem nenhum banco (é obrigatório conectar pelo menos um:
+ * ele confirma o CPF da conta) e enquanto houver mais bancos conectados do que o plano deixa.
  */
 export function BankStepContinue({ className }: { className?: string }) {
   const over = useBanksOverLimit();
-  if (over > 0) {
+  const none = useOnboardingBanks((s) => s.connected.length === 0);
+  if (over > 0 || none) {
     return (
       <span
         aria-disabled="true"
@@ -181,22 +182,6 @@ export function BankStepContinue({ className }: { className?: string }) {
   return (
     <ButtonLink href="/onboarding/perfil/1" variant="primary" size="xl" className={className}>
       <span>Continuar</span>
-    </ButtonLink>
-  );
-}
-
-/** "Pular": some enquanto houver bancos além do plano (é preciso desconectar antes). */
-export function BankStepSkip({ label, className }: { label: string; className?: string }) {
-  const over = useBanksOverLimit();
-  if (over > 0) return null;
-  return (
-    <ButtonLink
-      href="/onboarding/perfil/1"
-      variant="ghost"
-      size="xl"
-      className={cn("hover:bg-transparent", className)}
-    >
-      <span>{label}</span>
     </ButtonLink>
   );
 }

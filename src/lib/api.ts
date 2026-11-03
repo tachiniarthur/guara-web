@@ -15,6 +15,8 @@ export type ApiErrorCode =
   | "rate_limited"
   | "invalid_credentials"
   | "cpf_already_registered"
+  | "cpf_mismatch"
+  | "cpf_required"
   | "internal"
   | "unavailable"
   | "network";
@@ -35,6 +37,8 @@ const SERVER_CODES: Record<string, ApiErrorCode> = {
   RATE_LIMITED: "rate_limited",
   INVALID_CREDENTIALS: "invalid_credentials",
   CPF_ALREADY_REGISTERED: "cpf_already_registered",
+  CPF_MISMATCH: "cpf_mismatch",
+  CPF_REQUIRED: "cpf_required",
 };
 
 function codeFromStatus(status: number): ApiErrorCode {

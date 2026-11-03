@@ -35,4 +35,11 @@ describe("Onboarding · bancos (protótipo, plano Plus: 4 bancos)", () => {
     expect(screen.getByText(/você chegou ao limite do plano Plus/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Continuar" })).toBeInTheDocument();
   });
+
+  it("sem nenhum banco, trava o Continuar (é obrigatório: o banco confirma o CPF)", () => {
+    act(() => useOnboardingBanks.setState({ connected: [], justConnected: null }));
+    renderStep();
+    expect(screen.queryByRole("link", { name: "Continuar" })).not.toBeInTheDocument();
+    expect(screen.getByText("Continuar")).toHaveAttribute("aria-disabled", "true");
+  });
 });

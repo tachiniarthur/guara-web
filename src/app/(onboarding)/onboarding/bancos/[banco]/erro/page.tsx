@@ -14,11 +14,35 @@ export function generateStaticParams() {
   return banks.map((bank) => ({ banco: bank.id }));
 }
 
-export default async function ErroBancoPage({ params }: { params: Promise<{ banco: string }> }) {
+/**
+ * Conexão que não deu certo. Com `?motivo=cpf` (a API respondeu `cpf_mismatch`): o banco está em
+ * outro CPF, a autorização já foi desfeita e o caminho é escolher outro banco.
+ */
+export default async function ErroBancoPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ banco: string }>;
+  searchParams: Promise<{ motivo?: string }>;
+}) {
   const { banco } = await params;
+  const { motivo } = await searchParams;
   const bank = bankFromSlug(banco);
+  const mismatch = motivo === "cpf";
   const retry = `/onboarding/bancos/${bank.id}`;
-  const reasons: { icon: IconName; titulo: string; texto: string }[] = [
+  const mismatchReasons: { icon: IconName; titulo: string; texto: string }[] = [
+    {
+      icon: "user",
+      titulo: "Conecte um banco em que você é o titular",
+      texto: "Todos os bancos precisam estar no mesmo CPF da sua conta.",
+    },
+    {
+      icon: "building",
+      titulo: "Conta de empresa não vale",
+      texto: "Use uma conta de pessoa física no seu nome, não uma conta com CNPJ.",
+    },
+  ];
+  const errorReasons: { icon: IconName; titulo: string; texto: string }[] = [
     {
       icon: "x",
       titulo: `Você tocou em “Cancelar” no app do ${bank.nome}`,
@@ -30,33 +54,46 @@ export default async function ErroBancoPage({ params }: { params: Promise<{ banc
       texto: "Acontece quando o banco está instável. Tente em alguns minutos.",
     },
   ];
+  const reasons = mismatch ? mismatchReasons : errorReasons;
   return (
     <MalvoShell
       className="min-h-[49.5rem] justify-center gap-4 md:min-h-0 md:gap-6.5 lg:gap-6"
       mobileActions={
         <>
-          <ButtonLink href="/onboarding/bancos" variant="secondary" size="xl">
-            <span>Outro banco</span>
-          </ButtonLink>
-          <ButtonLink href={retry} variant="primary" size="xl" className="grow">
-            <Icon name="retry" size={18} />
-            <span>Tentar de novo</span>
-          </ButtonLink>
+          {mismatch ? (
+            <ButtonLink href="/onboarding/bancos" variant="primary" size="xl" className="grow">
+              <span>Escolher outro banco</span>
+            </ButtonLink>
+          ) : (
+            <>
+              <ButtonLink href="/onboarding/bancos" variant="secondary" size="xl">
+                <span>Outro banco</span>
+              </ButtonLink>
+              <ButtonLink href={retry} variant="primary" size="xl" className="grow">
+                <Icon name="retry" size={18} />
+                <span>Tentar de novo</span>
+              </ButtonLink>
+            </>
+          )}
         </>
       }
     >
       <div className="flex flex-col items-center gap-3 pt-2 text-center">
         <ResultIcon tone="urucum" icon="alert-triangle" />
         <h1 className="m-0 font-display text-26 font-extrabold">
-          Não deu para conectar o {bank.nome}
+          {mismatch ? `O ${bank.nome} está em outro CPF` : `Não deu para conectar o ${bank.nome}`}
         </h1>
         <p className="m-0 text-15 leading-[1.55] text-mist">
-          A autorização foi cancelada no app do banco. Nenhum dado foi compartilhado e nada mudou na
-          sua conta.
+          {mismatch
+            ? "Esse banco não está no CPF da sua conta. Desfizemos a autorização e nada foi guardado."
+            : "A autorização foi cancelada no app do banco. Nenhum dado foi compartilhado e nada mudou na sua conta."}
         </p>
       </div>
       <Panel className="gap-3.5 p-4.5">
-        <PanelHeader title="O que pode ter acontecido" titleClassName="text-17 tracking-normal" />
+        <PanelHeader
+          title={mismatch ? "O que fazer" : "O que pode ter acontecido"}
+          titleClassName="text-17 tracking-normal"
+        />
         <ul className="m-0 flex list-none flex-col p-0">
           {reasons.map((reason, i) => (
             <li
@@ -82,13 +119,19 @@ export default async function ErroBancoPage({ params }: { params: Promise<{ banc
       </StatusNote>
       <SupportLink />
       <div className="hidden items-center gap-2.5 md:flex">
-        <ButtonLink href="/onboarding/bancos" variant="secondary" size="xl">
+        <ButtonLink
+          href="/onboarding/bancos"
+          variant={mismatch ? "primary" : "secondary"}
+          size="xl"
+        >
           <span>Escolher outro banco</span>
         </ButtonLink>
         <div className="grow" />
-        <ButtonLink href={retry} variant="primary" size="xl">
-          <span>Tentar de novo</span>
-        </ButtonLink>
+        {!mismatch && (
+          <ButtonLink href={retry} variant="primary" size="xl">
+            <span>Tentar de novo</span>
+          </ButtonLink>
+        )}
       </div>
     </MalvoShell>
   );
