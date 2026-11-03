@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Figtree, Fraunces } from "next/font/google";
 
 import "./globals.css";
@@ -22,6 +22,12 @@ const figtree = Figtree({
 export const metadata: Metadata = {
   title: "Guará",
   description: "Finanças pessoais para o Brasil.",
+};
+
+/** A barra do navegador no celular acompanha o fundo do app (tema escuro). */
+export const viewport: Viewport = {
+  themeColor: "#0b110e",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -322,6 +322,23 @@
     cursor: pointer;
   }
   /*
+   * Toque: sem o lampejo cinza do navegador (cada controle tem a própria resposta ao apertar), sem
+   * a espera do toque duplo e sem selecionar o texto do botão ao segurar o dedo.
+   */
+  :where(a, button, summary, label, [role="button"]) {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  :where(button, [role="button"]) {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* Rolagem dentro de gavetas, chat e listas não arrasta a página de trás quando chega ao fim. */
+  .overflow-y-auto,
+  .overflow-auto {
+    overscroll-behavior: contain;
+  }
+  /*
    * Troca de cor no hover e no foco sempre suave, em qualquer link, botão ou campo. `:where` deixa
    * a especificidade zero: qualquer `transition-*` do componente vale por cima.
    */
