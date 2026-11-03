@@ -102,7 +102,6 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
           </div>
           <ChartFit
             narrow={<PerformanceChart variant="mobile" />}
-            medium={<PerformanceChart variant="tablet" />}
             wide={<PerformanceChart variant="desktop" />}
           />
           <div className="mt-auto grid grid-cols-3 gap-3">
@@ -142,7 +141,10 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
             <span className="text-14 font-bold text-folha">{portfolio.variacaoMes}</span>
           </div>
           <PeriodChips size="sm" />
-          <PerformanceChart variant="tablet" />
+          <ChartFit
+            narrow={<PerformanceChart variant="mobile" />}
+            wide={<PerformanceChart variant="desktop" />}
+          />
           <StatsList />
           <TotalWithAssets compact />
         </CardBody>

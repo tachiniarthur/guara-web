@@ -16,6 +16,11 @@ type ChatPanelState = {
   conversationId: string | null;
   /** Variação da conversa aberta (ex.: a última mensagem não saiu). */
   variant: "nao-enviada" | null;
+  /**
+   * Histórico fechado pelo X (desktop com painel à direita): a tela ocupa a largura toda e fica
+   * só um atalho na borda direita. Qualquer abertura do chat traz o painel de volta.
+   */
+  historyHidden: boolean;
   /** Texto inicial do campo (ex.: "@pacu " ao chamar um bicho específico). */
   draft: string;
   /** Mensagens enviadas nesta sessão, por conversa (ainda não há API). */
@@ -29,6 +34,10 @@ type ChatPanelState = {
   newConversation: (draft?: string) => void;
   showHistory: () => void;
   close: () => void;
+  /** Fecha o histórico (o X dele): some o painel da direita. */
+  hideHistory: () => void;
+  /** Traz o histórico de volta à direita (o atalho na borda da tela). */
+  restoreHistory: () => void;
   send: (text: string, conversationId?: string | null) => void;
   /** Começa uma conversa nova com esta pergunta e abre o painel nela. */
   ask: (text: string) => void;
@@ -50,16 +59,33 @@ export const useChatPanel = create<ChatPanelState>((set, get) => ({
   conversationId: "gastos-setembro",
   variant: null,
   draft: "",
+  historyHidden: false,
   messages: {},
   started: [],
 
   openConversation: (id, variant = null) =>
-    set({ open: true, view: "chat", conversationId: id, variant, draft: "" }),
-  openCurrent: () => set({ open: true, view: "chat", draft: "" }),
+    set({
+      open: true,
+      view: "chat",
+      conversationId: id,
+      variant,
+      draft: "",
+      historyHidden: false,
+    }),
+  openCurrent: () => set({ open: true, view: "chat", draft: "", historyHidden: false }),
   newConversation: (draft = "") =>
-    set({ open: true, view: "chat", conversationId: null, variant: null, draft }),
-  showHistory: () => set({ open: true, view: "history" }),
+    set({
+      open: true,
+      view: "chat",
+      conversationId: null,
+      variant: null,
+      draft,
+      historyHidden: false,
+    }),
+  showHistory: () => set({ open: true, view: "history", historyHidden: false }),
   close: () => set({ open: false, view: "chat" }),
+  hideHistory: () => set({ open: false, view: "chat", historyHidden: true }),
+  restoreHistory: () => set({ historyHidden: false }),
 
   send: (raw, target) => {
     const text = raw.trim();
@@ -94,6 +120,6 @@ export const useChatPanel = create<ChatPanelState>((set, get) => ({
   ask: (text) => {
     set({ conversationId: null });
     get().send(text);
-    set({ open: true, view: "chat" });
+    set({ open: true, view: "chat", historyHidden: false });
   },
 }));

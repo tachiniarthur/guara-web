@@ -14,7 +14,7 @@ import { usePrivacy } from "@/stores/privacy";
 import { BottomNav } from "./bottom-nav";
 import { ChatOverlay, ChatPanel } from "./chat-panel";
 import { ConversarFab, ConversarFabCompact } from "./conversar-fab";
-import { HistoryPanel } from "./history-panel";
+import { HistoryHandle, HistoryPanel } from "./history-panel";
 import { Rail } from "./rail";
 import { Sidebar } from "./sidebar";
 import { ValuesMask } from "./values-mask";
@@ -83,7 +83,9 @@ function ShellChromeFromUrl({ pathname }: { pathname: string }) {
 function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
   const config = shellConfig(pathname, { novo });
   const open = useChatPanel((state) => state.open);
-  const hasAside = config.aside !== false;
+  const historyHidden = useChatPanel((state) => state.historyHidden);
+  // O X do histórico tira o painel da direita; fica um atalho pequeno na borda para reabrir.
+  const hasAside = config.aside !== false && !historyHidden;
   // As páginas de conversa já são o chat em tela cheia.
   const chatAvailable = !pathname.startsWith("/conversas");
   // Conversa fixa à direita só quando a pessoa abre; antes, o painel mostra só o histórico
@@ -110,8 +112,9 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
           <ChatOverlay className={hasAside ? "xl:hidden" : undefined} />
         )}
       </Presence>
+      {config.aside !== false && historyHidden && <HistoryHandle className="hidden lg:flex" />}
       {config.fab && !(chatAvailable && open === true) && (
-        <ConversarFab className={cn("hidden md:flex", hasAside && "lg:hidden")} />
+        <ConversarFab className={cn("hidden md:flex", config.aside !== false && "lg:hidden")} />
       )}
       {config.mobileFab && (
         <ConversarFabCompact position={config.mobileFab} className="md:hidden" />

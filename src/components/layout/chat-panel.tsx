@@ -15,7 +15,6 @@ import { CHAT_WIDTH, HISTORY_WIDTH_MD } from "./chat-sizes";
 import { ChatSheetBody } from "./chat-sheet";
 import { HistoryPanel } from "./history-panel";
 import { MataArt } from "@/components/ui/mata-art";
-import { BrandLogo } from "@/components/layout/brand";
 
 type Mode = "docked" | "overlay";
 
@@ -41,7 +40,14 @@ function ChatPanelBody({ mode }: { mode: Mode }) {
         <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,26,22,0.05)_0%,rgba(18,26,22,0.45)_60%,var(--guara-card)_100%)]" />
       </div>
       <header className="flex h-20 shrink-0 items-center gap-2 border-b border-line px-4 md:gap-3 md:px-6">
-        <BrandLogo size={48} />
+        {/* Fecha a conversa: no painel fixo, volta ao histórico; por cima da tela, fecha o chat. */}
+        <IconButton
+          icon="x"
+          label={docked ? "Fechar a conversa" : "Fechar o chat"}
+          variant="ghost"
+          size={buttonSize}
+          onClick={close}
+        />
         <div className="flex min-w-0 grow flex-col leading-[1.25]">
           <strong className="font-display text-22">Chat do Guará</strong>
           <span className="truncate text-13 text-caption">Sua equipe de assistentes de IA</span>
@@ -69,12 +75,6 @@ function ChatPanelBody({ mode }: { mode: Mode }) {
             <Icon name="expand" />
           </Link>
         )}
-        <IconButton
-          icon="panel-right"
-          label={docked ? "Recolher conversa" : "Fechar o chat"}
-          size={buttonSize}
-          onClick={close}
-        />
       </header>
       <div className="scrollbar-none flex grow flex-col overflow-y-auto p-4 md:p-6">
         {/* mt-auto: a conversa curta fica embaixo; a longa rola desde o começo. */}

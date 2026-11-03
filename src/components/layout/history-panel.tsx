@@ -26,8 +26,15 @@ export function HistoryPanel({
   wide?: boolean;
   className?: string;
 }) {
-  const { open, conversationId, openConversation, openCurrent, newConversation, close } =
-    useChatPanel();
+  const {
+    open,
+    conversationId,
+    openConversation,
+    openCurrent,
+    newConversation,
+    close,
+    hideHistory,
+  } = useChatPanel();
   const sheet = mode === "sheet";
 
   return (
@@ -43,10 +50,18 @@ export function HistoryPanel({
     >
       <header
         className={cn(
-          "flex shrink-0 items-center gap-1 border-b border-line pr-2.5 pl-4.5",
+          "flex shrink-0 items-center gap-1 border-b border-line pr-2.5 pl-2",
           wide ? "h-[5.0625rem]" : "h-17",
         )}
       >
+        {/* Fecha o histórico (no desktop, o painel da direita some; na gaveta, fecha o chat). */}
+        <IconButton
+          icon="x"
+          label={sheet ? "Fechar o chat" : "Fechar o histórico"}
+          variant="ghost"
+          size={wide ? "md" : "sm"}
+          onClick={sheet ? close : hideHistory}
+        />
         <h2 className={cn("m-0 grow font-display font-bold", wide ? "text-22" : "text-18")}>
           Conversas
         </h2>
@@ -65,7 +80,6 @@ export function HistoryPanel({
               size="sm"
               onClick={openCurrent}
             />
-            <IconButton icon="x" label="Fechar" variant="ghost" size="sm" onClick={close} />
           </>
         ) : (
           <>
@@ -121,5 +135,28 @@ export function HistoryPanel({
         </Link>
       </div>
     </aside>
+  );
+}
+
+/**
+ * Atalho pequeno na borda direita quando o histórico foi fechado (desktop): reabre o painel de
+ * conversas no lugar de onde saiu.
+ */
+export function HistoryHandle({ className }: { className?: string }) {
+  const restoreHistory = useChatPanel((state) => state.restoreHistory);
+  return (
+    <button
+      type="button"
+      aria-label="Abrir o histórico de conversas"
+      title="Abrir o histórico de conversas"
+      onClick={restoreHistory}
+      data-motion="panel"
+      className={cn(
+        "fixed top-[calc(50%-1.75rem)] right-0 z-20 h-14 w-10 pressable items-center justify-center rounded-l-2xl border border-r-0 border-line-strong bg-card text-mist shadow-[0_8px_24px_rgba(0,0,0,.35)] hover:bg-shade hover:text-sand",
+        className,
+      )}
+    >
+      <Icon name="chat" size={20} />
+    </button>
   );
 }
