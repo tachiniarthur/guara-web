@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react";
 
+import { ChartFit } from "@/components/charts/chart-fit";
 import { AgentAvatar } from "@/components/ui/agent-avatar";
 import { Button, ButtonLink, buttonVariants } from "@/components/ui/button";
 import { Field, FieldHint, FieldLabel, TextInput } from "@/components/ui/form";
@@ -10,7 +11,7 @@ import { OpenChat } from "@/features/conversas/components/open-chat";
 import { cn } from "@/lib/utils";
 
 import type { DetailSection, PremiseField, Simulation, Tip, Tone } from "../data";
-import { ProjectionChart, type ChartVariant } from "./projection-chart";
+import { ProjectionChart } from "./projection-chart";
 
 const toneClass: Record<Tone, string> = {
   sand: "text-sand",
@@ -137,21 +138,15 @@ export function PremisesCard({
   );
 }
 
-const chartVariants: { variant: ChartVariant; className: string }[] = [
-  { variant: "mobile", className: "@tab:hidden" },
-  { variant: "tablet", className: "hidden @tab:block @desk:hidden" },
-  { variant: "desktop", className: "hidden @desk:block" },
-];
-
 /** Gráfico da projeção, legenda e cenários do resultado. */
 function ResultBody({ result }: { result: Simulation["result"] }) {
   return (
     <>
-      {chartVariants.map(({ variant, className: visibility }) => (
-        <div key={variant} className={visibility}>
-          <ProjectionChart variant={variant} {...result.chart} />
-        </div>
-      ))}
+      <ChartFit
+        narrow={<ProjectionChart variant="mobile" {...result.chart} />}
+        medium={<ProjectionChart variant="tablet" {...result.chart} />}
+        wide={<ProjectionChart variant="desktop" {...result.chart} />}
+      />
       <div className="flex flex-wrap gap-x-4.5 gap-y-2 text-13 text-mist">
         {result.legend.map((item) => (
           <span key={item.label} className="flex items-center gap-1.5">

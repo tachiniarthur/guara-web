@@ -1,4 +1,5 @@
 import { Card, CardHeader } from "@/components/ui/card";
+import { ChartFit } from "@/components/charts/chart-fit";
 import { Icon } from "@/components/ui/icon";
 import { PrivacyToggle } from "@/components/layout/privacy-toggle";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -99,17 +100,16 @@ export function SummaryCard({ className }: { className?: string }) {
                 />
               }
             />
-            <div className="shrink-0">
-              <div className="@tab:hidden">
-                <CashFlowChart variant="compact" />
-              </div>
-              <div className="hidden @tab:block">
-                <CashFlowChart variant="wide" />
-              </div>
-            </div>
-            <div className="@tab:hidden">
-              <CashFlowLegend />
-            </div>
+            <ChartFit
+              className="shrink-0"
+              narrow={
+                <div className="flex flex-col gap-3">
+                  <CashFlowChart variant="compact" />
+                  <CashFlowLegend />
+                </div>
+              }
+              wide={<CashFlowChart variant="wide" />}
+            />
           </div>
         </div>
       </CardBody>

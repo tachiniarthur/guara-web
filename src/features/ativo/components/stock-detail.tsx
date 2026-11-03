@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChartFit } from "@/components/charts/chart-fit";
 import type { ReactNode } from "react";
 
 import { OFFLINE_NOTE, type ScreenState } from "@/components/states/screen-state";
@@ -131,7 +132,11 @@ function PriceCard({ variant, state }: { variant: Variant } & StateProps) {
             {!replacement && <PeriodTabs variant={variant} />}
           </div>
           <StateSwap replacement={replacement} className="grow gap-4">
-            <PriceChart variant={variant} />
+            <ChartFit
+              narrow={<PriceChart variant="mobile" />}
+              medium={<PriceChart variant="tablet" />}
+              wide={<PriceChart variant="desktop" />}
+            />
           </StateSwap>
         </>
       )}
@@ -231,7 +236,10 @@ function DividendsCard({
         {variant === "desktop" ? (
           <div className="grid grid-cols-2 items-stretch gap-7">
             <div className="min-w-0">
-              <DividendsChart variant="desktop" bars={asset.proventos.barras} />
+              <ChartFit
+                narrow={<DividendsChart variant="mobile" bars={asset.proventos.barras} />}
+                wide={<DividendsChart variant="desktop" bars={asset.proventos.barras} />}
+              />
             </div>
             <DividendsList asset={asset} />
           </div>

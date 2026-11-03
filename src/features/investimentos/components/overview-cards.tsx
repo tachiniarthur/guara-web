@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ChartFit } from "@/components/charts/chart-fit";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { chipClass } from "@/components/ui/chip";
 import { Icon } from "@/components/ui/icon";
@@ -99,7 +100,11 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
             </div>
             <PeriodChips size="md" />
           </div>
-          <PerformanceChart variant="desktop" />
+          <ChartFit
+            narrow={<PerformanceChart variant="mobile" />}
+            medium={<PerformanceChart variant="tablet" />}
+            wide={<PerformanceChart variant="desktop" />}
+          />
           <div className="mt-auto grid grid-cols-3 gap-3">
             {portfolio.stats.map((stat) => (
               <div

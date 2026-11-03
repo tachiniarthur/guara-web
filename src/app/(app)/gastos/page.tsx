@@ -14,6 +14,7 @@ import { Panel, PanelHeader, panelLinkClass } from "@/components/ui/panel";
 import { SearchField } from "@/components/ui/search-field";
 import { CategoryBreakdown } from "@/features/gastos/components/category-breakdown";
 import { ChartLegend } from "@/features/gastos/components/chart-legend";
+import { ChartFit } from "@/components/charts/chart-fit";
 import { LedgerList } from "@/features/gastos/components/ledger-list";
 import {
   MonthlySpendingChart,
@@ -191,15 +192,10 @@ export default async function GastosPage({ searchParams }: PageProps<"/gastos">)
                 ]}
               />
               <div className="flex grow items-end">
-                <div className="w-full @tab:hidden">
-                  <SpendingPaceChart variant="mobile" />
-                </div>
-                <div className="hidden w-full @tab:block @desk:hidden">
-                  <SpendingPaceChart variant="tablet" />
-                </div>
-                <div className="hidden w-full @desk:block">
-                  <SpendingPaceChart variant="desktop" />
-                </div>
+                <ChartFit
+                  narrow={<SpendingPaceChart variant="mobile" />}
+                  wide={<SpendingPaceChart variant="desktop" />}
+                />
               </div>
               <ChartFooter>
                 <strong className="text-sand">R$ 1.012 acima</strong> de agosto no mesmo dia, puxado
@@ -219,12 +215,10 @@ export default async function GastosPage({ searchParams }: PageProps<"/gastos">)
                 ]}
               />
               <div className="flex grow items-end">
-                <div className="w-full @desk:hidden">
-                  <MonthlySpendingChart variant="narrow" />
-                </div>
-                <div className="hidden w-full @desk:block">
-                  <MonthlySpendingChart variant="wide" />
-                </div>
+                <ChartFit
+                  narrow={<MonthlySpendingChart variant="narrow" />}
+                  wide={<MonthlySpendingChart variant="wide" />}
+                />
               </div>
               <ChartFooter>
                 Setembro deve fechar perto de <strong className="text-sand">R$ 6.050</strong>, 4%
@@ -240,12 +234,10 @@ export default async function GastosPage({ searchParams }: PageProps<"/gastos">)
             />
             <StateSwap replacement={body()} className="grow gap-3.5">
               <div className="flex grow items-end">
-                <div className="w-full @desk:hidden">
-                  <WeekdaySpendingChart variant="narrow" />
-                </div>
-                <div className="hidden w-full @desk:block">
-                  <WeekdaySpendingChart variant="wide" />
-                </div>
+                <ChartFit
+                  narrow={<WeekdaySpendingChart variant="narrow" />}
+                  wide={<WeekdaySpendingChart variant="wide" />}
+                />
               </div>
               <ChartFooter>
                 Sexta e sábado concentram <strong className="text-sand">36%</strong> dos gastos do

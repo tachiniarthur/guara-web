@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChartFit } from "@/components/charts/chart-fit";
 import type { ReactNode } from "react";
 
 import { Icon } from "@/components/ui/icon";
@@ -108,12 +109,6 @@ export function TotalsCard({ state }: StateProps) {
   );
 }
 
-const chartVariants: { variant: ReportChartVariant; className: string }[] = [
-  { variant: "mobile", className: "@tab:hidden" },
-  { variant: "tablet", className: "hidden @tab:block @desk:hidden" },
-  { variant: "desktop", className: "hidden @desk:block" },
-];
-
 function Stat({
   label,
   value,
@@ -155,11 +150,7 @@ function ChartBlock({
         <p className="m-0 text-13 text-caption">{subtitle}</p>
       </div>
       <div className="flex flex-wrap gap-7">{stats}</div>
-      {chartVariants.map(({ variant, className }) => (
-        <div key={variant} className={className}>
-          {chart(variant)}
-        </div>
-      ))}
+      <ChartFit narrow={chart("mobile")} medium={chart("tablet")} wide={chart("desktop")} />
       <div className="flex flex-wrap gap-x-4.5 gap-y-2 text-13 text-mist">{legend}</div>
       <p className="m-0 text-13 leading-normal text-mist">{footer}</p>
     </div>

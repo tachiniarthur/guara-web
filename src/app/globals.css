@@ -610,6 +610,23 @@
 }
 
 /*
+ * Todo botão ou link em pílula (`rounded-full`) encolhe um pouco ao apertar, mesmo montado à mão:
+ * a resposta ao toque é a mesma em todas as telas. Desabilitado não encolhe.
+ */
+@layer components {
+  :is(button, a).rounded-full {
+    transition:
+      scale var(--duration-press) var(--ease-out-soft),
+      color var(--duration-hover) ease,
+      background-color var(--duration-hover) ease,
+      border-color var(--duration-hover) ease;
+  }
+  :is(button, a).rounded-full:active:not(:disabled, [aria-disabled="true"]) {
+    scale: 0.97;
+  }
+}
+
+/*
  * Resposta ao apertar (botões, chips, ícones, opções de segmentado): encolhe um pouco e volta
  * rápido. As cores trocam no ritmo do hover. Desabilitado não encolhe.
  */
