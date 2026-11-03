@@ -26,6 +26,17 @@ export function isValidCpf(value: string): boolean {
 }
 
 /**
+ * O que está errado no CPF digitado, em pt-BR, ou `null` se ele vale. Diferencia o que falta
+ * (menos de 11 números) do que não confere (dígitos verificadores ou todos iguais).
+ */
+export function cpfProblem(value: string): string | null {
+  const digits = onlyDigits(value);
+  if (digits.length === 0) return "Informe o CPF.";
+  if (digits.length < 11) return "Faltam números: o CPF tem 11.";
+  return isValidCpf(digits) ? null : "Esse CPF não é válido. Confira os números.";
+}
+
+/**
  * Máscara enquanto a pessoa digita: "52998" → "529.98", "52998224725" → "529.982.247-25".
  * Ignora o que não for dígito e corta depois do 11º.
  */

@@ -9,7 +9,7 @@ import { CpfField } from "@/features/acesso/components/fields";
 import { useSession } from "@/features/acesso/session";
 import { useMe, useSetCpf } from "@/features/perfil/api";
 import { ApiError } from "@/lib/api";
-import { isValidCpf } from "@/lib/cpf";
+import { cpfProblem } from "@/lib/cpf";
 
 /**
  * Primeira etapa do onboarding para quem ainda não informou o CPF (entrada com Google ou Apple;
@@ -38,7 +38,8 @@ export function CpfStep() {
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (!isValidCpf(cpf)) return setError("Confira o CPF: são 11 números.");
+    const problem = cpfProblem(cpf);
+    if (problem) return setError(problem);
     setError(null);
     setCpf.mutate(cpf, {
       onSuccess: () => router.replace("/onboarding/plano"),

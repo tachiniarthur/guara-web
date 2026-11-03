@@ -7,7 +7,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, FieldLabel, TextInput } from "@/components/ui/form";
 import { useAuthFlow, type SignInHint } from "@/stores/auth-flow";
 
-import { formatCpf, isValidCpf } from "@/lib/cpf";
+import { cpfProblem, formatCpf } from "@/lib/cpf";
 import { PASSWORD_MAX_LENGTH, passwordProblem } from "@/lib/password";
 
 import {
@@ -77,7 +77,7 @@ export function SignUpForm() {
 
   const identityErrors = (address: string): Partial<Record<SignUpField, string>> => ({
     email: isValidEmail(address) ? undefined : "Confira o e-mail: falta algo no endereço.",
-    cpf: isValidCpf(cpf) ? undefined : "Confira o CPF: são 11 números.",
+    cpf: cpfProblem(cpf) ?? undefined,
   });
 
   /**

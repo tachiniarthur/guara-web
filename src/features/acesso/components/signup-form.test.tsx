@@ -118,7 +118,7 @@ describe("Criar conta", () => {
       render(<SignUpForm />);
       identify({ "E-mail": "arthur@", CPF: "11111111111" });
       expect(screen.getByText("Confira o e-mail: falta algo no endereço.")).toBeInTheDocument();
-      expect(screen.getByText("Confira o CPF: são 11 números.")).toBeInTheDocument();
+      expect(screen.getByText("Esse CPF não é válido. Confira os números.")).toBeInTheDocument();
       expect(checkEmail).not.toHaveBeenCalled();
     });
 
