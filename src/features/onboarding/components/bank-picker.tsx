@@ -9,7 +9,7 @@ import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 import { useOnboardingBanks } from "@/stores/onboarding-banks";
 
-import { banks } from "../data";
+import { banks, pickerBanks } from "../data";
 import { usePlanBanks } from "../hooks";
 
 /** Conectados além do limite do plano (ex.: trocou para um plano menor): precisa desconectar. */
@@ -95,7 +95,7 @@ export function BankPicker() {
         </p>
       )}
       <div className="grid grid-cols-2 items-start gap-2.5">
-        {banks.map((bank) => {
+        {pickerBanks(connected).map((bank) => {
           const on = connected.includes(bank.id);
           const locked = !on && full;
           const className = cn(

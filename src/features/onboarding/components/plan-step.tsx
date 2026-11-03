@@ -34,11 +34,11 @@ function FeatureRow({ value, off }: { value: string | null; off: string }) {
   return (
     <li
       className={cn(
-        "flex items-start gap-2.5 px-5 py-1.5 text-14 leading-snug",
+        "flex items-start gap-2 px-4 py-1 text-14 leading-snug",
         value ? "text-sand" : "text-caption",
       )}
     >
-      <span className={cn("mt-0.5", value ? "text-folha" : "text-caption")}>
+      <span className={cn("mt-px", value ? "text-folha" : "text-caption")}>
         <Icon name={value ? "check" : "x"} size={16} strokeWidth={2.2} />
       </span>
       {value ?? (
@@ -86,7 +86,8 @@ function PlanCard({
       onClick={locked ? undefined : onSelect}
       style={{ gridRow: `span ${CARD_ROWS}` }}
       className={cn(
-        "relative grid grid-rows-subgrid rounded-card bg-card transition-[border-color,background-color,box-shadow,transform] duration-200",
+        // gap-y-0: sem ele, cada linha herdaria o espaço entre cards da grade (24 px por linha).
+        "relative grid grid-rows-subgrid gap-y-0 rounded-card bg-card transition-[border-color,background-color,box-shadow,transform] duration-200",
         locked
           ? "border border-dashed border-line"
           : selected
@@ -104,8 +105,8 @@ function PlanCard({
           Mais popular
         </span>
       )}
-      <div className="flex flex-col gap-2 px-5 pt-6 pb-3">
-        <h2 id={id} className="m-0 flex items-center gap-2 text-20 font-bold">
+      <div className="flex flex-col gap-1.5 px-4 pt-5 pb-2.5">
+        <h2 id={id} className="m-0 flex items-center gap-2 text-18 font-bold">
           {name}
           {locked && (
             <span className="inline-flex items-center gap-1 rounded-full bg-shade px-2 py-0.5 text-12 font-bold text-mist">
@@ -121,7 +122,7 @@ function PlanCard({
         ) : (
           price
         )}
-        <span className="text-14 leading-normal text-mist">{pitch}</span>
+        <span className="text-13 leading-snug text-mist">{pitch}</span>
         {!locked && (
           <input
             type="radio"
@@ -138,16 +139,16 @@ function PlanCard({
           <FeatureRow key={row.off} value={row.values[index] ?? null} off={row.off} />
         ))}
       </ul>
-      <div className={cn("self-end px-5 pt-4 pb-5", locked && "opacity-70")}>
+      <div className={cn("self-end px-4 pt-3 pb-4", locked && "opacity-70")}>
         {locked ? (
-          <Button variant="secondary" size="xl" block disabled>
+          <Button variant="secondary" size="md" block disabled>
             <Icon name="lock" size={16} />
             <span>Em breve</span>
           </Button>
         ) : (
           <Button
             variant={selected ? "primary" : "secondary"}
-            size="xl"
+            size="md"
             block
             disabled={busy}
             onClick={(event) => {
@@ -203,12 +204,16 @@ export function PlanStep() {
   }
 
   return (
-    <OnboardingShell {...stepFrame} mobileTop={<MobileHeader onBack={() => void leave()} />}>
+    <OnboardingShell
+      {...stepFrame}
+      className="lg:gap-5"
+      mobileTop={<MobileHeader onBack={() => void leave()} />}
+    >
       <LeaveOnboardingLink className="max-md:hidden" />
       <OnboardingSteps current={1} steps={onboardingSteps} />
       <OnboardingIntro title="Escolha seu plano">
-        Todos os planos têm os assistentes de IA. Pague por mês ou por ano, com 10% de desconto no
-        anual. Dá para trocar ou cancelar quando quiser, em Meu perfil.
+        Todos têm os assistentes de IA. No anual, 10% de desconto. Troque ou cancele quando quiser,
+        em Meu perfil.
       </OnboardingIntro>
       <BillingToggle value={period} onChange={setPeriod} />
       {activate.error && (
@@ -217,14 +222,14 @@ export function PlanStep() {
       <div
         role="radiogroup"
         aria-label="Planos"
-        className="grid gap-x-4 gap-y-6 pt-3 min-[56rem]:grid-cols-2 lg:grid-cols-[repeat(var(--plans),minmax(0,1fr))]"
+        className="grid gap-x-4 gap-y-6 pt-2 min-[56rem]:grid-cols-2 lg:grid-cols-[repeat(var(--plans),minmax(0,1fr))]"
         style={{ "--plans": plans.length + (showPrivatePlan ? 1 : 0) } as CSSProperties}
       >
         {plans.map((plan, index) => (
           <PlanCard
             key={plan.id}
             name={plan.nome}
-            price={<PlanPrice plan={plan} period={period} valueClassName="text-34" />}
+            price={<PlanPrice plan={plan} period={period} valueClassName="text-30" />}
             priceLabel={
               period === "annual"
                 ? `${formatCurrency(pricePerMonth(plan, period))} por mês no anual, cobrado ${formatCurrency(plan.anual)} por ano`

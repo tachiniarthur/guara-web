@@ -23,6 +23,13 @@ export const banks = [
   { id: "c6", nome: "C6 Bank", sigla: "C6" },
 ];
 
+/** Fora da lista da etapa "Conecte seus bancos" (continuam conectáveis; só não aparecem ali). */
+const hiddenInPicker = new Set(["caixa", "santander"]);
+
+/** Os bancos da lista da etapa "Conecte seus bancos" (os conectados aparecem sempre). */
+export const pickerBanks = (connected: readonly string[]) =>
+  banks.filter((bank) => !hiddenInPicker.has(bank.id) || connected.includes(bank.id));
+
 /** "O que o Guará acessa": o que ele lê do banco e o que nunca faz. */
 export const bankAccess = {
   sees: ["Saldos e extratos", "Cartões e faturas", "Investimentos"],

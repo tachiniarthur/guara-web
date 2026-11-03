@@ -42,4 +42,12 @@ describe("Onboarding · bancos (protótipo, plano Plus: 4 bancos)", () => {
     expect(screen.queryByRole("link", { name: "Continuar" })).not.toBeInTheDocument();
     expect(screen.getByText("Continuar")).toHaveAttribute("aria-disabled", "true");
   });
+
+  it("deixa Caixa e Santander fora da lista (a não ser que já estejam conectados)", () => {
+    act(() => useOnboardingBanks.setState({ connected: [], justConnected: null }));
+    renderStep();
+    expect(screen.getByText("Nubank")).toBeInTheDocument();
+    expect(screen.queryByText("Caixa")).not.toBeInTheDocument();
+    expect(screen.queryByText("Santander")).not.toBeInTheDocument();
+  });
 });
