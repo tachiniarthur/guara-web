@@ -13,11 +13,8 @@ describe("simulador", () => {
   it("com as premissas do design, mostra os números do design", () => {
     const retirement = buildRetirement(RETIREMENT_START);
     expect(plain(retirement.result.metric)).toBe("R$ 5.640");
-    expect(retirement.result.scenarios.map((s) => plain(s.value))).toEqual([
-      "R$ 6.540",
-      "R$ 5.640",
-      "R$ 4.840",
-    ]);
+    // Aposentadoria não compara perfis: vale a rentabilidade escolhida nas premissas.
+    expect(retirement.result.scenarios).toEqual([]);
     expect(plain(buildGoal(GOAL_START).result.metric)).toBe("R$ 1.310");
     expect(plain(buildCut(CUT_START).result.metric)).toBe("R$ 312");
   });

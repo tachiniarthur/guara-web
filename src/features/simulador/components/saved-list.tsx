@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 import type { ScreenState } from "@/components/states/screen-state";
 import { ErrorBlocks, StateBlock, StateSwap } from "@/components/states/state-block";
@@ -12,7 +12,29 @@ import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { cn } from "@/lib/utils";
 
+import { useSavedSimulations } from "@/stores/saved-simulations";
+
 import { savedSimulations, type SavedSimulation } from "../saved";
+
+const subscribeNothing = () => () => {};
+
+/** As salvas pelo "Salvar" do Simulador (neste navegador) e, depois, as de exemplo. */
+function useAllSaved(): SavedSimulation[] {
+  const mine = useSavedSimulations((state) => state.items);
+  // O salvo vive no navegador: no servidor (e na hidratação) só os exemplos.
+  const mounted = useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false,
+  );
+  return mounted ? [...mine, ...savedSimulations] : savedSimulations;
+}
+
+/** Quantas simulações salvas aparecem na lista. */
+export function SavedCount({ excluded = 0 }: { excluded?: number }) {
+  const count = useAllSaved().length - excluded;
+  return <>{`${count} ${count === 1 ? "simulação" : "simulações"}`}</>;
+}
 
 const filters = ["Todas", "Aposentadoria", "Objetivo", "Corte de gasto"] as const;
 
@@ -29,18 +51,22 @@ export function SavedSimulationList({ state }: { state?: ScreenState | null }) {
       : null,
   );
   const [removed, setRemoved] = useState<string[]>(deleted ? [deleted.id] : []);
+  const all = useAllSaved();
+  const removeMine = useSavedSimulations((s) => s.remove);
+  const addMine = useSavedSimulations((s) => s.add);
+  const isMine = (item: SavedSimulation) => !savedSimulations.some((s) => s.id === item.id);
   const items =
     state === "vazio"
       ? []
-      : savedSimulations.filter(
-          (s) => !removed.includes(s.id) && (filter === "Todas" || s.tipo === filter),
-        );
+      : all.filter((s) => !removed.includes(s.id) && (filter === "Todas" || s.tipo === filter));
   const remove = (item: SavedSimulation) => {
-    setRemoved((ids) => [...ids, item.id]);
+    if (isMine(item)) removeMine(item.id);
+    else setRemoved((ids) => [...ids, item.id]);
     setDeleted(item);
   };
   const undo = () => {
-    if (deleted) setRemoved((ids) => ids.filter((id) => id !== deleted.id));
+    if (deleted && isMine(deleted)) addMine(deleted);
+    else if (deleted) setRemoved((ids) => ids.filter((id) => id !== deleted.id));
     setDeleted(null);
   };
   return (

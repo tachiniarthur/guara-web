@@ -1,4 +1,4 @@
-/** Bens fora da carteira de investimentos: imóveis (valor informado) e veículos (Tabela FIPE). */
+/** Bens fora da carteira de investimentos: imóveis e veículos, sempre pelo valor que a pessoa informa. */
 
 export const patrimonioHoje = {
   semImovel: "R$ 126.810,90",
@@ -26,14 +26,11 @@ export const vehicleDraft = {
   tipos: ["Carro", "Moto", "Caminhão"],
   marca: "Chevrolet",
   modelo: "Onix LT 1.0 Turbo",
-  ano: "2022 · Gasolina",
-  fipe: {
-    titulo: "Chevrolet Onix LT 1.0 Turbo",
-    ano: "2022 · Gasolina",
-    mes: "setembro/2026",
-    valor: "R$ 78.500",
-    variacao: "−0,8% em relação a agosto · atualizado todo mês, sozinho",
-  },
+  ano: "2022",
+  combustiveis: ["Gasolina", "Flex", "Etanol", "Diesel", "Elétrico", "Híbrido"],
+  combustivel: "Gasolina",
+  valor: "R$ 78.500,00",
+  data: "Setembro de 2026",
   previa: [
     { label: "Este bem soma", value: "+R$ 78.500" },
     { label: "Saldo devedor", value: "— · quitado" },
@@ -73,21 +70,16 @@ export const vehicleDetail = {
   tipo: "veiculo" as const,
   nome: "Onix LT 2022",
   linha: "Veículo · quitado",
-  rotuloValor: "Tabela FIPE de setembro/2026",
+  rotuloValor: "Valor estimado por você",
   valor: "R$ 78.500",
-  atualizacao: "−R$ 630 (−0,8%) em relação a agosto",
-  fipe: {
-    rotulo: "Valor FIPE do Onix LT 2022: R$ 80.900 em abril a R$ 78.500 em setembro",
-    meses: ["abr", "mai", "jun", "jul", "ago", "set"],
-    valores: [80.9, 80.3, 79.8, 79.4, 79.13, 78.5],
-    nota: "Carros perdem valor com o tempo. Em 6 meses, a queda foi de R$ 2.400 (−3,0%).",
-  },
+  atualizacao: "Informado em setembro de 2026 · próxima revisão em março de 2027",
+  historico: [{ mes: "Setembro de 2026", origem: "Cadastro do veículo", valor: "R$ 78.500" }],
   dados: [
     { label: "Marca e modelo", value: "Chevrolet Onix LT 1.0 Turbo" },
     { label: "Ano e combustível", value: "2022 · Gasolina" },
     { label: "Situação", value: "Quitado" },
     { label: "Placa", value: "—" },
-    { label: "Atualização", value: "Automática, todo mês pela FIPE" },
+    { label: "Atualização", value: "Você informa · lembramos a cada 6 meses" },
   ],
   patrimonio: [
     { label: "Patrimônio total", value: "R$ 746.810,90" },

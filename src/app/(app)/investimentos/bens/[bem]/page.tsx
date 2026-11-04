@@ -13,7 +13,6 @@ import { ListRow, RowList } from "@/components/ui/list-row";
 import { Note } from "@/components/ui/note";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { StatTile } from "@/components/ui/stat-tile";
-import { LineChart } from "@/features/ativo/components/line-compare-chart";
 import { propertyDetail, vehicleDetail } from "@/features/bens/data";
 import { MataCard } from "@/features/gastos/components/teto-cards";
 import { cn } from "@/lib/utils";
@@ -160,8 +159,15 @@ function Financing({ wide }: { wide?: boolean }) {
   );
 }
 
-function History({ wide, className }: { wide?: boolean; className?: string }) {
-  const items = propertyDetail.historico;
+function History({
+  items,
+  wide,
+  className,
+}: {
+  items: { mes: string; origem: string; valor: string; variacao?: string }[];
+  wide?: boolean;
+  className?: string;
+}) {
   return (
     <Section
       title="Histórico de valor"
@@ -185,25 +191,6 @@ function History({ wide, className }: { wide?: boolean; className?: string }) {
           />
         ))}
       </RowList>
-    </Section>
-  );
-}
-
-function FipeChart({ wide }: { wide?: boolean }) {
-  const f = vehicleDetail.fipe;
-  return (
-    <Section title="Valor na Tabela FIPE" subtitle="Últimos 6 meses" wide={wide}>
-      <LineChart
-        lines={[{ nome: "FIPE", cor: "#6DB3EC", valores: f.valores }]}
-        domain={[77, 82]}
-        ticks={[78, 80, 82]}
-        tickLabel={(v) => `${v} mil`}
-        xLabels={f.meses.map((label, index) => ({ index, label }))}
-        label={f.rotulo}
-        width={wide ? 600 : 340}
-        height={wide ? 220 : 150}
-      />
-      <p className="m-0 text-13 leading-[1.55] text-caption">{f.nota}</p>
     </Section>
   );
 }
@@ -258,11 +245,15 @@ export default async function BemPage({ params }: PageProps<"/investimentos/bens
         <Actions bem={bem} />
         <div className="flex flex-col gap-4 @tab:grid @tab:grid-cols-2 @tab:items-stretch">
           <div className="contents @tab:flex @tab:min-w-0 @tab:flex-col @tab:gap-4">
-            {imovel ? <Financing /> : <FipeChart />}
+            {imovel ? <Financing /> : <History items={vehicleDetail.historico} />}
             <NetWorth bem={bem} className="order-last grow @tab:order-none" />
           </div>
           <div className="contents @tab:flex @tab:min-w-0 @tab:flex-col @tab:gap-4">
-            {imovel ? <History className="grow" /> : <VehicleData className="grow" />}
+            {imovel ? (
+              <History items={propertyDetail.historico} className="grow" />
+            ) : (
+              <VehicleData className="grow" />
+            )}
           </div>
         </div>
         {deleteLink}
@@ -280,8 +271,8 @@ export default async function BemPage({ params }: PageProps<"/investimentos/bens
             imovel ? "grid-cols-2" : "grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]",
           )}
         >
-          {imovel ? <Financing wide /> : <FipeChart wide />}
-          {imovel ? <History wide /> : <VehicleData wide />}
+          {imovel ? <Financing wide /> : <History items={vehicleDetail.historico} wide />}
+          {imovel ? <History items={propertyDetail.historico} wide /> : <VehicleData wide />}
         </div>
       </div>
     </Page>

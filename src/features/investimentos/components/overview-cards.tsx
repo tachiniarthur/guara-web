@@ -310,8 +310,7 @@ export function AssetsCard({ variant }: { variant: Variant }) {
             ))}
           </ul>
           <p className="m-0 text-13 leading-normal text-mist">
-            Bens não entram na alocação do seu perfil. Veículos seguem a Tabela FIPE; imóveis, o
-            valor que você informar.
+            Bens não entram na alocação do seu perfil. Imóveis e veículos valem o que você informar.
           </p>
         </CardBody>
       </Panel>
@@ -363,8 +362,8 @@ export function AssetsCard({ variant }: { variant: Variant }) {
           ))}
         </ul>
         <p className="m-0 text-13 leading-normal text-mist">
-          Bens não entram na alocação do seu perfil de investidor. Veículos são atualizados pela
-          Tabela FIPE; imóveis, pelo valor que você informar.
+          Bens não entram na alocação do seu perfil de investidor. Imóveis e veículos valem o que
+          você informar; lembramos de atualizar a cada 6 meses.
         </p>
       </CardBody>
     </Panel>

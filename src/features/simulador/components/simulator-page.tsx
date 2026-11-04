@@ -4,6 +4,9 @@ import { useState } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
+import { ButtonLink } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { IconButtonLink } from "@/components/ui/icon-button";
 
 import {
   buildCut,
@@ -47,7 +50,15 @@ export function SimulatorPage({ id }: { id: SimulatorId }) {
     <Page
       padding="list"
       className="gap-4 @tab:gap-5 @desk:gap-6"
-      header={<MobileHeader title="Simulador" back="/investimentos" />}
+      header={
+        <MobileHeader
+          title="Simulador"
+          back="/investimentos"
+          actions={
+            <IconButtonLink href="/simulador/salvas" icon="clock" label="Simulações salvas" />
+          }
+        />
+      }
     >
       <header className="hidden items-end justify-between gap-4 @tab:flex">
         <div className="flex flex-col gap-1.5">
@@ -56,13 +67,18 @@ export function SimulatorPage({ id }: { id: SimulatorId }) {
           </h1>
           <p className="m-0 text-15 text-mist">{simulation.subtitle}</p>
         </div>
+        {/* As simulações salvas pelo "Salvar" do resultado ficam aqui. */}
+        <ButtonLink href="/simulador/salvas" variant="secondary" size="sm" className="text-14">
+          <Icon name="clock" size={18} />
+          <span>Simulações salvas</span>
+        </ButtonLink>
       </header>
 
       <SimulatorNav current={id} />
 
       <div className="grid grid-cols-1 gap-4 @tab:gap-5 @desk:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
         <PremisesCard premises={simulation.premises} className="order-last @desk:order-none" />
-        <ResultCard result={simulation.result} agent={simulation.agent} />
+        <ResultCard simulation={simulation} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 @tab:grid-cols-2 @tab:gap-x-4 @tab:gap-y-5 @desk:grid-cols-3 @desk:gap-5">

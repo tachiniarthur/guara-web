@@ -116,6 +116,8 @@ export type Simulation = {
     };
     legend: { label: string; swatch: "line" | "dashed"; color: string }[];
     scenarios: { name: string; detail: string; value: string; current?: boolean }[];
+    /** Como a simulação aparece em Simulações salvas (nome e resumo em texto). */
+    save: { nome: string; resumo: string };
     primary: { label: string; href?: string };
     disclaimer: string;
   };

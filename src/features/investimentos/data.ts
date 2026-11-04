@@ -265,9 +265,9 @@ export const otherAssets = [
     detalhe: "Veículo · quitado",
     detalheCurto: "Veículo · quitado",
     valor: "R$ 78.500",
-    fonte: "Tabela FIPE de setembro",
-    fonteCurta: "Tabela FIPE de setembro · −0,8% no mês",
-    extra: "−0,8% no mês",
+    fonte: "Estimativa sua · informada em set/2026",
+    fonteCurta: "Valor estimado por você em set/2026",
+    extra: "Quitado",
   },
 ];
 

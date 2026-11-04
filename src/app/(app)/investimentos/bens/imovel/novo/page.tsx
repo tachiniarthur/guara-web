@@ -44,7 +44,7 @@ export default function NovoImovelPage() {
 
       <div className="flex flex-col gap-4.5 @tab:gap-5 @desk:grid @desk:grid-cols-3 @desk:items-stretch">
         <FormSection title="O imóvel">
-          <div className="contents @tab:grid @tab:grid-cols-2 @tab:items-start @tab:gap-3.5 @desk:flex @desk:flex-col @desk:gap-4">
+          <div className="contents @tab:grid @tab:grid-cols-2 @tab:items-start @tab:gap-3.5 @desk:flex @desk:flex-col @desk:items-stretch @desk:gap-4">
             <LabeledField
               id="bem-nome"
               label="Nome"
@@ -64,7 +64,7 @@ export default function NovoImovelPage() {
         </FormSection>
 
         <FormSection title="Valor">
-          <div className="contents @tab:grid @tab:grid-cols-2 @tab:items-start @tab:gap-3.5 @desk:flex @desk:flex-col @desk:gap-4">
+          <div className="contents @tab:grid @tab:grid-cols-2 @tab:items-start @tab:gap-3.5 @desk:flex @desk:flex-col @desk:items-stretch @desk:gap-4">
             <LabeledField
               id="bem-valor"
               label="Valor estimado"
@@ -101,7 +101,7 @@ export default function NovoImovelPage() {
               itemClassName="flex-1 @desk:flex-none"
             />
           </LabeledField>
-          <div className="contents @tab:grid @tab:grid-cols-2 @tab:items-start @tab:gap-3.5 @desk:flex @desk:flex-col @desk:gap-4">
+          <div className="contents @tab:grid @tab:grid-cols-2 @tab:items-start @tab:gap-3.5 @desk:flex @desk:flex-col @desk:items-stretch @desk:gap-4">
             <LabeledField
               id="bem-saldo"
               label="Saldo devedor"
@@ -127,7 +127,8 @@ export default function NovoImovelPage() {
       <SaveActions
         label="Salvar imóvel"
         href="/investimentos/bens/apto"
-        cancelHref="/investimentos/novo"
+        cancelHref="/investimentos"
+        backHref="/investimentos/novo"
       />
     </Page>
   );

@@ -5,14 +5,12 @@ import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { SavedSimulationList } from "@/features/simulador/components/saved-list";
-import { savedSimulations } from "@/features/simulador/saved";
+import { SavedCount, SavedSimulationList } from "@/features/simulador/components/saved-list";
 
 export default async function SimulacoesSalvasPage({
   searchParams,
 }: PageProps<"/simulador/salvas">) {
   const state = parseScreenState((await searchParams).estado);
-  const count = savedSimulations.length - (state === "excluida" ? 1 : 0);
   return (
     <Page
       padding="detail"
@@ -27,7 +25,7 @@ export default async function SimulacoesSalvasPage({
       />
       <DetailHeader
         title="Simulações salvas"
-        subtitle={`${count} simulações`}
+        subtitle={<SavedCount excluded={state === "excluida" ? 1 : 0} />}
         actions={
           <ButtonLink href="/simulador" variant="secondary" size="sm" className="hidden @desk:flex">
             <Icon name="trending-up" size={18} />

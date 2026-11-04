@@ -192,12 +192,12 @@ export function buildRetirement(s: RetirementState, set?: Setter<RetirementState
         { label: "Só o que você aportou", swatch: "dashed", color: "var(--guara-caption)" },
         { label: "Meta", swatch: "dashed", color: "var(--guara-tucano)" },
       ],
-      scenarios: r.profiles.map((profile) => ({
-        name: profile.label,
-        detail: `${profile.rate}% a.a.${profile.key === "moderate" ? " · seu perfil" : ""}`,
-        value: reais(profile.deposit),
-        current: Math.abs(profile.rate - s.rate) < 0.05,
-      })),
+      // Só a rentabilidade do perfil escolhido (nas premissas); sem comparar com outros perfis.
+      scenarios: [],
+      save: {
+        nome: `Aposentadoria em ${s.years} anos`,
+        resumo: `para ${reais(s.income)} de renda em ${r.retireYear}`,
+      },
       primary: { label: "Transformar em meta", href: "/metas/nova" },
       disclaimer: "Simulação educativa em valores de hoje. Não é recomendação de investimento.",
     },
@@ -440,6 +440,10 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
         { label: "Só o que você guardou", swatch: "dashed", color: "var(--guara-caption)" },
         { label: "Meta", swatch: "dashed", color: "var(--guara-tucano)" },
       ],
+      save: {
+        nome: s.name || "Juntar para um objetivo",
+        resumo: `${reais(s.cost)} em ${longMonth(START, s.months)}`,
+      },
       scenarios: r.scenarios.map((scenario) => ({
         name: scenario.label,
         detail: `${scenario.months} meses`,
@@ -705,6 +709,10 @@ export function buildCut(s: CutState, set?: Setter<CutState>): Simulation {
         { label: "Economia investida", swatch: "line", color: "var(--guara-folha)" },
         { label: "Só a economia, sem rendimento", swatch: "dashed", color: "var(--guara-caption)" },
       ],
+      save: {
+        nome: `Cortar ${s.percent}% de ${s.category.toLowerCase()}`,
+        resumo: r ? `${thousands(r.tenYears)} em 10 anos` : "sem histórico desse gasto",
+      },
       scenarios: (r?.scenarios ?? []).map((scenario) => ({
         name: scenario.label,
         detail: `${scenario.percent}% · ${reais(scenario.cap)} de teto`,

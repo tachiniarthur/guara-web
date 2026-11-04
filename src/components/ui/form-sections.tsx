@@ -80,29 +80,66 @@ export function LabeledField({
   );
 }
 
-/** Ações do formulário: barra fixa no celular; Cancelar e Salvar à direita a partir do tablet. */
+/**
+ * Ações do formulário: barra fixa no celular; Cancelar e Salvar à direita a partir do tablet.
+ * Com `backHref` (telas dentro de um fluxo, como Adicionar → Veículo): Cancelar vai para a
+ * esquerda e sai do fluxo (`cancelHref`); Voltar fica ao lado de Salvar e volta um passo.
+ */
 export function SaveActions({
   label,
   href,
   cancelHref,
+  backHref,
 }: {
   label: string;
   href: string;
   cancelHref: string;
+  backHref?: string;
 }) {
+  const save = (
+    <ButtonLink href={href} variant="primary" className="text-15">
+      <Icon name="check" size={18} />
+      <span>{label}</span>
+    </ButtonLink>
+  );
   return (
     <>
-      <div className="hidden flex-wrap items-center justify-end gap-2.5 @tab:flex">
-        <ButtonLink href={cancelHref} variant="ghost" className="text-15">
-          <span>Cancelar</span>
-        </ButtonLink>
-        <ButtonLink href={href} variant="primary" className="text-15">
-          <Icon name="check" size={18} />
-          <span>{label}</span>
-        </ButtonLink>
-      </div>
+      {backHref ? (
+        <div className="hidden flex-wrap items-center justify-between gap-2.5 @tab:flex">
+          <ButtonLink href={cancelHref} variant="ghost" className="text-15 text-mist">
+            <Icon name="x" size={18} />
+            <span>Cancelar</span>
+          </ButtonLink>
+          <div className="flex items-center gap-2.5">
+            <ButtonLink href={backHref} variant="outline" className="text-15">
+              <Icon name="chevron-left" size={18} />
+              <span>Voltar</span>
+            </ButtonLink>
+            {save}
+          </div>
+        </div>
+      ) : (
+        <div className="hidden flex-wrap items-center justify-end gap-2.5 @tab:flex">
+          <ButtonLink href={cancelHref} variant="ghost" className="text-15">
+            <span>Cancelar</span>
+          </ButtonLink>
+          {save}
+        </div>
+      )}
       <MobileActionBar>
-        <ButtonLink href={href} variant="primary" size="xl" block>
+        {/* No celular, o Voltar é a seta do topo; aqui ficam Cancelar e Salvar. */}
+        {backHref && (
+          <ButtonLink href={cancelHref} variant="ghost" size="xl" className="text-16">
+            <span>Cancelar</span>
+          </ButtonLink>
+        )}
+        <ButtonLink
+          href={href}
+          variant="primary"
+          size="xl"
+          block={!backHref}
+          className={backHref ? "min-w-0 grow" : undefined}
+        >
           <Icon name="check" size={18} />
           <span>{label}</span>
         </ButtonLink>

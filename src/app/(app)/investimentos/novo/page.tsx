@@ -60,9 +60,8 @@ export default function AdicionarInvestimentoPage() {
               <Legend className="mb-2">Tipo</Legend>
               <InvestmentTypePicker />
               <Note icon="home" className="mt-1">
-                Imóveis e veículos entram no seu patrimônio total. Para veículos, buscamos o valor
-                na Tabela FIPE; para imóveis, você informa o valor estimado e, se houver, o saldo do
-                financiamento.
+                Imóveis e veículos entram no seu patrimônio total. Você informa o valor estimado e,
+                se houver, o saldo do financiamento.
               </Note>
             </fieldset>
 

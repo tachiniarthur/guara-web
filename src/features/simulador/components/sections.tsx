@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 import type { DetailSection, PremiseField, Simulation, Tip, Tone } from "../data";
 import { ProjectionChart } from "./projection-chart";
+import { SaveSimulationButton } from "./save-simulation";
 
 const toneClass: Record<Tone, string> = {
   sand: "text-sand",
@@ -164,35 +165,36 @@ function ResultBody({ result }: { result: Simulation["result"] }) {
           </span>
         ))}
       </div>
-      <div role="group" aria-label="Cenários" className="grid grid-cols-3 gap-2">
-        {result.scenarios.map((scenario) => (
-          <div
-            key={scenario.name}
-            className={cn(
-              "flex min-w-0 flex-col gap-0.5 rounded-tile px-3.5 py-3",
-              scenario.current ? "border-2 border-sand" : "border border-line",
-            )}
-          >
-            <span className="text-13 font-bold">{scenario.name}</span>
-            <span className="text-12 text-caption">{scenario.detail}</span>
-            <span className="font-display text-18 font-bold tabular-nums">{scenario.value}</span>
-          </div>
-        ))}
-      </div>
+      {result.scenarios.length > 0 && (
+        <div role="group" aria-label="Cenários" className="grid grid-cols-3 gap-2">
+          {result.scenarios.map((scenario) => (
+            <div
+              key={scenario.name}
+              className={cn(
+                "flex min-w-0 flex-col gap-0.5 rounded-tile px-3.5 py-3",
+                scenario.current ? "border-2 border-sand" : "border border-line",
+              )}
+            >
+              <span className="text-13 font-bold">{scenario.name}</span>
+              <span className="text-12 text-caption">{scenario.detail}</span>
+              <span className="font-display text-18 font-bold tabular-nums">{scenario.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </>
   );
 }
 
 /** Resultado: valor principal, gráfico da projeção, cenários e ações. */
 export function ResultCard({
-  result,
-  agent,
+  simulation,
   className,
 }: {
-  result: Simulation["result"];
-  agent: Simulation["agent"];
+  simulation: Simulation;
   className?: string;
 }) {
+  const { result, agent } = simulation;
   return (
     <SimPanel className={className}>
       <SimHeader title={result.title} subtitle={result.subtitle} large />
@@ -225,9 +227,7 @@ export function ResultCard({
             <span>{result.primary.label}</span>
           </Button>
         )}
-        <Button variant="secondary">
-          <span>Salvar</span>
-        </Button>
+        <SaveSimulationButton simulation={simulation} />
         <OpenChat
           agent={agent.id}
           className={cn(buttonVariants({ variant: "ghost", size: "md" }), "hover:bg-transparent")}
