@@ -1,10 +1,13 @@
+"use client";
+
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, useId } from "react";
 
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 import { portfolio, positionGroups } from "../data";
+import { useClosedGroups } from "./position-cards";
 import { DayChange, OriginInfo, RiskBadge, SortArrows } from "./position-parts";
 import { MataArt } from "@/components/ui/mata-art";
 
@@ -17,6 +20,8 @@ const columns = ["15%", "8%", "9%", "8%", "11%", "8%", "9%", "11%", "8%", "9%", 
 
 /** Tabela de posições agrupada por classe (desktop). */
 export function PositionsTable() {
+  const [closed, toggle] = useClosedGroups();
+  const id = useId();
   return (
     <table className="w-full table-fixed border-collapse">
       <caption className="sr-only">Posições da carteira agrupadas por classe</caption>
@@ -83,93 +88,122 @@ export function PositionsTable() {
           </th>
         </tr>
       </thead>
-      <tbody>
-        {positionGroups.map((group) => (
+      {positionGroups.map((group, i) => {
+        const expanded = !closed.has(group.classe);
+        return (
           <Fragment key={group.classe}>
-            <tr>
-              <td colSpan={11} className="pt-2 pb-1.5">
-                <div className="relative isolate grid grid-cols-[71fr_9fr_8fr_12fr] items-center overflow-hidden rounded-[0.875rem] border border-sand/25 bg-mata">
-                  <MataArt className="absolute inset-0 -z-20 size-full" align="right" />
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(11,17,14,0.85)_0%,rgba(11,17,14,0.55)_55%,rgba(11,17,14,0.2)_100%)]"
-                  />
-                  <span role="rowheader" className="px-3.5 py-3 text-15 font-bold text-sand">
-                    {group.classe}{" "}
-                    <span className="font-normal text-mist">
-                      {`· ${group.posicoes.length} ${group.posicoes.length === 1 ? "posição" : "posições"}`}
+            <tbody>
+              <tr>
+                <th scope="rowgroup" colSpan={11} className="pt-2 pb-1.5 text-left font-normal">
+                  <button
+                    type="button"
+                    aria-expanded={expanded}
+                    aria-controls={`${id}-${i}`}
+                    onClick={() => toggle(group.classe)}
+                    className="relative isolate grid w-full pressable grid-cols-[71fr_9fr_8fr_12fr] items-center overflow-hidden rounded-[0.875rem] border border-sand/25 bg-mata p-0 text-left text-sand"
+                  >
+                    <MataArt className="absolute inset-0 -z-20 size-full" align="right" />
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(11,17,14,0.85)_0%,rgba(11,17,14,0.55)_55%,rgba(11,17,14,0.2)_100%)]"
+                    />
+                    <span className="flex items-center gap-2 px-3.5 py-3 text-15 font-bold text-sand">
+                      <Icon
+                        name="chevron-down"
+                        size={18}
+                        className={cn(
+                          "shrink-0 text-mist transition-transform duration-(--duration-move) ease-out-soft",
+                          !expanded && "-rotate-90",
+                        )}
+                      />
+                      <span>
+                        {group.classe}{" "}
+                        <span className="font-normal text-mist">
+                          {`· ${group.posicoes.length} ${group.posicoes.length === 1 ? "posição" : "posições"}`}
+                        </span>
+                      </span>
                     </span>
-                  </span>
-                  <span className="px-3.5 py-3 text-right text-15 font-bold whitespace-nowrap tabular-nums">
-                    {group.total}
-                  </span>
-                  <span className="px-3.5 py-3 text-right text-15 font-bold tabular-nums">
-                    {group.percentual}
-                  </span>
-                  <span />
-                </div>
-              </td>
-            </tr>
-            {group.posicoes.map((p) => (
-              <tr key={p.id}>
-                <th scope="row" className={cn(td, "text-left font-normal")}>
-                  <span className="flex flex-col leading-[1.35]">
+                    <span className="px-3.5 py-3 text-right text-15 font-bold whitespace-nowrap tabular-nums">
+                      {group.total}
+                    </span>
+                    <span className="px-3.5 py-3 text-right text-15 font-bold tabular-nums">
+                      {group.percentual}
+                    </span>
+                    <span />
+                  </button>
+                </th>
+              </tr>
+            </tbody>
+            {/* Os ativos da classe: entram subindo ao abrir e somem ao recolher. */}
+            <tbody
+              id={`${id}-${i}`}
+              hidden={!expanded}
+              className="animate-fade-up [animation-duration:var(--duration-dialog)]"
+              key={expanded ? "aberta" : "fechada"}
+            >
+              {group.posicoes.map((p) => (
+                <tr key={p.id}>
+                  <th scope="row" className={cn(td, "text-left font-normal")}>
+                    <span className="flex flex-col leading-[1.35]">
+                      <Link
+                        href={`/investimentos/${p.slug}`}
+                        className="text-16 font-bold text-sand underline decoration-line-strong underline-offset-3"
+                      >
+                        {p.nome}
+                      </Link>
+                      <span className="text-13 text-mist">{p.descricao}</span>
+                    </span>
+                  </th>
+                  <td className={td}>{p.classe}</td>
+                  <td className={td}>{p.instrumento}</td>
+                  <td className={td}>
+                    <RiskBadge risk={p.risco} />
+                  </td>
+                  <td className={td}>
+                    <OriginInfo origin={p.origem} />
+                  </td>
+                  <td
+                    className={cn(
+                      td,
+                      "text-right tabular-nums",
+                      p.quantidade ? "text-sand" : "text-caption",
+                    )}
+                  >
+                    {p.quantidade ?? "—"}
+                  </td>
+                  <td
+                    className={cn(
+                      td,
+                      "text-right tabular-nums",
+                      p.precoMedio ? "text-sand" : "text-caption",
+                    )}
+                  >
+                    {p.precoMedio ?? "—"}
+                  </td>
+                  <td className={cn(td, "text-right font-bold whitespace-nowrap tabular-nums")}>
+                    {p.total}
+                  </td>
+                  <td className={cn(td, "text-right text-soft tabular-nums")}>{p.percentual}</td>
+                  <td className={cn(td, "text-right")}>
+                    <DayChange change={p.hoje} />
+                  </td>
+                  <td className={cn(td, "pl-1 text-right")}>
                     <Link
                       href={`/investimentos/${p.slug}`}
-                      className="text-16 font-bold text-sand underline decoration-line-strong underline-offset-3"
+                      aria-label={`Abrir ${p.nome}`}
+                      title="Abrir ativo"
+                      className="inline-flex size-[2.375rem] items-center justify-center rounded-full border border-line-strong text-sand no-underline"
                     >
-                      {p.nome}
+                      <Icon name="chevron-right" size={18} />
                     </Link>
-                    <span className="text-13 text-mist">{p.descricao}</span>
-                  </span>
-                </th>
-                <td className={td}>{p.classe}</td>
-                <td className={td}>{p.instrumento}</td>
-                <td className={td}>
-                  <RiskBadge risk={p.risco} />
-                </td>
-                <td className={td}>
-                  <OriginInfo origin={p.origem} />
-                </td>
-                <td
-                  className={cn(
-                    td,
-                    "text-right tabular-nums",
-                    p.quantidade ? "text-sand" : "text-caption",
-                  )}
-                >
-                  {p.quantidade ?? "—"}
-                </td>
-                <td
-                  className={cn(
-                    td,
-                    "text-right tabular-nums",
-                    p.precoMedio ? "text-sand" : "text-caption",
-                  )}
-                >
-                  {p.precoMedio ?? "—"}
-                </td>
-                <td className={cn(td, "text-right font-bold whitespace-nowrap tabular-nums")}>
-                  {p.total}
-                </td>
-                <td className={cn(td, "text-right text-soft tabular-nums")}>{p.percentual}</td>
-                <td className={cn(td, "text-right")}>
-                  <DayChange change={p.hoje} />
-                </td>
-                <td className={cn(td, "pl-1 text-right")}>
-                  <Link
-                    href={`/investimentos/${p.slug}`}
-                    aria-label={`Abrir ${p.nome}`}
-                    title="Abrir ativo"
-                    className="inline-flex size-[2.375rem] items-center justify-center rounded-full border border-line-strong text-sand no-underline"
-                  >
-                    <Icon name="chevron-right" size={18} />
-                  </Link>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </Fragment>
-        ))}
+        );
+      })}
+      <tbody>
         <tr>
           <th
             scope="row"

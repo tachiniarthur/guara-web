@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useId, useState } from "react";
 
 import { StateSwap, TileErrorBlock } from "@/components/states/state-block";
+import { Collapse } from "@/components/ui/collapse";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +46,9 @@ export function ClassBanner({
   percentual,
   quantidade,
   failed,
+  expanded,
+  onToggle,
+  controls,
 }: {
   classe: string;
   total: string;
@@ -49,29 +56,80 @@ export function ClassBanner({
   quantidade?: number;
   /** Erro ao carregar: a faixa mostra o aviso no lugar do total. */
   failed?: boolean;
+  /** Com `onToggle`, a faixa vira o botão do accordion da classe (mostra/esconde os ativos). */
+  expanded?: boolean;
+  onToggle?: () => void;
+  /** Id da lista de ativos que a faixa mostra e esconde. */
+  controls?: string;
 }) {
-  return (
-    <div className={cn("flex items-baseline justify-between gap-2", classBannerClass)}>
+  // Dentro do botão do accordion o nome não pode ser um título (o botão só aceita texto).
+  const Heading = onToggle ? "span" : "h3";
+  const content = (
+    <>
+      {onToggle && (
+        <Icon
+          name="chevron-down"
+          size={18}
+          className={cn(
+            "shrink-0 self-center text-mist transition-transform duration-(--duration-move) ease-out-soft",
+            !expanded && "-rotate-90",
+          )}
+        />
+      )}
       <StateSwap
         replacement={failed && <TileErrorBlock />}
         className="grow flex-row items-baseline justify-between gap-2"
         overlayClassName="items-start justify-center"
       >
-        <h3 className="m-0 text-15 font-bold">
+        <Heading className="m-0 text-15 font-bold">
           {classe}
           {quantidade !== undefined && (
             <span className="font-normal text-mist">
               {` · ${quantidade} ${quantidade === 1 ? "posição" : "posições"}`}
             </span>
           )}
-        </h3>
+        </Heading>
         <span className="text-14 whitespace-nowrap text-soft tabular-nums">
           <strong className="text-sand">{total}</strong>
           {` · ${percentual}`}
         </span>
       </StateSwap>
-    </div>
+    </>
   );
+  if (!onToggle) {
+    return (
+      <div className={cn("flex items-baseline justify-between gap-2", classBannerClass)}>
+        {content}
+      </div>
+    );
+  }
+  return (
+    <button
+      type="button"
+      aria-expanded={expanded}
+      aria-controls={controls}
+      onClick={onToggle}
+      className={cn(
+        "flex w-full pressable items-baseline gap-2 text-left text-sand",
+        classBannerClass,
+      )}
+    >
+      {content}
+    </button>
+  );
+}
+
+/** Classes recolhidas no accordion de posições (todas abertas ao entrar). */
+export function useClosedGroups() {
+  const [closed, setClosed] = useState<ReadonlySet<string>>(new Set());
+  const toggle = (classe: string) =>
+    setClosed((current) => {
+      const next = new Set(current);
+      if (next.has(classe)) next.delete(classe);
+      else next.add(classe);
+      return next;
+    });
+  return [closed, toggle] as const;
 }
 
 /** Posição em card expansível: valor e variação no resumo; classe, risco e origem ao abrir. */
@@ -129,22 +187,34 @@ function PositionCard({ position: p, open }: { position: Position; open?: boolea
 
 /** Posições por classe em cards (tablet: 2 colunas; mobile: 1). */
 export function PositionCards({ columns }: { columns: 1 | 2 }) {
+  const [closed, toggle] = useClosedGroups();
+  const id = useId();
   return (
     <>
       <div className="flex flex-col gap-3">
-        {positionGroups.map((group) => (
-          <div key={group.classe} className="flex flex-col gap-2">
-            <ClassBanner classe={group.classe} total={group.total} percentual={group.percentual} />
-            <div
-              className={cn(
-                "grid items-start gap-2",
-                columns === 2 ? "grid-cols-2" : "grid-cols-1",
-              )}
-            >
-              {group.posicoes.map((p) => (
-                <PositionCard key={p.id} position={p} open={p.id === "petr4"} />
-              ))}
-            </div>
+        {positionGroups.map((group, i) => (
+          <div key={group.classe} className="flex flex-col">
+            <ClassBanner
+              classe={group.classe}
+              total={group.total}
+              percentual={group.percentual}
+              expanded={!closed.has(group.classe)}
+              onToggle={() => toggle(group.classe)}
+              controls={`${id}-${i}`}
+            />
+            <Collapse open={!closed.has(group.classe)} className="pt-2">
+              <div
+                id={`${id}-${i}`}
+                className={cn(
+                  "grid items-start gap-2",
+                  columns === 2 ? "grid-cols-2" : "grid-cols-1",
+                )}
+              >
+                {group.posicoes.map((p) => (
+                  <PositionCard key={p.id} position={p} open={p.id === "petr4"} />
+                ))}
+              </div>
+            </Collapse>
           </div>
         ))}
       </div>

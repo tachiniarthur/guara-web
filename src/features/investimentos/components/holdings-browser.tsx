@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 
 import type { ScreenState } from "@/components/states/screen-state";
 import {
@@ -19,7 +19,8 @@ import { SearchField } from "@/components/ui/search-field";
 import { cn } from "@/lib/utils";
 
 import { holdingClasses, holdingsSummary, type Holding, type HoldingOrigin } from "../posicoes";
-import { ClassBanner, classBannerClass } from "./position-cards";
+import { Collapse } from "@/components/ui/collapse";
+import { ClassBanner, classBannerClass, useClosedGroups } from "./position-cards";
 import { DayChange, RiskPill } from "./position-parts";
 
 type Grouping = "lista" | "classe";
@@ -172,6 +173,8 @@ function HoldingsCard({
   const [grouping, setGrouping] = useState<Grouping>("classe");
   const [origin, setOrigin] = useState<OriginFilter>("todas");
   const [query, setQuery] = useState(state === "vazio-filtro" ? "Vale" : "");
+  const [closed, toggle] = useClosedGroups();
+  const listId = useId();
   const failed = state === "erro";
   const empty = state === "vazio";
 
@@ -197,7 +200,9 @@ function HoldingsCard({
               .sort((a, b) => parseFloat(b.percentual) - parseFloat(a.percentual)),
           },
         ];
-  const banner = (c: (typeof sections)[number]) =>
+  // Accordion por classe; buscando, todas ficam abertas (nenhum resultado fica escondido).
+  const isOpen = (classe: string) => query.trim() !== "" || !closed.has(classe);
+  const banner = (c: (typeof sections)[number], i: number) =>
     grouping === "classe" ? (
       <ClassBanner
         classe={c.classe}
@@ -205,6 +210,9 @@ function HoldingsCard({
         percentual={c.percentual}
         quantidade={c.itens.length}
         failed={failed}
+        expanded={isOpen(c.classe)}
+        onToggle={() => toggle(c.classe)}
+        controls={`${listId}-${i}`}
       />
     ) : null;
   const nothingFound = sections.every((c) => c.itens.length === 0);
@@ -270,18 +278,22 @@ function HoldingsCard({
         </div>
       ) : (
         <div className="flex flex-col gap-1 @tab:hidden">
-          {sections.map((c) => (
+          {sections.map((c, i) => (
             <div key={c.classe} className="contents">
-              {banner(c)}
-              <StateSwap
-                replacement={failed && (c.itens.length >= 4 ? <ErrorBlock /> : <TileErrorBlock />)}
-              >
-                <ul className="m-0 flex list-none flex-col p-0">
-                  {c.itens.map((h) => (
-                    <HoldingRow key={h.id} holding={h} />
-                  ))}
-                </ul>
-              </StateSwap>
+              {banner(c, i)}
+              <Collapse open={grouping !== "classe" || isOpen(c.classe)}>
+                <StateSwap
+                  replacement={
+                    failed && (c.itens.length >= 4 ? <ErrorBlock /> : <TileErrorBlock />)
+                  }
+                >
+                  <ul id={`${listId}-${i}`} className="m-0 flex list-none flex-col p-0">
+                    {c.itens.map((h) => (
+                      <HoldingRow key={h.id} holding={h} />
+                    ))}
+                  </ul>
+                </StateSwap>
+              </Collapse>
             </div>
           ))}
         </div>
@@ -306,8 +318,12 @@ function HoldingsCard({
           </tr>
         </thead>
         <tbody>
-          {sections.map((c) => (
-            <TableSection key={c.classe} banner={banner(c)} itens={c.itens} />
+          {sections.map((c, i) => (
+            <TableSection
+              key={c.classe}
+              banner={banner(c, i)}
+              itens={grouping !== "classe" || isOpen(c.classe) ? c.itens : []}
+            />
           ))}
         </tbody>
       </table>
