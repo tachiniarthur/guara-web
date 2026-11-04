@@ -45,6 +45,8 @@ const DEG = Math.PI / 180;
 const MAX_TILT = 65;
 const AUTO_SPEED = 4; // graus por segundo
 const IDLE_RESUME_MS = 4000;
+/** Intervalo mínimo entre quadros no giro automático (~30 por segundo). */
+const IDLE_FRAME_MS = 30;
 
 /** Rótulo HTML de um marcador, posicionado a cada quadro. */
 type Label = {
@@ -62,24 +64,33 @@ type Dots = {
   cosLat: Float32Array;
   sinLat: Float32Array;
   lng: Float32Array;
-  color: (string | null)[];
+  /** Índice da cor de cada ponto em `palette` (0 = terra, sem investimento). */
+  color: Uint8Array;
+  palette: string[];
 };
 
 function buildDots(raw: Int16Array, places: GlobePlace[]): Dots {
   const n = raw.length / 3;
-  const colorByIso = new Map(places.map((p) => [p.iso, p.color]));
+  const palette = [LAND];
+  const colorByIso = new Map<number, number>();
+  for (const place of places) {
+    let index = palette.indexOf(place.color);
+    if (index < 0) index = palette.push(place.color) - 1;
+    colorByIso.set(place.iso, index);
+  }
   const dots: Dots = {
     cosLat: new Float32Array(n),
     sinLat: new Float32Array(n),
     lng: new Float32Array(n),
-    color: new Array(n),
+    color: new Uint8Array(n),
+    palette,
   };
   for (let i = 0; i < n; i++) {
     const lat = (raw[i * 3]! / 10) * DEG;
     dots.cosLat[i] = Math.cos(lat);
     dots.sinLat[i] = Math.sin(lat);
     dots.lng[i] = (raw[i * 3 + 1]! / 10) * DEG;
-    dots.color[i] = colorByIso.get(raw[i * 3 + 2]!) ?? null;
+    dots.color[i] = colorByIso.get(raw[i * 3 + 2]!) ?? 0;
   }
   return dots;
 }
@@ -194,7 +205,11 @@ export function InteractiveGlobe({
     let visible = true;
     let last = performance.now();
 
+    /** Tamanho de cada rótulo, medido uma vez (refeito ao redimensionar). */
+    let labelSizes = new WeakMap<HTMLElement, { w: number; h: number }>();
+
     function resize() {
+      labelSizes = new WeakMap();
       const rect = wrapEl!.getBoundingClientRect();
       size = rect.width;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -302,26 +317,38 @@ export function InteractiveGlobe({
       ctx!.stroke();
 
       // Pontos de terra, agrupados por cor e por faixa de profundidade (menos trocas de estilo).
+      // São ~12 mil pontos por quadro: a projeção fica no próprio laço, sem criar objetos nem
+      // textos por ponto (o `project` acima é para os poucos marcadores).
       if (dots) {
         const dotR = r * 0.0172;
-        const buckets = new Map<string, Path2D>();
+        const v = view.current;
+        const lam = v.lambda * DEG;
+        const cp = Math.cos(v.phi * DEG);
+        const sp = Math.sin(v.phi * DEG);
+        const buckets: (Path2D | undefined)[] = [];
         const n = dots.lng.length;
         for (let i = 0; i < n; i++) {
-          const p = project(dots.cosLat[i]!, dots.sinLat[i]!, dots.lng[i]!);
-          if (p.z <= 0.02) continue;
-          const band = p.z > 0.55 ? 3 : p.z > 0.3 ? 2 : p.z > 0.12 ? 1 : 0;
-          const key = `${dots.color[i] ?? LAND}|${band}`;
-          let path = buckets.get(key);
-          if (!path) buckets.set(key, (path = new Path2D()));
-          const rr = dotR * (0.55 + 0.45 * Math.min(1, p.z * 1.6));
-          path.moveTo(p.x + rr, p.y);
-          path.arc(p.x, p.y, rr, 0, Math.PI * 2);
+          const cosLat = dots.cosLat[i]!;
+          const l = dots.lng[i]! + lam;
+          const zr = cosLat * Math.cos(l);
+          const sinLat = dots.sinLat[i]!;
+          const z = sinLat * sp + zr * cp;
+          if (z <= 0.02) continue;
+          const x = c + r * cosLat * Math.sin(l);
+          const y = c - r * (sinLat * cp - zr * sp);
+          const band = z > 0.55 ? 3 : z > 0.3 ? 2 : z > 0.12 ? 1 : 0;
+          const key = dots.color[i]! * 4 + band;
+          const path = buckets[key] ?? (buckets[key] = new Path2D());
+          const rr = dotR * (0.55 + 0.45 * Math.min(1, z * 1.6));
+          path.moveTo(x + rr, y);
+          path.arc(x, y, rr, 0, Math.PI * 2);
         }
         const alpha = [0.35, 0.6, 0.85, 1];
-        for (const [key, path] of buckets) {
-          const [color, band] = key.split("|");
-          ctx!.globalAlpha = alpha[Number(band)]!;
-          ctx!.fillStyle = color!;
+        for (let key = 0; key < buckets.length; key++) {
+          const path = buckets[key];
+          if (!path) continue;
+          ctx!.globalAlpha = alpha[key % 4]!;
+          ctx!.fillStyle = dots.palette[Math.floor(key / 4)]!;
           ctx!.fill(path);
         }
         ctx!.globalAlpha = 1;
@@ -410,8 +437,10 @@ export function InteractiveGlobe({
         let left = 0;
         let top = 0;
         if (visible) {
-          const w = el.offsetWidth;
-          const h = el.offsetHeight;
+          // Medir a cada quadro forçava o layout da página (o texto do rótulo não muda).
+          let box = labelSizes.get(el);
+          if (!box || !box.w) labelSizes.set(el, (box = { w: el.offsetWidth, h: el.offsetHeight }));
+          const { w, h } = box;
           const sides =
             label.prefer === "above"
               ? (["above", "below"] as const)
@@ -455,6 +484,15 @@ export function InteractiveGlobe({
 
     function tick(now: number) {
       const v = view.current;
+      // Girando sozinho, 30 quadros por segundo bastam: a 60, cada ponto andava ~0,3 px por
+      // quadro. Arrastando, com inércia ou indo até um país, continua a cada quadro.
+      const interacting =
+        v.dragging || v.target || Math.abs(v.vLambda) > 0.01 || Math.abs(v.vPhi) > 0.01;
+      if (!interacting && now - last < IDLE_FRAME_MS) {
+        if (visible && !document.hidden) raf = requestAnimationFrame(tick);
+        else running = false;
+        return;
+      }
       const dt = Math.min(64, now - last) / 1000;
       last = now;
       const reduce = motion.matches;

@@ -1,15 +1,10 @@
 import { render, screen } from "@testing-library/react";
 
-import InicioPage from "@/app/(app)/page";
-
-const props = (searchParams: Record<string, string> = {}) => ({
-  params: Promise.resolve({}),
-  searchParams: Promise.resolve(searchParams),
-});
+import { InicioScreen } from "@/app/(app)/inicio-screen";
 
 describe("Início", () => {
-  it("saúda o usuário e mostra as seções do mês", async () => {
-    render(await InicioPage(props()));
+  it("saúda o usuário e mostra as seções do mês", () => {
+    render(<InicioScreen />);
     expect(
       screen.getByRole("heading", { level: 1, name: "Boa tarde, Arthur." }),
     ).toBeInTheDocument();
@@ -21,8 +16,8 @@ describe("Início", () => {
     expect(screen.getByText("Próximas cobranças")).toBeInTheDocument();
   });
 
-  it("mostra os primeiros passos para quem ainda não conectou banco", async () => {
-    render(await InicioPage(props({ estado: "novo" })));
+  it("mostra os primeiros passos para quem ainda não conectou banco", () => {
+    render(<InicioScreen estado="novo" />);
     expect(
       screen.getAllByRole("heading", { level: 2, name: "Primeiros passos" }).length,
     ).toBeGreaterThan(0);
