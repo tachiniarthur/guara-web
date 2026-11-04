@@ -28,7 +28,7 @@ export function Collapse({
         if (event.target === event.currentTarget && !open) setMounted(false);
       }}
       className={cn(
-        "grid transition-[grid-template-rows,opacity] duration-(--duration-expand) ease-out-soft starting:grid-rows-[0fr] starting:opacity-0",
+        "grid transition-[grid-template-rows,opacity] duration-(--duration-slide) ease-drawer starting:grid-rows-[0fr] starting:opacity-0",
         open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
       )}
     >

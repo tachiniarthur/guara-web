@@ -56,7 +56,10 @@ export function ChatSheetBody() {
         </Link>
         <IconButton icon="x" label="Fechar o chat" variant="ghost" onClick={close} />
       </header>
-      <div className="scrollbar-none flex grow flex-col gap-4 overflow-y-auto p-4">
+      <div
+        key={conversationId ?? "nova"}
+        className="scrollbar-none flex grow animate-chat-slide flex-col gap-4 overflow-y-auto p-4"
+      >
         {thread ? (unsent ? thread.unsentContent : thread.content) : null}
         {!thread && !local && <NewConversationStart compact />}
         {conversationId && <SessionMessages conversationId={conversationId} variant="page" />}

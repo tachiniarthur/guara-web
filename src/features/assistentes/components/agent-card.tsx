@@ -69,6 +69,11 @@ type AgentCardProps = {
   imageClassName?: string;
   /** Classes do botão de conversar (ex.: 46px quando a borda soma à altura, como em Assistentes). */
   actionClassName?: string;
+  /**
+   * Formato na grade de Assistentes: "wide" deita o card (cena à esquerda, a partir do tablet);
+   * "tall" ocupa duas linhas e a cena cresce até a altura que sobra (desktop).
+   */
+  layout?: "default" | "wide" | "tall";
   className?: string;
 };
 
@@ -77,6 +82,7 @@ export function AgentCard({
   data,
   imageClassName = "h-40 @tab:h-46",
   actionClassName,
+  layout = "default",
   className,
 }: AgentCardProps) {
   const agent = agents[data.agent];
@@ -86,6 +92,7 @@ export function AgentCard({
       className={cn(
         "relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[1.75rem] border bg-card text-sand",
         data.statusAlert ? "border-urucum" : "border-line",
+        layout === "wide" && "@tab:flex-row",
         className,
       )}
     >
@@ -93,7 +100,13 @@ export function AgentCard({
         <div
           role="img"
           aria-label={`Imagem do agente ${agent.nome}`}
-          className={cn("relative shrink-0 overflow-hidden rounded-t-[1.375rem]", imageClassName)}
+          className={cn(
+            "relative shrink-0 overflow-hidden rounded-t-[1.375rem]",
+            imageClassName,
+            layout === "wide" &&
+              "@tab:h-auto @tab:min-h-64 @tab:w-[46%] @tab:rounded-t-none @tab:rounded-l-[1.375rem]",
+            layout === "tall" && "@desk:h-auto @desk:min-h-46 @desk:grow",
+          )}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- ilustração do bioma */}
           <img src={agent.cena} alt="" className="absolute inset-0 block size-full object-cover" />
@@ -111,7 +124,13 @@ export function AgentCard({
             </span>
           </span>
         </div>
-        <div className="flex min-h-0 grow flex-col gap-2.5 px-5 pt-4 pb-4.5">
+        <div
+          className={cn(
+            "flex min-h-0 grow flex-col gap-2.5 px-5 pt-4 pb-4.5",
+            layout === "wide" && "@tab:min-w-0 @tab:basis-0 @tab:px-6 @tab:pt-5 @tab:pb-5",
+            layout === "tall" && "@desk:grow-0",
+          )}
+        >
           <div className="flex items-baseline justify-between gap-2 @tab:flex-wrap @tab:gap-x-2 @tab:gap-y-0.5">
             <div className="flex min-w-0 flex-col gap-0.5">
               <strong className="font-display text-24 leading-[1.1] font-extrabold">

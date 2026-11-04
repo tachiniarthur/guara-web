@@ -22,7 +22,7 @@ const agentsWithNews = new Set(["quero_quero"]);
 /** A turma no menu fica curta; os demais assistentes estão em "Ver todos os assistentes". */
 const sidebarAgents = agentOrder.filter((id) => id !== "caramelo" && id !== "onca");
 
-/** Menu lateral completo (janelas grandes): marca, busca, destinos, a turma e o card do usuário. */
+/** Menu lateral completo (janelas grandes): marca, destinos, a turma e o card do usuário. */
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
 
@@ -35,15 +35,6 @@ export function Sidebar({ className }: { className?: string }) {
       )}
     >
       <BrandLockup className="px-2" />
-
-      <OpenChat
-        fresh
-        className="flex h-12 items-center gap-2.5 rounded-full border border-line-strong bg-card px-4 text-left text-15 text-caption hover:text-mist"
-      >
-        <Icon name="search" size={18} />
-        <span className="grow">Buscar ou perguntar</span>
-        <kbd className="rounded-md border border-line-strong px-2 py-0.5 font-sans text-12">⌘K</kbd>
-      </OpenChat>
 
       <ul className="m-0 flex list-none flex-col gap-1 p-0">
         {mainNav.map((item) => {

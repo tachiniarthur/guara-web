@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Fragment, useId } from "react";
 
 import { Icon } from "@/components/ui/icon";
+import { SlideCell, slideRowClass } from "@/components/ui/slide-cell";
 import { cn } from "@/lib/utils";
 
 import { portfolio, positionGroups } from "../data";
@@ -11,9 +12,12 @@ import { useClosedGroups } from "./position-cards";
 import { DayChange, OriginInfo, RiskBadge, SortArrows } from "./position-parts";
 import { MataArt } from "@/components/ui/mata-art";
 
+// Com o chat aberto ao lado a tabela estreita: o título quebra em duas linhas em vez de invadir
+// a coluna vizinha (centralizado, ele passaria dos dois lados).
 const th =
-  "border-b border-line-strong px-3.5 pb-3 text-13 font-bold tracking-[.05em] whitespace-nowrap text-mist uppercase";
-const td = "border-b border-line px-3.5 py-3.5 align-middle text-15";
+  "border-b border-line-strong px-2 pb-3 align-bottom text-13 leading-[1.25] font-bold tracking-[.05em] text-balance text-mist uppercase";
+// Todas as colunas centralizadas, menos "Ativo" (a primeira).
+const cell = "px-3.5 py-3.5 text-center text-15";
 
 // Total com folga para "R$ 15.892,10" numa linha só (e "Quantidade" sem encostar em "Preço médio").
 const columns = ["15%", "8%", "9%", "8%", "11%", "8%", "9%", "11%", "8%", "9%", "4%"];
@@ -32,16 +36,16 @@ export function PositionsTable() {
       </colgroup>
       <thead>
         <tr>
-          <th scope="col" className={cn(th, "text-left")}>
+          <th scope="col" className={cn(th, "px-3.5 text-left")}>
             Ativo
           </th>
-          <th scope="col" className={cn(th, "text-left")}>
+          <th scope="col" className={cn(th, "text-center")}>
             Classe
           </th>
-          <th scope="col" className={cn(th, "text-left")}>
+          <th scope="col" className={cn(th, "text-center")}>
             Instrumento
           </th>
-          <th scope="col" className={cn(th, "text-left")}>
+          <th scope="col" className={cn(th, "text-center")}>
             Risco
             <span
               title="Risco calculado pelo cadastro do ativo: volatilidade, risco de crédito e liquidez. Você pode ajustar."
@@ -51,16 +55,16 @@ export function PositionsTable() {
               <Icon name="info" size={14} />
             </span>
           </th>
-          <th scope="col" className={cn(th, "text-left")}>
+          <th scope="col" className={cn(th, "text-center")}>
             Origem
           </th>
-          <th scope="col" className={cn(th, "text-right")}>
+          <th scope="col" className={cn(th, "text-center")}>
             Quantidade
           </th>
-          <th scope="col" className={cn(th, "text-right")}>
+          <th scope="col" className={cn(th, "text-center")}>
             Preço médio
           </th>
-          <th scope="col" aria-sort="descending" className={cn(th, "text-right")}>
+          <th scope="col" aria-sort="descending" className={cn(th, "text-center")}>
             <button
               type="button"
               aria-label="Ordenar por total, ordenado do maior para o menor"
@@ -70,7 +74,7 @@ export function PositionsTable() {
               <SortArrows active />
             </button>
           </th>
-          <th scope="col" aria-sort="none" className={cn(th, "text-right")}>
+          <th scope="col" aria-sort="none" className={cn(th, "text-center")}>
             <button
               type="button"
               aria-label="Ordenar por % da carteira"
@@ -80,10 +84,10 @@ export function PositionsTable() {
               <SortArrows active={false} />
             </button>
           </th>
-          <th scope="col" className={cn(th, "text-right")}>
+          <th scope="col" className={cn(th, "text-center")}>
             Hoje
           </th>
-          <th scope="col" className={cn(th, "w-[1%] text-right")}>
+          <th scope="col" className={cn(th, "text-center")}>
             <span className="sr-only">Abrir ativo</span>
           </th>
         </tr>
@@ -100,7 +104,7 @@ export function PositionsTable() {
                     aria-expanded={expanded}
                     aria-controls={`${id}-${i}`}
                     onClick={() => toggle(group.classe)}
-                    className="relative isolate grid w-full pressable grid-cols-[71fr_9fr_8fr_12fr] items-center overflow-hidden rounded-[0.875rem] border border-sand/25 bg-mata p-0 text-left text-sand"
+                    className="relative isolate grid w-full pressable grid-cols-[68fr_11fr_8fr_13fr] items-center overflow-hidden rounded-[0.875rem] border border-sand/25 bg-mata p-0 text-left text-sand"
                   >
                     <MataArt className="absolute inset-0 -z-20 size-full" align="right" />
                     <span
@@ -123,10 +127,10 @@ export function PositionsTable() {
                         </span>
                       </span>
                     </span>
-                    <span className="px-3.5 py-3 text-right text-15 font-bold whitespace-nowrap tabular-nums">
+                    <span className="px-1 py-3 text-center text-15 font-bold whitespace-nowrap tabular-nums">
                       {group.total}
                     </span>
-                    <span className="px-3.5 py-3 text-right text-15 font-bold tabular-nums">
+                    <span className="px-1 py-3 text-center text-15 font-bold tabular-nums">
                       {group.percentual}
                     </span>
                     <span />
@@ -134,16 +138,11 @@ export function PositionsTable() {
                 </th>
               </tr>
             </tbody>
-            {/* Os ativos da classe: entram subindo ao abrir e somem ao recolher. */}
-            <tbody
-              id={`${id}-${i}`}
-              hidden={!expanded}
-              className="animate-fade-up [animation-duration:var(--duration-dialog)]"
-              key={expanded ? "aberta" : "fechada"}
-            >
+            {/* Os ativos da classe: deslizam para dentro ao abrir e recolhem ao fechar. */}
+            <tbody id={`${id}-${i}`} inert={!expanded}>
               {group.posicoes.map((p) => (
-                <tr key={p.id}>
-                  <th scope="row" className={cn(td, "text-left font-normal")}>
+                <tr key={p.id} className={slideRowClass(expanded)}>
+                  <SlideCell open={expanded} header className={cn(cell, "text-left")}>
                     <span className="flex flex-col leading-[1.35]">
                       <Link
                         href={`/investimentos/${p.slug}`}
@@ -153,41 +152,52 @@ export function PositionsTable() {
                       </Link>
                       <span className="text-13 text-mist">{p.descricao}</span>
                     </span>
-                  </th>
-                  <td className={td}>{p.classe}</td>
-                  <td className={td}>{p.instrumento}</td>
-                  <td className={td}>
+                  </SlideCell>
+                  <SlideCell open={expanded} className={cell}>
+                    {p.classe}
+                  </SlideCell>
+                  <SlideCell open={expanded} className={cell}>
+                    {p.instrumento}
+                  </SlideCell>
+                  <SlideCell open={expanded} className={cell}>
                     <RiskBadge risk={p.risco} />
-                  </td>
-                  <td className={td}>
+                  </SlideCell>
+                  <SlideCell open={expanded} className={cell}>
                     <OriginInfo origin={p.origem} />
-                  </td>
-                  <td
+                  </SlideCell>
+                  <SlideCell
+                    open={expanded}
                     className={cn(
-                      td,
-                      "text-right tabular-nums",
+                      cell,
+                      "tabular-nums",
                       p.quantidade ? "text-sand" : "text-caption",
                     )}
                   >
                     {p.quantidade ?? "—"}
-                  </td>
-                  <td
+                  </SlideCell>
+                  <SlideCell
+                    open={expanded}
                     className={cn(
-                      td,
-                      "text-right tabular-nums",
+                      cell,
+                      "tabular-nums",
                       p.precoMedio ? "text-sand" : "text-caption",
                     )}
                   >
                     {p.precoMedio ?? "—"}
-                  </td>
-                  <td className={cn(td, "text-right font-bold whitespace-nowrap tabular-nums")}>
+                  </SlideCell>
+                  <SlideCell
+                    open={expanded}
+                    className={cn(cell, "font-bold whitespace-nowrap tabular-nums")}
+                  >
                     {p.total}
-                  </td>
-                  <td className={cn(td, "text-right text-soft tabular-nums")}>{p.percentual}</td>
-                  <td className={cn(td, "text-right")}>
+                  </SlideCell>
+                  <SlideCell open={expanded} className={cn(cell, "text-soft tabular-nums")}>
+                    {p.percentual}
+                  </SlideCell>
+                  <SlideCell open={expanded} className={cell}>
                     <DayChange change={p.hoje} />
-                  </td>
-                  <td className={cn(td, "pl-1 text-right")}>
+                  </SlideCell>
+                  <SlideCell open={expanded} className={cn(cell, "pl-1")}>
                     <Link
                       href={`/investimentos/${p.slug}`}
                       aria-label={`Abrir ${p.nome}`}
@@ -196,7 +206,7 @@ export function PositionsTable() {
                     >
                       <Icon name="chevron-right" size={18} />
                     </Link>
-                  </td>
+                  </SlideCell>
                 </tr>
               ))}
             </tbody>
@@ -213,10 +223,10 @@ export function PositionsTable() {
             Outras {portfolio.outras.quantidade} posições{" "}
             <span className="text-caption">· abra &quot;Ver as 12&quot; para ver cada uma</span>
           </th>
-          <td className="border-b border-line-strong px-3.5 py-4 text-right text-15 font-bold whitespace-nowrap tabular-nums">
+          <td className="border-b border-line-strong px-3.5 py-4 text-center text-15 font-bold whitespace-nowrap tabular-nums">
             {portfolio.outras.total}
           </td>
-          <td className="border-b border-line-strong px-3.5 py-4 text-right text-15 text-soft tabular-nums">
+          <td className="border-b border-line-strong px-3.5 py-4 text-center text-15 text-soft tabular-nums">
             {portfolio.outras.percentual}
           </td>
           <td className="border-b border-line-strong" colSpan={2} />
@@ -226,19 +236,16 @@ export function PositionsTable() {
         <tr>
           <th
             scope="row"
-            colSpan={6}
+            colSpan={7}
             className="px-3.5 pt-4.5 pb-1 text-left font-display text-18 font-bold"
           >
             Total da carteira
           </th>
-          {/* Duas colunas: o total em Fraunces 20 não cabe numa só sem quebrar. */}
-          <td
-            colSpan={2}
-            className="px-3.5 pt-4.5 pb-1 text-right font-display text-20 font-extrabold whitespace-nowrap tabular-nums"
-          >
-            {portfolio.patrimonio}
+          {/* Centralizado na coluna Total; se o Fraunces 20 passar da largura, sobra igual dos dois lados. */}
+          <td className="px-3.5 pt-4.5 pb-1 font-display text-20 font-extrabold whitespace-nowrap tabular-nums">
+            <span className="flex justify-center">{portfolio.patrimonio}</span>
           </td>
-          <td className="px-3.5 pt-4.5 pb-1 text-right text-16 font-bold tabular-nums">100%</td>
+          <td className="px-3.5 pt-4.5 pb-1 text-center text-16 font-bold tabular-nums">100%</td>
           <td colSpan={2} />
         </tr>
       </tfoot>

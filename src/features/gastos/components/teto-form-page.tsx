@@ -71,18 +71,18 @@ function Legend3({ className }: { className?: string }) {
 function PreviewCard({ variant }: { variant: "compact" | "large" }) {
   if (variant === "large") {
     return (
-      <section className="flex min-w-0 flex-col gap-4.5 rounded-card border border-line bg-card p-7">
+      <section className="flex min-w-0 flex-col gap-4 rounded-card border border-line bg-card p-6">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="m-0 font-display text-22 leading-[1.25] font-bold">
+          <h2 className="m-0 font-display text-18 leading-[1.25] font-bold">
             Prévia com seus gastos de hoje
           </h2>
-          <span className="text-15 text-mist">
-            <strong className="font-display text-26 text-sand tabular-nums">R$ 742,18</strong> de R$
+          <span className="text-14 text-mist">
+            <strong className="font-display text-22 text-sand tabular-nums">R$ 742,18</strong> de R$
             1.000 · 74%
           </span>
         </div>
         <TetoBar percentual={74.2} estado="atenção" marcos={marcos} size="lg" />
-        <p className="m-0 text-16 leading-[1.55] text-mist">
+        <p className="m-0 text-14 leading-[1.55] text-mist">
           Você recebe 3 avisos: em R$ 500, em R$ 700 e ao bater o teto de R$ 1.000. Cada um chega
           uma única vez por mês.
         </p>
@@ -110,17 +110,17 @@ function HistoryCard({ variant }: { variant: "desktop" | "tablet" | "mobile" }) 
     <section
       className={
         desktop
-          ? "flex min-w-0 grow flex-col gap-5 rounded-card border border-line bg-card p-7"
+          ? "flex min-w-0 grow flex-col gap-4 rounded-card border border-line bg-card p-6"
           : `flex min-w-0 flex-col gap-4 rounded-card border border-line bg-card ${mobile ? "p-4" : "p-5"}`
       }
     >
       <div className="flex flex-col gap-1">
         <h2
-          className={`m-0 font-display leading-[1.25] font-bold ${desktop ? "text-22" : mobile ? "text-17" : "text-18"}`}
+          className={`m-0 font-display leading-[1.25] font-bold ${mobile ? "text-17" : "text-18"}`}
         >
           Alimentação nos últimos 6 meses
         </h2>
-        <p className={`m-0 text-mist ${desktop ? "text-15" : mobile ? "text-13" : "text-14"}`}>
+        <p className={`m-0 text-mist ${mobile ? "text-13" : "text-14"}`}>
           Com o teto de R$ 1.000, só julho teria passado do limite.
         </p>
       </div>
@@ -131,7 +131,7 @@ function HistoryCard({ variant }: { variant: "desktop" | "tablet" | "mobile" }) 
         media={910}
         label={chartLabel}
       />
-      <Legend3 className={desktop ? "text-15" : mobile ? "text-12" : "text-13"} />
+      <Legend3 className={mobile ? "text-12" : "text-13"} />
       <dl className={`m-0 grid ${mobile ? "grid-cols-2 gap-2" : "grid-cols-3 gap-3"}`}>
         {[
           { label: "Média dos últimos 3 meses", value: "R$ 910", tone: "sand" as const },
@@ -152,14 +152,12 @@ function HistoryCard({ variant }: { variant: "desktop" | "tablet" | "mobile" }) 
                   ? `px-3.5 py-3 ${stat.label === "Maior mês" ? "col-span-full" : ""}`
                   : undefined
               }
-              labelClassName={desktop ? "text-15" : mobile ? "text-12" : "text-13"}
-              valueClassName={desktop ? "text-24" : mobile ? "text-17" : "text-19"}
+              labelClassName={mobile ? "text-12" : "text-13"}
+              valueClassName={mobile ? "text-17" : "text-19"}
             />
           ))}
       </dl>
-      <span className={`text-caption ${desktop ? "text-14" : "text-12"}`}>
-        *setembro até o dia 23
-      </span>
+      <span className="text-12 text-caption">*setembro até o dia 23</span>
     </section>
   );
 }
@@ -167,7 +165,7 @@ function HistoryCard({ variant }: { variant: "desktop" | "tablet" | "mobile" }) 
 function AlertInputs() {
   return (
     <fieldset className="m-0 flex flex-col gap-2.5 border-none p-0">
-      <Legend className="@desk:text-17">
+      <Legend>
         Avisos antes do teto <span className="font-normal text-caption">(opcional)</span>
       </Legend>
       <ul className="m-0 flex list-none flex-col gap-2 p-0">
@@ -175,7 +173,7 @@ function AlertInputs() {
           <li key={valor} className="flex items-center gap-2">
             <span
               aria-hidden="true"
-              className="flex size-7.5 shrink-0 items-center justify-center rounded-full border border-line-strong text-13 font-bold text-mist @desk:size-9 @desk:text-15"
+              className="flex size-7.5 shrink-0 items-center justify-center rounded-full border border-line-strong text-13 font-bold text-mist"
             >
               {i + 1}
             </span>
@@ -186,7 +184,7 @@ function AlertInputs() {
               id={`aviso-${i + 1}`}
               inputMode="decimal"
               defaultValue={valor}
-              className="h-12 tabular-nums @desk:h-14 @desk:text-18"
+              className="h-12 tabular-nums"
             />
             <IconButton icon="trash" label={`Remover aviso ${i + 1}`} variant="ghost" />
           </li>
@@ -194,7 +192,7 @@ function AlertInputs() {
       </ul>
       <button
         type="button"
-        className="flex h-12 items-center justify-center gap-2 rounded-full border border-dashed border-line-strong bg-transparent text-15 font-bold"
+        className="flex h-12 items-center justify-center gap-2 rounded-full border border-dashed border-line-strong bg-transparent text-14 font-bold"
       >
         <Icon name="plus" size={18} />
         Adicionar aviso
@@ -226,7 +224,6 @@ export function TetoFormPage({ mode = "novo" }: { mode?: keyof typeof copy }) {
   return (
     <Page
       padding="form"
-      zoom={1.4}
       paddingClassName="pt-2 pb-27.5"
       className="gap-5 @desk:gap-6"
       header={<MobileHeader title={text.header} close={text.close} />}
@@ -234,7 +231,7 @@ export function TetoFormPage({ mode = "novo" }: { mode?: keyof typeof copy }) {
       <Breadcrumb className="hidden @tab:flex" items={text.crumbs} />
       <header className="hidden items-end justify-between gap-4 @tab:flex">
         <div className="flex flex-col gap-1.5">
-          <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em] @desk:text-32">
+          <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em]">
             {text.title}
           </h1>
         </div>
@@ -242,8 +239,8 @@ export function TetoFormPage({ mode = "novo" }: { mode?: keyof typeof copy }) {
       </header>
 
       <div className="grid grid-cols-1 gap-5 @desk:grid-cols-2 @desk:gap-6">
-        <section className="flex min-w-0 flex-col gap-5.5 @tab:gap-4 @tab:rounded-card @tab:border @tab:border-line @tab:bg-card @tab:p-6 @desk:gap-6 @desk:p-8">
-          <form className="m-0 flex flex-col gap-5.5 @desk:gap-7.5">
+        <section className="flex min-w-0 flex-col gap-5.5 @tab:gap-4 @tab:rounded-card @tab:border @tab:border-line @tab:bg-card @tab:p-6 @desk:gap-5">
+          <form className="m-0 flex flex-col gap-5.5 @tab:gap-5">
             <div className="flex flex-col gap-1 @tab:hidden">
               <h1 className="m-0 font-display text-24 leading-[1.25] font-bold tracking-[-0.01em]">
                 {text.title}
@@ -255,25 +252,21 @@ export function TetoFormPage({ mode = "novo" }: { mode?: keyof typeof copy }) {
 
             <div className="grid grid-cols-1 items-start gap-5.5 @tab:grid-cols-2 @tab:gap-3.5 @desk:gap-5">
               <Field>
-                <FieldLabel htmlFor="teto-categoria" className="@desk:text-17">
-                  Categoria
-                </FieldLabel>
+                <FieldLabel htmlFor="teto-categoria">Categoria</FieldLabel>
                 <SelectInput
                   id="teto-categoria"
-                  className="text-17 @max-tab:pr-3.5 @tab:text-16 @desk:h-15 @desk:text-18"
-                  chevronClassName="hidden @tab:block @desk:top-5 @desk:right-4"
+                  className="text-17 @max-tab:pr-3.5 @tab:text-15"
+                  chevronClassName="hidden @tab:block"
                 >
                   <option>Alimentação</option>
                 </SelectInput>
               </Field>
               <Field>
-                <FieldLabel htmlFor="teto-periodo" className="@desk:text-17">
-                  Período
-                </FieldLabel>
+                <FieldLabel htmlFor="teto-periodo">Período</FieldLabel>
                 <SelectInput
                   id="teto-periodo"
-                  className="text-17 @max-tab:pr-3.5 @tab:text-16 @desk:h-15 @desk:text-18"
-                  chevronClassName="hidden @tab:block @desk:top-5 @desk:right-4"
+                  className="text-17 @max-tab:pr-3.5 @tab:text-15"
+                  chevronClassName="hidden @tab:block"
                 >
                   <option>Mensal, recomeça todo dia 1</option>
                 </SelectInput>
@@ -281,7 +274,7 @@ export function TetoFormPage({ mode = "novo" }: { mode?: keyof typeof copy }) {
             </div>
 
             <Field>
-              <FieldLabel htmlFor="teto-valor" className="@desk:text-17">
+              <FieldLabel htmlFor="teto-valor">
                 <span className="@tab:hidden">Teto mensal</span>
                 <span className="hidden @tab:inline">Teto</span>
               </FieldLabel>
@@ -289,9 +282,9 @@ export function TetoFormPage({ mode = "novo" }: { mode?: keyof typeof copy }) {
                 id="teto-valor"
                 defaultValue="R$ 1.000,00"
                 aria-describedby="teto-valor-dica"
-                className="h-16 text-30 @tab:rounded-tile @tab:text-28 @desk:h-21 @desk:text-44"
+                className="h-16 text-30 @tab:rounded-tile @tab:text-28"
               />
-              <FieldHint id="teto-valor-dica" className="@desk:text-15">
+              <FieldHint id="teto-valor-dica">
                 Sua média nos últimos 3 meses: R$ 910
                 <span className="hidden @tab:inline">. Vale para crédito e débito.</span>
               </FieldHint>
@@ -305,7 +298,7 @@ export function TetoFormPage({ mode = "novo" }: { mode?: keyof typeof copy }) {
             </div>
 
             <fieldset className="m-0 flex flex-col gap-1 border-none p-0 @tab:gap-0">
-              <Legend className="@desk:text-17">Onde avisar</Legend>
+              <Legend>Onde avisar</Legend>
               <div className="@tab:hidden">
                 <CheckboxRow
                   id="teto-push-m"
@@ -326,27 +319,17 @@ export function TetoFormPage({ mode = "novo" }: { mode?: keyof typeof copy }) {
                 />
               </div>
               <div className="hidden @tab:block">
-                <CheckboxRow
-                  id="teto-push"
-                  label="Notificação no celular"
-                  defaultChecked
-                  labelClassName="@desk:text-17"
-                />
-                <CheckboxRow
-                  id="teto-mail"
-                  label="E-mail"
-                  defaultChecked
-                  labelClassName="@desk:text-17"
-                />
+                <CheckboxRow id="teto-push" label="Notificação no celular" defaultChecked />
+                <CheckboxRow id="teto-mail" label="E-mail" defaultChecked />
               </div>
             </fieldset>
           </form>
 
           <div className="hidden justify-end gap-2.5 @desk:flex">
-            <ButtonLink href="/alertas" variant="ghost" size="2xl" className="hover:bg-transparent">
+            <ButtonLink href="/alertas" variant="ghost" size="lg" className="hover:bg-transparent">
               <span>Cancelar</span>
             </ButtonLink>
-            <ButtonLink href="/alertas" variant="primary" size="2xl">
+            <ButtonLink href="/alertas" variant="primary" size="lg">
               <Icon name="check" size={18} />
               <span>{text.submit}</span>
             </ButtonLink>

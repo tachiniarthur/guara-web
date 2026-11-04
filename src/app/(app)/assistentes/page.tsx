@@ -2,7 +2,17 @@ import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page, PageTitle } from "@/components/layout/page";
 import { agentCards } from "@/features/assistentes/cards";
 import { AgentCard } from "@/features/assistentes/components/agent-card";
-import { agentOrder } from "@/features/assistentes/data";
+import { agentOrder, type AgentId } from "@/features/assistentes/data";
+
+/**
+ * Grade em mosaico: o Capivara (o coordenador) e a Onça deitados e largos, o Tamanduá alto no
+ * desktop e os demais menores. Tablet: largos nas pontas, dois por linha no meio.
+ */
+const mosaic: Partial<Record<AgentId, { layout: "wide" | "tall"; className: string }>> = {
+  capivara: { layout: "wide", className: "@tab:col-span-2" },
+  tamandua: { layout: "tall", className: "@desk:row-span-2" },
+  onca: { layout: "wide", className: "@tab:col-span-2" },
+};
 
 export default function AssistentesPage() {
   return (
@@ -23,6 +33,8 @@ export default function AssistentesPage() {
             data={agentCards[id]}
             imageClassName="h-[9.375rem] @tab:h-46"
             actionClassName="size-[2.875rem]"
+            layout={mosaic[id]?.layout}
+            className={mosaic[id]?.className}
           />
         ))}
       </div>

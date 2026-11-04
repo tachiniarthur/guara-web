@@ -26,6 +26,8 @@ const paths = {
   car: "M5 17h14M6 17v2M18 17v2M3 13l2-5a2 2 0 0 1 1.9-1.4h10.2A2 2 0 0 1 19 8l2 5v4H3zM7 13.5h.01M17 13.5h.01",
   "car-front": "M4 16V12l2-5h12l2 5v4zM4 16v3h3v-3M17 16v3h3v-3M7.5 13h.01M16.5 13h.01",
   chat: "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z",
+  /* Nova conversa: o balão do chat com um "+" dentro. */
+  "chat-plus": "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12zM13 8.5v7M9.5 12h7",
   check: "M5 12l5 5L20 7",
   "check-alt": "M20 6 9 17l-5-5",
   "chevron-down": "M6 9l6 6 6-6",

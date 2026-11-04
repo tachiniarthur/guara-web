@@ -82,6 +82,10 @@
   --duration-expand: 300ms;
   --duration-enter: 420ms;
   --duration-chart: 1200ms;
+  /* Accordions e linhas de tabela que abrem e recolhem deslizando (Collapse, SlideCell). */
+  --duration-slide: 460ms;
+  /* Chat: painéis, histórico e troca de conversa deslizam devagar, sem pressa. */
+  --duration-panel: 560ms;
 }
 
 @theme inline {
@@ -584,6 +588,35 @@
   }
 }
 
+/*
+ * Chat: a conversa (nova ou trocada) e os grupos do histórico entram deslizando de leve, devagar,
+ * um depois do outro, enquanto o painel ainda chega.
+ */
+@keyframes chat-slide {
+  from {
+    opacity: 0;
+    translate: 0 1.25rem;
+  }
+}
+@utility animate-chat-slide {
+  animation: chat-slide var(--duration-panel) var(--ease-drawer) both;
+}
+@utility chat-cascade {
+  & > * {
+    animation: chat-slide var(--duration-panel) var(--ease-drawer) both;
+    animation-delay: 120ms;
+  }
+  & > :nth-child(2) {
+    animation-delay: 190ms;
+  }
+  & > :nth-child(3) {
+    animation-delay: 260ms;
+  }
+  & > :nth-child(n + 4) {
+    animation-delay: 330ms;
+  }
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
   &::-webkit-scrollbar {
@@ -724,12 +757,15 @@
 }
 [data-motion="sheet"],
 [data-motion="sheet-dialog"],
-[data-motion="sheet-panel"],
 [data-motion="sheet-menu"] {
   animation: sheet-in var(--duration-sheet) var(--ease-drawer) both;
 }
+/* Chat: a folha e os painéis deslizam mais devagar que as demais gavetas. */
+[data-motion="sheet-panel"] {
+  animation: sheet-in var(--duration-panel) var(--ease-drawer) both;
+}
 [data-motion="panel"] {
-  animation: panel-in var(--duration-sheet) var(--ease-drawer) both;
+  animation: panel-in var(--duration-panel) var(--ease-drawer) both;
 }
 [data-motion="toast-top"] {
   animation: toast-top-in var(--duration-dialog) var(--ease-out-soft) both;
@@ -742,7 +778,7 @@
     animation: dialog-in var(--duration-dialog) var(--ease-out-soft) both;
   }
   [data-motion="sheet-panel"] {
-    animation: panel-in var(--duration-sheet) var(--ease-drawer) both;
+    animation: panel-in var(--duration-panel) var(--ease-drawer) both;
   }
   [data-motion="sheet-menu"] {
     animation: menu-in var(--duration-popover) var(--ease-out-soft) both;
@@ -903,6 +939,11 @@ details[open]::details-content {
     }
   }
   @keyframes panel-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes chat-slide {
     from {
       opacity: 0;
     }

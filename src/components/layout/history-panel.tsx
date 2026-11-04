@@ -116,7 +116,8 @@ export function HistoryPanel({
           <span>Nova conversa</span>
         </Button>
       </div>
-      <div className="scrollbar-none grow overflow-y-auto px-2 py-1">
+      {/* Os grupos do histórico entram deslizando um depois do outro enquanto o painel chega. */}
+      <div className="scrollbar-none grow chat-cascade overflow-y-auto px-2 py-1">
         <ConversationList
           currentId={open ? conversationId : undefined}
           onSelect={openConversation}
@@ -141,17 +142,19 @@ export function HistoryPanel({
 }
 
 /**
- * Atalho pequeno na borda direita quando o histórico foi fechado (desktop): reabre o painel de
- * conversas no lugar de onde saiu.
+ * Atalho do chat na borda direita (tablet e desktop), no lugar do antigo botão "Conversar": com a
+ * textura Mata do Guará. Nas telas com painel de conversas, depois do X do histórico, traz o painel
+ * de volta (`restore`); nas demais, abre o histórico por cima da tela.
  */
-export function HistoryHandle({ className }: { className?: string }) {
+export function HistoryHandle({ restore, className }: { restore?: boolean; className?: string }) {
   const restoreHistory = useChatPanel((state) => state.restoreHistory);
+  const showHistory = useChatPanel((state) => state.showHistory);
   return (
     <button
       type="button"
       aria-label="Abrir o histórico de conversas"
       title="Abrir o histórico de conversas"
-      onClick={restoreHistory}
+      onClick={restore ? restoreHistory : showHistory}
       data-motion="panel"
       className={cn(
         // Fundo com a textura Mata do Guará, como os botões "forest" (ex.: Nova conversa).

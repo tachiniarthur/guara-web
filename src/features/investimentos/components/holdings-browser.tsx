@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 
 import { holdingClasses, holdingsSummary, type Holding, type HoldingOrigin } from "../posicoes";
 import { Collapse } from "@/components/ui/collapse";
+import { SlideCell, slideRowClass } from "@/components/ui/slide-cell";
 import { ClassBanner, classBannerClass, useClosedGroups } from "./position-cards";
 import { DayChange, RiskPill } from "./position-parts";
 
@@ -92,32 +93,39 @@ function HoldingRow({ holding: h }: { holding: Holding }) {
   );
 }
 
-function HoldingTableRow({ holding: h }: { holding: Holding }) {
+function HoldingTableRow({ holding: h, open }: { holding: Holding; open: boolean }) {
+  const cell = "px-2 py-2.5 text-center";
   return (
-    <tr className="border-b border-line">
-      <td className="px-2 py-2.5">
+    <tr inert={!open} className={slideRowClass(open)}>
+      <SlideCell open={open} className="px-2 py-2.5 text-left">
         <AssetName holding={h} size="table" />
-      </td>
-      <td className="px-2 py-2.5">
+      </SlideCell>
+      <SlideCell open={open} className={cell}>
         <RiskPill risk={h.risco} href={riskHref(h)} label={`Ajustar risco de ${h.nome}`} />
-      </td>
-      <td className="px-2 py-2.5 text-12 text-mist">{h.origem}</td>
-      <td className="px-2 py-2.5 text-right font-bold whitespace-nowrap tabular-nums">{h.total}</td>
-      <td className="px-2 py-2.5 text-right tabular-nums">{h.percentual}</td>
-      <td className="px-2 py-2.5 text-right">
+      </SlideCell>
+      <SlideCell open={open} className={cn(cell, "text-12 text-mist")}>
+        {h.origem}
+      </SlideCell>
+      <SlideCell open={open} className={cn(cell, "font-bold whitespace-nowrap tabular-nums")}>
+        {h.total}
+      </SlideCell>
+      <SlideCell open={open} className={cn(cell, "tabular-nums")}>
+        {h.percentual}
+      </SlideCell>
+      <SlideCell open={open} className={cell}>
         <DayChange change={h.hoje} className="text-13" arrowClassName="text-10" />
-      </td>
+      </SlideCell>
     </tr>
   );
 }
 
 const columns = [
   { label: "Ativo", align: "left" },
-  { label: "Risco", align: "left" },
-  { label: "Origem", align: "left" },
-  { label: "Total", align: "right" },
-  { label: "% carteira", align: "right" },
-  { label: "Hoje", align: "right" },
+  { label: "Risco", align: "center" },
+  { label: "Origem", align: "center" },
+  { label: "Total", align: "center" },
+  { label: "% carteira", align: "center" },
+  { label: "Hoje", align: "center" },
 ] as const;
 
 const noPositions = (
@@ -309,7 +317,7 @@ function HoldingsCard({
                 scope="col"
                 className={cn(
                   "px-2 py-2.5 text-12 font-bold text-caption",
-                  col.align === "right" ? "text-right" : "text-left",
+                  col.align === "center" ? "text-center" : "text-left",
                 )}
               >
                 {col.label}
@@ -322,7 +330,8 @@ function HoldingsCard({
             <TableSection
               key={c.classe}
               banner={banner(c, i)}
-              itens={grouping !== "classe" || isOpen(c.classe) ? c.itens : []}
+              itens={c.itens}
+              open={grouping !== "classe" || isOpen(c.classe)}
             />
           ))}
         </tbody>
@@ -349,7 +358,15 @@ function HoldingsCard({
   );
 }
 
-function TableSection({ banner, itens }: { banner: ReactNode; itens: Holding[] }) {
+function TableSection({
+  banner,
+  itens,
+  open,
+}: {
+  banner: ReactNode;
+  itens: Holding[];
+  open: boolean;
+}) {
   return (
     <>
       {banner && (
@@ -360,7 +377,7 @@ function TableSection({ banner, itens }: { banner: ReactNode; itens: Holding[] }
         </tr>
       )}
       {itens.map((h) => (
-        <HoldingTableRow key={h.id} holding={h} />
+        <HoldingTableRow key={h.id} holding={h} open={open} />
       ))}
     </>
   );

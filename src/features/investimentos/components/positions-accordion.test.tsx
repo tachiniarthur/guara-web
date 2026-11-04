@@ -12,11 +12,16 @@ describe("Posições em accordion por classe", () => {
 
     fireEvent.click(faixa);
     expect(faixa).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByRole("link", { name: "Tesouro Selic 2029" })).not.toBeInTheDocument();
+    // Recolhida, a linha desliza para fora e sai do foco e do leitor de tela (inert).
+    const linhas = () => document.getElementById(faixa.getAttribute("aria-controls")!)!;
+    expect(linhas()).toHaveAttribute("inert");
     // As outras classes continuam abertas.
-    expect(screen.getByRole("link", { name: "PETR4" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "PETR4" }).closest("tbody")).not.toHaveAttribute(
+      "inert",
+    );
 
     fireEvent.click(faixa);
+    expect(linhas()).not.toHaveAttribute("inert");
     expect(screen.getByRole("link", { name: "Tesouro Selic 2029" })).toBeVisible();
   });
 

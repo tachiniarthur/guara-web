@@ -80,8 +80,8 @@ export type ShellConfig = {
   /** Painel à direita no desktop: histórico de conversas, conversa aberta (Início) ou nenhum. */
   aside: "history" | "home" | false;
   /**
-   * Botão flutuante "Conversar": no tablet sempre que `true`; no desktop só nas telas sem
-   * painel à direita.
+   * Atalho do chat na borda direita (antes, o botão "Conversar"): no tablet sempre que `true`; no
+   * desktop só nas telas sem painel à direita.
    */
   fab: boolean;
   /** Barra inferior no mobile. */

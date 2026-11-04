@@ -13,7 +13,7 @@ import { usePrivacy } from "@/stores/privacy";
 
 import { BottomNav } from "./bottom-nav";
 import { ChatOverlay, ChatPanel } from "./chat-panel";
-import { ConversarFab, ConversarFabCompact } from "./conversar-fab";
+import { ConversarFabCompact } from "./conversar-fab";
 import { HistoryHandle, HistoryPanel } from "./history-panel";
 import { Rail } from "./rail";
 import { Sidebar } from "./sidebar";
@@ -21,7 +21,7 @@ import { ValuesMask } from "./values-mask";
 
 /**
  * Estrutura do app pelas classes de janela:
- * compacto (< 600): barra inferior · médio (600–1199): trilho + "Conversar" flutuante ·
+ * compacto (< 600): barra inferior · médio (600–1199): trilho + atalho do chat na borda ·
  * grande (≥ 1200): menu lateral + painel de conversas à direita (conversa aberta a partir de 1600).
  *
  * O chat funciona em qualquer tela: a partir de 1600 px, nas telas com painel lateral, a conversa
@@ -112,9 +112,12 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
           <ChatOverlay className={hasAside ? "xl:hidden" : undefined} />
         )}
       </Presence>
-      {config.aside !== false && historyHidden && <HistoryHandle className="hidden lg:flex" />}
+      {/* O chat abre pelo atalho da borda direita (o mesmo do Início) em todas as telas. */}
+      {config.aside !== false && historyHidden && (
+        <HistoryHandle restore className="hidden lg:flex" />
+      )}
       {config.fab && !(chatAvailable && open === true) && (
-        <ConversarFab className={cn("hidden md:flex", config.aside !== false && "lg:hidden")} />
+        <HistoryHandle className={cn("hidden md:flex", config.aside !== false && "lg:hidden")} />
       )}
       {config.mobileFab && (
         <ConversarFabCompact position={config.mobileFab} className="md:hidden" />

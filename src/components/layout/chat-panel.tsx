@@ -20,7 +20,7 @@ type Mode = "docked" | "overlay";
 
 /** Cabeçalho, conversa e campo de mensagem. Igual nos dois modos; só os botões do topo mudam. */
 function ChatPanelBody({ mode }: { mode: Mode }) {
-  const { conversationId, draft, send, close, showHistory } = useChatPanel();
+  const { conversationId, draft, send, close, newConversation } = useChatPanel();
   const endRef = useRef<HTMLDivElement>(null);
   const count = useChatPanel((state) =>
     conversationId ? (state.messages[conversationId]?.length ?? 0) : 0,
@@ -52,13 +52,14 @@ function ChatPanelBody({ mode }: { mode: Mode }) {
           <strong className="font-display text-22">Chat do Guará</strong>
           <span className="truncate text-13 text-caption">Sua equipe de assistentes de IA</span>
         </div>
+        {/* Começa uma conversa nova ali mesmo (o histórico volta pelo X ou pelo atalho da borda). */}
         <IconButton
-          icon="chat"
-          label="Histórico de conversas"
+          icon="chat-plus"
+          label="Nova conversa"
           size={buttonSize}
-          onClick={docked ? close : showHistory}
+          onClick={() => newConversation()}
         />
-        {/* Abre esta conversa em tela cheia (uma nova conversa começa pelo histórico). */}
+        {/* Abre esta conversa em tela cheia. */}
         <Link
           href={conversationId ? `/conversas/${conversationId}` : "/conversas/nova"}
           aria-label="Abrir em tela cheia"
@@ -73,11 +74,11 @@ function ChatPanelBody({ mode }: { mode: Mode }) {
       </header>
       <div className="scrollbar-none flex grow flex-col overflow-y-auto p-4 md:p-6">
         {/* mt-auto: a conversa curta fica embaixo; a longa rola desde o começo. */}
-        {/* Trocar de conversa (ou começar uma nova) entra com uma subida curta, sem trocar seco. */}
+        {/* Trocar de conversa (ou começar uma nova) entra deslizando devagar, sem trocar seco. */}
         <div
           ref={endRef}
           key={conversationId ?? "nova"}
-          className="mt-auto flex animate-fade-up flex-col gap-5 [animation-duration:var(--duration-dialog)]"
+          className="mt-auto flex animate-chat-slide flex-col gap-5"
         >
           <PanelThread conversationId={conversationId} />
         </div>
