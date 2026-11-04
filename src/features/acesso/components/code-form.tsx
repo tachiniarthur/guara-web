@@ -192,7 +192,7 @@ export function CodeForm({
         </span>
         <Link
           href={changeEmail}
-          className="text-14 font-bold whitespace-nowrap text-sand underline"
+          className="inline-flex min-h-6 items-center text-14 font-bold whitespace-nowrap text-sand underline"
         >
           Trocar e-mail
         </Link>

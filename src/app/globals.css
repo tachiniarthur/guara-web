@@ -591,18 +591,6 @@
   }
 }
 
-/* Menos movimento pedido no sistema: animações e transições quase instantâneas. */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
 /*
  * Cards clicáveis (links e botões com o raio de card) sobem um pouco ao passar o mouse e afundam
  * ao tocar: o mesmo retorno em todo o app, sem repetir classes em cada tela. Subir só com mouse:
@@ -762,6 +750,31 @@
 }
 
 /*
+ * `<details>` (posição no celular, subclasses, risco, "Por que perguntamos"): o conteúdo abre e
+ * fecha deslizando e a seta do resumo gira junto. Onde o navegador não anima `::details-content`,
+ * continua abrindo seco, como antes.
+ */
+details {
+  interpolate-size: allow-keywords;
+}
+details::details-content {
+  block-size: 0;
+  overflow-y: clip;
+  opacity: 0;
+  transition:
+    block-size var(--duration-expand) var(--ease-out-soft),
+    opacity var(--duration-expand) var(--ease-out-soft),
+    content-visibility var(--duration-expand) allow-discrete;
+}
+details[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+}
+:where(details > summary) :where(span, svg) {
+  transition: rotate var(--duration-move) var(--ease-out-soft);
+}
+
+/*
  * Gráfico que já se desenhou (components/charts/chart-fit.tsx): se outra variante aparece porque a
  * largura mudou, ela entra pronta, sem refazer a entrada (fica no estado final das animações).
  */
@@ -834,5 +847,109 @@
 @media (prefers-reduced-motion: reduce) {
   :is(a, button):is(.rounded-card, .rounded-bubble, .rounded-tile):hover {
     translate: none;
+  }
+}
+
+/*
+ * Menos movimento pedido no sistema: menos e mais suave, não zero. Nada desliza, cresce ou gira;
+ * entradas e saídas viram só esmaecer (as mesmas durações), as cores continuam trocando suaves e
+ * os gráficos aparecem já desenhados. O que só se move (indicador, interruptor, expandir) pula.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-property:
+      color, background-color, border-color, opacity, box-shadow, text-decoration-color !important;
+  }
+  :is(
+    .animate-reveal-x,
+    .animate-reveal-y,
+    .animate-sweep,
+    .animate-grow-x,
+    .animate-pop,
+    .build-bar,
+    .build-line,
+    .build-after
+  ) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes toast-top-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes toast-bottom-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes dialog-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes sheet-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes panel-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes menu-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes toast-top-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes toast-bottom-out {
+    to {
+      opacity: 0;
+    }
   }
 }

@@ -87,7 +87,8 @@ function PlanCard({
       style={{ gridRow: `span ${CARD_ROWS}` }}
       className={cn(
         // gap-y-0: sem ele, cada linha herdaria o espaço entre cards da grade (24 px por linha).
-        "relative grid grid-rows-subgrid gap-y-0 rounded-card bg-card transition-[border-color,background-color,box-shadow,transform] duration-200",
+        // O controle é o rádio escondido: com o teclado, o foco dele aparece no card inteiro.
+        "relative grid grid-rows-subgrid gap-y-0 rounded-card bg-card transition-[border-color,background-color,box-shadow,transform] duration-200 has-focus-visible:outline-3 has-focus-visible:outline-offset-3 has-focus-visible:outline-tucano",
         locked
           ? "border border-dashed border-line"
           : selected

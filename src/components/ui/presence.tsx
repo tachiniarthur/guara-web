@@ -5,11 +5,6 @@ import { useEffect, useState, type ReactNode } from "react";
 /** Igual a `--duration-exit` (globals.css), com folga para o último quadro. */
 const EXIT_MS = 190;
 
-const reducedMotion = () =>
-  typeof window !== "undefined" &&
-  typeof window.matchMedia === "function" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 /**
  * Mantém um overlay na tela enquanto ele sai. Com `show` falso, o conteúdo que estava aberto fica
  * mais um instante com `data-presence="closing"` (sem receber cliques nem foco) e as peças marcadas
@@ -26,7 +21,8 @@ export function Presence({ show, children }: { show: boolean; children: ReactNod
 
   useEffect(() => {
     if (show || kept === null) return;
-    const timer = setTimeout(() => setKept(null), reducedMotion() ? 0 : EXIT_MS);
+    // Com "reduzir movimento" a saída também acontece (só esmaece), então o tempo é o mesmo.
+    const timer = setTimeout(() => setKept(null), EXIT_MS);
     return () => clearTimeout(timer);
   }, [show, kept]);
 

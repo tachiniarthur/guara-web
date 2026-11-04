@@ -173,7 +173,7 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
           <button
             type="button"
             onClick={forgot}
-            className="cursor-pointer border-none bg-transparent p-0 font-bold text-sand underline"
+            className="inline-flex min-h-6 cursor-pointer items-center border-none bg-transparent p-0 font-bold text-sand underline"
           >
             Esqueci minha senha
           </button>

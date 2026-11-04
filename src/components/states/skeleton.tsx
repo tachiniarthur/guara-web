@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 
 /** Card: tem fundo ou borda, cantos arredondados e altura de card (botões e pílulas ficam fora). */
 function isCard(element: HTMLElement) {
@@ -20,7 +20,15 @@ function isCard(element: HTMLElement) {
  * (títulos de grupo, por exemplo) continuam visíveis.
  */
 export function Skeleton({ active, children }: { active: boolean; children: ReactNode }) {
-  if (!active) return children;
+  // Quando o carregamento termina, o conteúdo entra como numa tela recém-aberta (cards em cascata,
+  // gráficos se desenhando): escondido, ele já teria feito a entrada sem ninguém ver.
+  const [wasActive, setWasActive] = useState(active);
+  const [round, setRound] = useState(0);
+  if (wasActive !== active) {
+    setWasActive(active);
+    if (!active) setRound((value) => value + 1);
+  }
+  if (!active) return <Fragment key={round}>{children}</Fragment>;
   return <LoadingArea>{children}</LoadingArea>;
 }
 

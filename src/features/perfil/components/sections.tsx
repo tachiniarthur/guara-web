@@ -204,7 +204,10 @@ export function BanksCard({ className }: SectionProps) {
             <strong className="text-sand">{`${plan.usadas} de ${plan.total}`}</strong> conexões
             usadas no plano {plan.nome}
           </span>
-          <Link href="/perfil/planos" className="font-bold text-sand underline underline-offset-3">
+          <Link
+            href="/perfil/planos"
+            className="inline-flex min-h-6 items-center font-bold text-sand underline underline-offset-3"
+          >
             Ver planos
           </Link>
         </div>
@@ -298,12 +301,15 @@ export function NotificationsCard({
               { channel: "email", label: `${type} por e-mail` },
             ].map((cell) => (
               <span key={cell.channel} role="cell" className="flex justify-center">
-                <input
-                  type="checkbox"
-                  aria-label={cell.label}
-                  defaultChecked
-                  className="m-0 size-5.5 accent-sand"
-                />
+                {/* A caixa continua com 22px; a área de toque em volta tem 44px. */}
+                <label className="flex size-11 cursor-pointer items-center justify-center">
+                  <input
+                    type="checkbox"
+                    aria-label={cell.label}
+                    defaultChecked
+                    className="m-0 size-5.5 accent-sand"
+                  />
+                </label>
               </span>
             ))}
           </div>

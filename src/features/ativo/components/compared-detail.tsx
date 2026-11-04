@@ -341,7 +341,7 @@ function PositionCard({ asset }: { asset: ComparedAsset }) {
         <h2 className="m-0 font-display text-18 font-bold">Sua posição</h2>
         <Link
           href="/investimentos/novo"
-          className="flex items-center gap-1.5 text-14 font-bold text-sand underline-offset-3"
+          className="flex min-h-6 items-center gap-1.5 text-14 font-bold text-sand underline-offset-3"
         >
           <Icon name="pencil" size={16} />
           Editar
