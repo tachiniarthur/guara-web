@@ -3,6 +3,7 @@ import { Page, PageTitle } from "@/components/layout/page";
 import { agentCards } from "@/features/assistentes/cards";
 import { AgentCard } from "@/features/assistentes/components/agent-card";
 import { agentOrder, type AgentId } from "@/features/assistentes/data";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 /**
  * Grade em mosaico: o Capivara (o coordenador) e a Onça deitados e largos, o Tamanduá alto no
@@ -20,6 +21,7 @@ export default function AssistentesPage() {
       header={<MobileHeader variant="brand" notifications account />}
       className="gap-5 @tab:gap-6"
     >
+      <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Assistentes" }]} />
       <header>
         <PageTitle
           title="Seus assistentes"

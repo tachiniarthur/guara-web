@@ -1,6 +1,6 @@
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { Breadcrumb, type Crumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import {
   AmountInput,
@@ -204,14 +204,17 @@ function AlertInputs() {
 const copy = {
   novo: {
     header: "Novo teto de gasto",
-    crumbs: [{ label: "Alertas", href: "/alertas" }, { label: "Novo teto" }],
+    crumbs: [{ label: "Alertas", href: "/alertas" }],
     title: "Quanto você quer gastar, no máximo?",
     submit: "Salvar teto",
     close: "/alertas",
   },
   editar: {
     header: "Editar teto",
-    crumbs: [{ label: "Tetos de gasto", href: "/alertas/tetos" }, { label: "Editar teto" }],
+    crumbs: [
+      { label: "Alertas", href: "/alertas" },
+      { label: "Tetos de gasto", href: "/alertas/tetos" },
+    ],
     title: "Editar teto de Alimentação",
     submit: "Salvar alterações",
     close: "/alertas/tetos/alimentacao",
@@ -219,7 +222,14 @@ const copy = {
 };
 
 /** Formulário de teto (novo ou edição): categoria, valor, avisos no caminho e a prévia. */
-export function TetoFormPage({ mode = "novo" }: { mode?: keyof typeof copy }) {
+export function TetoFormPage({
+  mode = "novo",
+  parent,
+}: {
+  mode?: keyof typeof copy;
+  /** Na edição, o teto que está sendo editado (vira um passo do caminho). */
+  parent?: Crumb;
+}) {
   const text = copy[mode];
   return (
     <Page
@@ -228,7 +238,14 @@ export function TetoFormPage({ mode = "novo" }: { mode?: keyof typeof copy }) {
       className="gap-5 @desk:gap-6"
       header={<MobileHeader title={text.header} close={text.close} />}
     >
-      <Breadcrumb className="hidden @tab:flex" items={text.crumbs} />
+      <Breadcrumb
+        className="hidden @tab:flex"
+        items={[
+          ...text.crumbs,
+          ...(parent ? [parent] : []),
+          { label: mode === "novo" ? "Novo teto" : "Editar teto" },
+        ]}
+      />
       <header className="hidden items-end justify-between gap-4 @tab:flex">
         <div className="flex flex-col gap-1.5">
           <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em]">

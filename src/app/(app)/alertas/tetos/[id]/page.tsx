@@ -13,7 +13,7 @@ import { Tag } from "@/components/ui/tag";
 import Link from "next/link";
 import { TetoHighlightCard, TetoHistoryChart } from "@/features/gastos/components/teto-cards";
 import { categorySpending } from "@/features/gastos/data";
-import { ledgerForCategory } from "@/features/gastos/lancamentos";
+import { findTransaction, ledgerForCategory } from "@/features/gastos/lancamentos";
 import { findTeto, tetoDetails, type TetoDetail } from "@/features/gastos/tetos";
 
 export function generateStaticParams() {
@@ -119,7 +119,15 @@ function CountedPanel({ teto, className }: { teto: TetoDetail; className?: strin
         subtitle={`${summary?.lancamentos ?? items.length} em setembro · Nubank e Itaú`}
         titleClassName="text-18 tracking-normal"
         action={
-          <Link href={`/gastos/categorias/${teto.id}`} className={panelLinkClass}>
+          // Só existe tela de categoria para as categorias com gastos; as demais vão para a lista.
+          <Link
+            href={
+              categorySpending.some((c) => c.id === teto.id)
+                ? `/gastos/categorias/${teto.id}`
+                : "/gastos/lancamentos"
+            }
+            className={panelLinkClass}
+          >
             Ver todos
             <Icon name="chevron-right" size={16} />
           </Link>
@@ -129,7 +137,8 @@ function CountedPanel({ teto, className }: { teto: TetoDetail; className?: strin
         {items.map((item) => (
           <ListRow
             key={item.id}
-            href={`/gastos/lancamentos/${item.id}`}
+            // Lançamento sem tela de detalhe (fora da lista do mês) fica sem link.
+            href={findTransaction(item.id) ? `/gastos/lancamentos/${item.id}` : undefined}
             title={item.descricao}
             meta={[item.quando, item.hora, item.conta].filter(Boolean).join(" · ")}
             value={item.valor}

@@ -27,6 +27,7 @@ import { ViewModeToggle } from "@/features/gastos/components/view-mode-toggle";
 import { ledger, tetos } from "@/features/gastos/data";
 import { NewUserSpending } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 const SAIDAS = "#E0935A";
 
@@ -116,6 +117,7 @@ export function GastosScreen({ estado }: { estado?: string }) {
         />
       }
     >
+      <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Gastos" }]} />
       {state === "carregando" && <LoadingStatus />}
       <header className="hidden items-end justify-between gap-4 @tab:flex">
         <div className="flex flex-col gap-1.5">

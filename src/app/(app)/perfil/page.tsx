@@ -6,6 +6,7 @@ import { ProfileDataForm } from "@/features/perfil/components/profile-data-form"
 import { DisconnectDialog } from "@/features/perfil/components/disconnect-dialog";
 import { SectionRow } from "@/features/perfil/components/section-row";
 import { BanksFields, InvestorProfileFields } from "@/features/perfil/components/sections";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 /**
  * Meu perfil: os dados da conta já editáveis, o perfil de investidor e os bancos conectados, um
@@ -20,6 +21,7 @@ export default function PerfilPage() {
         className="gap-4 @tab:gap-5"
         header={<MobileHeader title="Meu perfil" back="/" />}
       >
+        <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Meu perfil" }]} />
         <header className="hidden @tab:flex">
           <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em] @desk:text-32">
             Meu perfil

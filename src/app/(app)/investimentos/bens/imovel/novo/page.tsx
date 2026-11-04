@@ -36,7 +36,7 @@ export default function NovoImovelPage() {
         className="hidden flex-wrap @tab:flex"
         items={[
           { label: "Investimentos", href: "/investimentos" },
-          { label: "Adicionar", href: "/investimentos/novo" },
+          { label: "Adicionar investimento", href: "/investimentos/novo" },
           { label: "Imóvel" },
         ]}
       />

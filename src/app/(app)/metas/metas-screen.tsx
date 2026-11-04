@@ -17,6 +17,7 @@ import {
 } from "@/features/metas/components/goal-parts";
 import { goals, goalsSummary } from "@/features/metas/data";
 import { cn } from "@/lib/utils";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 const savedLink = (
   <Link
@@ -77,6 +78,7 @@ export function MetasScreen({ estado }: { estado?: string }) {
         />
       }
     >
+      <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Metas" }]} />
       {state === "carregando" && <LoadingStatus />}
       <DetailHeader
         title="Suas metas"

@@ -30,6 +30,7 @@ import { SortArrows } from "@/features/investimentos/components/position-parts";
 import { PositionsTable } from "@/features/investimentos/components/positions-table";
 import { NewUserInvestments } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 function GroupToggle() {
   return (
@@ -216,6 +217,7 @@ export function InvestimentosScreen({ estado }: { estado?: string }) {
           />
         }
       >
+        <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Investimentos" }]} />
         {state === "carregando" && <LoadingStatus />}
         {/* Mobile */}
         <div className="flex flex-col gap-4 @tab:hidden">

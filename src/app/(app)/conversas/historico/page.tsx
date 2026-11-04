@@ -1,4 +1,5 @@
 import { MobileHeader } from "@/components/layout/mobile-header";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { ConversationSearch } from "@/features/conversas/components/conversation-search";
@@ -9,6 +10,9 @@ export default function HistoricoConversasPage() {
   return (
     <>
       <MobileHeader title="Conversas" account />
+      <div className="hidden border-b border-line px-7 py-2.5 @tab:flex">
+        <Breadcrumb className="flex-wrap" items={[{ label: "Conversas" }]} />
+      </div>
       <header className="hidden h-[4.5625rem] items-center gap-2 border-b border-line pr-5 pl-7 @tab:flex">
         <div className="grow leading-[1.3]">
           <h1 className="m-0 font-display text-22 font-bold tracking-[-0.01em]">

@@ -53,11 +53,7 @@ export default function PlanosPage() {
     >
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[
-          { label: "Meu perfil", href: "/perfil" },
-          { label: "Bancos conectados", href: "/perfil" },
-          { label: "Planos" },
-        ]}
+        items={[{ label: "Meu perfil", href: "/perfil" }, { label: "Planos" }]}
       />
       <DetailHeader title="Planos" subtitle="Você está no Plus: 4 bancos e 40 perguntas por mês" />
 

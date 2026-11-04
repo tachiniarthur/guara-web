@@ -9,6 +9,9 @@ export function generateStaticParams() {
 
 export default async function EditarTetoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (!findTeto(id)) notFound();
-  return <TetoFormPage mode="editar" />;
+  const teto = findTeto(id);
+  if (!teto) notFound();
+  return (
+    <TetoFormPage mode="editar" parent={{ label: teto.categoria, href: `/alertas/tetos/${id}` }} />
+  );
 }

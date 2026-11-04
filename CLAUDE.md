@@ -20,3 +20,11 @@ Detalhes e medições em `docs/performance.md`.
   Tela nova com estados: registre em `app/(app)/previa/[estado]/[[...rota]]/page.tsx` e no
   `matcher` do proxy.
 - As funções da Vercel rodam em São Paulo (`vercel.json`, `gru1`).
+
+## Breadcrumbs
+
+Toda tela do app (área logada) tem `<Breadcrumb>` (`components/ui/breadcrumb.tsx`), visível a
+partir do tablet (`className="hidden flex-wrap @tab:flex"`), como primeiro item do conteúdo. O
+componente já começa em "Início" (link para `/`): passe só o caminho depois dele, terminando na
+tela atual sem `href` (ex.: `[{ label: "Investimentos", href: "/investimentos" }, { label:
+"Adicionar investimento" }]`). Tela raiz de um módulo: `[{ label: "Metas" }]`; Início: `[]`.

@@ -22,6 +22,14 @@ import {
 import type { Simulation, SimulatorId } from "../data";
 import { AskAgentCard, DetailCard, PremisesCard, ResultCard } from "./sections";
 import { SimulatorNav } from "./simulator-nav";
+import { Breadcrumb, type Crumb } from "@/components/ui/breadcrumb";
+
+/** Caminho de cada aba do Simulador (Aposentadoria é a tela inicial do módulo). */
+const simulatorCrumbs: Record<SimulatorId, Crumb[]> = {
+  aposentadoria: [{ label: "Simulador" }],
+  objetivo: [{ label: "Simulador", href: "/simulador" }, { label: "Juntar para um objetivo" }],
+  corte: [{ label: "Simulador", href: "/simulador" }, { label: "Cortar um gasto" }],
+};
 
 /** A simulação da aba aberta, recalculada a cada mudança nas premissas. */
 function useSimulation(id: SimulatorId): Simulation {
@@ -60,6 +68,7 @@ export function SimulatorPage({ id }: { id: SimulatorId }) {
         />
       }
     >
+      <Breadcrumb className="hidden flex-wrap @tab:flex" items={simulatorCrumbs[id]} />
       <header className="hidden items-end justify-between gap-4 @tab:flex">
         <div className="flex flex-col gap-1.5">
           <h1 className="m-0 font-display text-34 leading-[1.15] font-bold tracking-[-0.01em]">

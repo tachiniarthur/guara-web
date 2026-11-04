@@ -13,6 +13,7 @@ import {
 } from "@/features/novo/components";
 import { user } from "@/features/usuario/data";
 import { cn } from "@/lib/utils";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 const steps = [
   {
@@ -149,6 +150,7 @@ export function NewUserHome() {
       className="gap-4 @tab:gap-5 @desk:gap-6"
       header={<NewUserHeader title="guará" />}
     >
+      <Breadcrumb className="hidden flex-wrap @tab:flex" items={[]} />
       <h1 className="m-0 font-display text-28 font-extrabold @tab:hidden">
         Boa tarde, {user.nome}.
       </h1>

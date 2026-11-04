@@ -48,11 +48,7 @@ export default async function CategoriaPage({
     >
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[
-          { label: "Gastos", href: "/gastos" },
-          { label: "Por categoria", href: "/gastos" },
-          { label: ledger.nome },
-        ]}
+        items={[{ label: "Gastos", href: "/gastos" }, { label: ledger.nome }]}
       />
       <DetailHeader
         title={ledger.nome}

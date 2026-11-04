@@ -22,6 +22,7 @@ import { OverviewCards } from "@/features/inicio/components/overview-cards";
 import { PendingCard } from "@/features/inicio/components/pending-card";
 import { SummaryCard } from "@/features/inicio/components/summary-card";
 import { user } from "@/features/usuario/data";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 /**
  * Início (e o caso de quem ainda não conectou banco: ?estado=novo). Estados do protótipo por
@@ -53,6 +54,7 @@ export function InicioScreen({ estado }: { estado?: string }) {
         }
         className="gap-6.5 md:gap-7 lg:gap-6.5 lg:text-16"
       >
+        <Breadcrumb className="hidden flex-wrap @tab:flex" items={[]} />
         {loading && <LoadingStatus />}
         <header className="flex flex-wrap items-end justify-between gap-4 @desk:flex-nowrap @desk:gap-6">
           <PageTitle

@@ -9,6 +9,12 @@ export function generateStaticParams() {
 
 export default async function EditarAlertaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (!findPriceAlert(id)) notFound();
-  return <PriceAlertFormPage mode="editar" />;
+  const alert = findPriceAlert(id);
+  if (!alert) notFound();
+  return (
+    <PriceAlertFormPage
+      mode="editar"
+      parent={{ label: alert.ativo, href: `/alertas/precos/${id}` }}
+    />
+  );
 }

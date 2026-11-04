@@ -52,11 +52,7 @@ export default async function RenovarPage({ params }: PageProps<"/perfil/bancos/
     >
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[
-          { label: "Meu perfil", href: "/perfil" },
-          { label: "Bancos conectados", href: "/perfil" },
-          { label: `Renovar ${bank.nome}` },
-        ]}
+        items={[{ label: "Meu perfil", href: "/perfil" }, { label: `Renovar ${bank.nome}` }]}
       />
       <DetailHeader title="Renovar autorização" />
 

@@ -224,11 +224,7 @@ export default async function BemPage({ params }: PageProps<"/investimentos/bens
     >
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[
-          { label: "Investimentos", href: "/investimentos" },
-          { label: "Bens", href: "/investimentos" },
-          { label: bem.nome },
-        ]}
+        items={[{ label: "Investimentos", href: "/investimentos" }, { label: bem.nome }]}
       />
       <DetailHeader
         title={bem.nome}

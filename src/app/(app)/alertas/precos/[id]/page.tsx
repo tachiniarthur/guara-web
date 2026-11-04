@@ -53,7 +53,11 @@ export default async function AlertaPrecoPage({
       >
         <Breadcrumb
           className="hidden flex-wrap @tab:flex"
-          items={[{ label: "Alertas", href: "/alertas" }, { label: alert.ativo }]}
+          items={[
+            { label: "Alertas", href: "/alertas" },
+            { label: "Alertas de preço", href: "/alertas/precos" },
+            { label: alert.ativo },
+          ]}
         />
         <DetailHeader
           title={`Alerta do ${alert.ativo}`}

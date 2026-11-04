@@ -1,6 +1,7 @@
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
 import { SettingsScreen } from "@/features/perfil/components/settings-screen";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 /** Configurações (e o caso de notificações desligadas no aparelho: ?aparelho=desligado). */
 export default async function ConfiguracoesPage({ searchParams }: PageProps<"/configuracoes">) {
@@ -13,6 +14,7 @@ export default async function ConfiguracoesPage({ searchParams }: PageProps<"/co
       className="gap-4 @tab:gap-5 @desk:gap-6"
       header={<MobileHeader title="Configurações" back="/" />}
     >
+      <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Configurações" }]} />
       <SettingsScreen deviceOff={deviceOff} />
     </Page>
   );

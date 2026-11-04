@@ -17,6 +17,7 @@ import {
   notifications,
   notificationsThisMonth,
 } from "@/features/notificacoes/data";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 type Props = { state: ScreenState | null };
 
@@ -91,6 +92,7 @@ export default async function NotificacoesPage({
         />
       }
     >
+      <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Notificações" }]} />
       {state === "carregando" && <LoadingStatus />}
       <DetailHeader title="Notificações" subtitle={`${fresh.length} novas`} actions={markAll} />
       {disabled && <DeviceNotificationsAlert />}

@@ -1,7 +1,7 @@
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
 import { AgentTip } from "@/components/ui/agent-tip";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { Breadcrumb, type Crumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { chipClass } from "@/components/ui/chip";
 import {
@@ -144,7 +144,14 @@ const copy = {
 };
 
 /** Formulário de alerta de preço (novo ou edição). */
-export function PriceAlertFormPage({ mode = "novo" }: { mode?: keyof typeof copy }) {
+export function PriceAlertFormPage({
+  mode = "novo",
+  parent,
+}: {
+  mode?: keyof typeof copy;
+  /** Na edição, o alerta que está sendo editado (vira um passo do caminho). */
+  parent?: Crumb;
+}) {
   const text = copy[mode];
   return (
     <Page
@@ -157,7 +164,16 @@ export function PriceAlertFormPage({ mode = "novo" }: { mode?: keyof typeof copy
     >
       <Breadcrumb
         className="hidden @tab:flex"
-        items={[{ label: "Alertas", href: "/alertas" }, { label: text.title }]}
+        items={
+          parent
+            ? [
+                { label: "Alertas", href: "/alertas" },
+                { label: "Alertas de preço", href: "/alertas/precos" },
+                parent,
+                { label: text.title },
+              ]
+            : [{ label: "Alertas", href: "/alertas" }, { label: text.title }]
+        }
       />
       <header className="hidden items-end justify-between gap-4 @tab:flex">
         <div className="flex flex-col gap-1.5">

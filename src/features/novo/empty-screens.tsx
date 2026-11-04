@@ -8,6 +8,7 @@ import { Icon, type IconName } from "@/components/ui/icon";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 
 import { EmptyStatTiles, NewUserHeader, PreviewListPanel } from "./components";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 /**
  * Molde das telas sem dados de quem ainda não conectou banco: estado vazio com o próximo passo,
@@ -36,6 +37,7 @@ function EmptyScreen({
       className="gap-4 @tab:gap-5 @desk:gap-6"
       header={<NewUserHeader title={title} />}
     >
+      <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: title }]} />
       <DetailHeader title={title} subtitle={subtitle} />
       <div className="flex flex-col gap-4 @tab:gap-5 @desk:hidden">
         <EmptyState icon={empty.icon} title={empty.title} actions={empty.actions}>

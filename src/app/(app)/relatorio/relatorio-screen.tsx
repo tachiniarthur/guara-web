@@ -17,6 +17,7 @@ import {
   TotalsCard,
 } from "@/features/relatorio/components/sections";
 import { periodOptions, reportPeriod } from "@/features/relatorio/data";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 /** `estado`: estados do protótipo (`?estado=`), abertos pela prévia (ver `src/proxy.ts`). */
 export function RelatorioScreen({ estado }: { estado?: string }) {
@@ -52,6 +53,7 @@ export function RelatorioScreen({ estado }: { estado?: string }) {
           />
         }
       >
+        <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Relatórios" }]} />
         {state === "carregando" && <LoadingStatus />}
         <header className="hidden items-end justify-between gap-4 @tab:flex">
           <div className="flex flex-col gap-1.5">

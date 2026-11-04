@@ -357,7 +357,7 @@ export default async function MetaPage({ params, searchParams }: PageProps<"/met
       {state === "carregando" && <LoadingStatus />}
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[{ label: "Suas metas", href: "/metas" }, { label: goal.nome }]}
+        items={[{ label: "Metas", href: "/metas" }, { label: goal.nome }]}
       />
       <DetailHeader
         title={goal.nome}

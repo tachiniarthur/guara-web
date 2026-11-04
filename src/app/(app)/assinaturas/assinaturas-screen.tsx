@@ -177,10 +177,7 @@ export function AssinaturasScreen({ estado }: { estado?: string }) {
       header={<MobileHeader title="Assinaturas" back="/gastos" />}
     >
       {loading && <LoadingStatus />}
-      <Breadcrumb
-        className="hidden @desk:flex"
-        items={[{ label: "Gastos", href: "/gastos" }, { label: "Assinaturas" }]}
-      />
+      <Breadcrumb className="hidden @desk:flex" items={[{ label: "Assinaturas" }]} />
       <header className="hidden items-end justify-between gap-4 @tab:flex">
         <div className="flex flex-col gap-1.5">
           <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em] @desk:text-32">

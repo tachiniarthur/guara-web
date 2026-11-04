@@ -20,6 +20,7 @@ import { PriceAlertList } from "@/features/alertas/components/price-alert-list";
 import { alertHistory, priceAlerts } from "@/features/alertas/data";
 import { TetoMeter } from "@/features/gastos/components/teto-meter";
 import { tetos } from "@/features/gastos/data";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 function NewTetoLink({ className }: { className?: string }) {
   return (
@@ -104,6 +105,7 @@ export function AlertasScreen({ estado }: { estado?: string }) {
       className="gap-4 @tab:gap-5 @desk:gap-6"
       header={<MobileHeader title="Alertas" back="/" />}
     >
+      <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Alertas" }]} />
       {loading && <LoadingStatus />}
       <header className="hidden items-end justify-between gap-4 @tab:flex">
         <div className="flex flex-col gap-1.5">

@@ -39,7 +39,10 @@ export default function AdicionarInvestimentoPage() {
     >
       <Breadcrumb
         className="hidden @tab:flex"
-        items={[{ label: "Investimentos", href: "/investimentos" }, { label: "Adicionar" }]}
+        items={[
+          { label: "Investimentos", href: "/investimentos" },
+          { label: "Adicionar investimento" },
+        ]}
       />
       <header className="hidden items-end justify-between gap-4 @tab:flex">
         <div className="flex flex-col gap-1.5">
