@@ -8,7 +8,8 @@ import { MobileActionBar } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
 import { pickSettings, useSettings, type Settings } from "@/stores/settings";
 
-import { AppearanceCard, NotificationsCard, SecurityCard } from "./sections";
+import { SectionRow } from "./section-row";
+import { AppearanceFields, NotificationsFields, SecurityFields } from "./sections";
 
 const subscribeNothing = () => () => {};
 
@@ -63,16 +64,6 @@ function SettingsForm({
     setSavedAt(Date.now());
   }
 
-  const sections = (suffix: string) => ({
-    notifications: <NotificationsCard deviceOff={deviceOff} value={draft} onChange={edit} />,
-    appearance: <AppearanceCard idSuffix={suffix} value={draft} onChange={edit} />,
-    security: (
-      <SecurityCard idSuffix={suffix} value={draft} onChange={edit} className="@desk:grow" />
-    ),
-  });
-  const mobile = sections("m");
-  const wide = sections("d");
-
   return (
     <>
       <header className="hidden flex-wrap items-end justify-between gap-4 @tab:flex">
@@ -100,21 +91,25 @@ function SettingsForm({
         </div>
       </header>
 
-      {/* Celular: empilhado, com "Salvar" fixo no rodapé. */}
-      <div className="flex flex-col gap-4 @tab:hidden">
-        {mobile.notifications}
-        {mobile.appearance}
-        {mobile.security}
-      </div>
-
-      {/* Tablet e desktop: notificações e aparência à esquerda, segurança à direita. */}
-      <div className="hidden grid-cols-2 items-stretch gap-4 @tab:grid @desk:gap-5">
-        <div className="flex min-w-0 flex-col gap-4 @desk:gap-5">
-          {wide.notifications}
-          {wide.appearance}
-        </div>
-        <div className="flex min-w-0 flex-col">{wide.security}</div>
-      </div>
+      {/* Um bloco largo por assunto, um embaixo do outro, em todos os tamanhos. */}
+      <SectionRow
+        title="Notificações"
+        description="Por onde cada aviso chega: notificação no celular, e-mail ou os dois."
+      >
+        <NotificationsFields deviceOff={deviceOff} value={draft} onChange={edit} />
+      </SectionRow>
+      <SectionRow
+        title="Aparência e acessibilidade"
+        description="Tamanho do texto, animações e valores escondidos ao abrir o app."
+      >
+        <AppearanceFields idSuffix="c" value={draft} onChange={edit} />
+      </SectionRow>
+      <SectionRow
+        title="Segurança e privacidade"
+        description="Como você entra, os aparelhos com acesso e os seus dados."
+      >
+        <SecurityFields idSuffix="c" value={draft} onChange={edit} />
+      </SectionRow>
 
       <MobileActionBar>
         <Button

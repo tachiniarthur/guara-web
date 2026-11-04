@@ -86,6 +86,10 @@
   --duration-slide: 460ms;
   /* Chat: painéis, histórico e troca de conversa deslizam devagar, sem pressa. */
   --duration-panel: 560ms;
+  /* Saída dos painéis do chat: o mesmo caminho de volta, um pouco mais rápida que a entrada. */
+  --duration-panel-exit: 380ms;
+  /* Painel saindo pela borda: começa suave e acelera até sair. */
+  --ease-slide-out: cubic-bezier(0.4, 0, 0.7, 0.4);
 }
 
 @theme inline {
@@ -210,10 +214,10 @@
       translate: 0 3.5rem;
     }
   }
+  /* Painéis do chat: entram da borda direita (deslize inteiro, sem esmaecer). */
   @keyframes panel-in {
     from {
-      opacity: 0;
-      translate: 2.5rem 0;
+      translate: 100% 0;
     }
   }
   @keyframes reveal-x {
@@ -600,8 +604,15 @@
     translate: 0 1.25rem;
   }
 }
+/* Trocar de conversa (ou começar uma nova) com o chat aberto: a conversa entra pela direita. */
+@keyframes chat-swap {
+  from {
+    opacity: 0;
+    translate: 2.5rem 0;
+  }
+}
 @utility animate-chat-slide {
-  animation: chat-slide var(--duration-panel) var(--ease-drawer) both;
+  animation: chat-swap var(--duration-panel) var(--ease-drawer) both;
 }
 @utility chat-cascade {
   & > * {
@@ -707,8 +718,21 @@
 }
 @keyframes panel-out {
   to {
-    opacity: 0;
-    translate: 2.5rem 0;
+    translate: 100% 0;
+  }
+}
+/*
+ * Painel do chat fixo ao lado da página (desktop): a largura cresce de 0 e a página ao lado se
+ * ajusta junto, sem pular; o conteúdo, preso à borda esquerda do painel, parece deslizar da direita.
+ */
+@keyframes aside-in {
+  from {
+    width: 0;
+  }
+}
+@keyframes aside-out {
+  to {
+    width: 0;
   }
 }
 @keyframes menu-in {
@@ -768,6 +792,9 @@
 }
 [data-motion="panel"] {
   animation: panel-in var(--duration-panel) var(--ease-drawer) both;
+}
+[data-motion="aside"] {
+  animation: aside-in var(--duration-panel) var(--ease-drawer) both;
 }
 [data-motion="toast-top"] {
   animation: toast-top-in var(--duration-dialog) var(--ease-out-soft) both;
@@ -858,7 +885,10 @@ details[open]::details-content {
   animation: sheet-out var(--duration-exit) ease-out both;
 }
 [data-presence="closing"] [data-motion="panel"] {
-  animation: panel-out var(--duration-exit) ease-out both;
+  animation: panel-out var(--duration-panel-exit) var(--ease-slide-out) both;
+}
+[data-presence="closing"] [data-motion="aside"] {
+  animation: aside-out var(--duration-panel-exit) var(--ease-slide-out) both;
 }
 [data-presence="closing"] [data-motion="toast-top"] {
   animation: toast-top-out var(--duration-exit) ease-out both;
@@ -871,7 +901,7 @@ details[open]::details-content {
     animation: dialog-out var(--duration-exit) ease-out both;
   }
   [data-presence="closing"] [data-motion="sheet-panel"] {
-    animation: panel-out var(--duration-exit) ease-out both;
+    animation: panel-out var(--duration-panel-exit) var(--ease-slide-out) both;
   }
   [data-presence="closing"] [data-motion="sheet-menu"] {
     animation: menu-out var(--duration-exit) ease-out both;
@@ -947,6 +977,21 @@ details[open]::details-content {
   }
   @keyframes chat-slide {
     from {
+      opacity: 0;
+    }
+  }
+  @keyframes chat-swap {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes aside-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes aside-out {
+    to {
       opacity: 0;
     }
   }

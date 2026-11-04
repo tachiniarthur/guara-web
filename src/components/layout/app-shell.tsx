@@ -5,7 +5,7 @@ import { Suspense, useEffect, type ReactNode } from "react";
 
 import { ReportChatAside } from "@/features/relatorio/components/report-chat-aside";
 import { ErrorToast, OfflineToast } from "@/components/states/status-toast";
-import { Presence } from "@/components/ui/presence";
+import { PANEL_EXIT_MS, Presence } from "@/components/ui/presence";
 import { shellConfig } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
@@ -13,6 +13,7 @@ import { usePrivacy } from "@/stores/privacy";
 
 import { BottomNav } from "./bottom-nav";
 import { ChatOverlay, ChatPanel } from "./chat-panel";
+import { CHAT_WIDTH, HISTORY_WIDTH } from "./chat-sizes";
 import { ConversarFabCompact } from "./conversar-fab";
 import { HistoryHandle, HistoryPanel } from "./history-panel";
 import { Rail } from "./rail";
@@ -93,31 +94,54 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
   // Conversa fixa à direita só quando a pessoa abre; antes, o painel mostra só o histórico
   // (recolhido, também no Início ao entrar).
   const docked = hasAside && open === true;
+  // Início: histórico mais largo (24rem), menos com uma conversa aberta por cima (1200–1599 px).
+  const wide = config.aside === "home" && !docked;
+  const historyWidth = wide ? "w-96" : HISTORY_WIDTH;
 
   return (
     <>
       {config.tabletChat && !(chatAvailable && open === true) && (
         <ReportChatAside className="hidden min-[68.75rem]:flex lg:hidden" />
       )}
-      {hasAside &&
-        (docked ? (
-          <>
-            <ChatPanel className="hidden xl:flex" />
-            <HistoryPanel className="hidden lg:flex xl:hidden" />
-          </>
-        ) : (
-          <HistoryPanel className="hidden lg:flex" wide={config.aside === "home"} />
-        ))}
-      {/* O chat por cima entra deslizando e, ao fechar, sai pelo mesmo caminho. */}
-      <Presence show={chatAvailable && open === true}>
+      {/*
+       * Painéis fixos à direita (desktop): entram deslizando da direita e a página se ajusta junto;
+       * ao fechar (ou trocar histórico ↔ conversa) saem pelo mesmo caminho.
+       */}
+      {/* De 1200 a 1599 px: só o histórico (a conversa abre por cima); ele fica parado. */}
+      <Presence show={hasAside} exitMs={PANEL_EXIT_MS}>
+        {hasAside && (
+          <AsideSlot width={historyWidth} className="hidden lg:block xl:hidden">
+            <HistoryPanel className="flex" wide={wide} />
+          </AsideSlot>
+        )}
+      </Presence>
+      {/* A partir de 1600 px: histórico ou conversa; um sai deslizando enquanto o outro entra. */}
+      <Presence show={hasAside && !docked} exitMs={PANEL_EXIT_MS}>
+        {hasAside && !docked && (
+          <AsideSlot width={historyWidth} className="hidden xl:block">
+            <HistoryPanel className="flex" wide={wide} />
+          </AsideSlot>
+        )}
+      </Presence>
+      <Presence show={docked} exitMs={PANEL_EXIT_MS}>
+        {docked && (
+          <AsideSlot width={CHAT_WIDTH} className="hidden xl:block">
+            <ChatPanel className="flex" />
+          </AsideSlot>
+        )}
+      </Presence>
+      {/* O chat por cima entra deslizando da direita e, ao fechar, sai pelo mesmo caminho. */}
+      <Presence show={chatAvailable && open === true} exitMs={PANEL_EXIT_MS}>
         {chatAvailable && open === true && (
           <ChatOverlay className={hasAside ? "xl:hidden" : undefined} />
         )}
       </Presence>
       {/* O chat abre pelo atalho da borda direita (o mesmo do Início) em todas as telas. */}
-      {config.aside !== false && historyHidden && (
-        <HistoryHandle restore className="hidden lg:flex" />
-      )}
+      <Presence show={config.aside !== false && historyHidden} exitMs={PANEL_EXIT_MS}>
+        {config.aside !== false && historyHidden && (
+          <HistoryHandle restore className="hidden lg:flex" />
+        )}
+      </Presence>
       {config.fab && !(chatAvailable && open === true) && (
         <HistoryHandle className={cn("hidden md:flex", config.aside !== false && "lg:hidden")} />
       )}
@@ -126,5 +150,28 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
       )}
       {config.bottomNav && <BottomNav className="md:hidden" />}
     </>
+  );
+}
+
+/**
+ * Lugar de um painel fixo à direita: a largura anima de 0 até `width` (e volta ao fechar), então a
+ * página ao lado se ajusta aos poucos; o painel, com a largura final desde o início, desliza.
+ */
+function AsideSlot({
+  width,
+  className,
+  children,
+}: {
+  width: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      data-motion="aside"
+      className={cn("sticky top-0 h-dvh shrink-0 overflow-hidden", width, className)}
+    >
+      <div className={cn("h-full", width)}>{children}</div>
+    </div>
   );
 }

@@ -8,6 +8,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { ChatComposer } from "@/features/conversas/components/chat-composer";
 import { PanelThread } from "@/features/conversas/components/panel-thread";
 import { threads } from "@/features/conversas/threads";
+import { PANEL_EXIT_MS, Presence } from "@/components/ui/presence";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
 
@@ -103,10 +104,9 @@ export function ChatPanel({ className }: { className?: string }) {
   return (
     <aside
       aria-label="Conversa"
-      // Entra deslizando no lugar do histórico quando a pessoa abre a conversa.
-      data-motion="panel"
+      // Dentro do lugar animado do app shell: entra deslizando no lugar do histórico.
       className={cn(
-        `sticky top-0 h-dvh shrink-0 flex-col border-l border-line bg-card text-16 ${CHAT_WIDTH}`,
+        `h-full flex-col border-l border-line bg-card text-16 ${CHAT_WIDTH}`,
         className,
       )}
     >
@@ -130,33 +130,7 @@ export function ChatOverlay({ className }: { className?: string }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [close]);
 
-  if (view === "history") {
-    return (
-      <div className={cn("fixed inset-0 z-40", className)}>
-        <button
-          type="button"
-          aria-label="Fechar conversa"
-          tabIndex={-1}
-          onClick={close}
-          data-motion="backdrop"
-          className="absolute inset-0 hidden border-none bg-[rgba(5,8,6,0.55)] md:block"
-        />
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Histórico de conversas"
-          data-motion="panel"
-          className={cn(
-            "absolute inset-y-0 right-0 flex w-full flex-col bg-card text-16 shadow-[0_8px_24px_rgba(0,0,0,.35)] md:border-l md:border-line",
-            HISTORY_WIDTH_MD,
-          )}
-        >
-          <HistoryPanel mode="sheet" className="h-full w-full" />
-        </div>
-      </div>
-    );
-  }
-
+  const history = view === "history";
   return (
     <div className={cn("pointer-events-none fixed inset-0 z-40", className)}>
       <button
@@ -165,26 +139,52 @@ export function ChatOverlay({ className }: { className?: string }) {
         tabIndex={-1}
         onClick={close}
         data-motion="backdrop"
-        className="pointer-events-auto absolute inset-0 border-none bg-[rgba(5,9,7,0.6)] md:bg-[rgba(5,9,7,0.45)] lg:hidden"
+        className={cn(
+          "pointer-events-auto absolute inset-0 border-none",
+          history
+            ? "hidden bg-[rgba(5,8,6,0.55)] md:block"
+            : "bg-[rgba(5,9,7,0.6)] md:bg-[rgba(5,9,7,0.45)] lg:hidden",
+        )}
       />
-      <section
-        role="dialog"
-        aria-label="Chat"
-        // Folha de baixo no celular; painel que desliza da direita no tablet e no desktop.
-        data-motion="sheet-panel"
-        className="@container pointer-events-auto absolute inset-x-0 top-16 bottom-0 flex flex-col overflow-hidden rounded-t-[1.75rem] border-t border-line-strong bg-canvas text-sand md:inset-x-auto md:top-0 md:right-0 md:w-[27.5rem] md:rounded-none md:border-t-0 md:border-l md:shadow-[-24px_0_64px_rgba(0,0,0,.45)] lg:w-[36.5rem] lg:border-line lg:bg-card"
-      >
-        <span
-          aria-hidden="true"
-          className="mt-2.5 mb-0.5 h-1 w-10 shrink-0 self-center rounded-[2px] bg-line-strong md:hidden"
-        />
-        <div className="flex min-h-0 grow flex-col lg:hidden">
-          <ChatSheetBody />
-        </div>
-        <div className="hidden min-h-0 grow flex-col lg:flex">
-          <ChatPanelBody mode="overlay" />
-        </div>
-      </section>
+      {/* Histórico ↔ conversa: um sai deslizando para a direita enquanto o outro entra. */}
+      <Presence show={history} exitMs={PANEL_EXIT_MS}>
+        {history && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Histórico de conversas"
+            data-motion="panel"
+            className={cn(
+              "pointer-events-auto absolute inset-y-0 right-0 flex w-full flex-col bg-card text-16 shadow-[0_8px_24px_rgba(0,0,0,.35)] md:border-l md:border-line",
+              HISTORY_WIDTH_MD,
+            )}
+          >
+            <HistoryPanel mode="sheet" className="h-full w-full" />
+          </div>
+        )}
+      </Presence>
+      <Presence show={!history} exitMs={PANEL_EXIT_MS}>
+        {!history && (
+          <section
+            role="dialog"
+            aria-label="Chat"
+            // Folha de baixo no celular; painel que desliza da direita no tablet e no desktop.
+            data-motion="sheet-panel"
+            className="@container pointer-events-auto absolute inset-x-0 top-16 bottom-0 flex flex-col overflow-hidden rounded-t-[1.75rem] border-t border-line-strong bg-canvas text-sand md:inset-x-auto md:top-0 md:right-0 md:w-[27.5rem] md:rounded-none md:border-t-0 md:border-l md:shadow-[-24px_0_64px_rgba(0,0,0,.45)] lg:w-[36.5rem] lg:border-line lg:bg-card"
+          >
+            <span
+              aria-hidden="true"
+              className="mt-2.5 mb-0.5 h-1 w-10 shrink-0 self-center rounded-[2px] bg-line-strong md:hidden"
+            />
+            <div className="flex min-h-0 grow flex-col lg:hidden">
+              <ChatSheetBody />
+            </div>
+            <div className="hidden min-h-0 grow flex-col lg:flex">
+              <ChatPanelBody mode="overlay" />
+            </div>
+          </section>
+        )}
+      </Presence>
     </div>
   );
 }

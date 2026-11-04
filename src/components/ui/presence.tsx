@@ -4,6 +4,8 @@ import { useEffect, useState, type ReactNode } from "react";
 
 /** Igual a `--duration-exit` (globals.css), com folga para o último quadro. */
 const EXIT_MS = 190;
+/** Igual a `--duration-panel-exit`: painéis do chat saindo pela borda. */
+export const PANEL_EXIT_MS = 400;
 
 /**
  * Mantém um overlay na tela enquanto ele sai. Com `show` falso, o conteúdo que estava aberto fica
@@ -14,7 +16,16 @@ const EXIT_MS = 190;
  * <Presence show={open}>{open && <ConfirmDialog … />}</Presence>
  * ```
  */
-export function Presence({ show, children }: { show: boolean; children: ReactNode }) {
+export function Presence({
+  show,
+  exitMs = EXIT_MS,
+  children,
+}: {
+  show: boolean;
+  /** Quanto tempo a saída dura (os painéis do chat saem mais devagar: `PANEL_EXIT_MS`). */
+  exitMs?: number;
+  children: ReactNode;
+}) {
   // O último conteúdo aberto: é ele que aparece saindo, mesmo que o pai já não o renderize.
   const [kept, setKept] = useState<ReactNode>(show ? children : null);
   if (show && kept !== children) setKept(children);
@@ -22,9 +33,9 @@ export function Presence({ show, children }: { show: boolean; children: ReactNod
   useEffect(() => {
     if (show || kept === null) return;
     // Com "reduzir movimento" a saída também acontece (só esmaece), então o tempo é o mesmo.
-    const timer = setTimeout(() => setKept(null), EXIT_MS);
+    const timer = setTimeout(() => setKept(null), exitMs);
     return () => clearTimeout(timer);
-  }, [show, kept]);
+  }, [show, kept, exitMs]);
 
   if (!show && kept === null) return null;
   return (

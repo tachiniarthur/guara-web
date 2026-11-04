@@ -1,21 +1,17 @@
 import Link from "next/link";
 
-import { Button, ButtonLink, ForestBackdrop } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { CheckboxRow } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
 import { Note } from "@/components/ui/note";
-import { Panel, PanelHeader, panelLinkClass } from "@/components/ui/panel";
+import { panelLinkClass } from "@/components/ui/panel";
 import { SegmentedTiles } from "@/components/ui/segmented-tiles";
 import { DeviceNotificationsAlert } from "@/features/notificacoes/components/device-notifications-alert";
-import { user } from "@/features/usuario/data";
 import { BankMark } from "@/components/ui/bank-mark";
 import { cn } from "@/lib/utils";
 import type { Settings } from "@/stores/settings";
 
-import { AccountPhone } from "./account-phone";
-
 import {
-  account,
   bankConnections,
   devices,
   investorProfile,
@@ -34,57 +30,16 @@ type SettingsSectionProps = SectionProps & {
   onChange: (patch: Partial<Settings>) => void;
 };
 
-function Title({ children, subtitle }: { children: string; subtitle?: string }) {
+export function InvestorProfileFields({ className }: SectionProps) {
   return (
-    <PanelHeader title={children} subtitle={subtitle} titleClassName="text-18 tracking-normal" />
-  );
-}
-
-/** Nome, e-mail e o atalho para editar, sobre a faixa do tucano. */
-export function AccountCard({ className }: SectionProps) {
-  return (
-    <section
+    <div
       className={cn(
-        "relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-card border border-line-strong bg-mata p-5",
+        "flex flex-col gap-3.5 @tab:flex-row @tab:items-center @tab:justify-between",
         className,
       )}
     >
-      <ForestBackdrop overlay="deep" />
-      <div className="flex items-center gap-3.5">
-        <div
-          aria-hidden="true"
-          className="flex size-14 shrink-0 items-center justify-center rounded-full bg-tucano text-20 font-bold text-canvas"
-        >
-          {user.iniciais}
-        </div>
-        <div className="flex min-w-0 grow flex-col gap-0.5 leading-[1.35]">
-          <strong className="text-18">{user.nome}</strong>
-          <span className="flex min-w-0 items-center gap-1.5 text-14 text-mist">
-            <Icon name="mail" size={15} className="shrink-0" />
-            <span className="truncate">{account.email}</span>
-          </span>
-          <span className="flex items-center gap-1.5 text-14 text-mist">
-            <Icon name="phone" size={15} className="shrink-0" />
-            <span className="sr-only">Celular: </span>
-            <span className="tabular-nums">
-              <AccountPhone />
-            </span>
-          </span>
-        </div>
-        <ButtonLink href="/perfil/editar" variant="glass" size="sm">
-          <span>Editar</span>
-        </ButtonLink>
-      </div>
-    </section>
-  );
-}
-
-export function InvestorProfileCard({ className }: SectionProps) {
-  return (
-    <Panel className={cn("gap-3.5", className)}>
-      <Title>Perfil de investidor</Title>
       <div className="flex items-center gap-3">
-        <span className="flex size-10 items-center justify-center rounded-xl bg-[#172838] text-arara">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#172838] text-arara">
           <Icon name="shield" />
         </span>
         <div className="flex grow flex-col leading-[1.35]">
@@ -92,10 +47,10 @@ export function InvestorProfileCard({ className }: SectionProps) {
           <span className="text-13 text-caption">{investorProfile.detalhe}</span>
         </div>
       </div>
-      <ButtonLink href="/perfil/investidor" variant="secondary">
+      <ButtonLink href="/perfil/investidor" variant="secondary" className="@tab:shrink-0">
         <span>Refazer questionário</span>
       </ButtonLink>
-    </Panel>
+    </div>
   );
 }
 
@@ -148,33 +103,36 @@ function BankItem({ bank }: { bank: BankConnection }) {
           {bank.mensagem.depois}
         </span>
       </div>
-      <div className="flex flex-col gap-1.5">
-        <span className="text-12 text-caption">O que o Guará vê</span>
-        <div className="flex flex-wrap gap-1.5">
-          {bank.escopo.map((item) => (
-            <span
-              key={item}
-              className="inline-flex h-6 items-center rounded-full bg-shade px-2.5 text-12 font-bold whitespace-nowrap text-mist"
-            >
-              {item}
-            </span>
-          ))}
+      {/* Na linha larga, o que o Guará vê e as datas ficam lado a lado. */}
+      <div className="flex flex-col gap-3.5 @tab:flex-row @tab:items-start @tab:gap-12">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-12 text-caption">O que o Guará vê</span>
+          <div className="flex flex-wrap gap-1.5">
+            {bank.escopo.map((item) => (
+              <span
+                key={item}
+                className="inline-flex h-6 items-center rounded-full bg-shade px-2.5 text-12 font-bold whitespace-nowrap text-mist"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
+        <dl className="m-0 grid grid-cols-2 gap-x-3 gap-y-2.5 text-13 @tab:gap-x-8">
+          <div className="flex flex-col gap-0.5">
+            <dt className="text-caption">Última atualização</dt>
+            <dd className="m-0 font-semibold">{bank.atualizado}</dd>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <dt className="text-caption">
+              Autorização <span className="hidden @tab:inline">válida </span>até
+            </dt>
+            <dd className={cn("m-0 font-semibold", ok ? "text-sand" : "text-tucano")}>
+              {bank.validade}
+            </dd>
+          </div>
+        </dl>
       </div>
-      <dl className="m-0 grid grid-cols-2 gap-x-3 gap-y-2.5 text-13 @tab:gap-x-5">
-        <div className="flex flex-col gap-0.5">
-          <dt className="text-caption">Última atualização</dt>
-          <dd className="m-0 font-semibold">{bank.atualizado}</dd>
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <dt className="text-caption">
-            Autorização <span className="hidden @tab:inline">válida </span>até
-          </dt>
-          <dd className={cn("m-0 font-semibold", ok ? "text-sand" : "text-tucano")}>
-            {bank.validade}
-          </dd>
-        </div>
-      </dl>
       <div className="flex flex-wrap gap-2">
         {ok ? (
           <Button variant="outline" size="sm" className={bankActionClass}>
@@ -211,11 +169,10 @@ function BankItem({ bank }: { bank: BankConnection }) {
 }
 
 /** Status, permissões e validade de cada conexão do Open Finance. */
-export function BanksCard({ className }: SectionProps) {
+export function BanksFields({ className }: SectionProps) {
   const livres = plan.total - plan.usadas;
   return (
-    <Panel className={cn("gap-4", className)}>
-      <Title subtitle="Status, permissões e validade de cada conexão">Bancos conectados</Title>
+    <div className={cn("flex flex-col gap-4", className)}>
       <div className="flex flex-col gap-2">
         <div className="flex justify-between text-13">
           <span className="text-mist">
@@ -242,7 +199,7 @@ export function BanksCard({ className }: SectionProps) {
           ))}
         </div>
       </div>
-      <ul className="m-0 flex list-none flex-col gap-3 p-0 @tab:grid @tab:grid-cols-2 @tab:items-stretch">
+      <ul className="m-0 flex list-none flex-col gap-3 p-0">
         {bankConnections.map((bank) => (
           <BankItem key={bank.id} bank={bank} />
         ))}
@@ -271,14 +228,14 @@ export function BanksCard({ className }: SectionProps) {
         Conexão pelo Open Finance: o Guará só lê seus dados, nunca movimenta dinheiro. Você pode
         desconectar aqui ou no app do banco quando quiser.
       </Note>
-    </Panel>
+    </div>
   );
 }
 
 const notificationGrid = "grid grid-cols-[minmax(0,1fr)_4rem_4rem]";
 
 /** Canais (celular e e-mail) por tipo de aviso. */
-export function NotificationsCard({
+export function NotificationsFields({
   className,
   deviceOff,
   value,
@@ -288,8 +245,7 @@ export function NotificationsCard({
   deviceOff?: boolean;
 }) {
   return (
-    <Panel className={cn("gap-2.5", className)}>
-      <Title>Notificações</Title>
+    <div className={cn("flex flex-col gap-2.5", className)}>
       {deviceOff && <DeviceNotificationsAlert />}
       <div role="table" aria-label="Canais por tipo de aviso">
         <div
@@ -349,19 +305,18 @@ export function NotificationsCard({
           </div>
         ))}
       </div>
-    </Panel>
+    </div>
   );
 }
 
-export function AppearanceCard({
+export function AppearanceFields({
   className,
   idSuffix,
   value,
   onChange,
 }: WithIds & SettingsSectionProps) {
   return (
-    <Panel className={cn("gap-3.5", className)}>
-      <Title>Aparência e acessibilidade</Title>
+    <div className={cn("flex flex-col gap-3.5", className)}>
       <div className="flex flex-col gap-2">
         <span className="text-14 font-bold">Tamanho do texto</span>
         <SegmentedTiles
@@ -386,19 +341,18 @@ export function AppearanceCard({
         checked={value.hideValuesOnOpen}
         onCheckedChange={(hideValuesOnOpen) => onChange({ hideValuesOnOpen })}
       />
-    </Panel>
+    </div>
   );
 }
 
-export function SecurityCard({
+export function SecurityFields({
   className,
   idSuffix,
   value,
   onChange,
 }: WithIds & SettingsSectionProps) {
   return (
-    <Panel className={cn("gap-2.5", className)}>
-      <Title>Segurança e privacidade</Title>
+    <div className={cn("flex flex-col gap-2.5", className)}>
       <CheckboxRow
         id={`biometria-${idSuffix}`}
         label="Entrar com biometria"
@@ -453,6 +407,6 @@ export function SecurityCard({
           Excluir conta
         </Link>
       </div>
-    </Panel>
+    </div>
   );
 }

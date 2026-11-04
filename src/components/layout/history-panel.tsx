@@ -40,13 +40,12 @@ export function HistoryPanel({
   return (
     <aside
       aria-label="Histórico de conversas"
-      // No desktop, o painel entra deslizando da direita (ao reabrir pelo atalho ou ao fechar a conversa).
-      data-motion={sheet ? undefined : "panel"}
       className={cn(
         "flex-col bg-card",
         sheet
           ? "flex"
-          : cn("sticky top-0 h-dvh shrink-0 border-l border-line", wide ? "w-96" : HISTORY_WIDTH),
+          : // No desktop fica dentro do lugar animado do app shell (que desliza e empurra a página).
+            cn("h-full border-l border-line", wide ? "w-96" : HISTORY_WIDTH),
         className,
       )}
     >

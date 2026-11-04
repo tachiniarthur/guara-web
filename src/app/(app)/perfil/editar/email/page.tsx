@@ -16,7 +16,7 @@ const novoEmail = "arthur.r@exemplo.com";
 
 const cancelLink = (
   <Link
-    href="/perfil/editar"
+    href="/perfil"
     className="flex min-h-6 items-center text-14 font-bold whitespace-nowrap text-sand underline underline-offset-3"
   >
     Cancelar troca de e-mail
@@ -30,13 +30,13 @@ export default function ConfirmarEmailPage() {
       zoom={1.4}
       paddingClassName="pt-2 pb-30 lg:pb-12"
       className="gap-4.5 @tab:gap-5 @desk:gap-6"
-      header={<MobileHeader title="Editar perfil" close="/perfil" balanced />}
+      header={<MobileHeader title="Trocar e-mail" close="/perfil" balanced />}
     >
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[{ label: "Meu perfil", href: "/perfil" }, { label: "Editar perfil" }]}
+        items={[{ label: "Meu perfil", href: "/perfil" }, { label: "Trocar e-mail" }]}
       />
-      <DetailHeader title="Editar perfil" />
+      <DetailHeader title="Trocar e-mail" />
       <div className="flex flex-col gap-4.5 @desk:grid @desk:grid-cols-2 @desk:items-stretch @desk:gap-5">
         <section className="contents @tab:flex @tab:min-w-0 @tab:flex-col @tab:gap-4 @tab:rounded-card @tab:border @tab:border-line @tab:bg-card @tab:p-6 @desk:gap-4.5 @desk:p-7">
           <div className="flex flex-col items-center gap-3 py-2 text-center">
