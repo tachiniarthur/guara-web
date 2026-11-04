@@ -11,6 +11,7 @@ import { user } from "@/features/usuario/data";
 import { isActive, mainNav } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
+import { AccountPopover } from "./account-actions";
 import { BrandLogo } from "./brand";
 
 /** Trilho lateral com rótulos (janelas médias). Na horizontal fica mais compacto para caber na altura. */
@@ -103,13 +104,13 @@ export function Rail({ className }: { className?: string }) {
 
       <div className="grow" />
 
-      <Link
-        href="/perfil"
-        aria-label="Meu perfil"
-        className="flex size-11 items-center justify-center rounded-full bg-tucano text-14 font-bold text-canvas no-underline"
+      <AccountPopover
+        placement="side"
+        label={`Menu da conta de ${user.nome}`}
+        triggerClassName="flex size-11 pressable items-center justify-center rounded-full border-none bg-tucano p-0 text-14 font-bold text-canvas"
       >
         {user.iniciais}
-      </Link>
+      </AccountPopover>
     </nav>
   );
 }

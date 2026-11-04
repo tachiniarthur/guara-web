@@ -20,13 +20,8 @@ export const mainNav: NavItem[] = [
   { href: "/gastos", label: "Gastos", shortLabel: "Gastos", icon: "wallet" },
   { href: "/assinaturas", label: "Assinaturas", shortLabel: "Assinaturas", icon: "repeat" },
   { href: "/investimentos", label: "Investimentos", shortLabel: "Investir", icon: "trending-up" },
-  {
-    href: "/simulador",
-    label: "Simulador",
-    shortLabel: "Simular",
-    icon: "simulator",
-    match: ["/metas"],
-  },
+  { href: "/simulador", label: "Simulador", shortLabel: "Simular", icon: "simulator" },
+  { href: "/metas", label: "Metas", shortLabel: "Metas", icon: "target" },
   { href: "/relatorio", label: "Relatórios", shortLabel: "Relatórios", icon: "bar-chart" },
   { href: "/alertas", label: "Alertas", shortLabel: "Alertas", icon: "bell", badge: 2 },
 ];
@@ -63,9 +58,15 @@ export const bottomNav: (NavItem & { featured?: boolean })[] = [
 export const accountMenu: { href: string; label: string; icon: IconName; badge?: number }[] = [
   { href: "/assinaturas", label: "Assinaturas", icon: "repeat" },
   { href: "/simulador", label: "Simulador", icon: "simulator" },
+  { href: "/metas", label: "Metas", icon: "target" },
   { href: "/relatorio", label: "Relatórios", icon: "bar-chart" },
   { href: "/alertas", label: "Alertas", icon: "bell", badge: 2 },
-  { href: "/perfil", label: "Meu perfil e configurações", icon: "user" },
+];
+
+/** A conta: menu do cartão do usuário (menu lateral e trilho) e o fim do menu do celular. */
+export const accountLinks: { href: string; label: string; icon: IconName }[] = [
+  { href: "/perfil", label: "Meu perfil", icon: "user" },
+  { href: "/configuracoes", label: "Configurações", icon: "sliders" },
 ];
 
 export function isActive(pathname: string, item: Pick<NavItem, "href" | "match" | "exclude">) {
@@ -110,9 +111,13 @@ function hasHistoryAside(pathname: string) {
 /** Formulários: sem barra inferior no mobile, com a ação principal fixa no rodapé. */
 function isForm(pathname: string) {
   return (
-    ["/alertas/novo-teto", "/alertas/novo-preco", "/investimentos/novo", "/metas/nova"].includes(
-      pathname,
-    ) ||
+    [
+      "/alertas/novo-teto",
+      "/alertas/novo-preco",
+      "/investimentos/novo",
+      "/metas/nova",
+      "/configuracoes",
+    ].includes(pathname) ||
     pathname === "/investimentos/duplicidade" ||
     /^\/investimentos\/bens\/(imovel|veiculo)\/novo$/.test(pathname) ||
     /^\/alertas\/(tetos|precos)\/[^/]+\/editar$/.test(pathname) ||

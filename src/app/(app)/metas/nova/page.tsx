@@ -5,14 +5,15 @@ import { DetailHeader, Page } from "@/components/layout/page";
 import { AgentTip } from "@/components/ui/agent-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { DetailGrid } from "@/components/ui/detail-list";
-import { AmountInput, RadioCard, SelectInput, TextInput } from "@/components/ui/form";
+import { AmountInput, SelectInput, TextInput } from "@/components/ui/form";
 import { FormSection, LabeledField, SaveActions } from "@/components/ui/form-sections";
 import { Icon } from "@/components/ui/icon";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { SwitchRow } from "@/components/ui/switch";
 import { Tag } from "@/components/ui/tag";
 import { LineChart } from "@/features/ativo/components/line-compare-chart";
-import { goalDraft as draft } from "@/features/metas/data";
+import { HowToSave } from "@/features/metas/components/how-to-save";
+import { genericSaveOptions, goalDraft as draft, ownSaveOptions } from "@/features/metas/data";
 import { cn } from "@/lib/utils";
 
 const grid = "contents @tab:grid @tab:grid-cols-2 @tab:items-start @tab:gap-3.5 @desk:gap-4";
@@ -70,12 +71,6 @@ function Tracking({ className }: { className?: string }) {
         description="Avisa se o ritmo cair e comemora cada marco"
         defaultChecked
       />
-      <SwitchRow
-        id="meta-lembrete"
-        title="Lembrete no dia do depósito"
-        description="Notificação no celular às 9h"
-        defaultChecked
-      />
       <AgentTip agent="onca" named className="hidden @tab:flex">
         Combinado: guardo o ritmo da viagem com você e aviso em jan/27 quando chegar a 25%.
       </AgentTip>
@@ -83,17 +78,23 @@ function Tracking({ className }: { className?: string }) {
   );
 }
 
-export default function NovaMetaPage() {
+/**
+ * Nova meta (a partir da simulação "Juntar para um objetivo"). Quem ainda não tem aplicações
+ * conectadas (`?estado=novo`) vê sugestões genéricas em "Onde guardar".
+ */
+export default async function NovaMetaPage({ searchParams }: PageProps<"/metas/nova">) {
+  const suggested = (await searchParams).estado === "novo";
+  const options = suggested ? genericSaveOptions : ownSaveOptions();
   return (
     <Page
       padding="form"
       paddingClassName="pt-2 pb-30 lg:pb-12"
       className="gap-4.5 @tab:gap-5 @desk:gap-6"
-      header={<MobileHeader title="Nova meta" close="/simulador/objetivo" balanced />}
+      header={<MobileHeader title="Nova meta" close="/metas" balanced />}
     >
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[{ label: "Simulador", href: "/simulador/objetivo" }, { label: "Nova meta" }]}
+        items={[{ label: "Metas", href: "/metas" }, { label: "Nova meta" }]}
       />
       <DetailHeader title="Transformar em meta" />
       <div className="flex flex-wrap items-center justify-between gap-2.5">
@@ -134,27 +135,7 @@ export default function NovaMetaPage() {
             </div>
           </FormSection>
           <FormSection title="Como guardar" className="@desk:grow @desk:gap-3.5">
-            <LabeledField label="Onde guardar">
-              {draft.onde.map((opcao, i) => (
-                <RadioCard
-                  key={opcao.titulo}
-                  name="meta-onde"
-                  title={opcao.titulo}
-                  description={opcao.texto}
-                  defaultChecked={i === 0}
-                />
-              ))}
-            </LabeledField>
-            <div className={grid}>
-              <LabeledField id="meta-mensal" label="Depósito mensal" hint={draft.mensalDica}>
-                <TextInput id="meta-mensal" defaultValue={draft.mensal} />
-              </LabeledField>
-              <LabeledField id="meta-dia" label="Dia do depósito">
-                <SelectInput id="meta-dia" defaultValue={draft.dia}>
-                  <option>{draft.dia}</option>
-                </SelectInput>
-              </LabeledField>
-            </div>
+            <HowToSave options={options} suggested={suggested} />
           </FormSection>
         </div>
         <div className="flex flex-col gap-4.5 @tab:grid @tab:grid-cols-2 @tab:items-stretch @tab:gap-4 @desk:flex @desk:min-w-0 @desk:flex-col @desk:gap-4">
@@ -162,7 +143,7 @@ export default function NovaMetaPage() {
           <Tracking className="@desk:grow" />
         </div>
       </div>
-      <SaveActions label="Criar meta" href="/metas" cancelHref="/simulador/objetivo" />
+      <SaveActions label="Criar meta" href="/metas" cancelHref="/metas" />
     </Page>
   );
 }

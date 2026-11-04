@@ -10,6 +10,9 @@ import { DeviceNotificationsAlert } from "@/features/notificacoes/components/dev
 import { user } from "@/features/usuario/data";
 import { BankMark } from "@/components/ui/bank-mark";
 import { cn } from "@/lib/utils";
+import type { Settings } from "@/stores/settings";
+
+import { AccountPhone } from "./account-phone";
 
 import {
   account,
@@ -25,6 +28,11 @@ import {
 type SectionProps = { className?: string };
 /** Os blocos aparecem em arranjos diferentes por largura; o sufixo mantém os ids únicos. */
 type WithIds = SectionProps & { idSuffix: string };
+/** Blocos de Configurações: editam o rascunho, que só vale depois de "Salvar alterações". */
+type SettingsSectionProps = SectionProps & {
+  value: Settings;
+  onChange: (patch: Partial<Settings>) => void;
+};
 
 function Title({ children, subtitle }: { children: string; subtitle?: string }) {
   return (
@@ -49,9 +57,19 @@ export function AccountCard({ className }: SectionProps) {
         >
           {user.iniciais}
         </div>
-        <div className="flex min-w-0 grow flex-col leading-[1.35]">
+        <div className="flex min-w-0 grow flex-col gap-0.5 leading-[1.35]">
           <strong className="text-18">{user.nome}</strong>
-          <span className="text-14 text-mist">{account.email}</span>
+          <span className="flex min-w-0 items-center gap-1.5 text-14 text-mist">
+            <Icon name="mail" size={15} className="shrink-0" />
+            <span className="truncate">{account.email}</span>
+          </span>
+          <span className="flex items-center gap-1.5 text-14 text-mist">
+            <Icon name="phone" size={15} className="shrink-0" />
+            <span className="sr-only">Celular: </span>
+            <span className="tabular-nums">
+              <AccountPhone />
+            </span>
+          </span>
         </div>
         <ButtonLink href="/perfil/editar" variant="glass" size="sm">
           <span>Editar</span>
@@ -263,7 +281,9 @@ const notificationGrid = "grid grid-cols-[minmax(0,1fr)_4rem_4rem]";
 export function NotificationsCard({
   className,
   deviceOff,
-}: SectionProps & {
+  value,
+  onChange,
+}: SettingsSectionProps & {
   /** Notificações desligadas no aparelho (ou bloqueadas no navegador). */
   deviceOff?: boolean;
 }) {
@@ -296,17 +316,31 @@ export function NotificationsCard({
             <span role="rowheader" className="text-15">
               {type}
             </span>
-            {[
-              { channel: "celular", label: `${type} por notificação no celular` },
-              { channel: "email", label: `${type} por e-mail` },
-            ].map((cell) => (
+            {(
+              [
+                { channel: "celular", label: `${type} por notificação no celular` },
+                { channel: "email", label: `${type} por e-mail` },
+              ] as const
+            ).map((cell) => (
               <span key={cell.channel} role="cell" className="flex justify-center">
                 {/* A caixa continua com 22px; a área de toque em volta tem 44px. */}
                 <label className="flex size-11 cursor-pointer items-center justify-center">
                   <input
                     type="checkbox"
                     aria-label={cell.label}
-                    defaultChecked
+                    checked={value.notifications[type]?.[cell.channel] ?? true}
+                    onChange={(event) =>
+                      onChange({
+                        notifications: {
+                          ...value.notifications,
+                          [type]: {
+                            celular: value.notifications[type]?.celular ?? true,
+                            email: value.notifications[type]?.email ?? true,
+                            [cell.channel]: event.target.checked,
+                          },
+                        },
+                      })
+                    }
                     className="m-0 size-5.5 accent-sand"
                   />
                 </label>
@@ -319,25 +353,49 @@ export function NotificationsCard({
   );
 }
 
-export function AppearanceCard({ className, idSuffix }: WithIds) {
+export function AppearanceCard({
+  className,
+  idSuffix,
+  value,
+  onChange,
+}: WithIds & SettingsSectionProps) {
   return (
     <Panel className={cn("gap-3.5", className)}>
       <Title>Aparência e acessibilidade</Title>
       <div className="flex flex-col gap-2">
         <span className="text-14 font-bold">Tamanho do texto</span>
-        <SegmentedTiles label="Tamanho do texto" options={textSizes} itemClassName="h-10" />
+        <SegmentedTiles
+          label="Tamanho do texto"
+          options={textSizes}
+          value={value.textSize}
+          onValueChange={(textSize) => onChange({ textSize })}
+          itemClassName="h-10"
+        />
       </div>
-      <CheckboxRow id={`reduzir-animacoes-${idSuffix}`} label="Reduzir animações" isSwitch />
+      <CheckboxRow
+        id={`reduzir-animacoes-${idSuffix}`}
+        label="Reduzir animações"
+        isSwitch
+        checked={value.reduceMotion}
+        onCheckedChange={(reduceMotion) => onChange({ reduceMotion })}
+      />
       <CheckboxRow
         id={`ocultar-valores-${idSuffix}`}
         label="Ocultar valores ao abrir o app"
         isSwitch
+        checked={value.hideValuesOnOpen}
+        onCheckedChange={(hideValuesOnOpen) => onChange({ hideValuesOnOpen })}
       />
     </Panel>
   );
 }
 
-export function SecurityCard({ className, idSuffix }: WithIds) {
+export function SecurityCard({
+  className,
+  idSuffix,
+  value,
+  onChange,
+}: WithIds & SettingsSectionProps) {
   return (
     <Panel className={cn("gap-2.5", className)}>
       <Title>Segurança e privacidade</Title>
@@ -345,8 +403,9 @@ export function SecurityCard({ className, idSuffix }: WithIds) {
         id={`biometria-${idSuffix}`}
         label="Entrar com biometria"
         description="Face ID ou digital"
-        defaultChecked
         isSwitch
+        checked={value.biometrics}
+        onCheckedChange={(biometrics) => onChange({ biometrics })}
       />
       <div className="flex flex-col gap-1.5">
         <span className="text-12 font-bold tracking-[.06em] text-caption uppercase">

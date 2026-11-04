@@ -31,12 +31,12 @@ export function PasswordForm() {
     };
     setErrors(found);
     if (found.senha || found.confirmacao) return;
-    if (!live) return router.push("/perfil");
+    if (!live) return router.push("/configuracoes");
     setSaving(true);
     setFailure(null);
     try {
       await updatePassword(password);
-      router.push("/perfil");
+      router.push("/configuracoes");
     } catch (error) {
       const code = passwordAuthCode(error);
       if (code === "senha-fraca") setErrors({ senha: "Essa senha é fraca. Escolha outra." });
@@ -87,7 +87,7 @@ export function PasswordForm() {
         e-mail ou CPF. Quem já tem senha troca por esta.
       </Note>
       <div className="flex flex-wrap justify-end gap-2.5">
-        <ButtonLink href="/perfil" variant="secondary" size="md">
+        <ButtonLink href="/configuracoes" variant="secondary" size="md">
           <span>Cancelar</span>
         </ButtonLink>
         <Button type="submit" variant="primary" size="md" disabled={saving}>

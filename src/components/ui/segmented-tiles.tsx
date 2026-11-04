@@ -12,16 +12,26 @@ export function SegmentedTiles<T extends string>({
   label,
   options,
   defaultValue,
+  value: controlled,
+  onValueChange,
   className,
   itemClassName,
 }: {
   label: string;
   options: readonly { value: T; label: string }[];
   defaultValue?: T;
+  /** Controlado: a opção vem de fora (com `onValueChange`). */
+  value?: T;
+  onValueChange?: (value: T) => void;
   className?: string;
   itemClassName?: string;
 }) {
-  const [value, setValue] = useState<T | undefined>(defaultValue ?? options[0]?.value);
+  const [own, setOwn] = useState<T | undefined>(defaultValue ?? options[0]?.value);
+  const value = controlled ?? own;
+  const setValue = (next: T) => {
+    setOwn(next);
+    onValueChange?.(next);
+  };
   return (
     <SlidingGroup
       active={value}

@@ -103,11 +103,11 @@ export default function ExcluirContaPage() {
       zoom={1.4}
       paddingClassName="pt-2 pb-30 lg:pb-12"
       className="gap-4 @tab:gap-5 @desk:gap-6"
-      header={<MobileHeader title="Excluir conta" back="/perfil" balanced />}
+      header={<MobileHeader title="Excluir conta" back="/configuracoes" balanced />}
     >
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[{ label: "Meu perfil", href: "/perfil" }, { label: "Excluir conta" }]}
+        items={[{ label: "Configurações", href: "/configuracoes" }, { label: "Excluir conta" }]}
       />
       <DetailHeader
         title="Excluir conta"
@@ -121,7 +121,7 @@ export default function ExcluirContaPage() {
         </div>
       </div>
       <div className="hidden flex-wrap items-center justify-end gap-2.5 @tab:flex">
-        <ButtonLink href="/perfil" variant="ghost" className="text-15">
+        <ButtonLink href="/configuracoes" variant="ghost" className="text-15">
           <span>Cancelar</span>
         </ButtonLink>
         <ButtonLink href="/boas-vindas" variant="danger" className="text-15">
@@ -130,7 +130,7 @@ export default function ExcluirContaPage() {
         </ButtonLink>
       </div>
       <MobileActionBar className="items-center">
-        <ButtonLink href="/perfil" variant="ghost" size="xl">
+        <ButtonLink href="/configuracoes" variant="ghost" size="xl">
           <span>Cancelar</span>
         </ButtonLink>
         <ButtonLink href="/boas-vindas" variant="danger" size="xl" className="grow">

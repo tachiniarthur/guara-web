@@ -9,11 +9,13 @@ import { Presence } from "@/components/ui/presence";
 import { bancosResumo, user } from "@/features/usuario/data";
 import { accountMenu } from "@/lib/navigation";
 
+import { AccountMenuItems, SignOutDialog } from "./account-actions";
 import { UserInitials } from "./user-chip";
 
-/** Botão com as iniciais que abre o menu da conta (destinos fora da barra inferior). */
+/** Botão com as iniciais que abre o menu da conta (destinos fora da barra inferior e a conta). */
 export function AccountMenuButton() {
   const [open, setOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const menuId = useId();
 
   useEffect(() => {
@@ -77,10 +79,19 @@ export function AccountMenuButton() {
                   ) : null}
                 </Link>
               ))}
+              <div className="my-1 border-t border-line" />
+              <AccountMenuItems
+                onNavigate={() => setOpen(false)}
+                onSignOut={() => {
+                  setOpen(false);
+                  setConfirming(true);
+                }}
+              />
             </div>
           </>
         )}
       </Presence>
+      <SignOutDialog open={confirming} onClose={() => setConfirming(false)} />
     </>
   );
 }

@@ -80,6 +80,9 @@ type CheckboxRowProps = {
   label: ReactNode;
   description?: ReactNode;
   defaultChecked?: boolean;
+  /** Controlado: o estado vem de fora (com `onCheckedChange`). */
+  checked?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
   /** Cor do marcador (areia por padrão; amarelo-tucano em algumas telas do mobile). */
   accent?: "sand" | "tucano";
   /** Liga/desliga (anuncia como interruptor). */
@@ -95,6 +98,8 @@ export function CheckboxRow({
   label,
   description,
   defaultChecked,
+  checked,
+  onCheckedChange,
   accent = "sand",
   isSwitch,
   disabled,
@@ -107,7 +112,9 @@ export function CheckboxRow({
         id={id}
         type="checkbox"
         role={isSwitch ? "switch" : undefined}
-        defaultChecked={defaultChecked}
+        defaultChecked={checked === undefined ? defaultChecked : undefined}
+        checked={checked}
+        onChange={onCheckedChange && ((event) => onCheckedChange(event.target.checked))}
         disabled={disabled}
         className={cn(
           "m-0 size-5.5 shrink-0",

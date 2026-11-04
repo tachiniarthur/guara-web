@@ -302,6 +302,8 @@
   }
   html {
     @apply bg-canvas font-sans text-sand antialiased;
+    /* "Tamanho do texto" (Configurações): escala o rem, e com ele o texto e o layout. */
+    font-size: calc(100% * var(--text-scale, 1));
     /* Sem a barra de rolagem da página (a rolagem continua no mouse, no toque e no teclado). */
     scrollbar-width: none;
   }
@@ -315,7 +317,7 @@
    */
   @media (min-width: 75rem) {
     html {
-      font-size: clamp(12px, calc(100vw / 147.5), 16px);
+      font-size: calc(clamp(12px, calc(100vw / 147.5), 16px) * var(--text-scale, 1));
     }
   }
   /* 1rem continua 16px; o texto corrido do app é 15px (16px no desktop, via app shell). */
@@ -993,4 +995,17 @@ details[open]::details-content {
       opacity: 0;
     }
   }
+}
+
+/*
+ * "Reduzir animações" nas Configurações do app (além do ajuste do sistema): tudo chega pronto,
+ * sem deslizar nem crescer.
+ */
+html[data-reduce-motion] *,
+html[data-reduce-motion] *::before,
+html[data-reduce-motion] *::after {
+  animation-duration: 1ms !important;
+  animation-delay: 0s !important;
+  transition-duration: 1ms !important;
+  transition-delay: 0s !important;
 }

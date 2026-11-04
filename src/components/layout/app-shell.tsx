@@ -16,6 +16,7 @@ import { ChatOverlay, ChatPanel } from "./chat-panel";
 import { ConversarFabCompact } from "./conversar-fab";
 import { HistoryHandle, HistoryPanel } from "./history-panel";
 import { Rail } from "./rail";
+import { SettingsEffects } from "./settings-effects";
 import { Sidebar } from "./sidebar";
 import { ValuesMask } from "./values-mask";
 
@@ -35,6 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Rail className="hidden md:flex lg:hidden" />
       <main className="@container min-w-0 flex-1">{children}</main>
       <ValuesMask />
+      <SettingsEffects />
       <Suspense fallback={<ShellChrome pathname={pathname} novo={false} />}>
         <ShellChromeFromUrl pathname={pathname} />
       </Suspense>

@@ -12,6 +12,7 @@ import { bancosResumo, user } from "@/features/usuario/data";
 import { isActive, mainNav } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
+import { AccountPopover } from "./account-actions";
 import { BrandLockup } from "./brand";
 import { UserInitials } from "./user-chip";
 import { MataArt } from "@/components/ui/mata-art";
@@ -104,10 +105,11 @@ export function Sidebar({ className }: { className?: string }) {
       {/* Espaço flexível: o card do usuário fica sempre no rodapé, sem rolagem no menu. */}
       <div className="min-h-0 grow" />
 
-      <Link
-        href="/perfil"
-        aria-label={`${user.nome}, ${bancosResumo}. Abrir meu perfil e configurações`}
-        className="relative isolate flex shrink-0 items-center gap-3 overflow-hidden rounded-bubble border border-line-strong bg-mata p-3 leading-[1.3] text-sand no-underline"
+      {/* O cartão do usuário abre o menu da conta: Meu perfil, Configurações e Sair. */}
+      <AccountPopover
+        placement="above"
+        label={`${user.nome}, ${bancosResumo}. Abrir o menu da conta`}
+        triggerClassName="relative isolate flex w-full pressable items-center gap-3 overflow-hidden rounded-bubble border border-line-strong bg-mata p-3 text-left leading-[1.3] text-sand"
       >
         <MataArt className="absolute inset-0 -z-20 size-full" align="right" />
         <span
@@ -125,7 +127,7 @@ export function Sidebar({ className }: { className?: string }) {
         >
           <Icon name="more" />
         </span>
-      </Link>
+      </AccountPopover>
     </nav>
   );
 }

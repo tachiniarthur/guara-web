@@ -33,8 +33,8 @@ function ChannelsPanel({ state }: Props) {
       />
       <StateSwap replacement={state === "erro" && <ErrorBlock />} className="grow gap-3.5">
         <DetailList items={notificationChannels} />
-        <Link href="/perfil" className={panelLinkClass}>
-          Mudar em Meu perfil
+        <Link href="/configuracoes" className={panelLinkClass}>
+          Mudar em Configurações
           <Icon name="chevron-right" size={16} />
         </Link>
       </StateSwap>

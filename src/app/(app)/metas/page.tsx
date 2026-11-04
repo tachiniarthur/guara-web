@@ -89,32 +89,48 @@ export default async function MetasPage({ searchParams }: PageProps<"/metas">) {
         </>
       ) : (
         <Skeleton active={state === "carregando"}>
-          <div className="flex flex-col gap-4 @tab:grid @tab:grid-cols-2 @tab:items-stretch @desk:gap-5">
-            <GoalsHero
-              replacement={failed && <ErrorBlocks mobile="tile" tablet="big" desktop="compact" />}
-            />
-            <StateSwap
-              replacement={failed && <ErrorBlocks mobile="big" desktop="compact" />}
-              overlayClassName="rounded-bubble bg-shade p-4"
-            >
-              <OncaTip action={chatWithOnca}>{goalsSummary.dica}</OncaTip>
-            </StateSwap>
-          </div>
-          <div className="flex flex-col gap-4 @tab:grid @tab:grid-cols-2 @tab:items-stretch @desk:grid-cols-3 @desk:gap-5">
-            {goals.map((goal, index) => (
+          {/*
+           * Desktop: as metas em cards largos à esquerda; o resumo, a Onça e os atalhos numa coluna
+           * à direita. Celular e tablet: resumo e Onça primeiro, depois as metas.
+           */}
+          <div className="flex flex-col gap-4 @desk:grid @desk:grid-cols-[minmax(0,1fr)_minmax(0,23rem)] @desk:items-start @desk:gap-5">
+            <div className="flex min-w-0 flex-col gap-4 @tab:grid @tab:grid-cols-2 @tab:items-stretch @desk:order-2 @desk:flex @desk:flex-col">
+              <GoalsHero
+                replacement={failed && <ErrorBlocks mobile="tile" tablet="big" desktop="compact" />}
+              />
               <StateSwap
-                key={goal.id}
-                replacement={failed && goalErrors[index]}
-                overlayClassName="rounded-[1.375rem] border border-line bg-card p-4.5"
+                replacement={failed && <ErrorBlocks mobile="big" desktop="compact" />}
+                overlayClassName="rounded-bubble bg-shade p-4"
               >
-                <GoalCard goal={goal} />
+                <OncaTip action={chatWithOnca}>{goalsSummary.dica}</OncaTip>
               </StateSwap>
-            ))}
+              <div className="hidden flex-col gap-1 @desk:flex">
+                {savedLink}
+                <Link
+                  href="/simulador/objetivo"
+                  className="flex min-h-6 items-center gap-1 text-14 font-bold whitespace-nowrap text-sand underline underline-offset-3"
+                >
+                  Simular uma meta nova
+                  <Icon name="chevron-right" size={16} />
+                </Link>
+              </div>
+            </div>
+            <section aria-label="Metas" className="flex min-w-0 flex-col gap-3.5 @desk:order-1">
+              {goals.map((goal, index) => (
+                <StateSwap
+                  key={goal.id}
+                  replacement={failed && goalErrors[index]}
+                  overlayClassName="rounded-card border border-line bg-card p-4.5"
+                >
+                  <GoalCard goal={goal} />
+                </StateSwap>
+              ))}
+            </section>
           </div>
           <div className="@tab:hidden">
             <NewGoalButton block />
           </div>
-          <div className="flex items-center gap-2.5 @tab:justify-end">{savedLink}</div>
+          <div className="flex items-center gap-2.5 @tab:justify-end @desk:hidden">{savedLink}</div>
         </Skeleton>
       )}
     </Page>

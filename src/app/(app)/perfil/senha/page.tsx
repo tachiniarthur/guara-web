@@ -10,11 +10,11 @@ export default function SenhaDeAcessoPage() {
       zoom={1.4}
       paddingClassName="pt-2 pb-30 lg:pb-12"
       className="gap-5 @desk:gap-6"
-      header={<MobileHeader title="Senha de acesso" back="/perfil" balanced />}
+      header={<MobileHeader title="Senha de acesso" back="/configuracoes" balanced />}
     >
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[{ label: "Meu perfil", href: "/perfil" }, { label: "Senha de acesso" }]}
+        items={[{ label: "Configurações", href: "/configuracoes" }, { label: "Senha de acesso" }]}
       />
       <DetailHeader title="Senha de acesso" />
       <section className="flex w-full max-w-[40rem] flex-col gap-5 @tab:rounded-card @tab:border @tab:border-line @tab:bg-card @tab:p-6">

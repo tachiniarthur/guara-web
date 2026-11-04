@@ -8,6 +8,7 @@ import { Icon } from "@/components/ui/icon";
 import { Note } from "@/components/ui/note";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { AvatarFields } from "@/features/perfil/components/edit-profile";
+import { PhoneEditField } from "@/features/perfil/components/account-phone";
 import { CpfReadOnly } from "@/features/perfil/components/cpf-readonly";
 import { IconRowList } from "@/features/perfil/components/icon-row-list";
 import { user } from "@/features/usuario/data";
@@ -41,6 +42,7 @@ function Fields() {
           <TextInput id="perfil-email" type="email" defaultValue={user.email} className="pl-11" />
         </div>
       </LabeledField>
+      <PhoneEditField />
       <CpfReadOnly />
       <Note icon="mail" tone="info" className="bg-arara-bg" iconClassName="text-arara">
         Se trocar o e-mail, enviamos um link de confirmação para o novo endereço. Até você

@@ -1,80 +1,74 @@
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
-import {
-  AccountCard,
-  AppearanceCard,
-  BanksCard,
-  InvestorProfileCard,
-  NotificationsCard,
-  SecurityCard,
-} from "@/features/perfil/components/sections";
+import { Icon } from "@/components/ui/icon";
+import { Panel } from "@/components/ui/panel";
+import { AccountCard, BanksCard, InvestorProfileCard } from "@/features/perfil/components/sections";
 import { DisconnectDialog } from "@/features/perfil/components/disconnect-dialog";
 
-/** Meu perfil (e o caso de notificações desligadas no aparelho: ?aparelho=desligado). */
-export default async function PerfilPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ aparelho?: string }>;
-}) {
-  const deviceOff = (await searchParams).aparelho === "desligado";
+/** Atalho para Configurações (notificações, aparência e segurança ficam lá). */
+function SettingsShortcut({ className }: { className?: string }) {
+  return (
+    <Panel className={className}>
+      <Link
+        href="/configuracoes"
+        className="-m-1 flex items-center gap-3.5 rounded-tile p-1 text-sand no-underline hover:bg-shade"
+      >
+        <span
+          aria-hidden="true"
+          className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-shade text-mist"
+        >
+          <Icon name="sliders" />
+        </span>
+        <span className="flex grow flex-col leading-[1.35]">
+          <strong className="text-15">Configurações</strong>
+          <span className="text-13 text-caption">
+            Notificações, tamanho do texto, biometria e aparelhos
+          </span>
+        </span>
+        <Icon name="chevron-right" size={18} className="text-caption" />
+      </Link>
+    </Panel>
+  );
+}
+
+/** Meu perfil: a conta (nome, e-mail e celular), o perfil de investidor e os bancos conectados. */
+export default function PerfilPage() {
   return (
     <>
       <Page
         padding="form"
-        zoom={deviceOff ? undefined : 1.2}
+        zoom={1.2}
         paddingClassName="pb-8"
         className="gap-4 @tab:gap-5 @desk:gap-6"
         header={<MobileHeader title="Meu perfil" back="/" />}
       >
         <header className="hidden items-end justify-between gap-4 @tab:flex">
-          <div className="flex flex-col gap-1.5">
-            <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em] @desk:text-32">
-              Meu perfil e configurações
-            </h1>
-          </div>
-          <div className="flex items-center gap-2" />
+          <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em] @desk:text-32">
+            Meu perfil
+          </h1>
         </header>
 
-        {/* Mobile: tudo empilhado. */}
-        <div className="flex flex-col gap-4 @tab:hidden">
-          <AccountCard />
-          <InvestorProfileCard />
-          <BanksCard />
-          <NotificationsCard deviceOff={deviceOff} />
-          <AppearanceCard idSuffix="m" />
-          <SecurityCard idSuffix="m" />
-        </div>
-
-        {/* Tablet: duas colunas de ajustes e os bancos embaixo. */}
-        <div className="hidden flex-col gap-5 @tab:flex @desk:hidden">
-          <div className="grid grid-cols-2 items-stretch gap-4">
-            <div className="flex min-w-0 flex-col gap-4">
-              <AccountCard />
-              <InvestorProfileCard />
-              <AppearanceCard idSuffix="t" className="grow" />
-            </div>
-            <div className="flex min-w-0 flex-col gap-4">
-              <NotificationsCard deviceOff={deviceOff} />
-              <SecurityCard idSuffix="t" className="grow" />
-            </div>
+        {/* Celular e tablet: empilhado (no tablet, conta e perfil lado a lado). */}
+        <div className="flex flex-col gap-4 @desk:hidden">
+          <div className="flex flex-col gap-4 @tab:grid @tab:grid-cols-2 @tab:items-stretch">
+            <AccountCard />
+            <InvestorProfileCard />
           </div>
           <BanksCard />
+          <SettingsShortcut />
         </div>
 
-        {/* Desktop: conta e bancos à esquerda, preferências à direita. */}
-        <div className="hidden grid-cols-2 items-stretch gap-5 @desk:grid">
+        {/* Desktop: conta, perfil e o atalho à esquerda; os bancos à direita. */}
+        <div className="hidden grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] items-stretch gap-5 @desk:grid">
           <div className="flex min-w-0 flex-col gap-5">
             <AccountCard />
             <InvestorProfileCard />
-            <BanksCard className="grow" />
+            <SettingsShortcut />
           </div>
-          <div className="flex min-w-0 flex-col gap-5">
-            <NotificationsCard deviceOff={deviceOff} />
-            <AppearanceCard idSuffix="d" />
-            <SecurityCard idSuffix="d" className="grow" />
-          </div>
+          <BanksCard />
         </div>
       </Page>
       <Suspense>

@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/ui/icon";
+import { positionGroups } from "@/features/investimentos/data";
 
 /** Metas acompanhadas pela Onça (reserva, viagem e aposentadoria). */
 
@@ -66,7 +67,12 @@ export const goals: Goal[] = [
 export const goalsSummary = {
   guardado: "R$ 19.892",
   mensal: "R$ 2.300/mês",
-  sobrou: "sem a aposentadoria · sobrou R$ 2.287,53 em setembro",
+  /** O que os depósitos planejados deixam de fora. */
+  mensalNota: "sem a aposentadoria",
+  sobrou: "R$ 2.287,53",
+  sobrouQuando: "em setembro",
+  /** Próximo dia de depósito das metas em andamento. */
+  proximo: "5/10",
   dica: "A reserva está no ritmo: mais R$ 990 em 5/10 e você passa de 56%. A viagem começa no mesmo dia. A aposentadoria pede mais do que sobra hoje; quer ver onde ajustar?",
 };
 
@@ -124,17 +130,11 @@ export const goalDraft = {
   prazo: "18 meses · abril de 2028",
   guardado: "R$ 4.000,00",
   guardadoDica: "Separado no CDB 110% CDI",
-  onde: [
-    {
-      titulo: "CDB 110% CDI · Nubank",
-      texto: "Rende cerca de 0,9% ao mês · já tem R$ 4.000 separados",
-    },
-    { titulo: "Tesouro Selic 2029 · Itaú", texto: "Usado pela Reserva de emergência" },
-    { titulo: "Caixinha do banco", texto: "Resgate na hora, rende um pouco menos" },
-  ],
   mensal: "R$ 1.310,00",
   mensalDica: "Calculado para chegar no prazo. Equivale a 57% do que sobrou em setembro.",
-  dia: "Todo dia 5, junto com o salário",
+  /** Dia de guardar sugerido: o do salário. */
+  dia: 5,
+  diaSalario: 5,
   previa: {
     rotulo: "Prévia da meta: de R$ 4.000 em outubro de 2026 a R$ 30.000 em abril de 2028",
     comRendimento: [4, 5.41, 9.49, 13.71, 17.99, 22.4, 26.81, 30.01],
@@ -154,3 +154,48 @@ export const goalDraft = {
     ],
   },
 };
+
+/** Uma opção de "Onde guardar" na nova meta. */
+export type SaveOption = { titulo: string; texto: string };
+
+/**
+ * Onde a pessoa pode guardar para a meta: as aplicações de renda fixa que ela já tem (as livres
+ * primeiro; as que já são de outra meta avisam) e a caixinha do banco.
+ */
+export function ownSaveOptions(): SaveOption[] {
+  const fixa = positionGroups.find((group) => group.classe === "Renda fixa")?.posicoes ?? [];
+  const options = fixa.map((p) => {
+    const banco = p.origem.texto.split(" · ")[0];
+    const titulo = banco && p.origem.tipo === "open-finance" ? `${p.nome} · ${banco}` : p.nome;
+    // A meta sendo criada (a do rascunho) não conta como "outra meta".
+    const meta = goals.find((goal) => goal.onde === titulo && goal.nome !== goalDraft.nome);
+    return {
+      titulo,
+      texto: meta ? `Usado pela ${meta.nome}` : `${p.descricao} · ${p.total} aplicados`,
+      emUso: Boolean(meta),
+    };
+  });
+  return [...options.filter((o) => !o.emUso), ...options.filter((o) => o.emUso)]
+    .map(({ titulo, texto }) => ({ titulo, texto }))
+    .concat({ titulo: "Caixinha do banco", texto: "Resgate na hora, rende um pouco menos" });
+}
+
+/** Sem aplicações conectadas: tipos de investimento comuns para metas (sem citar instituições). */
+export const genericSaveOptions: SaveOption[] = [
+  {
+    titulo: "Tesouro Selic",
+    texto: "Título público que acompanha a Selic. Bom para metas com data incerta",
+  },
+  {
+    titulo: "CDB com liquidez diária",
+    texto: "Rende um percentual do CDI e tem garantia do FGC até R$ 250 mil por banco",
+  },
+  {
+    titulo: "Caixinha ou conta remunerada",
+    texto: "Resgate na hora, rende um pouco menos",
+  },
+  {
+    titulo: "LCI ou LCA",
+    texto: "Sem imposto de renda para pessoa física; costuma ter prazo mínimo para resgatar",
+  },
+];
