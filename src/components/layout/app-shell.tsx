@@ -31,11 +31,24 @@ import { ValuesMask } from "./values-mask";
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const handle = useHandleVisibility(pathname);
   return (
     <div className="relative flex min-h-dvh">
       <Sidebar className="hidden lg:flex" />
       <Rail className="hidden md:flex lg:hidden" />
-      <main className="@container min-w-0 flex-1">{children}</main>
+      {/*
+       * Com o atalho do chat na borda direita, a página guarda uma calha para ele: os cards não
+       * passam por baixo do atalho (tablet e desktop sem painel de conversas).
+       */}
+      <main
+        className={cn(
+          "@container min-w-0 flex-1",
+          handle.tablet && "md:pr-9",
+          handle.desktop ? "lg:pr-8" : "lg:pr-0",
+        )}
+      >
+        {children}
+      </main>
       <ValuesMask />
       <SettingsEffects />
       <Suspense fallback={<ShellChrome pathname={pathname} novo={false} />}>
@@ -43,6 +56,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       </Suspense>
     </div>
   );
+}
+
+/** Onde o atalho do chat na borda direita aparece (as mesmas regras do ShellChrome). */
+function useHandleVisibility(pathname: string) {
+  const config = shellConfig(pathname);
+  const open = useChatPanel((state) => state.open);
+  const historyHidden = useChatPanel((state) => state.historyHidden);
+  const chatOpen = !pathname.startsWith("/conversas") && open === true;
+  const fab = config.fab && !chatOpen;
+  return {
+    tablet: fab,
+    desktop: (config.aside !== false && historyHidden) || (config.aside === false && fab),
+  };
 }
 
 const chatLinks: Record<string, string> = {

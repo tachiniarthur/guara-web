@@ -13,7 +13,8 @@ import { DayChange, OriginInfo, RiskBadge, SortArrows } from "./position-parts";
 import { MataArt } from "@/components/ui/mata-art";
 
 // Com o chat aberto ao lado a tabela estreita: o título quebra em duas linhas em vez de invadir
-// a coluna vizinha (centralizado, ele passaria dos dois lados).
+// a coluna vizinha (centralizado, ele passaria dos dois lados). Palavras longas levam hífen
+// opcional (\u00AD): "INSTRU-/MENTO" só quando não cabem.
 const th =
   "border-b border-line-strong px-2 pb-3 align-bottom text-13 leading-[1.25] font-bold tracking-[.05em] text-balance text-mist uppercase";
 // Todas as colunas centralizadas, menos "Ativo" (a primeira).
@@ -43,7 +44,7 @@ export function PositionsTable() {
             Classe
           </th>
           <th scope="col" className={cn(th, "text-center")}>
-            Instrumento
+            {"Instru\u00ADmento"}
           </th>
           <th scope="col" className={cn(th, "text-center")}>
             Risco
@@ -59,7 +60,7 @@ export function PositionsTable() {
             Origem
           </th>
           <th scope="col" className={cn(th, "text-center")}>
-            Quantidade
+            {"Quanti\u00ADdade"}
           </th>
           <th scope="col" className={cn(th, "text-center")}>
             Preço médio
@@ -78,7 +79,7 @@ export function PositionsTable() {
             <button
               type="button"
               aria-label="Ordenar por % da carteira"
-              className="-mx-2 -my-1.5 inline-flex items-center gap-1.5 rounded-lg border-none bg-transparent px-2 py-1.5 tracking-[inherit] text-mist uppercase"
+              className="-mx-2 -my-1.5 inline-flex max-w-[calc(100%+1rem)] items-center justify-center gap-1.5 rounded-lg border-none bg-transparent px-2 py-1.5 tracking-[inherit] text-balance text-mist uppercase"
             >
               % da carteira
               <SortArrows active={false} />

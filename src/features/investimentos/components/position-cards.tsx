@@ -63,10 +63,10 @@ export function ClassBanner({
   controls?: string;
 }) {
   // Dentro do botão do accordion o nome não pode ser um título (o botão só aceita texto).
-  const Heading = onToggle ? "span" : "h3";
+  const Heading = onToggle && !failed ? "span" : "h3";
   const content = (
     <>
-      {onToggle && (
+      {onToggle && !failed && (
         <Icon
           name="chevron-down"
           size={18}
@@ -96,7 +96,9 @@ export function ClassBanner({
       </StateSwap>
     </>
   );
-  if (!onToggle) {
+  // Com erro, a faixa mostra o "Tentar de novo" (um botão): ela não pode ser botão também, e não há
+  // ativos para mostrar ou esconder.
+  if (!onToggle || failed) {
     return (
       <div className={cn("flex items-baseline justify-between gap-2", classBannerClass)}>
         {content}

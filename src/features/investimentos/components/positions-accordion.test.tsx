@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 
-import { PositionCards } from "./position-cards";
+import { ClassBanner, PositionCards } from "./position-cards";
 import { PositionsTable } from "./positions-table";
 
 describe("Posições em accordion por classe", () => {
@@ -31,5 +31,20 @@ describe("Posições em accordion por classe", () => {
     expect(faixa).toHaveAttribute("aria-expanded", "true");
     fireEvent.click(faixa);
     expect(faixa).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("com erro, a faixa não vira botão (o Tentar de novo não fica dentro de outro botão)", () => {
+    const { container } = render(
+      <ClassBanner
+        classe="Renda fixa"
+        total="R$ 22.222,10"
+        percentual="46%"
+        failed
+        expanded
+        onToggle={() => {}}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /Renda fixa/ })).not.toBeInTheDocument();
+    expect(container.querySelector("button button")).toBeNull();
   });
 });

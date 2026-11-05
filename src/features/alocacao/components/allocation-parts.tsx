@@ -3,6 +3,7 @@ import { rem } from "@/lib/rem";
 import { cn } from "@/lib/utils";
 
 import { DonutArcs } from "./donut-arcs";
+import { FittedText } from "./fitted-text";
 
 import {
   diffColor,
@@ -26,7 +27,6 @@ export const donutSizes = {
   card: { size: 132, radius: 52, stroke: 18, value: 14 },
   xl: { size: 180, radius: 76, stroke: 25, value: 16 },
   cardTablet: { size: 130, radius: 51, stroke: 18, value: 14 },
-  xs: { size: 104, radius: 38, stroke: 15, value: 14 },
 } satisfies Record<string, DonutSize>;
 
 /** Rosca dos 5 grupos, começando às 12h, com rótulo e valor no centro. */
@@ -48,9 +48,14 @@ export function GroupDonut({
 }) {
   const { size, radius, stroke } = dims;
   const c = size / 2;
-  // Nome longo ("Conservador") diminui para caber no furo da rosca, com folga dos lados.
-  const hole = 2 * (radius - stroke / 2);
-  const valueSize = Math.min(dims.value, (hole * 0.82) / (Math.max(value.length, 1) * 0.6));
+  // Nome longo ("Conservador") diminui para caber no furo da rosca, com folga dos lados. A linha
+  // fica abaixo do centro, onde o furo é mais estreito: vale a corda do círculo na linha de base.
+  const inner = radius - stroke / 2;
+  const baseline = 14;
+  const chord = 2 * Math.sqrt(Math.max(inner ** 2 - baseline ** 2, 0));
+  const maxWidth = chord * 0.84;
+  // Estimativa para o primeiro desenho (Fraunces negrito ~0,66 em por letra); o FittedText mede.
+  const valueSize = Math.min(dims.value, maxWidth / (Math.max(value.length, 1) * 0.66));
   return (
     <svg
       width={rem(size)}
@@ -78,19 +83,20 @@ export function GroupDonut({
         {caption}
       </text>
       {/* O nome troca com um esmaecer quando a rosca muda de perfil. */}
-      <text
+      <FittedText
         key={value}
         className="animate-fade-in"
         x={c}
-        y={c + 14}
+        y={c + baseline}
         textAnchor="middle"
         fontSize={valueSize}
+        maxWidth={maxWidth}
         fontWeight="700"
         fill="#F2EFE6"
         style={{ fontFamily: "var(--font-display)" }}
       >
         {value}
-      </text>
+      </FittedText>
     </svg>
   );
 }

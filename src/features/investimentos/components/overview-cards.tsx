@@ -223,7 +223,8 @@ export function AllocationCard({ variant }: { variant: Variant }) {
       />
       <CardBody className="grow gap-4">
         <PortfolioVsTarget
-          dims={desktop ? donutSizes.lg : mobile ? donutSizes.sm : donutSizes.xs}
+          // Tablet com a rosca do celular: na menor (xs), "Moderado" só cabia no furo encostando no anel.
+          dims={desktop ? donutSizes.lg : donutSizes.sm}
           titleClassName={variant === "tablet" ? "text-13" : "text-14"}
           gapClassName={variant === "tablet" ? "gap-2" : "gap-3"}
         />
