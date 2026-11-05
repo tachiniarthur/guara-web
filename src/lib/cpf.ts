@@ -47,3 +47,12 @@ export function formatCpf(value: string): string {
   if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
   return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
 }
+
+/**
+ * Campo "E-mail ou CPF": enquanto só há números (e a pontuação do CPF), põe a máscara do CPF;
+ * com letra ou "@", é e-mail e fica como foi digitado.
+ */
+export function formatCpfOrEmail(value: string): string {
+  if (!/^[\d.\-\s]*$/.test(value) || onlyDigits(value).length === 0) return value;
+  return formatCpf(value);
+}

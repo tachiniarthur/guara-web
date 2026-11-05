@@ -796,6 +796,25 @@
 [data-motion="aside"] {
   animation: aside-in var(--duration-panel) var(--ease-drawer) both;
 }
+/*
+ * Lugar do chat fixo à direita (app-shell.tsx): entra e sai como o `aside` e, aberto, acompanha a
+ * troca histórico ↔ conversa mudando de largura junto com a conversa que desliza por cima.
+ * `backwards` (não `both`): terminada a entrada, a largura volta a obedecer à transição.
+ */
+[data-motion="aside-slot"] {
+  animation: aside-in var(--duration-panel) var(--ease-drawer) backwards;
+  transition: width var(--duration-panel) var(--ease-drawer);
+}
+[data-motion="aside-slot"]:not([data-docked]) {
+  transition: width var(--duration-panel-exit) var(--ease-slide-out);
+}
+/*
+ * Camada que aparece por baixo de outra já aberta (o histórico quando a conversa fecha): já está
+ * no lugar, sem entrar deslizando. A saída (data-presence="closing") continua valendo.
+ */
+[data-motion][data-still] {
+  animation: none;
+}
 [data-motion="toast-top"] {
   animation: toast-top-in var(--duration-dialog) var(--ease-out-soft) both;
 }
@@ -887,7 +906,7 @@ details[open]::details-content {
 [data-presence="closing"] [data-motion="panel"] {
   animation: panel-out var(--duration-panel-exit) var(--ease-slide-out) both;
 }
-[data-presence="closing"] [data-motion="aside"] {
+[data-presence="closing"] :is([data-motion="aside"], [data-motion="aside-slot"]) {
   animation: aside-out var(--duration-panel-exit) var(--ease-slide-out) both;
 }
 [data-presence="closing"] [data-motion="toast-top"] {

@@ -5,6 +5,7 @@ import { useEffect, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { Spinner } from "@/components/ui/spinner";
 import { AuthIntro } from "@/features/acesso/components/auth-parts";
 import { CpfField, PhoneField } from "@/features/acesso/components/fields";
 import { useSession } from "@/features/acesso/session";
@@ -12,6 +13,8 @@ import { useMe, useSetCpf, useSetPhone } from "@/features/perfil/api";
 import { ApiError } from "@/lib/api";
 import { cpfProblem } from "@/lib/cpf";
 import { phoneProblem } from "@/lib/phone";
+
+import { LeaveOnboardingLink } from "./leave-onboarding";
 
 /**
  * Primeira etapa do onboarding para quem ainda não informou o CPF ou o celular (entrada com Google
@@ -36,11 +39,12 @@ export function CpfStep() {
     if (skip) router.replace("/onboarding/plano");
   }, [skip, router]);
 
+  // Enquanto descobre o que falta: só o anel, no meio do espaço da etapa (sem o "Voltar").
   if (skip || me.isPending) {
     return (
-      <p role="status" className="m-0 text-14 text-mist">
-        Carregando…
-      </p>
+      <div className="flex min-h-48 grow items-center justify-center">
+        <Spinner size={44} />
+      </div>
     );
   }
 
@@ -76,6 +80,7 @@ export function CpfStep() {
 
   return (
     <>
+      <LeaveOnboardingLink />
       <AuthIntro
         title={
           missingCpf && missingPhone

@@ -183,7 +183,8 @@ export async function signInWithPassword(identifier: string, password: string): 
     const session = await apiRequest("/v1/auth/login", LoginResponseSchema, {
       method: "POST",
       body: { identifier: identifier.trim(), password },
-      signal: AbortSignal.timeout(20_000),
+      // A API de teste dorme parada e leva até ~45 s para acordar: o login espera por ela.
+      signal: AbortSignal.timeout(60_000),
     });
     const { error } = await getSupabase().auth.setSession({
       access_token: session.accessToken,

@@ -124,6 +124,8 @@ export async function apiRequest<T>(
     });
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") throw error;
+    // Tempo esgotado (`AbortSignal.timeout`): a internet está lá, quem não respondeu foi a API.
+    if (error instanceof Error && error.name === "TimeoutError") throw new ApiError("unavailable");
     throw new ApiError("network");
   }
   if (!response.ok) throw await errorFrom(response);

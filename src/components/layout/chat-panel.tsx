@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { ChatComposer } from "@/features/conversas/components/chat-composer";
 import { PanelThread } from "@/features/conversas/components/panel-thread";
 import { threads } from "@/features/conversas/threads";
-import { PANEL_EXIT_MS, Presence } from "@/components/ui/presence";
+import { PANEL_EXIT_MS, Presence, useStaysUnder } from "@/components/ui/presence";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
 
@@ -22,16 +22,19 @@ type Mode = "docked" | "overlay";
 /** Cabeçalho, conversa e campo de mensagem. Igual nos dois modos; só os botões do topo mudam. */
 function ChatPanelBody({ mode }: { mode: Mode }) {
   const { conversationId, draft, send, close, newConversation } = useChatPanel();
-  const endRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const count = useChatPanel((state) =>
     conversationId ? (state.messages[conversationId]?.length ?? 0) : 0,
   );
   const docked = mode === "docked";
   const buttonSize = docked ? "lg" : "md";
 
-  // Rola até a última mensagem ao trocar de conversa ou ao enviar.
+  // Rola até a última mensagem ao trocar de conversa ou ao enviar. Só a lista de mensagens: o
+  // `scrollIntoView` rolaria também o lugar do painel (overflow escondido, largura animando) e a
+  // conversa aparecia antes da hora por cima do histórico.
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "end" });
+    const list = scrollRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
   }, [conversationId, count]);
 
   return (
@@ -73,11 +76,10 @@ function ChatPanelBody({ mode }: { mode: Mode }) {
           <Icon name="expand" />
         </Link>
       </header>
-      <div className="scrollbar-none flex grow flex-col overflow-y-auto p-4 md:p-6">
+      <div ref={scrollRef} className="scrollbar-none flex grow flex-col overflow-y-auto p-4 md:p-6">
         {/* mt-auto: a conversa curta fica embaixo; a longa rola desde o começo. */}
         {/* Trocar de conversa (ou começar uma nova) entra deslizando devagar, sem trocar seco. */}
         <div
-          ref={endRef}
           key={conversationId ?? "nova"}
           className="mt-auto flex animate-chat-slide flex-col gap-5"
         >
@@ -131,6 +133,13 @@ export function ChatOverlay({ className }: { className?: string }) {
   }, [close]);
 
   const history = view === "history";
+  // A conversa entra por cima do histórico, que só sai da tela depois que ela chegou.
+  const historyShown = useStaysUnder(!history);
+  // O histórico só entra deslizando quando o chat abre nele; vindo de uma conversa (que sai
+  // deslizando por cima), ele já está parado no lugar.
+  const [cameFromChat, setCameFromChat] = useState(!history);
+  if (!history && !cameFromChat) setCameFromChat(true);
+
   return (
     <div className={cn("pointer-events-none fixed inset-0 z-40", className)}>
       <button
@@ -146,23 +155,26 @@ export function ChatOverlay({ className }: { className?: string }) {
             : "bg-[rgba(5,9,7,0.6)] md:bg-[rgba(5,9,7,0.45)] lg:hidden",
         )}
       />
-      {/* Histórico ↔ conversa: um sai deslizando para a direita enquanto o outro entra. */}
-      <Presence show={history} exitMs={PANEL_EXIT_MS}>
-        {history && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Histórico de conversas"
-            data-motion="panel"
-            className={cn(
-              "pointer-events-auto absolute inset-y-0 right-0 flex w-full flex-col bg-card text-16 shadow-[0_8px_24px_rgba(0,0,0,.35)] md:border-l md:border-line",
-              HISTORY_WIDTH_MD,
-            )}
-          >
-            <HistoryPanel mode="sheet" className="h-full w-full" />
-          </div>
-        )}
-      </Presence>
+      {/*
+       * Histórico ↔ conversa: só a conversa se move. Ela entra deslizando por cima do histórico e,
+       * ao fechar, sai deslizando para a direita com o histórico já parado por baixo.
+       */}
+      {historyShown && (
+        <div
+          role="dialog"
+          aria-modal={history}
+          aria-label="Histórico de conversas"
+          inert={!history}
+          data-motion="panel"
+          data-still={cameFromChat ? "" : undefined}
+          className={cn(
+            "pointer-events-auto absolute inset-y-0 right-0 flex w-full flex-col bg-card text-16 shadow-[0_8px_24px_rgba(0,0,0,.35)] md:border-l md:border-line",
+            HISTORY_WIDTH_MD,
+          )}
+        >
+          <HistoryPanel mode="sheet" still={cameFromChat} className="h-full w-full" />
+        </div>
+      )}
       <Presence show={!history} exitMs={PANEL_EXIT_MS}>
         {!history && (
           <section

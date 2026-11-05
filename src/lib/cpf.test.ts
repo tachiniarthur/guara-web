@@ -1,4 +1,4 @@
-import { cpfProblem, formatCpf, isValidCpf, onlyDigits } from "./cpf";
+import { cpfProblem, formatCpf, formatCpfOrEmail, isValidCpf, onlyDigits } from "./cpf";
 
 describe("cpf", () => {
   it.each(["52998224725", "529.982.247-25", "11144477735", "12345678909"])("aceita %s", (cpf) => {
@@ -42,5 +42,20 @@ describe("cpfProblem", () => {
     expect(cpfProblem("111.111.111-11")).toBe("Esse CPF não é válido. Confira os números.");
     expect(cpfProblem("123.131.313-78")).toBeNull();
     expect(cpfProblem("52998224725")).toBeNull();
+  });
+});
+
+describe("formatCpfOrEmail", () => {
+  it.each([
+    ["", ""],
+    ["106", "106"],
+    ["1061881", "106.188.1"],
+    ["52998224725", "529.982.247-25"],
+    ["529.982.247-25", "529.982.247-25"],
+    ["ana@exemplo.com", "ana@exemplo.com"],
+    ["ana", "ana"],
+    ["123abc", "123abc"],
+  ])("%j → %j", (input, output) => {
+    expect(formatCpfOrEmail(input)).toBe(output);
   });
 });

@@ -19,11 +19,14 @@ import { HISTORY_WIDTH } from "./chat-sizes";
 export function HistoryPanel({
   mode = "aside",
   wide,
+  still,
   className,
 }: {
   mode?: "aside" | "sheet";
   /** Versão do Início (24rem, letras maiores e "Abrir em tela cheia"). */
   wide?: boolean;
+  /** Reaparece por baixo de uma conversa que está fechando: já está no lugar, sem cascata. */
+  still?: boolean;
   className?: string;
 }) {
   const {
@@ -116,7 +119,9 @@ export function HistoryPanel({
         </Button>
       </div>
       {/* Os grupos do histórico entram deslizando um depois do outro enquanto o painel chega. */}
-      <div className="scrollbar-none grow chat-cascade overflow-y-auto px-2 py-1">
+      <div
+        className={cn("scrollbar-none grow overflow-y-auto px-2 py-1", !still && "chat-cascade")}
+      >
         <ConversationList
           currentId={open ? conversationId : undefined}
           onSelect={openConversation}

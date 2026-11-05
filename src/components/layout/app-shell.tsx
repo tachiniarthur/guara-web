@@ -1,11 +1,11 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, type ReactNode } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
 
 import { ReportChatAside } from "@/features/relatorio/components/report-chat-aside";
 import { ErrorToast, OfflineToast } from "@/components/states/status-toast";
-import { PANEL_EXIT_MS, Presence } from "@/components/ui/presence";
+import { PANEL_EXIT_MS, Presence, useStaysUnder } from "@/components/ui/presence";
 import { shellConfig } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
@@ -115,19 +115,13 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
           </AsideSlot>
         )}
       </Presence>
-      {/* A partir de 1600 px: histórico ou conversa; um sai deslizando enquanto o outro entra. */}
-      <Presence show={hasAside && !docked} exitMs={PANEL_EXIT_MS}>
-        {hasAside && !docked && (
-          <AsideSlot width={historyWidth} className="hidden xl:block">
-            <HistoryPanel className="flex" wide={wide} />
-          </AsideSlot>
-        )}
-      </Presence>
-      <Presence show={docked} exitMs={PANEL_EXIT_MS}>
-        {docked && (
-          <AsideSlot width={CHAT_WIDTH} className="hidden xl:block">
-            <ChatPanel className="flex" />
-          </AsideSlot>
+      {/*
+       * A partir de 1600 px: o histórico e, por cima dele, a conversa. Só o painel que abre ou
+       * fecha se move; o histórico entra e sai sozinho apenas pelo X dele e pelo atalho da borda.
+       */}
+      <Presence show={hasAside} exitMs={PANEL_EXIT_MS}>
+        {hasAside && (
+          <DockedAside docked={docked} wide={config.aside === "home"} className="hidden xl:block" />
         )}
       </Presence>
       {/* O chat por cima entra deslizando da direita e, ao fechar, sai pelo mesmo caminho. */}
@@ -150,6 +144,54 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
       )}
       {config.bottomNav && <BottomNav className="md:hidden" />}
     </>
+  );
+}
+
+/**
+ * Painel fixo à direita a partir de 1600 px. Abrir uma conversa: ela desliza da direita por cima
+ * do histórico, o lugar cresce junto (a página se ajusta) e o histórico só sai da tela depois que
+ * a conversa chegou. Fechar: o histórico já está por baixo, parado, e a conversa sai deslizando
+ * para a direita enquanto o lugar volta à largura do histórico.
+ */
+function DockedAside({
+  docked,
+  wide,
+  className,
+}: {
+  docked: boolean;
+  /** Histórico do Início (24rem). */
+  wide: boolean;
+  className?: string;
+}) {
+  const historyShown = useStaysUnder(docked);
+  // Depois de uma conversa, o histórico volta parado (sem a cascata da lista).
+  const [cameFromChat, setCameFromChat] = useState(docked);
+  if (docked && !cameFromChat) setCameFromChat(true);
+  const historyWidth = wide ? "w-96" : HISTORY_WIDTH;
+  return (
+    <div
+      data-motion="aside-slot"
+      data-docked={docked ? "" : undefined}
+      className={cn(
+        "sticky top-0 h-dvh shrink-0 overflow-hidden bg-card",
+        docked ? CHAT_WIDTH : historyWidth,
+        className,
+      )}
+    >
+      {/* Preso à borda esquerda: acompanha a página enquanto a conversa o cobre pela direita. */}
+      {historyShown && (
+        <div inert={docked} className={cn("absolute inset-y-0 left-0", historyWidth)}>
+          <HistoryPanel className="flex" wide={wide} still={cameFromChat} />
+        </div>
+      )}
+      <Presence show={docked} exitMs={PANEL_EXIT_MS}>
+        {docked && (
+          <div data-motion="panel" className={cn("absolute inset-y-0 right-0 z-10", CHAT_WIDTH)}>
+            <ChatPanel className="flex" />
+          </div>
+        )}
+      </Presence>
+    </div>
   );
 }
 

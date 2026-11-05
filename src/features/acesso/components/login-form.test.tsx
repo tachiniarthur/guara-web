@@ -47,6 +47,15 @@ describe("Entrar", () => {
     expect(signInWithPassword).toHaveBeenCalledWith("529.982.247-25", "Senha@2026");
   });
 
+  it("põe a máscara do CPF quando só há números", () => {
+    render(<LoginForm />);
+    const field = screen.getByLabelText("E-mail ou CPF");
+    fireEvent.change(field, { target: { value: "52998224725" } });
+    expect(field).toHaveValue("529.982.247-25");
+    fireEvent.change(field, { target: { value: "ana@exemplo.com" } });
+    expect(field).toHaveValue("ana@exemplo.com");
+  });
+
   it("pede os dois campos", () => {
     render(<LoginForm />);
     fireEvent.click(screen.getByRole("button", { name: "Entrar" }));

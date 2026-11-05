@@ -8,6 +8,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Field, FieldLabel, TextInput } from "@/components/ui/form";
 import { account } from "@/features/perfil/data";
+import { formatCpfOrEmail } from "@/lib/cpf";
 import { cn } from "@/lib/utils";
 import { useAuthFlow } from "@/stores/auth-flow";
 
@@ -139,7 +140,8 @@ export function LoginForm({ initialState = "pronto" }: { initialState?: LoginSta
             placeholder="voce@exemplo.com ou 000.000.000-00"
             value={identifier}
             onChange={(event) => {
-              setIdentifier(event.target.value);
+              // Só números: máscara do CPF (000.000.000-00). Com letra ou "@", é e-mail.
+              setIdentifier(formatCpfOrEmail(event.target.value));
               setMissing(false);
               if (wrong) setState("pronto");
             }}

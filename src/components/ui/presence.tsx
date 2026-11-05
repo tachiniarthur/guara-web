@@ -6,6 +6,8 @@ import { useEffect, useState, type ReactNode } from "react";
 const EXIT_MS = 190;
 /** Igual a `--duration-panel-exit`: painéis do chat saindo pela borda. */
 export const PANEL_EXIT_MS = 400;
+/** Igual a `--duration-panel`: painéis do chat entrando pela borda. */
+export const PANEL_ENTER_MS = 580;
 
 /**
  * Mantém um overlay na tela enquanto ele sai. Com `show` falso, o conteúdo que estava aberto fica
@@ -43,4 +45,22 @@ export function Presence({
       {show ? children : kept}
     </div>
   );
+}
+
+/**
+ * Camada de baixo que espera a de cima terminar de entrar antes de sair da tela (ex.: o histórico
+ * do chat enquanto a conversa desliza por cima dele). Com `covered` falso, aparece na hora; com
+ * `covered` verdadeiro, continua montada por `enterMs` e depois some (já está escondida).
+ */
+export function useStaysUnder(covered: boolean, enterMs = PANEL_ENTER_MS) {
+  const [under, setUnder] = useState(!covered);
+  if (!covered && !under) setUnder(true);
+
+  useEffect(() => {
+    if (!covered) return;
+    const timer = setTimeout(() => setUnder(false), enterMs);
+    return () => clearTimeout(timer);
+  }, [covered, enterMs]);
+
+  return !covered || under;
 }

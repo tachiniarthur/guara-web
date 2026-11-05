@@ -103,6 +103,8 @@ function hasHistoryAside(pathname: string) {
   }
   if (pathname.startsWith("/assistentes")) return true;
   if (pathname.startsWith("/simulador")) return pathname !== "/simulador/salvas";
+  // Metas e o detalhe de uma meta (a "Nova meta" é formulário e não chega aqui).
+  if (pathname === "/metas" || pathname.startsWith("/metas/")) return true;
   // Detalhe de um ativo (/investimentos/petr4), mas não as outras telas de investimentos.
   const asset = pathname.match(/^\/investimentos\/([^/]+)$/)?.[1];
   return asset !== undefined && !["novo", "posicoes", "alocacao", "duplicidade"].includes(asset);
