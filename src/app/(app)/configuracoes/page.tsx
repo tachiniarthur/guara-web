@@ -1,5 +1,6 @@
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
+import { DemoDataSection } from "@/features/perfil/components/demo-data-section";
 import { SettingsScreen } from "@/features/perfil/components/settings-screen";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
@@ -16,6 +17,7 @@ export default async function ConfiguracoesPage({ searchParams }: PageProps<"/co
     >
       <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Configurações" }]} />
       <SettingsScreen deviceOff={deviceOff} />
+      <DemoDataSection />
     </Page>
   );
 }
