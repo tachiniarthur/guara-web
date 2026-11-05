@@ -102,6 +102,8 @@ export function AccountMenuItems({
           <span className="grow">{item.label}</span>
         </Link>
       ))}
+      {/* Sair fica separado dos destinos da conta. */}
+      <div role="separator" className="mx-3 my-1 h-px bg-line" />
       <button
         type="button"
         role="menuitem"

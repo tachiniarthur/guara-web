@@ -32,6 +32,7 @@ import { ValuesMask } from "./values-mask";
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const handle = useHandleVisibility(pathname);
+  useCloseChatOnAccountPages(pathname);
   return (
     <div className="relative flex min-h-dvh">
       <Sidebar className="hidden lg:flex" />
@@ -56,6 +57,30 @@ export function AppShell({ children }: { children: ReactNode }) {
       </Suspense>
     </div>
   );
+}
+
+/** Meu perfil e Configurações (e as telas dentro deles). */
+const isAccountPage = (pathname: string) =>
+  pathname === "/perfil" || pathname.startsWith("/perfil/") || pathname === "/configuracoes";
+
+/**
+ * Ao entrar em Meu perfil ou Configurações, o chat e o histórico fecham com as animações de saída
+ * de sempre. Fecha já no clique do link (a tela nova abre sem o painel piscar) e, para o voltar e
+ * avançar do navegador, também quando a rota muda.
+ */
+function useCloseChatOnAccountPages(pathname: string) {
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      const link = (event.target as Element | null)?.closest?.("a[href]");
+      if (!(link instanceof HTMLAnchorElement) || link.origin !== window.location.origin) return;
+      if (isAccountPage(link.pathname)) useChatPanel.getState().close();
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+  useEffect(() => {
+    if (isAccountPage(pathname) && useChatPanel.getState().open) useChatPanel.getState().close();
+  }, [pathname]);
 }
 
 /** Onde o atalho do chat na borda direita aparece (as mesmas regras do ShellChrome). */
@@ -120,9 +145,8 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
   // Conversa fixa à direita só quando a pessoa abre; antes, o painel mostra só o histórico
   // (recolhido, também no Início ao entrar).
   const docked = hasAside && open === true;
-  // Início: histórico mais largo (24rem), menos com uma conversa aberta por cima (1200–1599 px).
-  const wide = config.aside === "home" && !docked;
-  const historyWidth = wide ? "w-96" : HISTORY_WIDTH;
+  // O histórico tem o mesmo tamanho e as mesmas letras do Início em todas as telas.
+  const historyWidth = HISTORY_WIDTH;
 
   return (
     <>
@@ -137,7 +161,7 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
       <Presence show={hasAside} exitMs={PANEL_EXIT_MS}>
         {hasAside && (
           <AsideSlot width={historyWidth} className="hidden lg:block xl:hidden">
-            <HistoryPanel className="flex" wide={wide} />
+            <HistoryPanel className="flex" wide />
           </AsideSlot>
         )}
       </Presence>
@@ -146,9 +170,7 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
        * fecha se move; o histórico entra e sai sozinho apenas pelo X dele e pelo atalho da borda.
        */}
       <Presence show={hasAside} exitMs={PANEL_EXIT_MS}>
-        {hasAside && (
-          <DockedAside docked={docked} wide={config.aside === "home"} className="hidden xl:block" />
-        )}
+        {hasAside && <DockedAside docked={docked} className="hidden xl:block" />}
       </Presence>
       {/* O chat por cima entra deslizando da direita e, ao fechar, sai pelo mesmo caminho. */}
       <Presence show={chatAvailable && open === true} exitMs={PANEL_EXIT_MS}>
@@ -179,21 +201,12 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
  * a conversa chegou. Fechar: o histórico já está por baixo, parado, e a conversa sai deslizando
  * para a direita enquanto o lugar volta à largura do histórico.
  */
-function DockedAside({
-  docked,
-  wide,
-  className,
-}: {
-  docked: boolean;
-  /** Histórico do Início (24rem). */
-  wide: boolean;
-  className?: string;
-}) {
+function DockedAside({ docked, className }: { docked: boolean; className?: string }) {
   const historyShown = useStaysUnder(docked);
   // Depois de uma conversa, o histórico volta parado (sem a cascata da lista).
   const [cameFromChat, setCameFromChat] = useState(docked);
   if (docked && !cameFromChat) setCameFromChat(true);
-  const historyWidth = wide ? "w-96" : HISTORY_WIDTH;
+  const historyWidth = HISTORY_WIDTH;
   return (
     <div
       data-motion="aside-slot"
@@ -207,7 +220,7 @@ function DockedAside({
       {/* Preso à borda esquerda: acompanha a página enquanto a conversa o cobre pela direita. */}
       {historyShown && (
         <div inert={docked} className={cn("absolute inset-y-0 left-0", historyWidth)}>
-          <HistoryPanel className="flex" wide={wide} still={cameFromChat} />
+          <HistoryPanel className="flex" wide still={cameFromChat} />
         </div>
       )}
       <Presence show={docked} exitMs={PANEL_EXIT_MS}>

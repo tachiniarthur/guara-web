@@ -84,8 +84,9 @@ export function ConversationList({
               .sort((a, b) => Number(b.id === currentId) - Number(a.id === currentId))
               .map((item) => {
                 const current = item.id === currentId;
+                // O mesmo retorno dos itens do menu lateral: fundo, deslize de 2px e aperto ao tocar.
                 const className = cn(
-                  "flex w-full flex-col gap-0.5 rounded-full border-none px-2.5 py-2 text-left text-sand no-underline hover:bg-shade",
+                  "flex w-full flex-col gap-0.5 rounded-full border-none px-3.5 py-2 text-left text-sand no-underline transition-[color,background-color,translate] duration-200 hover:translate-x-0.5 hover:bg-shade active:scale-[0.98]",
                   size === "lg" ? "min-h-15" : "min-h-13",
                   current ? "bg-shade" : "bg-transparent",
                 );
