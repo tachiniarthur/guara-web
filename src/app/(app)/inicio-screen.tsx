@@ -1,3 +1,5 @@
+"use client";
+
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { ShowValuesButton } from "@/components/layout/privacy-toggle";
 import { Page, PageTitle } from "@/components/layout/page";
@@ -21,6 +23,8 @@ import { NewUserHome } from "@/features/inicio/components/new-user-home";
 import { OverviewCards } from "@/features/inicio/components/overview-cards";
 import { PendingCard } from "@/features/inicio/components/pending-card";
 import { SummaryCard } from "@/features/inicio/components/summary-card";
+import { useSession } from "@/features/acesso/session";
+import { useHomeView } from "@/features/inicio/live";
 import { user } from "@/features/usuario/data";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
@@ -29,9 +33,22 @@ import { Breadcrumb } from "@/components/ui/breadcrumb";
  * `?estado=`, abertos pela prévia (ver `src/proxy.ts`).
  */
 export function InicioScreen({ estado }: { estado?: string }) {
-  if (estado === "novo") return <NewUserHome />;
-  const state = parseScreenState(estado);
+  const { live } = useSession();
+  const home = useHomeView({ enabled: live });
+  if (estado === "novo" || (live && home.data?.semBanco)) return <NewUserHome />;
+  // Modo real: carregando até a API responder, erro se alguma rota falhar. Protótipo: `?estado=`.
+  const state = live
+    ? home.error
+      ? "erro"
+      : home.data
+        ? null
+        : "carregando"
+    : parseScreenState(estado);
   const loading = state === "carregando";
+  const view = home.data;
+  const notificacoes = view ? view.notificacoes : user.notificacoesNovas;
+  const pendencias = view ? view.pendencias : 3;
+  const mes = view?.mes ?? { name: "setembro", short: "Set 2026", long: "Setembro 2026" };
   return (
     <ScreenStateProvider state={state}>
       <Page
@@ -45,7 +62,7 @@ export function InicioScreen({ estado }: { estado?: string }) {
                 <IconButtonLink
                   href="/notificacoes"
                   icon="bell"
-                  label={`Notificações, ${user.notificacoesNovas} novas`}
+                  label={`Notificações, ${notificacoes} novas`}
                   variant="ghost"
                 />
               </>
@@ -58,12 +75,19 @@ export function InicioScreen({ estado }: { estado?: string }) {
         {loading && <LoadingStatus />}
         <header className="flex flex-wrap items-end justify-between gap-4 @desk:flex-nowrap @desk:gap-6">
           <PageTitle
-            title={`Boa tarde, ${user.nome}.`}
+            title={view ? view.titulo : `Boa tarde, ${user.nome}.`}
             subtitle={
-              <>
-                Quarta, 23 de setembro · <strong className="text-sand">3 itens</strong> precisam da
-                sua atenção.
-              </>
+              pendencias === 0 ? (
+                <>{view ? view.data : "Quarta, 23 de setembro"} · nada precisa da sua atenção.</>
+              ) : (
+                <>
+                  {view ? view.data : "Quarta, 23 de setembro"} ·{" "}
+                  <strong className="text-sand">
+                    {pendencias === 1 ? "1 item" : `${pendencias} itens`}
+                  </strong>{" "}
+                  {pendencias === 1 ? "precisa" : "precisam"} da sua atenção.
+                </>
+              )
             }
           />
 
@@ -79,19 +103,19 @@ export function InicioScreen({ estado }: { estado?: string }) {
             <button
               type="button"
               aria-haspopup="dialog"
-              aria-label="Mês: setembro de 2026"
+              aria-label={`Mês: ${mes.long.toLowerCase().replace(" ", " de ")}`}
               className="flex h-12 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-15 font-semibold whitespace-nowrap @tab:px-4.5"
             >
               <Icon name="calendar" size={18} className="hidden @tab:block" />
-              <span className="@tab:hidden">Set 2026</span>
-              <span className="hidden @tab:inline">Setembro 2026</span>
+              <span className="@tab:hidden">{mes.short}</span>
+              <span className="hidden @tab:inline">{mes.long}</span>
               <Icon name="chevron-down" size={16} />
             </button>
             <ShowValuesButton variant="pill" className="hidden @tab:flex" />
             <IconButtonLink
               href="/notificacoes"
               icon="bell"
-              label={`Notificações, ${user.notificacoesNovas} novas`}
+              label={`Notificações, ${notificacoes} novas`}
               size="lg"
               className="hidden @tab:inline-flex"
             />
@@ -101,16 +125,27 @@ export function InicioScreen({ estado }: { estado?: string }) {
         <section aria-labelledby="sec-resumo" className="flex min-h-0 flex-col gap-3.5">
           <SectionHeader
             id="sec-resumo"
-            title="Resumo de setembro"
+            title={`Resumo de ${mes.name}`}
             subtitle="Como está o seu mês"
             aside={
-              <span className="text-13 text-caption">Atualizado há 5 min · 2 de 4 bancos</span>
+              view ? (
+                view.atualizado && <span className="text-13 text-caption">{view.atualizado}</span>
+              ) : (
+                <span className="text-13 text-caption">Atualizado há 5 min · 2 de 4 bancos</span>
+              )
             }
           />
           <Skeleton active={loading}>
             <div className="grid grid-cols-1 gap-4 @desk:grid-cols-12 @desk:gap-6">
-              <SummaryCard className="@desk:col-span-8 @desk:h-[18.75rem]" />
-              <PendingCard className="@desk:col-span-4 @desk:h-[18.75rem]" />
+              <SummaryCard
+                className="@desk:col-span-8 @desk:h-[18.75rem]"
+                summary={view?.summary}
+                cashFlow={view?.cashFlow ?? undefined}
+              />
+              <PendingCard
+                className="@desk:col-span-4 @desk:h-[18.75rem]"
+                pendingItems={view?.pending}
+              />
             </div>
           </Skeleton>
         </section>
@@ -122,14 +157,14 @@ export function InicioScreen({ estado }: { estado?: string }) {
             subtitle="Seus investimentos, cobranças, metas e alertas"
           />
           <Skeleton active={loading}>
-            <OverviewCards />
+            <OverviewCards data={view?.overview} />
           </Skeleton>
         </section>
 
         <section aria-labelledby="sec-detalhes" className="flex min-h-0 flex-col gap-3.5">
           <SectionHeader
             id="sec-detalhes"
-            title="Detalhes de setembro"
+            title={`Detalhes de ${mes.name}`}
             subtitle="Para onde foi o dinheiro"
             aside={<TextLink href="/relatorio">Relatório completo</TextLink>}
           />
@@ -145,7 +180,7 @@ export function InicioScreen({ estado }: { estado?: string }) {
                   }
                 />
                 <CardBody className="grow">
-                  <CategoryBudgetList items={categoryBudgets} />
+                  <CategoryBudgetList items={view ? view.categoryBudgets : categoryBudgets} />
                 </CardBody>
               </Card>
               <Card className="gap-2.5 @desk:col-span-5">
@@ -153,12 +188,12 @@ export function InicioScreen({ estado }: { estado?: string }) {
                   title="Últimos lançamentos"
                   action={
                     <CardAction>
-                      <TextLink href="/gastos">Ver os 118</TextLink>
+                      <TextLink href="/gastos">{view ? "Ver todos" : "Ver os 118"}</TextLink>
                     </CardAction>
                   }
                 />
                 <CardBody className="grow">
-                  <TransactionList items={recentTransactions} />
+                  <TransactionList items={view ? view.recent : recentTransactions} />
                 </CardBody>
               </Card>
             </div>

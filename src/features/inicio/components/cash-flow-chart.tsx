@@ -2,7 +2,7 @@ import { ChartInspector, InspectorLayer, type InspectPoint } from "@/components/
 import { formatCurrency } from "@/lib/format";
 import { rem } from "@/lib/rem";
 
-import { cashFlow } from "../data";
+import { cashFlow, type CashFlowData } from "../data";
 
 /** Área do gráfico em unidades do viewBox (iguais ao protótipo). */
 const X0 = 52;
@@ -37,15 +37,22 @@ function stepPath(values: number[], x: (d: number) => number, y: (v: number) => 
  * Entradas e saídas acumuladas no mês, com previsão tracejada até o fim.
  * "wide": rótulos à direita (desktop e tablet) · "compact": letras maiores e legenda fora (mobile).
  */
-export function CashFlowChart({ variant }: { variant: "wide" | "compact" }) {
-  const { diasNoMes, hoje, entradas, saidas, previsaoSaidas, eixo, maximo, sobrou, descricao } =
-    cashFlow;
+export function CashFlowChart({
+  variant,
+  data = cashFlow,
+}: {
+  variant: "wide" | "compact";
+  data?: CashFlowData;
+}) {
+  const { diasNoMes, hoje, entradas, saidas, eixo, maximo, sobrou, descricao } = data;
   const { x, y } = scale(diasNoMes, maximo);
   const compact = variant === "compact";
   const fontSize = compact ? 19 : 12;
   const xHoje = x(hoje);
   const ultimaEntrada = entradas[entradas.length - 1] ?? 0;
   const ultimaSaida = saidas[saidas.length - 1] ?? 0;
+  // Sem previsão (sem teto total), a linha de saídas segue reta até o fim do mês.
+  const previsaoSaidas = data.previsaoSaidas ?? ultimaSaida;
 
   // Área entre as duas linhas (sobra acumulada).
   const top = entradas.flatMap((v, i) => [
@@ -140,14 +147,16 @@ export function CashFlowChart({ variant }: { variant: "wide" | "compact" }) {
         {!compact && (
           <>
             <text x="520" y={y(ultimaEntrada) + 5} fontSize="13" fontWeight="800" fill={ENTRADAS}>
-              Entradas R$ 8.200
+              Entradas {formatCurrency(Math.round(ultimaEntrada * 100)).replace(/,\d{2}$/, "")}
             </text>
             <text x="520" y={y(previsaoSaidas) + 5} fontSize="13" fontWeight="800" fill={SAIDAS}>
-              Saídas R$ 6.050
+              Saídas {formatCurrency(Math.round(previsaoSaidas * 100)).replace(/,\d{2}$/, "")}
             </text>
-            <text x="520" y={y(previsaoSaidas) + 21} fontSize="12" fill="#93A198">
-              previsão até dia 30
-            </text>
+            {data.previsaoSaidas !== null && (
+              <text x="520" y={y(previsaoSaidas) + 21} fontSize="12" fill="#93A198">
+                previsão até dia {diasNoMes}
+              </text>
+            )}
           </>
         )}
         {compact ? (
@@ -207,7 +216,7 @@ export function CashFlowChart({ variant }: { variant: "wide" | "compact" }) {
 }
 
 /** Legenda do gráfico compacto. */
-export function CashFlowLegend() {
+export function CashFlowLegend({ data = cashFlow }: { data?: CashFlowData }) {
   return (
     <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 text-12 text-mist">
       <span className="inline-flex items-center gap-1.5">
@@ -218,10 +227,12 @@ export function CashFlowLegend() {
         <span aria-hidden="true" className="h-[3px] w-3.5 rounded-xs bg-[#E0935A]" />
         Saídas
       </span>
-      <span className="inline-flex items-center gap-1.5">
-        <span aria-hidden="true" className="w-3.5 border-t-2 border-dashed border-caption" />
-        Previsão até dia 30
-      </span>
+      {data.previsaoSaidas !== null && (
+        <span className="inline-flex items-center gap-1.5">
+          <span aria-hidden="true" className="w-3.5 border-t-2 border-dashed border-caption" />
+          Previsão até dia {data.diasNoMes}
+        </span>
+      )}
     </div>
   );
 }

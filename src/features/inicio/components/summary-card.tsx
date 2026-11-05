@@ -7,10 +7,14 @@ import { CardBody, WhenHasData, WhenNoData } from "@/components/states/screen-st
 import { StateBlock } from "@/components/states/state-block";
 import { ButtonLink } from "@/components/ui/button";
 
-import { summary } from "../data";
+import {
+  cashFlow as prototypeCashFlow,
+  summary as prototypeSummary,
+  type CashFlowData,
+} from "../data";
 import { CashFlowChart, CashFlowLegend } from "./cash-flow-chart";
 
-function RowMarker({ id }: { id: (typeof summary.linhas)[number]["id"] }) {
+function RowMarker({ id }: { id: SummaryData["linhas"][number]["id"] }) {
   if (id === "entradas")
     return (
       <Icon name="arrow-down-left" size={22} strokeWidth={2.2} className="ml-[3px] text-arara" />
@@ -41,7 +45,26 @@ const noBank = (
  * Saldo consolidado, entradas/saídas/sobra e o gráfico do mês, com curvas de nível ao fundo.
  * Sem dados (erro, vazio), fica só o título do gráfico e o aviso.
  */
-export function SummaryCard({ className }: { className?: string }) {
+export type SummaryData = {
+  saldo: string;
+  saldoRotulo: string;
+  linhas: readonly {
+    id: "entradas" | "saidas" | "sobrou";
+    rotulo: string;
+    valor: string;
+    variacao: string;
+  }[];
+};
+
+export function SummaryCard({
+  className,
+  summary = prototypeSummary,
+  cashFlow = prototypeCashFlow,
+}: {
+  className?: string;
+  summary?: SummaryData;
+  cashFlow?: CashFlowData;
+}) {
   return (
     <Card className={className}>
       <WhenNoData>
@@ -104,11 +127,11 @@ export function SummaryCard({ className }: { className?: string }) {
               className="shrink-0"
               narrow={
                 <div className="flex flex-col gap-3">
-                  <CashFlowChart variant="compact" />
-                  <CashFlowLegend />
+                  <CashFlowChart variant="compact" data={cashFlow} />
+                  <CashFlowLegend data={cashFlow} />
                 </div>
               }
-              wide={<CashFlowChart variant="wide" />}
+              wide={<CashFlowChart variant="wide" data={cashFlow} />}
             />
           </div>
         </div>

@@ -1,7 +1,22 @@
 import type { AgentId } from "@/features/assistentes/data";
 
+export interface CashFlowData {
+  diasNoMes: number;
+  /** Último dia com dado (hoje no mês atual). */
+  hoje: number;
+  /** Entradas e saídas acumuladas do dia 1 até `hoje`, em reais. */
+  entradas: number[];
+  saidas: number[];
+  /** Saídas previstas no fim do mês, em reais; `null` sem previsão (sem teto total). */
+  previsaoSaidas: number | null;
+  sobrou: string;
+  eixo: { valor: number; rotulo: string }[];
+  maximo: number;
+  descricao: string;
+}
+
 /** Fluxo do mês, em reais acumulados por dia (setembro de 2026, hoje = dia 23). */
-export const cashFlow = {
+export const cashFlow: CashFlowData = {
   diasNoMes: 30,
   hoje: 23,
   /** Entradas acumuladas do dia 1 até hoje. */

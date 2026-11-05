@@ -11,6 +11,8 @@ import { allocation, portfolio } from "@/features/investimentos/data";
 import { goals, goalsSummary } from "@/features/metas/data";
 import { cn } from "@/lib/utils";
 
+import type { OverviewData } from "../live";
+
 /** Card resumido da Visão geral: ícone e título, número em destaque, detalhe e link. */
 function OverviewCard({
   icon,
@@ -53,19 +55,65 @@ function OverviewCard({
   );
 }
 
-/** A meta principal (a primeira em andamento) e o alerta de preço mais perto de disparar. */
-const mainGoal = goals.find((goal) => goal.percentual > 0) ?? goals[0]!;
-const nearestAlert = priceAlerts.reduce((best, alert) =>
-  alert.progresso > best.progresso ? alert : best,
-);
-/** As próximas cobranças, da mais próxima para a mais distante. */
-const nextCharges = [...subscriptions].sort((a, b) => a.dia - b.dia).slice(0, 3);
+/** Os dados de exemplo no formato da Visão geral (modo protótipo). */
+function prototypeOverview(): OverviewData {
+  const mainGoal = goals.find((goal) => goal.percentual > 0) ?? goals[0]!;
+  const nearestAlert = priceAlerts.reduce((best, alert) =>
+    alert.progresso > best.progresso ? alert : best,
+  );
+  const nextCharges = [...subscriptions].sort((a, b) => a.dia - b.dia).slice(0, 3);
+  return {
+    investimentos: {
+      valor: portfolio.patrimonio,
+      legenda: portfolio.variacaoMes,
+      alocacao: allocation.map(({ classe, atual, cor }) => ({ classe, atual, cor })),
+    },
+    cobrancas: {
+      valor: subscriptionTotals.mensal,
+      legenda: `por mês em ${subscriptions.length} assinaturas`,
+      itens: nextCharges.map((charge) => ({
+        id: charge.id,
+        nome: charge.nome,
+        quando: charge.proxima.replace("Próxima cobrança em ", ""),
+        valor: charge.valor,
+      })),
+    },
+    metas: {
+      valor: goalsSummary.guardado,
+      legenda: `guardados em ${goals.length} metas`,
+      principal: {
+        nome: mainGoal.nome,
+        percentual: mainGoal.percentual,
+        guardado: mainGoal.guardado,
+        alvo: mainGoal.alvo,
+      },
+    },
+    alertas: {
+      valor: `${priceAlerts.length} ativos`,
+      legenda: "vigiados para você",
+      maisPerto: {
+        ativo: nearestAlert.ativo,
+        direcao: nearestAlert.direcao === "venda" ? "venda" : "compra",
+        faltam: nearestAlert.faltam,
+        progresso: nearestAlert.progresso,
+        condicao: nearestAlert.condicao,
+      },
+    },
+  };
+}
 
 /**
  * Visão geral do Início: investimentos, próximas cobranças, metas e alertas de preço, cada um
  * com o número principal e um atalho para a tela completa.
  */
-export function OverviewCards({ className }: { className?: string }) {
+export function OverviewCards({
+  className,
+  data = prototypeOverview(),
+}: {
+  className?: string;
+  data?: OverviewData;
+}) {
+  const { investimentos, cobrancas, metas, alertas } = data;
   return (
     <div
       className={cn(
@@ -76,16 +124,16 @@ export function OverviewCards({ className }: { className?: string }) {
       <OverviewCard
         icon="trending-up"
         title="Investimentos"
-        value={portfolio.patrimonio}
-        caption={portfolio.variacaoMes}
+        value={investimentos.valor}
+        caption={investimentos.legenda}
         link={{ href: "/investimentos", label: "Ver carteira" }}
       >
         <div
           role="img"
-          aria-label={`Alocação: ${allocation.map((s) => `${s.classe} ${s.atual}%`).join(", ")}`}
+          aria-label={`Alocação: ${investimentos.alocacao.map((s) => `${s.classe} ${s.atual}%`).join(", ")}`}
           className="flex h-2 origin-left animate-grow-x gap-[2px] overflow-hidden rounded-full"
         >
-          {allocation.map((slice) => (
+          {investimentos.alocacao.map((slice) => (
             <span key={slice.classe} style={{ flexGrow: slice.atual, background: slice.cor }} />
           ))}
         </div>
@@ -94,18 +142,15 @@ export function OverviewCards({ className }: { className?: string }) {
       <OverviewCard
         icon="repeat"
         title="Próximas cobranças"
-        value={subscriptionTotals.mensal}
-        caption={`por mês em ${subscriptions.length} assinaturas`}
+        value={cobrancas.valor}
+        caption={cobrancas.legenda}
         link={{ href: "/assinaturas", label: "Ver assinaturas" }}
       >
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
-          {nextCharges.map((charge) => (
+          {cobrancas.itens.map((charge) => (
             <li key={charge.id} className="flex items-baseline justify-between gap-3 text-14">
               <span className="min-w-0 truncate">
-                {charge.nome}{" "}
-                <span className="text-caption">
-                  · {charge.proxima.replace("Próxima cobrança em ", "")}
-                </span>
+                {charge.nome} <span className="text-caption">· {charge.quando}</span>
               </span>
               <strong className="shrink-0 tabular-nums">{charge.valor}</strong>
             </li>
@@ -116,52 +161,54 @@ export function OverviewCards({ className }: { className?: string }) {
       <OverviewCard
         icon="target"
         title="Metas"
-        value={goalsSummary.guardado}
-        caption={`guardados em ${goals.length} metas`}
+        value={metas.valor}
+        caption={metas.legenda}
         link={{ href: "/metas", label: "Ver metas" }}
       >
-        <div className="flex flex-col gap-2">
-          <div className="flex items-baseline justify-between gap-3 text-14">
-            <span className="min-w-0 truncate">{mainGoal.nome}</span>
-            <strong className="shrink-0 tabular-nums">{mainGoal.percentual}%</strong>
+        {metas.principal && (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between gap-3 text-14">
+              <span className="min-w-0 truncate">{metas.principal.nome}</span>
+              <strong className="shrink-0 tabular-nums">{metas.principal.percentual}%</strong>
+            </div>
+            <ProgressBar
+              value={metas.principal.percentual}
+              tone="folha"
+              height={8}
+              label={`${metas.principal.nome}: ${metas.principal.guardado} de ${metas.principal.alvo}`}
+            />
+            <span className="text-12 text-caption">
+              {metas.principal.guardado} de {metas.principal.alvo}
+            </span>
           </div>
-          <ProgressBar
-            value={mainGoal.percentual}
-            tone="folha"
-            height={8}
-            label={`${mainGoal.nome}: ${mainGoal.guardado} de ${mainGoal.alvo}`}
-          />
-          <span className="text-12 text-caption">
-            {mainGoal.guardado} de {mainGoal.alvo}
-          </span>
-        </div>
+        )}
       </OverviewCard>
 
       <OverviewCard
         icon="bell"
         title="Alertas de preço"
-        value={`${priceAlerts.length} ativos`}
-        caption="vigiados para você"
+        value={alertas.valor}
+        caption={alertas.legenda}
         link={{ href: "/alertas", label: "Ver alertas" }}
       >
-        <div className="flex flex-col gap-2">
-          <div className="flex items-baseline justify-between gap-3 text-14">
-            <span className="min-w-0 truncate">
-              {nearestAlert.ativo}{" "}
-              <span className="text-caption">
-                · {nearestAlert.direcao === "venda" ? "venda" : "compra"}
+        {alertas.maisPerto && (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between gap-3 text-14">
+              <span className="min-w-0 truncate">
+                {alertas.maisPerto.ativo}{" "}
+                <span className="text-caption">· {alertas.maisPerto.direcao}</span>
               </span>
-            </span>
-            <strong className="shrink-0 tabular-nums">{nearestAlert.faltam}</strong>
+              <strong className="shrink-0 tabular-nums">{alertas.maisPerto.faltam}</strong>
+            </div>
+            <ProgressBar
+              value={alertas.maisPerto.progresso}
+              tone="tucano"
+              height={8}
+              label={`${alertas.maisPerto.ativo}: ${alertas.maisPerto.condicao}`}
+            />
+            <span className="text-12 text-caption">{alertas.maisPerto.condicao}</span>
           </div>
-          <ProgressBar
-            value={nearestAlert.progresso}
-            tone="tucano"
-            height={8}
-            label={`${nearestAlert.ativo}: ${nearestAlert.condicao}`}
-          />
-          <span className="text-12 text-caption">{nearestAlert.condicao}</span>
-        </div>
+        )}
       </OverviewCard>
     </div>
   );

@@ -7,10 +7,16 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { CountBadge } from "@/components/ui/count-badge";
 import { cn } from "@/lib/utils";
 
-import { pendingItems } from "../data";
+import { pendingItems as prototypeItems, type PendingItem } from "../data";
 
 /** "Precisa de você": decisões pendentes que a turma separou. */
-export function PendingCard({ className }: { className?: string }) {
+export function PendingCard({
+  className,
+  pendingItems = prototypeItems,
+}: {
+  className?: string;
+  pendingItems?: PendingItem[];
+}) {
   return (
     <Card className={cn("gap-3.5", className)}>
       <CardHeader
@@ -26,6 +32,9 @@ export function PendingCard({ className }: { className?: string }) {
         }
       />
       <CardBody className="grow">
+        {pendingItems.length === 0 && (
+          <p className="m-0 text-14 text-mist">Nada precisa de você agora.</p>
+        )}
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {pendingItems.map((item) => (
             <li

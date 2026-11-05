@@ -1,6 +1,17 @@
-import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render as baseRender, screen } from "@testing-library/react";
+import type { ReactElement } from "react";
 
 import { InicioScreen } from "@/app/(app)/inicio-screen";
+import { SessionProvider } from "@/features/acesso/session";
+
+function render(ui: ReactElement) {
+  return baseRender(
+    <QueryClientProvider client={new QueryClient()}>
+      <SessionProvider>{ui}</SessionProvider>
+    </QueryClientProvider>,
+  );
+}
 
 describe("Início", () => {
   it("saúda o usuário e mostra as seções do mês", () => {
