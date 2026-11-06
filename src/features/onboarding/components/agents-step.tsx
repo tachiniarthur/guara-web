@@ -249,9 +249,10 @@ export function AgentsCarousel({
 export function useAgentChoice() {
   const plan = usePlanAgents();
   const limit = plan.limite ?? agentOrder.length;
-  // Nada vem escolhido: a pessoa escolhe cada assistente (até o limite do plano).
+  // Nada vem escolhido: a pessoa escolhe cada assistente (até o limite do plano). No plano que
+  // inclui todos (Pro), não há o que escolher: todos já valem.
   const [picked, setPicked] = useState<AgentId[]>([]);
-  const chosen = picked.slice(0, limit);
+  const chosen = plan.limite === null ? [...agentOrder] : picked.slice(0, limit);
   const setChosen = (update: (current: AgentId[]) => AgentId[]) => setPicked(update(chosen));
   return { chosen, setChosen };
 }
