@@ -5,7 +5,14 @@ import { z } from "zod";
 
 import { apiRequest } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { MONTHS, capitalize, formatWhole, monthLabels, relativeDay } from "@/lib/live-format";
+import {
+  MONTHS,
+  capitalize,
+  formatWhole,
+  monthLabels,
+  relativeDay,
+  apiPercent,
+} from "@/lib/live-format";
 
 import { scaleTop, type GastosData } from "./context";
 import {
@@ -49,7 +56,7 @@ const SummarySchema = z.object({
       name: z.string(),
       spentCents: cents,
       count: z.number().int(),
-      sharePct: z.number().nullable(),
+      sharePct: apiPercent.nullable(),
     }),
   ),
 });
@@ -61,7 +68,7 @@ export const BudgetSummarySchema = z.object({
       budget: z.object({ id: z.string(), categoryId: z.string().nullable(), limitCents: cents }),
       categoryName: z.string().nullable(),
       spentCents: cents.nullable(),
-      usedPct: z.number().nullable(),
+      usedPct: apiPercent.nullable(),
       projectedCents: cents.nullable(),
       status: z.enum(["ok", "attention", "exceeded"]).nullable(),
       noticesSent: z.array(z.number().int()),

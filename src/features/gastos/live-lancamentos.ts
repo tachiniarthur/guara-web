@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { apiRequest } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { MONTHS, capitalize, formatWhole } from "@/lib/live-format";
+import { MONTHS, capitalize, formatWhole, apiPercent } from "@/lib/live-format";
 
 import type { CategorySpending } from "./data";
 import type { LancamentosData } from "./lancamentos-context";
@@ -36,7 +36,7 @@ const SummarySchema = z.object({
       name: z.string(),
       spentCents: cents,
       count: z.number().int(),
-      sharePct: z.number().nullable(),
+      sharePct: apiPercent.nullable(),
     }),
   ),
 });

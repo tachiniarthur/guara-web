@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { formatCurrency, formatDate } from "@/lib/format";
 
 /** Formatos dos textos montados com os dados da API (modo real). */
@@ -66,3 +68,9 @@ export function since(iso: string | null, now: Date) {
   if (hours < 24) return `Atualizado há ${hours} h`;
   return `Atualizado em ${formatDate(iso, "d/MM")}`;
 }
+
+/**
+ * Percentual como a API manda: texto com 2 casas (`"93.33"`), em pontos percentuais. Aceita
+ * também número e converte; `null` continua `null` (a tela mostra "—").
+ */
+export const apiPercent = z.union([z.string(), z.number()]).transform((value) => Number(value));

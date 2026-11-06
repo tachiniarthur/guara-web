@@ -8,7 +8,7 @@ import { BudgetSummarySchema, buildTetos, type BudgetSummary } from "@/features/
 import type { TetoProgress } from "@/features/gastos/data";
 import { apiRequest } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { percent, relativeDay } from "@/lib/live-format";
+import { percent, relativeDay, apiPercent } from "@/lib/live-format";
 
 import type { AlertHistoryItem, PriceAlert } from "./data";
 import type { PriceAlertDetail } from "./price-alerts";
@@ -26,7 +26,7 @@ export const ApiPriceAlertSchema = z.object({
   status: z.enum(["active", "triggered"]),
   currentPriceCents: cents.nullable(),
   quotedAt: z.string().nullable(),
-  distancePct: z.number().nullable(),
+  distancePct: apiPercent.nullable(),
   triggeredAt: z.string().nullable(),
   triggeredPriceCents: cents.nullable(),
   createdAt: z.string(),

@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/format";
 import {
   MONTHS,
+  apiPercent,
   capitalize,
   chargeDay,
   formatWhole,
@@ -69,7 +70,7 @@ const DashboardSchema = z.object({
           name: z.string(),
           targetCents: cents,
           currentCents: cents.nullable(),
-          pct: z.number().nullable(),
+          pct: apiPercent.nullable(),
         }),
       ),
     }),
@@ -84,7 +85,7 @@ const DashboardSchema = z.object({
           direction: z.enum(["buy", "sell"]),
           targetPriceCents: cents,
           currentPriceCents: cents,
-          distancePct: z.number(),
+          distancePct: apiPercent,
         }),
       ),
     }),
@@ -128,7 +129,7 @@ const BudgetSummarySchema = z.object({
       categoryName: z.string().nullable(),
       spentCents: cents.nullable(),
       remainingCents: cents.nullable(),
-      usedPct: z.number().nullable(),
+      usedPct: apiPercent.nullable(),
       status: z.enum(["ok", "attention", "exceeded"]).nullable(),
     }),
   ),
@@ -184,7 +185,7 @@ const SubscriptionsSchema = z.object({
 type Subscriptions = z.infer<typeof SubscriptionsSchema>;
 
 const AllocationSchema = z.object({
-  items: z.array(z.object({ assetClass: z.string(), label: z.string(), currentPct: z.number() })),
+  items: z.array(z.object({ assetClass: z.string(), label: z.string(), currentPct: apiPercent })),
 });
 type Allocation = z.infer<typeof AllocationSchema>;
 
@@ -481,8 +482,8 @@ function buildOverview(
         ? {
             ativo: near.symbol,
             direcao: near.direction === "sell" ? "venda" : "compra",
-            faltam: `Faltam ${percent.format(near.distancePct)}%`,
-            progresso: Math.max(0, Math.min(100, Math.round(100 - near.distancePct))),
+            faltam: `Faltam ${percent.format(Math.abs(near.distancePct))}%`,
+            progresso: Math.max(0, Math.min(100, Math.round(100 - Math.abs(near.distancePct)))),
             condicao: `${near.direction === "sell" ? "Quando subir a" : "Quando cair a"} ${formatCurrency(near.targetPriceCents)} · agora ${formatCurrency(near.currentPriceCents)}`,
           }
         : null,

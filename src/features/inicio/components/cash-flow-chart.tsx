@@ -49,6 +49,8 @@ export function CashFlowChart({
   const compact = variant === "compact";
   const fontSize = compact ? 19 : 12;
   const xHoje = x(hoje);
+  // Pílula "Sobrou" à esquerda de hoje; no começo do mês, encosta no início do gráfico.
+  const pillLeft = (width: number) => Math.max(4, xHoje - width - 10);
   const ultimaEntrada = entradas[entradas.length - 1] ?? 0;
   const ultimaSaida = saidas[saidas.length - 1] ?? 0;
   // Sem previsão (sem teto total), a linha de saídas segue reta até o fim do mês.
@@ -161,9 +163,9 @@ export function CashFlowChart({
         )}
         {compact ? (
           <>
-            <rect x={xHoje - 180} y="18" width="200" height="40" rx="20" fill="#F2EFE6" />
+            <rect x={pillLeft(200)} y="18" width="200" height="40" rx="20" fill="#F2EFE6" />
             <text
-              x={xHoje - 80}
+              x={pillLeft(200) + 100}
               y="45"
               textAnchor="middle"
               fontSize="19"
@@ -176,7 +178,7 @@ export function CashFlowChart({
         ) : (
           <>
             <rect
-              x={xHoje - 150}
+              x={pillLeft(140)}
               y={y(ultimaEntrada) + 1}
               width="140"
               height="30"
@@ -184,7 +186,7 @@ export function CashFlowChart({
               fill="#F2EFE6"
             />
             <text
-              x={xHoje - 80}
+              x={pillLeft(140) + 70}
               y={y(ultimaEntrada) + 21}
               textAnchor="middle"
               fontSize="13"
