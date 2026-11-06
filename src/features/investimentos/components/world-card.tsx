@@ -8,7 +8,8 @@ import { CardBody, CardNote } from "@/components/states/screen-state-context";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
 
-import { countryExposure, type CountryExposure } from "../data";
+import { useInvestimentosData } from "../context";
+import type { CountryExposure } from "../data";
 import { InteractiveGlobe, type GlobeOrbit, type GlobePlace } from "../globe/interactive-globe";
 
 type Variant = "desktop" | "tablet" | "mobile";
@@ -17,31 +18,35 @@ const colorHex = { tucano: "#F2C230", arara: "#6DB3EC", folha: "#6CC08E" } as co
 const dotColor = { tucano: "bg-tucano", arara: "bg-arara", folha: "bg-folha" } as const;
 const textColor = { tucano: "text-tucano", arara: "text-arara", folha: "text-folha" } as const;
 
-const places: GlobePlace[] = countryExposure.flatMap((c) =>
-  c.globo
-    ? [
-        {
-          id: c.id,
-          iso: c.globo.iso,
-          lat: c.globo.lat,
-          lng: c.globo.lng,
-          color: colorHex[c.cor],
-          label: `${c.pais} · ${c.percentual}%`,
-        },
-      ]
-    : [],
-);
+/** Pontos do globo, a órbita (ativos sem país) e a descrição, a partir da exposição por país. */
+function globeData(countryExposure: CountryExposure[]) {
+  const places: GlobePlace[] = countryExposure.flatMap((c) =>
+    c.globo
+      ? [
+          {
+            id: c.id,
+            iso: c.globo.iso,
+            lat: c.globo.lat,
+            lng: c.globo.lng,
+            color: colorHex[c.cor],
+            label: `${c.pais} · ${c.percentual}%`,
+          },
+        ]
+      : [],
+  );
 
-const stateless = countryExposure.find((c) => !c.globo);
-const orbit: GlobeOrbit | undefined = stateless && {
-  id: stateless.id,
-  color: colorHex[stateless.cor],
-  label: `${stateless.ativos[0]?.nome ?? stateless.pais} · ${stateless.percentual}%`,
-};
+  const stateless = countryExposure.find((c) => !c.globo);
+  const orbit: GlobeOrbit | undefined = stateless && {
+    id: stateless.id,
+    color: colorHex[stateless.cor],
+    label: `${stateless.ativos[0]?.nome ?? stateless.pais} · ${stateless.percentual}%`,
+  };
 
-const globeLabel = `Globo com a exposição por país: ${countryExposure
-  .map((c) => `${c.pais} ${c.percentual}%`)
-  .join(", ")}.`;
+  const globeLabel = `Globo com a exposição por país: ${countryExposure
+    .map((c) => `${c.pais} ${c.percentual}%`)
+    .join(", ")}.`;
+  return { places, orbit, globeLabel };
+}
 
 /** Ativos que o usuário tem naquele lugar (abre no item escolhido da lista). */
 function PlaceAssets({ place, compact }: { place: CountryExposure; compact: boolean }) {
@@ -89,6 +94,8 @@ function PlaceAssets({ place, compact }: { place: CountryExposure; compact: bool
 
 /** Exposição por país: globo interativo (arrastar para girar), barra e lista. */
 export function WorldCard({ variant }: { variant: Variant }) {
+  const { countryExposure } = useInvestimentosData();
+  const { places, orbit, globeLabel } = globeData(countryExposure);
   const desktop = variant === "desktop";
   const mobile = variant === "mobile";
   const [selected, setSelected] = useState<string | null>(null);

@@ -7,7 +7,7 @@ import { Icon } from "@/components/ui/icon";
 import { SlideCell, slideRowClass } from "@/components/ui/slide-cell";
 import { cn } from "@/lib/utils";
 
-import { portfolio, positionGroups } from "../data";
+import { useInvestimentosData } from "../context";
 import { useClosedGroups } from "./position-cards";
 import { DayChange, OriginInfo, RiskBadge, SortArrows } from "./position-parts";
 import { MataArt } from "@/components/ui/mata-art";
@@ -25,6 +25,7 @@ const columns = ["15%", "8%", "9%", "8%", "11%", "8%", "9%", "11%", "8%", "9%", 
 
 /** Tabela de posições agrupada por classe (desktop). */
 export function PositionsTable() {
+  const { portfolio, positionGroups } = useInvestimentosData();
   const [closed, toggle] = useClosedGroups();
   const id = useId();
   return (

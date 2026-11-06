@@ -8,7 +8,8 @@ import { Collapse } from "@/components/ui/collapse";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
-import { portfolio, positionGroups, type Position } from "../data";
+import { useInvestimentosData } from "../context";
+import type { Position } from "../data";
 import { DayChange, OriginInfo, RiskBadge } from "./position-parts";
 
 function Detail({
@@ -189,6 +190,7 @@ function PositionCard({ position: p, open }: { position: Position; open?: boolea
 
 /** Posições por classe em cards (tablet: 2 colunas; mobile: 1). */
 export function PositionCards({ columns }: { columns: 1 | 2 }) {
+  const { portfolio, positionGroups } = useInvestimentosData();
   const [closed, toggle] = useClosedGroups();
   const id = useId();
   return (

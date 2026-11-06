@@ -1,3 +1,5 @@
+"use client";
+
 import { Fragment } from "react";
 
 import { Note } from "@/components/ui/note";
@@ -10,10 +12,10 @@ import {
   groupById,
   groups,
   offTargetGroups,
-  portfolioAllocation,
   profileById,
   type ProfileId,
 } from "../data";
+import { usePortfolioAllocation } from "../context";
 import { GroupSwatch } from "./allocation-parts";
 
 const pct = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
@@ -29,7 +31,7 @@ export function OffTargetNote({
   /** Perfil cujo alvo a carteira é comparada (padrão: o perfil salvo). */
   profile?: ProfileId;
 }) {
-  const fora = offTargetGroups(profile);
+  const fora = offTargetGroups(profile, usePortfolioAllocation().atual);
   return (
     <Note icon="alert-triangle" tone="warning" className={cn("gap-2.5", className)}>
       Sua carteira está fora do alvo em {fora.length} de {groups.length} grupos:{" "}
@@ -50,8 +52,9 @@ export function OffTargetNote({
 }
 
 /** Números de cabeçalho: perfil, total na alocação, grupos fora do alvo e maior diferença. */
-export function allocationStats() {
-  const fora = offTargetGroups();
+export function useAllocationStats() {
+  const portfolioAllocation = usePortfolioAllocation();
+  const fora = offTargetGroups(portfolioAllocation.perfil, portfolioAllocation.atual);
   const maior = fora[0];
   return {
     perfil: profileById[portfolioAllocation.perfil].nome,
@@ -62,7 +65,8 @@ export function allocationStats() {
 
 /** Quatro números do topo (tablet e desktop). */
 export function AllocationStatTiles({ large }: { large?: boolean }) {
-  const stats = allocationStats();
+  const portfolioAllocation = usePortfolioAllocation();
+  const stats = useAllocationStats();
   const tiles = [
     {
       label: "Seu perfil",
@@ -113,6 +117,7 @@ export function AllocationStatTiles({ large }: { large?: boolean }) {
  * ("side", desktop).
  */
 export function TargetGapList({ layout }: { layout: "stacked" | "side" }) {
+  const portfolioAllocation = usePortfolioAllocation();
   const alvo = profileById[portfolioAllocation.perfil].alvo;
   return (
     <ul className="m-0 flex list-none flex-col p-0">

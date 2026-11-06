@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import { ChartFit } from "@/components/charts/chart-fit";
@@ -15,9 +17,10 @@ import {
   PortfolioVsTarget,
 } from "@/features/alocacao/components/allocation-parts";
 import { OpenChat } from "@/features/conversas/components/open-chat";
+import { useSession } from "@/features/acesso/session";
 import { cn } from "@/lib/utils";
 
-import { otherAssets, portfolio } from "../data";
+import { useInvestimentosData } from "../context";
 import { PerformanceChart } from "./charts";
 
 type Variant = "desktop" | "tablet" | "mobile";
@@ -40,6 +43,7 @@ function PeriodChips({ size }: { size: "md" | "sm" }) {
 }
 
 function StatsList() {
+  const { portfolio } = useInvestimentosData();
   return (
     <dl className="m-0 mt-auto flex flex-col">
       {portfolio.stats.map((stat) => (
@@ -66,6 +70,7 @@ function StatsList() {
 }
 
 function TotalWithAssets({ compact }: { compact?: boolean }) {
+  const { portfolio } = useInvestimentosData();
   if (compact) {
     return (
       <div className="flex flex-col gap-0.5 rounded-tile border border-line px-3.5 py-3 text-12 text-caption">
@@ -86,6 +91,7 @@ function TotalWithAssets({ compact }: { compact?: boolean }) {
 
 /** Patrimônio investido, rentabilidade em 12 meses e números do ano. */
 export function PortfolioCard({ variant }: { variant: Variant }) {
+  const { portfolio } = useInvestimentosData();
   if (variant === "desktop") {
     return (
       <Panel className="gap-4 p-6">
@@ -264,6 +270,7 @@ export function AllocationCard({ variant }: { variant: Variant }) {
 
 /** Imóveis, veículos e outros bens (entram no patrimônio, fora da alocação). */
 export function AssetsCard({ variant }: { variant: Variant }) {
+  const { otherAssets } = useInvestimentosData();
   if (variant === "mobile") {
     return (
       <Panel className="gap-2 p-4">
@@ -373,6 +380,9 @@ export function AssetsCard({ variant }: { variant: Variant }) {
 
 /** Aviso de posição possivelmente duplicada (Open Finance × cadastro manual). */
 export function DuplicateBanner({ variant }: { variant: Variant }) {
+  // A detecção de duplicidade ainda não existe na API: no modo real, o aviso não aparece.
+  const { live } = useSession();
+  if (live) return null;
   if (variant === "mobile") {
     return (
       <section

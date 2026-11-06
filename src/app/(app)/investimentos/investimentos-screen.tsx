@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
@@ -17,7 +19,6 @@ import { Icon } from "@/components/ui/icon";
 import { IconButtonLink } from "@/components/ui/icon-button";
 import { Panel, PanelHeader, panelLinkClass } from "@/components/ui/panel";
 import { PriceAlertList } from "@/features/alertas/components/price-alert-list";
-import { priceAlerts } from "@/features/alertas/data";
 import {
   AllocationCard,
   AssetsCard,
@@ -31,6 +32,16 @@ import { PositionsTable } from "@/features/investimentos/components/positions-ta
 import { NewUserInvestments } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { useSession } from "@/features/acesso/session";
+import { AlocacaoDataProvider } from "@/features/alocacao/context";
+import { portfolioAllocation as prototypeAllocation } from "@/features/alocacao/data";
+import {
+  InvestimentosDataProvider,
+  prototypeInvestimentos,
+  useInvestimentosData,
+} from "@/features/investimentos/context";
+import { useInvestimentosView } from "@/features/investimentos/live";
+import { createContext, useContext } from "react";
 
 function GroupToggle() {
   return (
@@ -80,7 +91,15 @@ const noInvestments = (
   </StateBlock>
 );
 
+/** Quantas posições e o total, para o subtítulo da lista (o do design no protótipo). */
+const PositionsCount = createContext<{ count: number; total: string }>({
+  count: 12,
+  total: "R$ 48.310,90",
+});
+
 function PositionsSection({ variant }: { variant: "desktop" | "tablet" | "mobile" }) {
+  const { count, total } = useContext(PositionsCount);
+  const label = count === 1 ? "1 posição" : `${count} posições`;
   if (variant === "desktop") {
     return (
       <Panel className="gap-4 p-6">
@@ -90,7 +109,7 @@ function PositionsSection({ variant }: { variant: "desktop" | "tablet" | "mobile
               Posições
             </h2>
             <p className="m-0 text-14 text-mist">
-              <CardNote numbers>12 posições · R$ 48.310,90</CardNote>
+              <CardNote numbers>{`${label} · ${total}`}</CardNote>
             </p>
           </div>
           <CardAction>
@@ -127,7 +146,7 @@ function PositionsSection({ variant }: { variant: "desktop" | "tablet" | "mobile
             Posições
           </h2>
           <p className="m-0 text-13 text-mist">
-            <CardNote>12 posições</CardNote>
+            <CardNote>{label}</CardNote>
           </p>
         </div>
         <CardAction>
@@ -154,6 +173,7 @@ function PositionsSection({ variant }: { variant: "desktop" | "tablet" | "mobile
 }
 
 function AlertsSection({ variant }: { variant: "desktop" | "tablet" | "mobile" }) {
+  const { priceAlerts } = useInvestimentosData();
   const mobile = variant === "mobile";
   return (
     <Panel className={cn("gap-1", mobile && "p-4", variant === "desktop" && "grow")}>
@@ -192,135 +212,161 @@ function AlertsSection({ variant }: { variant: "desktop" | "tablet" | "mobile" }
  * normal é gerada no build, sem estado; com `?estado=` o proxy leva à prévia (`/previa/...`).
  */
 export function InvestimentosScreen({ estado }: { estado?: string }) {
-  if (estado === "novo") return <NewUserInvestments />;
-  const state = parseScreenState(estado);
+  const { live } = useSession();
+  const real = useInvestimentosView({ enabled: live });
+  if (estado === "novo" || (live && real.data?.semInvestimentos)) return <NewUserInvestments />;
+  // Modo real: carregando até a API responder, erro se alguma rota falhar. Protótipo: `?estado=`.
+  const state = live
+    ? real.error
+      ? "erro"
+      : real.data
+        ? null
+        : "carregando"
+    : parseScreenState(estado);
+  const view = real.data;
   return (
-    <ScreenStateProvider state={state}>
-      <Page
-        padding="list"
-        className="gap-4 lg:px-10 @tab:gap-5 @desk:gap-6"
-        header={
-          <MobileHeader
-            title="Investimentos"
-            account
-            actions={
-              <>
-                <ShowValuesButton variant="icon" />
-                <IconButtonLink
-                  href="/investimentos/novo"
-                  icon="plus"
-                  label="Adicionar investimento"
-                  variant="ghost"
+    <InvestimentosDataProvider value={view ?? prototypeInvestimentos}>
+      <AlocacaoDataProvider value={view?.portfolioAllocation ?? prototypeAllocation}>
+        <PositionsCount
+          value={
+            view
+              ? { count: view.posicoes, total: view.portfolio.patrimonio }
+              : { count: 12, total: "R$ 48.310,90" }
+          }
+        >
+          <ScreenStateProvider state={state}>
+            <Page
+              padding="list"
+              className="gap-4 lg:px-10 @tab:gap-5 @desk:gap-6"
+              header={
+                <MobileHeader
+                  title="Investimentos"
+                  account
+                  actions={
+                    <>
+                      <ShowValuesButton variant="icon" />
+                      <IconButtonLink
+                        href="/investimentos/novo"
+                        icon="plus"
+                        label="Adicionar investimento"
+                        variant="ghost"
+                      />
+                    </>
+                  }
                 />
-              </>
-            }
-          />
-        }
-      >
-        <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Investimentos" }]} />
-        {state === "carregando" && <LoadingStatus />}
-        {/* Mobile */}
-        <div className="flex flex-col gap-4 @tab:hidden">
-          <Skeleton active={state === "carregando"}>
-            <p className="m-0 text-13 text-caption">
-              Cotações atualizadas às 14:30 · posições dos bancos conectados e cadastradas por você
-            </p>
-            <PortfolioCard variant="mobile" />
-            <DuplicateBanner variant="mobile" />
-            <AllocationCard variant="mobile" />
-            <WorldCard variant="mobile" />
-            <AssetsCard variant="mobile" />
-            <AlertsSection variant="mobile" />
-            <PositionsSection variant="mobile" />
-          </Skeleton>
-        </div>
-
-        {/* Tablet e desktop */}
-        <header className="hidden items-end justify-between gap-4 @tab:flex">
-          <div className="flex flex-col gap-1.5">
-            <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em] @desk:text-32">
-              Investimentos
-            </h1>
-            <p className="m-0 text-15 text-mist">
-              Cotações atualizadas às 14:30
-              <span className="hidden @desk:inline">
-                {" "}
-                · posições dos bancos conectados e cadastradas por você
-              </span>
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <ShowValuesButton variant="pill" />
-            <Link
-              href="/perfil/investidor"
-              className="flex h-[2.875rem] items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 whitespace-nowrap text-sand no-underline"
+              }
             >
-              <Icon name="shield" size={18} />
-              Perfil <strong>Moderado</strong>
-              <span className="hidden text-caption @desk:inline">· alterar</span>
-            </Link>
-            <ButtonLink
-              href="/investimentos/novo"
-              size="md"
-              className="hidden text-15 @desk:inline-flex"
-            >
-              <Icon name="plus" size={18} />
-              <span>Adicionar</span>
-            </ButtonLink>
-            <ButtonLink
-              href="/simulador"
-              variant="primary"
-              size="md"
-              className="hidden text-15 @desk:inline-flex"
-            >
-              <Icon name="simulator" size={18} />
-              <span>Simular cenário</span>
-            </ButtonLink>
-          </div>
-        </header>
-
-        <Skeleton active={state === "carregando"}>
-          <div className="hidden flex-col gap-5 @tab:flex @desk:hidden">
-            <div className="flex gap-2.5">
-              <ButtonLink href="/investimentos/novo" size="md" className="text-15">
-                <Icon name="plus" size={18} />
-                <span>Adicionar investimento</span>
-              </ButtonLink>
-              <ButtonLink href="/simulador" variant="primary" size="md" className="text-15">
-                <Icon name="simulator" size={18} />
-                <span>Simular cenário</span>
-              </ButtonLink>
-            </div>
-            <DuplicateBanner variant="tablet" />
-            <div className="grid grid-cols-2 items-stretch gap-4">
-              <PortfolioCard variant="tablet" />
-              <AllocationCard variant="tablet" />
-            </div>
-            <WorldCard variant="tablet" />
-            <AssetsCard variant="tablet" />
-            <AlertsSection variant="tablet" />
-            <PositionsSection variant="tablet" />
-          </div>
-
-          <div className="hidden flex-col gap-6 @desk:flex">
-            <DuplicateBanner variant="desktop" />
-            <div className="grid grid-cols-2 gap-5">
-              <PortfolioCard variant="desktop" />
-              <AllocationCard variant="desktop" />
-            </div>
-            <div className="flex flex-col gap-5">
-              <PositionsSection variant="desktop" />
-              <div className="grid grid-cols-2 items-stretch gap-6">
-                <div className="flex min-w-0 flex-col gap-6">
-                  <AssetsCard variant="desktop" />
-                  <AlertsSection variant="desktop" />
-                </div>
-                <WorldCard variant="desktop" />
+              <Breadcrumb
+                className="hidden flex-wrap @tab:flex"
+                items={[{ label: "Investimentos" }]}
+              />
+              {state === "carregando" && <LoadingStatus />}
+              {/* Mobile */}
+              <div className="flex flex-col gap-4 @tab:hidden">
+                <Skeleton active={state === "carregando"}>
+                  <p className="m-0 text-13 text-caption">
+                    Cotações atualizadas às 14:30 · posições dos bancos conectados e cadastradas por
+                    você
+                  </p>
+                  <PortfolioCard variant="mobile" />
+                  <DuplicateBanner variant="mobile" />
+                  <AllocationCard variant="mobile" />
+                  <WorldCard variant="mobile" />
+                  <AssetsCard variant="mobile" />
+                  <AlertsSection variant="mobile" />
+                  <PositionsSection variant="mobile" />
+                </Skeleton>
               </div>
-            </div>
-          </div>
-        </Skeleton>
-      </Page>
-    </ScreenStateProvider>
+
+              {/* Tablet e desktop */}
+              <header className="hidden items-end justify-between gap-4 @tab:flex">
+                <div className="flex flex-col gap-1.5">
+                  <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em] @desk:text-32">
+                    Investimentos
+                  </h1>
+                  <p className="m-0 text-15 text-mist">
+                    Cotações atualizadas às 14:30
+                    <span className="hidden @desk:inline">
+                      {" "}
+                      · posições dos bancos conectados e cadastradas por você
+                    </span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <ShowValuesButton variant="pill" />
+                  <Link
+                    href="/perfil/investidor"
+                    className="flex h-[2.875rem] items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 whitespace-nowrap text-sand no-underline"
+                  >
+                    <Icon name="shield" size={18} />
+                    Perfil <strong>Moderado</strong>
+                    <span className="hidden text-caption @desk:inline">· alterar</span>
+                  </Link>
+                  <ButtonLink
+                    href="/investimentos/novo"
+                    size="md"
+                    className="hidden text-15 @desk:inline-flex"
+                  >
+                    <Icon name="plus" size={18} />
+                    <span>Adicionar</span>
+                  </ButtonLink>
+                  <ButtonLink
+                    href="/simulador"
+                    variant="primary"
+                    size="md"
+                    className="hidden text-15 @desk:inline-flex"
+                  >
+                    <Icon name="simulator" size={18} />
+                    <span>Simular cenário</span>
+                  </ButtonLink>
+                </div>
+              </header>
+
+              <Skeleton active={state === "carregando"}>
+                <div className="hidden flex-col gap-5 @tab:flex @desk:hidden">
+                  <div className="flex gap-2.5">
+                    <ButtonLink href="/investimentos/novo" size="md" className="text-15">
+                      <Icon name="plus" size={18} />
+                      <span>Adicionar investimento</span>
+                    </ButtonLink>
+                    <ButtonLink href="/simulador" variant="primary" size="md" className="text-15">
+                      <Icon name="simulator" size={18} />
+                      <span>Simular cenário</span>
+                    </ButtonLink>
+                  </div>
+                  <DuplicateBanner variant="tablet" />
+                  <div className="grid grid-cols-2 items-stretch gap-4">
+                    <PortfolioCard variant="tablet" />
+                    <AllocationCard variant="tablet" />
+                  </div>
+                  <WorldCard variant="tablet" />
+                  <AssetsCard variant="tablet" />
+                  <AlertsSection variant="tablet" />
+                  <PositionsSection variant="tablet" />
+                </div>
+
+                <div className="hidden flex-col gap-6 @desk:flex">
+                  <DuplicateBanner variant="desktop" />
+                  <div className="grid grid-cols-2 gap-5">
+                    <PortfolioCard variant="desktop" />
+                    <AllocationCard variant="desktop" />
+                  </div>
+                  <div className="flex flex-col gap-5">
+                    <PositionsSection variant="desktop" />
+                    <div className="grid grid-cols-2 items-stretch gap-6">
+                      <div className="flex min-w-0 flex-col gap-6">
+                        <AssetsCard variant="desktop" />
+                        <AlertsSection variant="desktop" />
+                      </div>
+                      <WorldCard variant="desktop" />
+                    </div>
+                  </div>
+                </div>
+              </Skeleton>
+            </Page>
+          </ScreenStateProvider>
+        </PositionsCount>
+      </AlocacaoDataProvider>
+    </InvestimentosDataProvider>
   );
 }

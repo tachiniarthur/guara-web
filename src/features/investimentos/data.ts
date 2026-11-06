@@ -142,7 +142,24 @@ export const positionGroups: PositionGroup[] = [
   },
 ];
 
-export const portfolio = {
+export interface PortfolioData {
+  patrimonio: string;
+  variacaoMes: string;
+  totalComBens: string;
+  outras: { quantidade: number; total: string; percentual: string };
+  /** Rentabilidade acumulada (%) mês a mês: carteira e CDI (`null` sem CDI no mês). */
+  rentabilidade: {
+    carteira: number[];
+    cdi: (number | null)[];
+    /** Rótulos do eixo (um a cada dois meses). */
+    meses: string[];
+    /** Nome de cada mês da série ("nov", "dez"…); padrão: os do protótipo. */
+    rotulos?: string[];
+  };
+  stats: { id: string; rotulo: string; valor: string; detalhe: string; ganho?: boolean }[];
+}
+
+export const portfolio: PortfolioData = {
   patrimonio: "R$ 48.310,90",
   variacaoMes: "+R$ 862,40 em setembro (+1,8%)",
   totalComBens: "R$ 746.810,90",
@@ -246,7 +263,19 @@ export const countryExposure: CountryExposure[] = [
   },
 ];
 
-export const otherAssets = [
+export interface OtherAsset {
+  id: string;
+  icone: "home" | "car";
+  nome: string;
+  detalhe: string;
+  detalheCurto: string;
+  valor: string;
+  fonte: string;
+  fonteCurta: string;
+  extra: string;
+}
+
+export const otherAssets: OtherAsset[] = [
   {
     id: "apto",
     icone: "home" as const,

@@ -1,9 +1,11 @@
+"use client";
+
 import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
 import { buildBar, ChartSvg, chartColors, roundedBar } from "@/components/charts/primitives";
 import { rem } from "@/lib/rem";
 import { cn } from "@/lib/utils";
 
-import { allocation, portfolio } from "../data";
+import { useInvestimentosData } from "../context";
 
 type Variant = "desktop" | "tablet" | "mobile";
 
@@ -77,20 +79,33 @@ const perfLayout: Record<
 /** Rentabilidade acumulada da carteira (verde) contra o CDI (tracejado). */
 export function PerformanceChart({ variant }: { variant: Variant }) {
   const l = perfLayout[variant];
-  const { carteira, cdi, meses } = portfolio.rentabilidade;
-  const step = (l.x1 - 10) / (carteira.length - 1);
+  const {
+    carteira,
+    cdi: cdiRaw,
+    meses,
+    rotulos = MONTHS,
+  } = useInvestimentosData().portfolio.rentabilidade;
+  // Sem CDI (fonte fora do plano), a linha tracejada some.
+  const hasCdi = cdiRaw.some((v) => v !== null);
+  const cdi = cdiRaw.map((v) => v ?? 0);
+  // A escala do design cabe até ~12%; acima disso, encolhe para caber.
+  const peak = Math.max(12, ...carteira.map(Math.abs), ...cdi.map(Math.abs));
+  const scale = (l.scale * 12) / peak;
+  const step = (l.x1 - 10) / Math.max(carteira.length - 1, 1);
   const x = (i: number) => 10 + i * step;
-  const y = (v: number) => l.zero - v * l.scale;
+  const y = (v: number) => l.zero - v * scale;
   const path = (values: number[]) =>
     values.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   const last = carteira.length - 1;
   const f = (n: number) => n.toFixed(1);
   const points = carteira.map((v, i) => ({
     x: x(i),
-    title: `Até ${MONTHS[i] ?? ""}`,
+    title: `Até ${rotulos[i] ?? ""}`,
     rows: [
       { label: "Carteira", value: pct(v), color: chartColors.folha, y: y(v) },
-      { label: "CDI", value: pct(cdi[i] ?? 0), color: chartColors.label, y: y(cdi[i] ?? 0) },
+      ...(hasCdi
+        ? [{ label: "CDI", value: pct(cdi[i] ?? 0), color: chartColors.label, y: y(cdi[i] ?? 0) }]
+        : []),
     ],
   }));
 
@@ -101,7 +116,7 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
         height={l.fixed ? rem(l.height) : undefined}
         viewBox={`0 0 ${l.width} ${l.height}`}
         role="img"
-        aria-label="Rentabilidade em 12 meses: carteira +11,1%, CDI +9,9%"
+        aria-label={`Rentabilidade em 12 meses: carteira ${pct(carteira[last] ?? 0)}${hasCdi ? `, CDI ${pct(cdi[last] ?? 0)}` : ""}`}
         className={cn(l.fixed ? "block max-w-full" : "block h-auto w-full", "animate-reveal-x")}
         fontFamily="var(--font-figtree), Figtree, system-ui, sans-serif"
       >
@@ -116,13 +131,15 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
             strokeDasharray="2 4"
           />
         ))}
-        <path
-          d={path(cdi)}
-          fill="none"
-          stroke={chartColors.label}
-          strokeWidth="1.5"
-          strokeDasharray="5 4"
-        />
+        {hasCdi && (
+          <path
+            d={path(cdi)}
+            fill="none"
+            stroke={chartColors.label}
+            strokeWidth="1.5"
+            strokeDasharray="5 4"
+          />
+        )}
         <path
           d={path(carteira)}
           fill="none"
@@ -148,17 +165,19 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
           fontWeight="700"
           fill={chartColors.folha}
         >
-          Carteira +11,1%
+          Carteira {pct(carteira[last] ?? 0)}
         </text>
-        <text
-          x={l.labelX}
-          y={f(y(cdi[last] ?? 0) + l.cdiDy)}
-          textAnchor="end"
-          fontSize={l.font}
-          fill={chartColors.mist}
-        >
-          CDI +9,9%
-        </text>
+        {hasCdi && (
+          <text
+            x={l.labelX}
+            y={f(y(cdi[last] ?? 0) + l.cdiDy)}
+            textAnchor="end"
+            fontSize={l.font}
+            fill={chartColors.mist}
+          >
+            CDI {pct(cdi[last] ?? 0)}
+          </text>
+        )}
         {meses.map((mes, i) => (
           <text
             key={mes}
@@ -194,11 +213,12 @@ const classLayout: Record<
   mobile: { width: 330, height: 210, x1: 324, base: 184, bar: 17, showTarget: false, short: true },
 };
 
-const comparisonLabel =
-  "Comparação por classe, sua carteira contra o alvo do perfil moderado: Renda fixa 46% contra 50%; Ações 22% contra 20%; FIIs 14% contra 15%; Cripto 10% contra 5%; Internacional 8% contra 10%.";
-
 /** Classe por classe: barra cheia (carteira) ao lado da barra tracejada (alvo do perfil). */
 export function ClassComparisonChart({ variant }: { variant: Variant }) {
+  const { allocation } = useInvestimentosData();
+  const comparisonLabel = `Comparação por classe, sua carteira contra o alvo do perfil: ${allocation
+    .map((slice) => `${slice.classe} ${slice.atual}% contra ${slice.alvo}%`)
+    .join("; ")}.`;
   const l = classLayout[variant];
   const x0 = 40;
   const group = (l.x1 - x0) / allocation.length;

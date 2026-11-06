@@ -1,3 +1,5 @@
+"use client";
+
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
 import { AgentTip } from "@/components/ui/agent-tip";
@@ -14,11 +16,17 @@ import {
 } from "@/features/alocacao/components/allocation-parts";
 import {
   AllocationStatTiles,
-  allocationStats,
+  useAllocationStats,
   OffTargetNote,
   TargetGapList,
 } from "@/features/alocacao/components/allocation-summary";
-import { portfolioAllocation, type GroupId } from "@/features/alocacao/data";
+import type { GroupId } from "@/features/alocacao/data";
+import { AlocacaoDataProvider, usePortfolioAllocation } from "@/features/alocacao/context";
+import { portfolioAllocation as prototypeAllocation } from "@/features/alocacao/data";
+import { useSession } from "@/features/acesso/session";
+import { useInvestimentosView } from "@/features/investimentos/live";
+import { LoadingStatus } from "@/components/states/skeleton";
+import { ErrorBlock } from "@/components/states/state-block";
 import { cn } from "@/lib/utils";
 
 const headTitle = "text-18 tracking-normal";
@@ -59,6 +67,7 @@ function GroupsPanel({
 }
 
 function GapPanel({ layout, className }: { layout: "stacked" | "side"; className?: string }) {
+  const portfolioAllocation = usePortfolioAllocation();
   return (
     <Panel className={cn("p-5.5", className)}>
       <PanelHeader
@@ -94,8 +103,30 @@ function PacuTip({ className, chatHref }: { className?: string; chatHref: string
   );
 }
 
+/** Alocação: com login, a carteira da API nos 5 grupos do design; no protótipo, a de exemplo. */
 export default function AlocacaoPage() {
-  const stats = allocationStats();
+  const { live } = useSession();
+  const real = useInvestimentosView({ enabled: live });
+  if (live && !real.data) {
+    return (
+      <Page
+        padding="detail"
+        header={<MobileHeader title="Alocação" back="/investimentos" balanced />}
+      >
+        {real.error ? <ErrorBlock /> : <LoadingStatus />}
+      </Page>
+    );
+  }
+  return (
+    <AlocacaoDataProvider value={real.data?.portfolioAllocation ?? prototypeAllocation}>
+      <AlocacaoContent />
+    </AlocacaoDataProvider>
+  );
+}
+
+function AlocacaoContent() {
+  const portfolioAllocation = usePortfolioAllocation();
+  const stats = useAllocationStats();
   return (
     <Page
       padding="detail"

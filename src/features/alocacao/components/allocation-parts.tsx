@@ -1,3 +1,5 @@
+"use client";
+
 import { Icon } from "@/components/ui/icon";
 import { rem } from "@/lib/rem";
 import { cn } from "@/lib/utils";
@@ -11,10 +13,10 @@ import {
   formatPercent,
   groups,
   profileById,
-  portfolioAllocation,
   type GroupId,
   type ProfileId,
 } from "../data";
+import { usePortfolioAllocation } from "../context";
 
 type DonutSize = { size: number; radius: number; stroke: number; value: number };
 
@@ -108,7 +110,7 @@ function describe(values: Record<GroupId, number>) {
 /** Par de roscas: a carteira real ao lado do alvo do perfil. */
 export function PortfolioVsTarget({
   dims,
-  profile = portfolioAllocation.perfil,
+  profile: profileProp,
   className,
   titleClassName = "text-14",
   gapClassName = "gap-3",
@@ -119,6 +121,8 @@ export function PortfolioVsTarget({
   titleClassName?: string;
   gapClassName?: string;
 }) {
+  const portfolioAllocation = usePortfolioAllocation();
+  const profile = profileProp ?? portfolioAllocation.perfil;
   const target = profileById[profile];
   return (
     <div className={cn("grid grid-cols-2", gapClassName, className)}>
@@ -247,13 +251,15 @@ export function TargetNumbers({
 export function GroupBarList({
   stacked,
   scale = 60,
-  profile = portfolioAllocation.perfil,
+  profile: profileProp,
 }: {
   /** Números na linha de baixo da barra (celular e tablet). */
   stacked?: boolean;
   scale?: number;
   profile?: ProfileId;
 }) {
+  const portfolioAllocation = usePortfolioAllocation();
+  const profile = profileProp ?? portfolioAllocation.perfil;
   const target = profileById[profile];
   const summary = groups
     .map(
@@ -305,12 +311,14 @@ export function GroupBarHeading({ title = "Grupo por grupo" }: { title?: string 
 
 /** Rosca do alvo de um perfil ao lado da lista de percentuais por grupo. */
 export function TargetDonutWithList({
-  profile = portfolioAllocation.perfil,
+  profile: profileProp,
   dims,
 }: {
   profile?: ProfileId;
   dims: DonutSize;
 }) {
+  const portfolioAllocation = usePortfolioAllocation();
+  const profile = profileProp ?? portfolioAllocation.perfil;
   const target = profileById[profile];
   return (
     <div className="flex items-center justify-center gap-6 md:justify-start">
@@ -355,7 +363,7 @@ export function GroupDetailsList({
   layout,
   openGroup,
   scale = 80,
-  profile = portfolioAllocation.perfil,
+  profile: profileProp,
   targetOnly,
 }: {
   layout: "wide" | "compact";
@@ -366,6 +374,8 @@ export function GroupDetailsList({
   scale?: number;
   profile?: ProfileId;
 }) {
+  const portfolioAllocation = usePortfolioAllocation();
+  const profile = profileProp ?? portfolioAllocation.perfil;
   const wide = layout === "wide";
   const target = profileById[profile];
   return (
@@ -460,7 +470,9 @@ export function GroupDetailsList({
 }
 
 /** Nível do perfil na escala de 4 (Conservador · Moderado · Arrojado · Sofisticado). */
-export function ProfileLevels({ profile = portfolioAllocation.perfil }: { profile?: ProfileId }) {
+export function ProfileLevels({ profile: profileProp }: { profile?: ProfileId }) {
+  const portfolioAllocation = usePortfolioAllocation();
+  const profile = profileProp ?? portfolioAllocation.perfil;
   const levels = ["conservador", "moderado", "arrojado", "sofisticado"] as const;
   const index = levels.indexOf(profile);
   const nome = profileById[profile].nome;

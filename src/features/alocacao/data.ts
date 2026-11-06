@@ -226,10 +226,13 @@ export function diffColor(diff: number) {
 export const OFF_TARGET_PP = 5;
 
 /** Grupos da carteira com diferença maior que OFF_TARGET_PP, do maior para o menor desvio. */
-export function offTargetGroups(profile: ProfileId = portfolioAllocation.perfil) {
+export function offTargetGroups(
+  profile: ProfileId = portfolioAllocation.perfil,
+  atual: Record<GroupId, number> = portfolioAllocation.atual,
+) {
   const alvo = profileById[profile].alvo;
   return groups
-    .map((g) => ({ grupo: g, diff: portfolioAllocation.atual[g.id] - alvo[g.id] }))
+    .map((g) => ({ grupo: g, diff: atual[g.id] - alvo[g.id] }))
     .filter((item) => Math.abs(item.diff) > OFF_TARGET_PP)
     .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
 }

@@ -1,9 +1,12 @@
+"use client";
+
 import { Fragment } from "react";
 
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
-import { formatPercent, groups, portfolioAllocation, type InvestorProfile } from "../data";
+import { formatPercent, groups, type InvestorProfile } from "../data";
+import { usePortfolioAllocation } from "../context";
 import { GroupDonut, GroupSwatch, donutSizes } from "./allocation-parts";
 
 const describe = (p: InvestorProfile) =>
@@ -71,6 +74,7 @@ function SubclassList({ profile }: { profile: InvestorProfile }) {
 
 /** Card de um perfil: para quem é, rosca e barras do alvo, quanto mudaria e as subclasses. */
 export function ProfileCard({ profile }: { profile: InvestorProfile }) {
+  const portfolioAllocation = usePortfolioAllocation();
   const atual = profile.id === portfolioAllocation.perfil;
   const donut = (dims: (typeof donutSizes)[keyof typeof donutSizes], className: string) => (
     <div className={cn("justify-center", className)}>

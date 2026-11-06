@@ -90,6 +90,10 @@ export function DayChange({
   className?: string;
   arrowClassName?: string;
 }) {
+  // Sem variação conhecida: só o travessão, sem seta nem cor.
+  if (change.valor === "—") {
+    return <span className={cn("font-bold text-caption tabular-nums", className)}>—</span>;
+  }
   return (
     <span
       className={cn(
