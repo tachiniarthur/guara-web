@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
@@ -17,9 +19,14 @@ import { Icon } from "@/components/ui/icon";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { AlertHistoryList } from "@/features/alertas/components/alert-history-list";
 import { PriceAlertList } from "@/features/alertas/components/price-alert-list";
-import { alertHistory, priceAlerts } from "@/features/alertas/data";
+import {
+  alertHistory as prototypeHistory,
+  priceAlerts as prototypeAlerts,
+} from "@/features/alertas/data";
+import { useAlertasView } from "@/features/alertas/live";
+import { useSession } from "@/features/acesso/session";
 import { TetoMeter } from "@/features/gastos/components/teto-meter";
-import { tetos } from "@/features/gastos/data";
+import { tetos as prototypeTetos } from "@/features/gastos/data";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 function NewTetoLink({ className }: { className?: string }) {
@@ -68,7 +75,25 @@ function NoAlertsBlock({ className }: { className?: string }) {
 
 /** `estado`: estados do protótipo (`?estado=`), abertos pela prévia (ver `src/proxy.ts`). */
 export function AlertasScreen({ estado }: { estado?: string }) {
-  const state = parseScreenState(estado);
+  const { live } = useSession();
+  const real = useAlertasView({ enabled: live });
+  const view = real.data;
+  const tetos = view ? view.tetos : prototypeTetos;
+  const priceAlerts = view ? view.priceAlerts : prototypeAlerts;
+  const alertHistory = view ? view.history : prototypeHistory;
+  // Modo real: carregando até a API responder; vazio sem teto nem alerta. Protótipo: `?estado=`.
+  const state = live
+    ? real.error
+      ? "erro"
+      : !view
+        ? "carregando"
+        : tetos.length === 0 && priceAlerts.length === 0
+          ? "vazio"
+          : null
+    : parseScreenState(estado);
+  const tetoCount = tetos.length === 1 ? "1 teto" : `${tetos.length} tetos`;
+  const alertCount =
+    priceAlerts.length === 1 ? "1 alerta de preço" : `${priceAlerts.length} alertas de preço`;
   const loading = state === "carregando";
   const empty = state === "vazio";
   // Sem dados (erro ou vazio), os cards perdem o botão do canto.
@@ -113,9 +138,12 @@ export function AlertasScreen({ estado }: { estado?: string }) {
             Alertas
           </h1>
           <p className="m-0 text-15 text-mist">
-            <span className="@desk:hidden">3 tetos e 3 alertas de preço</span>
+            <span className="@desk:hidden">
+              {tetoCount} e {alertCount}
+            </span>
             <span className="hidden @desk:inline">
-              3 tetos de gasto e 3 alertas de preço ativos
+              {tetos.length === 1 ? "1 teto de gasto" : `${tetos.length} tetos de gasto`} e{" "}
+              {alertCount} {priceAlerts.length === 1 ? "ativo" : "ativos"}
             </span>
           </p>
         </div>

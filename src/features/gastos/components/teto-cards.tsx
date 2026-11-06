@@ -9,7 +9,12 @@ import { Panel, PanelHeader } from "@/components/ui/panel";
 import { Tag } from "@/components/ui/tag";
 import { cn } from "@/lib/utils";
 
-import { previousMonths, tetoStatusLabel, type TetoDetail, type TetoStatus } from "../tetos";
+import {
+  previousMonths as prototypeMonths,
+  tetoStatusLabel,
+  type TetoDetail,
+  type TetoStatus,
+} from "../tetos";
 
 const statusTone = { "no-ritmo": "folha", perto: "tucano", estourou: "urucum" } as const;
 
@@ -237,7 +242,13 @@ export function TetoListPanel({ items, className }: { items: TetoDetail[]; class
   );
 }
 
-export function PreviousMonthsPanel({ className }: { className?: string }) {
+export function PreviousMonthsPanel({
+  className,
+  months: previousMonths = prototypeMonths,
+}: {
+  className?: string;
+  months?: { mes: string; nota: string; status: TetoStatus }[];
+}) {
   return (
     <Panel className={cn("gap-3.5 p-5.5", className)}>
       <PanelHeader title="Meses anteriores" titleClassName="text-18 tracking-normal" />

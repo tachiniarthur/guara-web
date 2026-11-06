@@ -55,19 +55,20 @@ const SummarySchema = z.object({
 });
 type Summary = z.infer<typeof SummarySchema>;
 
-const BudgetSummarySchema = z.object({
+export const BudgetSummarySchema = z.object({
   items: z.array(
     z.object({
       budget: z.object({ id: z.string(), categoryId: z.string().nullable(), limitCents: cents }),
       categoryName: z.string().nullable(),
       spentCents: cents.nullable(),
       usedPct: z.number().nullable(),
+      projectedCents: cents.nullable(),
       status: z.enum(["ok", "attention", "exceeded"]).nullable(),
       noticesSent: z.array(z.number().int()),
     }),
   ),
 });
-type BudgetSummary = z.infer<typeof BudgetSummarySchema>;
+export type BudgetSummary = z.infer<typeof BudgetSummarySchema>;
 
 const TransactionsSchema = z.object({
   data: z.array(
@@ -279,7 +280,7 @@ const TETO_STATE: Record<"ok" | "attention" | "exceeded", TetoProgress["estado"]
 };
 
 /** Tetos por categoria com os avisos de 80% e 100% (✓ quando já enviados no mês). */
-function buildTetos(budgets: BudgetSummary): TetoProgress[] {
+export function buildTetos(budgets: BudgetSummary): TetoProgress[] {
   return budgets.items
     .filter((item) => item.budget.categoryId !== null)
     .map((item) => {

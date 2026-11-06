@@ -41,6 +41,7 @@ const responses: GastosResponses = {
         categoryName: "Alimentação",
         spentCents: 40_000,
         usedPct: 80,
+        projectedCents: null,
         status: "attention",
         noticesSent: [80],
       },
