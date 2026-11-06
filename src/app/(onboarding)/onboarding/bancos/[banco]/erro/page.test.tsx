@@ -1,13 +1,19 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+
+import { SessionProvider } from "@/features/acesso/session";
 
 import ErroBancoPage from "./page";
 
 async function renderPage(motivo?: string) {
+  const page = await ErroBancoPage({
+    params: Promise.resolve({ banco: "itau" }),
+    searchParams: Promise.resolve(motivo ? { motivo } : {}),
+  });
   render(
-    await ErroBancoPage({
-      params: Promise.resolve({ banco: "itau" }),
-      searchParams: Promise.resolve(motivo ? { motivo } : {}),
-    }),
+    <QueryClientProvider client={new QueryClient()}>
+      <SessionProvider>{page}</SessionProvider>
+    </QueryClientProvider>,
   );
 }
 

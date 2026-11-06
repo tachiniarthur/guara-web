@@ -7,7 +7,7 @@ import { LabeledField } from "@/components/ui/form-sections";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { ListRow, RowList } from "@/components/ui/list-row";
 import { Panel, PanelHeader } from "@/components/ui/panel";
-import { user } from "@/features/usuario/data";
+import { UserEmail } from "@/features/usuario/live";
 
 const erased: { icon: IconName; titulo: string; texto: string }[] = [
   {
@@ -70,7 +70,7 @@ function BackupPanel() {
     <Panel className="p-5.5">
       <PanelHeader title="Antes de sair" titleClassName={title} />
       <p className="m-0 text-14 leading-[1.55] text-mist">
-        Baixe uma cópia dos seus dados. O arquivo chega no e-mail {user.email}.
+        Baixe uma cópia dos seus dados. O arquivo chega no e-mail <UserEmail />.
       </p>
       <Button variant="secondary" block className="text-15">
         <Icon name="arrow-down-to" size={18} />

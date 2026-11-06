@@ -1,3 +1,5 @@
+"use client";
+
 import { DetailHeader, Page } from "@/components/layout/page";
 import { AgentTip } from "@/components/ui/agent-tip";
 import { ButtonLink } from "@/components/ui/button";
@@ -11,7 +13,10 @@ import {
   PreviewListPanel,
   RowIcon,
 } from "@/features/novo/components";
-import { user } from "@/features/usuario/data";
+import { useSession } from "@/features/acesso/session";
+import { UserFirstName, useUser } from "@/features/usuario/live";
+import { formatDate } from "@/lib/format";
+import { capitalize, greeting } from "@/lib/live-format";
 import { cn } from "@/lib/utils";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
@@ -111,8 +116,8 @@ const tip = (
       </ButtonLink>
     }
   >
-    Oi, {user.nome}! Enquanto você não conecta um banco, dá para cadastrar investimentos à mão ou
-    testar o simulador com números seus.
+    Oi, <UserFirstName />! Enquanto você não conecta um banco, dá para cadastrar investimentos à mão
+    ou testar o simulador com números seus.
   </AgentTip>
 );
 
@@ -143,6 +148,14 @@ const emptyCards = [
 
 /** Início de quem ainda não conectou nenhum banco (`/?estado=novo`). */
 export function NewUserHome() {
+  const user = useUser();
+  const { live } = useSession();
+  // Com login, a saudação e o dia de hoje (São Paulo); no protótipo, os do design.
+  const now = new Date();
+  const hello = live ? greeting(now) : "Boa tarde";
+  const today = live
+    ? capitalize(formatDate(now, "EEEE, d 'de' MMMM").replace("-feira", ""))
+    : "Terça, 23 de setembro";
   return (
     <Page
       padding="detail"
@@ -152,9 +165,9 @@ export function NewUserHome() {
     >
       <Breadcrumb className="hidden flex-wrap @tab:flex" items={[]} />
       <h1 className="m-0 font-display text-28 font-extrabold @tab:hidden">
-        Boa tarde, {user.nome}.
+        {hello}, {user.nome}.
       </h1>
-      <DetailHeader title={`Boa tarde, ${user.nome}.`} subtitle="Terça, 23 de setembro" />
+      <DetailHeader title={`${hello}, ${user.nome}.`} subtitle={today} />
 
       {/* Celular */}
       <div className="flex flex-col gap-4 @tab:hidden">

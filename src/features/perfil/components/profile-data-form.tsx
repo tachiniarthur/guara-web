@@ -12,6 +12,7 @@ import { Icon } from "@/components/ui/icon";
 import { PhoneField } from "@/features/acesso/components/fields";
 import { useSession } from "@/features/acesso/session";
 import { user } from "@/features/usuario/data";
+import { useUser } from "@/features/usuario/live";
 import { phoneProblem } from "@/lib/phone";
 
 import { meKeys, saveDisplayName, savePhone, useMe } from "../api";
@@ -63,6 +64,7 @@ function DataForm({
   initialPhone: string;
   live: boolean;
 }) {
+  const account = useUser();
   const queryClient = useQueryClient();
   const [name, setName] = useState(initialName);
   const [phone, setPhone] = useState(initialPhone);
@@ -124,7 +126,7 @@ function DataForm({
             <span className="pointer-events-none absolute top-[0.9375rem] left-3.5 text-caption">
               <Icon name="mail" />
             </span>
-            <TextInput id="perfil-email" value={user.email} readOnly className="pl-11" />
+            <TextInput id="perfil-email" value={account.email} readOnly className="pl-11" />
           </div>
           <Link
             href="/perfil/editar/email"

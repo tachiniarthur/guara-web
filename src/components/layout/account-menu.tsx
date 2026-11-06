@@ -6,7 +6,8 @@ import { useEffect, useId, useState } from "react";
 import { CountBadge } from "@/components/ui/count-badge";
 import { Icon } from "@/components/ui/icon";
 import { Presence } from "@/components/ui/presence";
-import { bancosResumo, user } from "@/features/usuario/data";
+import { useSession } from "@/features/acesso/session";
+import { useUser } from "@/features/usuario/live";
 import { accountMenu } from "@/lib/navigation";
 
 import { AccountMenuItems, SignOutDialog } from "./account-actions";
@@ -14,6 +15,12 @@ import { UserInitials } from "./user-chip";
 
 /** Botão com as iniciais que abre o menu da conta (destinos fora da barra inferior e a conta). */
 export function AccountMenuButton() {
+  const user = useUser();
+  const { live } = useSession();
+  // Alertas: as notificações não lidas (com login); no protótipo, o número do design.
+  const badgeOf = (item: { href: string; badge?: number }) =>
+    live && item.href === "/alertas" ? user.notificacoesNovas : item.badge;
+  const { bancosResumo } = user;
   const [open, setOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const menuId = useId();
@@ -74,8 +81,8 @@ export function AccountMenuButton() {
                     <Icon name={item.icon} />
                   </span>
                   <span className="grow">{item.label}</span>
-                  {item.badge ? (
-                    <CountBadge count={item.badge} size="sm" label={`${item.badge} novos`} />
+                  {badgeOf(item) ? (
+                    <CountBadge count={badgeOf(item)!} size="sm" label={`${badgeOf(item)} novos`} />
                   ) : null}
                 </Link>
               ))}

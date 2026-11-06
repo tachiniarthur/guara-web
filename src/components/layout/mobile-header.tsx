@@ -1,7 +1,9 @@
+"use client";
+
 import type { ReactNode } from "react";
 
 import { IconButton, IconButtonLink } from "@/components/ui/icon-button";
-import { user } from "@/features/usuario/data";
+import { useUser } from "@/features/usuario/live";
 import { cn } from "@/lib/utils";
 
 import { AccountMenuButton } from "./account-menu";
@@ -42,6 +44,7 @@ export function MobileHeader({
   balanced = false,
   className,
 }: MobileHeaderProps) {
+  const user = useUser();
   return (
     <header className={cn("flex h-15 shrink-0 items-center gap-2 px-2 md:hidden", className)}>
       {variant === "brand" ? (

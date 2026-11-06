@@ -10,7 +10,7 @@ import { Icon } from "@/components/ui/icon";
 import { Note } from "@/components/ui/note";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { IconRowList } from "@/features/perfil/components/icon-row-list";
-import { user } from "@/features/usuario/data";
+import { UserFirstName, UserEmail } from "@/features/usuario/live";
 
 const novoEmail = "arthur.r@exemplo.com";
 
@@ -55,9 +55,16 @@ export default function ConfirmarEmailPage() {
           <Panel className="p-4.5">
             <DetailList
               items={[
-                { label: "E-mail atual", value: user.email },
+                { label: "E-mail atual", value: <UserEmail /> },
                 { label: "Novo e-mail", value: `${novoEmail} · aguardando` },
-                { label: "Nome", value: `${user.nome} · salvo` },
+                {
+                  label: "Nome",
+                  value: (
+                    <>
+                      <UserFirstName /> · salvo
+                    </>
+                  ),
+                },
               ]}
             />
           </Panel>
@@ -71,7 +78,7 @@ export default function ConfirmarEmailPage() {
             items={[
               {
                 icon: "lock",
-                titulo: `Login continua com ${user.email}`,
+                titulo: "O login continua com o e-mail atual",
                 texto: "Você entra normalmente",
               },
               {

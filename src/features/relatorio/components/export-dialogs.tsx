@@ -11,7 +11,7 @@ import { DetailList } from "@/components/ui/detail-list";
 import { RadioCard } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
 import { SwitchRow } from "@/components/ui/switch";
-import { user } from "@/features/usuario/data";
+import { useUser } from "@/features/usuario/live";
 
 import { exportFormats } from "../data";
 
@@ -26,6 +26,7 @@ export function ExportDialogs() {
 }
 
 function ExportPanels() {
+  const user = useUser();
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();

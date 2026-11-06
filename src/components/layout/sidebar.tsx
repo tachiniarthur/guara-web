@@ -8,7 +8,8 @@ import { CountBadge } from "@/components/ui/count-badge";
 import { Icon } from "@/components/ui/icon";
 import { agentOrder, agents } from "@/features/assistentes/data";
 import { OpenChat } from "@/features/conversas/components/open-chat";
-import { bancosResumo, user } from "@/features/usuario/data";
+import { useSession } from "@/features/acesso/session";
+import { useUser } from "@/features/usuario/live";
 import { isActive, mainNav } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,12 @@ const sidebarAgents = agentOrder.filter((id) => id !== "caramelo" && id !== "onc
 
 /** Menu lateral completo (janelas grandes): marca, destinos, a turma e o card do usuário. */
 export function Sidebar({ className }: { className?: string }) {
+  const user = useUser();
+  const { live } = useSession();
+  // Alertas: as notificações não lidas (com login); no protótipo, o número do design.
+  const badgeOf = (item: { href: string; badge?: number }) =>
+    live && item.href === "/alertas" ? user.notificacoesNovas : item.badge;
+  const { bancosResumo } = user;
   const pathname = usePathname();
 
   return (
@@ -54,7 +61,7 @@ export function Sidebar({ className }: { className?: string }) {
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
-                {item.badge ? <CountBadge count={item.badge} className="ml-auto" /> : null}
+                {badgeOf(item) ? <CountBadge count={badgeOf(item)!} className="ml-auto" /> : null}
               </Link>
             </li>
           );

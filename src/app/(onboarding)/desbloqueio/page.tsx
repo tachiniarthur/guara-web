@@ -5,7 +5,7 @@ import { BrandLogo } from "@/components/layout/brand";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { OnboardingAside } from "@/features/onboarding/components/onboarding-shell";
-import { user } from "@/features/usuario/data";
+import { UserFirstName } from "@/features/usuario/live";
 import { MataArt } from "@/components/ui/mata-art";
 
 /** Tela de desbloqueio com biometria (Face ID no celular e tablet, Touch ID no computador). */
@@ -15,7 +15,9 @@ function Unlock({ desktop }: { desktop?: boolean }) {
     <>
       <div className="flex flex-col items-center gap-4.5 text-center">
         <BrandLogo size={88} className="shadow-[0_0_0_1px_rgba(242,239,230,.25)]" />
-        <h1 className="m-0 font-display text-30 font-extrabold">Olá, {user.nome}</h1>
+        <h1 className="m-0 font-display text-30 font-extrabold">
+          Olá, <UserFirstName />
+        </h1>
         <p className="m-0 text-15 leading-[1.55] text-mist">
           O Guará está bloqueado para proteger seus dados.
         </p>

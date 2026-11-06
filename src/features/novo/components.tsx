@@ -5,7 +5,7 @@ import { BrandLogo } from "@/components/layout/brand";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { ListRow, RowList } from "@/components/ui/list-row";
 import { Panel, PanelHeader } from "@/components/ui/panel";
-import { user } from "@/features/usuario/data";
+import { UserInitialsText } from "@/features/usuario/live";
 import { cn } from "@/lib/utils";
 
 /** Barra do celular de quem ainda não conectou banco: logo, título e as iniciais (Meu perfil). */
@@ -19,7 +19,7 @@ export function NewUserHeader({ title }: { title: string }) {
         aria-label="Meu perfil"
         className="flex size-11 items-center justify-center rounded-full bg-tucano font-display text-15 font-extrabold text-canvas no-underline"
       >
-        {user.iniciais}
+        <UserInitialsText />
       </Link>
     </header>
   );

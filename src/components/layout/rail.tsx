@@ -7,7 +7,7 @@ import { AgentAvatar } from "@/components/ui/agent-avatar";
 import { Icon } from "@/components/ui/icon";
 import { agentOrder, agents } from "@/features/assistentes/data";
 import { OpenChat } from "@/features/conversas/components/open-chat";
-import { user } from "@/features/usuario/data";
+import { useUser } from "@/features/usuario/live";
 import { isActive, mainNav } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ import { BrandLogo } from "./brand";
 
 /** Trilho lateral com rótulos (janelas médias). Na horizontal fica mais compacto para caber na altura. */
 export function Rail({ className }: { className?: string }) {
+  const user = useUser();
   const pathname = usePathname();
 
   return (

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { user } from "@/features/usuario/data";
+import { useUser } from "@/features/usuario/live";
 import { cn } from "@/lib/utils";
 
 const colors = [
@@ -17,6 +17,7 @@ const colors = [
 
 /** Iniciais (88px) com "Escolher foto" e a escolha da cor do círculo. */
 export function AvatarFields() {
+  const user = useUser();
   const [color, setColor] = useState(colors[0]!.cor);
   return (
     <>
