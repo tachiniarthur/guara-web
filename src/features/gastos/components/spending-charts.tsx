@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AxisLabel,
   ChartSvg,
@@ -10,7 +12,7 @@ import {
 import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
 import { formatCurrency } from "@/lib/format";
 
-import { monthlySpending, spendingPace, weekdaySpending } from "../data";
+import { moneyTicks, useGastosData } from "../context";
 
 const BASE = 190;
 
@@ -32,10 +34,18 @@ const brl = (reais: number) => formatCurrency(reais * 100);
 /** Gasto acumulado do mês contra o mês anterior (linha tracejada). */
 export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
   const { width, x0, x1, labelSide, showClose } = paceLayout[variant];
-  const { setembro, agosto, hoje, descricao } = spendingPace;
+  const {
+    atual: setembro,
+    anterior: agosto,
+    hoje,
+    descricao,
+    maximo,
+    nomeAtual,
+    nomeAnterior,
+  } = useGastosData().spendingPace;
   const step = (x1 - x0) / (agosto.length - 1);
   const x = (day: number) => x0 + (day - 1) * step;
-  const y = (value: number) => BASE - (value / 6000) * 147.4;
+  const y = (value: number) => BASE - (value / maximo) * 147.4;
   const line = (values: number[]) =>
     values.map((v, i) => `${i ? "L" : "M"}${x(i + 1).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   const xHoje = x(hoje);
@@ -47,9 +57,9 @@ export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
     x: x(i + 1),
     title: i + 1 === hoje ? `Hoje, dia ${hoje}` : `Dia ${i + 1}`,
     rows: [
-      { label: "Setembro", value: brl(v), color: chartColors.saidas, y: y(v) },
+      { label: nomeAtual, value: brl(v), color: chartColors.saidas, y: y(v) },
       {
-        label: "Agosto",
+        label: nomeAnterior,
         value: brl(agosto[i] ?? 0),
         color: chartColors.label,
         y: y(agosto[i] ?? 0),
@@ -60,18 +70,7 @@ export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
   return (
     <ChartInspector points={points} label="Ritmo de gastos do mês, dia a dia">
       <ChartSvg width={width} height={230} label={descricao}>
-        <GridLines
-          ticks={[
-            { value: 0, label: "0" },
-            { value: 2000, label: "2 mil" },
-            { value: 4000, label: "4 mil" },
-            { value: 6000, label: "6 mil" },
-          ]}
-          x0={x0}
-          x1={x1}
-          y={y}
-          labelX={x0 - 8}
-        />
+        <GridLines ticks={moneyTicks(maximo)} x0={x0} x1={x1} y={y} labelX={x0 - 8} />
         <path
           d={line(agosto)}
           fill="none"
@@ -116,7 +115,7 @@ export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
             fontWeight="800"
             fill={chartColors.sand}
           >
-            Setembro {fmt(setHoje)}
+            {nomeAtual} {fmt(setHoje)}
           </text>
         ) : (
           <text
@@ -126,7 +125,7 @@ export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
             fontWeight="800"
             fill={chartColors.sand}
           >
-            Setembro {fmt(setHoje)}
+            {nomeAtual} {fmt(setHoje)}
           </text>
         )}
         <text
@@ -135,7 +134,7 @@ export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
           fontSize="12"
           fill={chartColors.mist}
         >
-          Agosto {fmt(agoHoje)}
+          {nomeAnterior} {fmt(agoHoje)}
         </text>
         <circle
           cx={xHoje.toFixed(1)}
@@ -187,14 +186,14 @@ function barLayout(
 
 /** Total gasto por mês, com a média dos meses anteriores e a previsão do mês atual. */
 export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
-  const { meses, previsao, media, descricao } = monthlySpending;
+  const { meses, previsao, media, descricao, maximo } = useGastosData().monthlySpending;
   const { width, x0, x1, bar, slot, barX } = barLayout(
     variant,
     meses.length,
     { x0: 48, bar: 40 },
     { x0: 40, bar: 30 },
   );
-  const y = (v: number) => BASE - (v / 6000) * 144;
+  const y = (v: number) => BASE - (v / maximo) * 144;
   const maxIndex = meses
     .slice(0, -1)
     .reduce((best, m, i, arr) => (m.valor > (arr[best]?.valor ?? 0) ? i : best), 0);
@@ -204,35 +203,24 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
     title: i === last ? `${mes.nome} (até hoje)` : mes.nome,
     rows: [
       { label: "Gasto", value: brl(mes.valor), color: chartColors.saidas },
-      ...(i === last
+      ...(i === last && previsao !== null
         ? [{ label: "Previsão do mês", value: brl(previsao), color: chartColors.saidas }]
         : []),
-      { label: "Média", value: brl(media), color: chartColors.mist },
+      ...(media !== null ? [{ label: "Média", value: brl(media), color: chartColors.mist }] : []),
     ],
   }));
 
   return (
     <ChartInspector points={points} label="Gasto por mês">
       <ChartSvg reveal="none" width={width} height={230} label={descricao}>
-        <GridLines
-          ticks={[
-            { value: 0, label: "0" },
-            { value: 2000, label: "2 mil" },
-            { value: 4000, label: "4 mil" },
-            { value: 6000, label: "6 mil" },
-          ]}
-          x0={x0}
-          x1={x1}
-          y={y}
-          labelX={x0 - 8}
-        />
+        <GridLines ticks={moneyTicks(maximo)} x0={x0} x1={x1} y={y} labelX={x0 - 8} />
         {meses.map((mes, i) => {
           const bx = barX(i);
           const cx = bx + bar / 2;
           const current = i === last;
           return (
             <g key={mes.rotulo}>
-              {current && (
+              {current && previsao !== null && (
                 <rect
                   x={bx.toFixed(1)}
                   y={y(previsao).toFixed(1)}
@@ -256,7 +244,7 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
                 <text
                   {...buildAfter}
                   x={cx.toFixed(1)}
-                  y={(y(current ? previsao : mes.valor) - (current ? 8 : 8)).toFixed(1)}
+                  y={(y(current && previsao !== null ? previsao : mes.valor) - 8).toFixed(1)}
                   textAnchor="middle"
                   fontSize="12"
                   fontWeight="800"
@@ -271,18 +259,22 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
             </g>
           );
         })}
-        <line
-          x1={x0}
-          x2={x1}
-          y1={y(media).toFixed(1)}
-          y2={y(media).toFixed(1)}
-          stroke={chartColors.mist}
-          strokeWidth="1.5"
-          strokeDasharray="2 4"
-        />
-        <text x={x0 + 4} y={(y(media) - 6).toFixed(1)} fontSize="12" fill={chartColors.mist}>
-          média {fmt(media)}
-        </text>
+        {media !== null && (
+          <>
+            <line
+              x1={x0}
+              x2={x1}
+              y1={y(media).toFixed(1)}
+              y2={y(media).toFixed(1)}
+              stroke={chartColors.mist}
+              strokeWidth="1.5"
+              strokeDasharray="2 4"
+            />
+            <text x={x0 + 4} y={(y(media) - 6).toFixed(1)} fontSize="12" fill={chartColors.mist}>
+              média {fmt(media)}
+            </text>
+          </>
+        )}
         <line x1={x0} x2={x1} y1={BASE} y2={BASE} stroke={chartColors.axis} />
         <InspectorLayer x0={x0} x1={x1} top={14} bottom={BASE} mode="band" bandWidth={slot} />
       </ChartSvg>
@@ -292,14 +284,14 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
 
 /** Gasto médio por dia da semana; os dois dias mais caros ficam em destaque. */
 export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
-  const { dias, descricao } = weekdaySpending;
+  const { dias, descricao, maximo } = useGastosData().weekdaySpending;
   const { width, x0, x1, bar, slot, barX } = barLayout(
     variant,
     dias.length,
     { x0: 48, bar: 36 },
     { x0: 36, bar: 26 },
   );
-  const y = (v: number) => BASE - (v / 200) * 134.4;
+  const y = (v: number) => BASE - (v / maximo) * 134.4;
   const top = [...dias]
     .sort((a, b) => b.valor - a.valor)
     .slice(0, 2)
@@ -316,8 +308,8 @@ export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
         <GridLines
           ticks={[
             { value: 0, label: "0" },
-            { value: 100, label: "100" },
-            { value: 200, label: "200" },
+            { value: maximo / 2, label: (maximo / 2).toLocaleString("pt-BR") },
+            { value: maximo, label: maximo.toLocaleString("pt-BR") },
           ]}
           x0={x0}
           x1={x1}

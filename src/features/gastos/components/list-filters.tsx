@@ -7,6 +7,8 @@ import { Icon, type IconName } from "@/components/ui/icon";
 import { BankMark } from "@/components/ui/bank-mark";
 import { cn } from "@/lib/utils";
 
+import { useLancamentosData } from "../lancamentos-context";
+
 export const ALL_BANKS = "Todos os bancos";
 export const banks = [ALL_BANKS, "Nubank", "Itaú"];
 
@@ -20,6 +22,7 @@ export function BankFilter({
   onChange?: (bank: string) => void;
   className?: string;
 }) {
+  const { banks: options, bankMarks } = useLancamentosData();
   const [own, setOwn] = useState(ALL_BANKS);
   const current = value ?? own;
   const setCurrent = (bank: string) => {
@@ -28,7 +31,7 @@ export function BankFilter({
   };
   return (
     <div role="group" aria-label="Filtrar por banco" className={cn("flex gap-2", className)}>
-      {banks.map((bank) => (
+      {options.map((bank) => (
         <button
           key={bank}
           type="button"
@@ -36,7 +39,7 @@ export function BankFilter({
           onClick={() => setCurrent(bank)}
           className={filterChipClass(bank === current)}
         >
-          {bank !== ALL_BANKS && <BankMark bank={bank} size={20} />}
+          {bank !== ALL_BANKS && bankMarks && <BankMark bank={bank} size={20} />}
           {bank}
         </button>
       ))}
@@ -57,9 +60,10 @@ export function DropdownPill({ icon, label }: { icon: IconName; label: string })
 
 /** Período, categorias e tipo da lista de lançamentos. */
 export function TransactionMenus({ className }: { className?: string }) {
+  const { mes } = useLancamentosData();
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      <DropdownPill icon="calendar" label="Setembro 2026" />
+      <DropdownPill icon="calendar" label={mes} />
       <DropdownPill icon="tag" label="Categorias" />
       <DropdownPill icon="filter" label="Saídas e entradas" />
     </div>

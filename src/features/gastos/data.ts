@@ -55,14 +55,29 @@ export const recentTransactions: Transaction[] = [
   },
 ];
 
+export interface SpendingPace {
+  hoje: number;
+  /** Gasto acumulado por dia (reais) do mês atual até hoje e do anterior completo. */
+  atual: number[];
+  anterior: number[];
+  nomeAtual: string;
+  nomeAnterior: string;
+  /** Topo da escala do gráfico (reais). */
+  maximo: number;
+  descricao: string;
+}
+
 /** Gasto acumulado por dia (R$): setembro até hoje (dia 23) e agosto completo. */
-export const spendingPace = {
+export const spendingPace: SpendingPace = {
   hoje: 23,
-  setembro: [
+  nomeAtual: "Setembro",
+  nomeAnterior: "Agosto",
+  maximo: 6000,
+  atual: [
     62, 118, 171, 236, 2412, 2468, 2540, 2601, 2655, 3012, 3070, 3145, 3210, 3268, 3342, 3415, 3486,
     3560, 3640, 4378, 4455, 4590, 5912,
   ],
-  agosto: [
+  anterior: [
     48, 101, 160, 210, 2385, 2440, 2505, 2570, 2630, 2960, 3030, 3095, 3170, 3240, 3320, 3390, 3455,
     3530, 3610, 4290, 4360, 4420, 4900, 4986, 5259, 5341, 5430, 5560, 5711, 6122, 6290,
   ],
@@ -70,8 +85,23 @@ export const spendingPace = {
     "Gasto acumulado dia a dia. Setembro: R$ 5.912 até o dia 23. Agosto, no mesmo dia: R$ 4.900; fechou em R$ 6.290.",
 };
 
+export interface MonthlySpending {
+  meses: { rotulo: string; nome: string; valor: number }[];
+  /** Previsão do mês atual (o último), em reais; `null` sem dado para prever. */
+  previsao: number | null;
+  /** Média dos meses fechados mostrados; `null` sem nenhum. */
+  media: number | null;
+  rotuloMedia: string;
+  rotuloPrevisao: string;
+  maximo: number;
+  descricao: string;
+}
+
 /** Total gasto por mês nos últimos 6 meses (setembro parcial, com previsão). */
-export const monthlySpending = {
+export const monthlySpending: MonthlySpending = {
+  rotuloMedia: "Média de abr a ago",
+  rotuloPrevisao: "Previsão de setembro",
+  maximo: 6000,
   meses: [
     { rotulo: "abr", nome: "Abr", valor: 5480 },
     { rotulo: "mai", nome: "Mai", valor: 5120 },
@@ -86,8 +116,15 @@ export const monthlySpending = {
     "Gasto por mês: abril R$ 5.480, maio R$ 5.120, junho R$ 5.760, julho R$ 6.410, agosto R$ 6.290, setembro R$ 5.912 até o dia 23, previsão R$ 6.050. Média de abril a agosto R$ 5.812.",
 };
 
+export interface WeekdaySpending {
+  dias: { rotulo: string; nome: string; valor: number }[];
+  maximo: number;
+  descricao: string;
+}
+
 /** Gasto médio por dia da semana (sem aluguel e compras acima de R$ 1.000). */
-export const weekdaySpending = {
+export const weekdaySpending: WeekdaySpending = {
+  maximo: 200,
   dias: [
     { rotulo: "dom", nome: "Dom", valor: 138 },
     { rotulo: "seg", nome: "Seg", valor: 96 },
@@ -283,28 +320,36 @@ export const ledger: LedgerEntry[] = [
 /** Dias de setembro de 2026 (o mês do protótipo). */
 const DIAS_NO_MES = 30;
 
+export type MonthForecastData = ReturnType<typeof forecastFrom>;
+
 /**
- * "Previsão do mês" (Gastos): calculada do ritmo de setembro e dos últimos meses, nada escrito à
- * mão. Valores em reais inteiros, como o resto dos gráficos.
+ * "Previsão do mês" (Gastos): calculada do ritmo do mês e dos últimos meses, nada escrito à mão.
+ * Valores em reais inteiros, como o resto dos gráficos. `null` sem previsão ou sem média.
  */
-export const monthForecast = (() => {
-  const { hoje, setembro, agosto } = spendingPace;
-  const ateHoje = setembro[hoje - 1] ?? 0;
-  const agostoMesmoDia = agosto[hoje - 1] ?? 0;
-  const { previsao, media } = monthlySpending;
+export function forecastFrom(pace: SpendingPace, monthly: MonthlySpending, diasNoMes: number) {
+  const { hoje, atual, anterior, nomeAnterior } = pace;
+  const ateHoje = atual[hoje - 1] ?? 0;
+  const anteriorMesmoDia = anterior[Math.min(hoje, anterior.length) - 1] ?? 0;
+  const { previsao, media } = monthly;
   return {
     hoje,
-    diasNoMes: DIAS_NO_MES,
-    diasRestantes: DIAS_NO_MES - hoje,
+    diasNoMes,
+    diasRestantes: diasNoMes - hoje,
     ateHoje,
-    porDia: Math.round(ateHoje / hoje),
+    porDia: Math.round(ateHoje / Math.max(hoje, 1)),
     previsao,
     media,
     /** Previsão contra a média dos meses anteriores, em %. */
-    contraMedia: Math.round((previsao / media - 1) * 100),
-    agostoMesmoDia,
-    contraAgosto: ateHoje - agostoMesmoDia,
+    contraMedia:
+      previsao !== null && media !== null && media > 0
+        ? Math.round((previsao / media - 1) * 100)
+        : null,
+    nomeAnterior,
+    anteriorMesmoDia: anterior.length > 0 ? anteriorMesmoDia : null,
+    contraAnterior: anterior.length > 0 ? ateHoje - anteriorMesmoDia : null,
     /** Quanto ainda deve sair até o fim do mês. */
-    restante: Math.max(0, previsao - ateHoje),
+    restante: previsao === null ? null : Math.max(0, previsao - ateHoje),
   };
-})();
+}
+
+export const monthForecast = forecastFrom(spendingPace, monthlySpending, DIAS_NO_MES);

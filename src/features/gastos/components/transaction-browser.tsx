@@ -6,7 +6,8 @@ import { FilterEmptyBlock } from "@/components/states/state-block";
 import { SearchField } from "@/components/ui/search-field";
 import { cn } from "@/lib/utils";
 
-import { transactionDays, type TransactionDay } from "../lancamentos";
+import type { TransactionDay } from "../lancamentos";
+import { useLancamentosData } from "../lancamentos-context";
 import { ALL_BANKS, BankFilter, TransactionMenus } from "./list-filters";
 import { TransactionDays } from "./transaction-days";
 
@@ -50,7 +51,7 @@ export function TransactionBrowser({
 }) {
   const [query, setQuery] = useState(preset ? "academia" : "");
   const [bank, setBank] = useState(preset ? "Nubank" : ALL_BANKS);
-  const days = filterDays(transactionDays, query, bank);
+  const days = filterDays(useLancamentosData().days, query, bank);
   const clear = () => {
     setQuery("");
     setBank(ALL_BANKS);

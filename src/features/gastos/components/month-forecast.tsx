@@ -1,26 +1,32 @@
+"use client";
+
 import { ProgressBar } from "@/components/ui/progress-bar";
 
-import { monthForecast } from "../data";
+import { useGastosData } from "../context";
 
-const reais = (value: number) => `R$ ${value.toLocaleString("pt-BR")}`;
+const reais = (value: number | null) =>
+  value === null ? "—" : `R$ ${value.toLocaleString("pt-BR")}`;
 
 /**
  * "Previsão do mês" (Gastos): para onde o mês caminha no ritmo atual, com o que já saiu, a média
  * por dia e a comparação com agosto no mesmo dia.
  */
 export function MonthForecast() {
-  const f = monthForecast;
-  const acima = f.contraMedia >= 0;
+  const f = useGastosData().monthForecast;
+  const acima = (f.contraMedia ?? 0) >= 0;
   const rows = [
     { label: "Gasto até hoje", value: reais(f.ateHoje) },
     { label: "Média por dia", value: reais(f.porDia) },
     {
-      label: "Agosto no mesmo dia",
-      value: `${reais(f.agostoMesmoDia)} (${f.contraAgosto >= 0 ? "+" : "−"}${reais(Math.abs(f.contraAgosto))})`,
+      label: `${f.nomeAnterior} no mesmo dia`,
+      value:
+        f.anteriorMesmoDia === null || f.contraAnterior === null
+          ? "—"
+          : `${reais(f.anteriorMesmoDia)} (${f.contraAnterior >= 0 ? "+" : "−"}${reais(Math.abs(f.contraAnterior))})`,
     },
     {
       label: `Até o fim do mês (${f.diasRestantes} dias)`,
-      value: `cerca de ${reais(f.restante)}`,
+      value: f.restante === null ? "—" : `cerca de ${reais(f.restante)}`,
     },
   ];
   return (
@@ -30,11 +36,16 @@ export function MonthForecast() {
           {reais(f.previsao)}
         </strong>
         <span className="text-14 text-mist">
-          previsão para o fim do mês ·{" "}
-          <span className={acima ? "text-tucano" : "text-folha"}>
-            {Math.abs(f.contraMedia)}% {acima ? "acima" : "abaixo"} da média
-          </span>{" "}
-          ({reais(f.media)})
+          previsão para o fim do mês
+          {f.contraMedia !== null && (
+            <>
+              {" · "}
+              <span className={acima ? "text-tucano" : "text-folha"}>
+                {Math.abs(f.contraMedia)}% {acima ? "acima" : "abaixo"} da média
+              </span>{" "}
+              ({reais(f.media)})
+            </>
+          )}
         </span>
       </div>
       <div className="flex flex-col gap-1.5">
@@ -45,8 +56,10 @@ export function MonthForecast() {
           label={`Dia ${f.hoje} de ${f.diasNoMes} do mês`}
         />
         <span className="text-12 text-caption">
-          Dia {f.hoje} de {f.diasNoMes} · {Math.round((f.ateHoje / f.previsao) * 100)}% da previsão
-          já saiu
+          Dia {f.hoje} de {f.diasNoMes}
+          {f.previsao
+            ? ` · ${Math.round((f.ateHoje / f.previsao) * 100)}% da previsão já saiu`
+            : ""}
         </span>
       </div>
       <dl className="m-0 flex flex-col">

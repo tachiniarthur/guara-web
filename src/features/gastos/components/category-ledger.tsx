@@ -12,7 +12,7 @@ export function CategorySummary({ ledger }: { ledger: CategoryLedger }) {
   return (
     <Panel className="gap-2.5 p-4.5">
       <span className="text-14 text-mist">
-        {ledger.nome} em setembro · {ledger.lancamentos} lançamentos
+        {ledger.nome} em {ledger.mes ?? "setembro"} · {ledger.lancamentos} lançamentos
       </span>
       <span className="font-display text-34 leading-[1.1] font-extrabold tracking-[-0.01em] tabular-nums">
         {ledger.total}

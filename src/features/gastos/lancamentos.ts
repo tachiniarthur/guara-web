@@ -162,6 +162,8 @@ export function detailsFor(item: Transaction & { dia: TransactionDay }): Transac
 export type CategoryLedger = {
   id: string;
   nome: string;
+  /** Mês mostrado ("setembro"); padrão: o do protótipo. */
+  mes?: string;
   lancamentos: number;
   total: string;
   comparacao: { parte: string; variacao: string; antes: string };

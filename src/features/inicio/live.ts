@@ -6,6 +6,18 @@ import { z } from "zod";
 import type { CategoryBudget, Transaction } from "@/features/gastos/data";
 import { apiRequest } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/format";
+import {
+  MONTHS,
+  capitalize,
+  chargeDay,
+  formatWhole,
+  greeting,
+  monthLabels,
+  percent,
+  relativeDay,
+  signed,
+  since,
+} from "@/lib/live-format";
 
 import type { CashFlowData, PendingItem } from "./data";
 
@@ -201,71 +213,6 @@ type Categories = z.infer<typeof CategoriesSchema>;
 const MeSchema = z.object({ displayName: z.string().nullable() }).loose();
 
 // --- Formatos -----------------------------------------------------------------------------
-
-/** "R$ 1.249" (sem centavos), como os cards resumidos do design. */
-export const formatWhole = (value: number | null | undefined) =>
-  value === null || value === undefined
-    ? "—"
-    : formatCurrency(Math.round(value / 100) * 100).replace(/,00$/, "");
-
-const percent = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
-const signed = (value: number, text: string) =>
-  value > 0 ? `+${text}` : value < 0 ? `−${text.replace("-", "")}` : text;
-
-const MONTHS = [
-  "janeiro",
-  "fevereiro",
-  "março",
-  "abril",
-  "maio",
-  "junho",
-  "julho",
-  "agosto",
-  "setembro",
-  "outubro",
-  "novembro",
-  "dezembro",
-];
-const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
-
-/** Mês de São Paulo de uma data: "novembro", "Nov 2026", "Novembro 2026". */
-export function monthLabels(now: Date) {
-  const [year, month] = formatDate(now, "yyyy-MM").split("-").map(Number) as [number, number];
-  const name = MONTHS[month - 1]!;
-  return {
-    name,
-    short: `${capitalize(name.slice(0, 3))} ${year}`,
-    long: `${capitalize(name)} ${year}`,
-  };
-}
-
-function greeting(now: Date) {
-  const hour = Number(formatDate(now, "H"));
-  if (hour < 12) return "Bom dia";
-  if (hour < 18) return "Boa tarde";
-  return "Boa noite";
-}
-
-function relativeDay(isoDay: string, now: Date) {
-  const today = formatDate(now, "yyyy-MM-dd");
-  const yesterday = formatDate(new Date(now.getTime() - 86_400_000), "yyyy-MM-dd");
-  if (isoDay === today) return "Hoje";
-  if (isoDay === yesterday) return "Ontem";
-  return formatDate(`${isoDay}T12:00:00-03:00`, "d MMM").replace(".", "");
-}
-
-function chargeDay(isoDay: string) {
-  return formatDate(`${isoDay}T12:00:00-03:00`, "d 'de' MMM").replace(".", "");
-}
-
-function since(iso: string | null, now: Date) {
-  if (!iso) return null;
-  const minutes = Math.max(0, Math.round((now.getTime() - new Date(iso).getTime()) / 60_000));
-  if (minutes < 60) return `Atualizado há ${minutes} min`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `Atualizado há ${hours} h`;
-  return `Atualizado em ${formatDate(iso, "d/MM")}`;
-}
 
 // --- Montagem -----------------------------------------------------------------------------
 
