@@ -33,3 +33,13 @@ export function formatCurrency(cents: Cents | null | undefined): string {
   // strings decimais exatas (suportado no Node 20+ e no Hermes).
   return brl.format(decimal as unknown as number);
 }
+
+/**
+ * Formata um valor em reais (a unidade dos gráficos, que guardam reais para a escala) como moeda.
+ * Converte para centavos inteiros antes: `2181.72 * 100` vira `218171.99999999997` em ponto
+ * flutuante, e o `formatCurrency` exige centavos inteiros.
+ */
+export function formatReais(reais: number | null | undefined): string {
+  if (isNil(reais)) return EMPTY_VALUE;
+  return formatCurrency(Math.round(reais * 100) as Cents);
+}

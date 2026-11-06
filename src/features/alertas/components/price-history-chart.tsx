@@ -1,6 +1,6 @@
 import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
 import { ChartSvg, chartColors } from "@/components/charts/primitives";
-import { formatCurrency } from "@/lib/format";
+import { formatReais } from "@/lib/format";
 
 type Variant = "desktop" | "tablet" | "mobile";
 
@@ -94,8 +94,8 @@ export function PriceHistoryChart({
     x: x(i),
     title: i === last ? "Hoje" : `Há ${last - i} ${last - i === 1 ? "dia" : "dias"}`,
     rows: [
-      { label: "Cotação", value: formatCurrency(p * 100), color: chartColors.sand, y: y(p) },
-      { label: "Alvo do alerta", value: formatCurrency(alert * 100), color: chartColors.urucum },
+      { label: "Cotação", value: formatReais(p), color: chartColors.sand, y: y(p) },
+      { label: "Alvo do alerta", value: formatReais(alert), color: chartColors.urucum },
     ],
   }));
 

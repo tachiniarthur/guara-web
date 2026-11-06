@@ -1,6 +1,6 @@
 import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
 import { buildAfter, buildBar, ChartSvg, chartColors } from "@/components/charts/primitives";
-import { formatCurrency } from "@/lib/format";
+import { formatReais } from "@/lib/format";
 
 type Variant = "desktop" | "tablet" | "mobile";
 
@@ -81,11 +81,11 @@ export function CategoryHistoryChart({
     rows: [
       {
         label: m.valor > teto ? "passou do teto" : "gasto",
-        value: formatCurrency(m.valor * 100),
+        value: formatReais(m.valor),
         color: m.valor > teto ? chartColors.urucum : m.atual ? chartColors.arara : PAST,
       },
-      { label: "teto novo", value: formatCurrency(teto * 100), color: chartColors.tucano },
-      { label: "média", value: formatCurrency(media * 100), color: chartColors.mist },
+      { label: "teto novo", value: formatReais(teto), color: chartColors.tucano },
+      { label: "média", value: formatReais(media), color: chartColors.mist },
     ],
   }));
 

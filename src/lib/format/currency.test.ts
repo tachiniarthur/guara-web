@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCurrency } from "./currency";
+import { formatCurrency, formatReais } from "./currency";
 
 // O Intl separa "R$" do número com espaço não separável (U+00A0).
 const NBSP = " ";
@@ -32,5 +32,13 @@ describe("formatCurrency", () => {
   it("rejeita valores não inteiros", () => {
     expect(() => formatCurrency(12.5)).toThrow(RangeError);
     expect(() => formatCurrency(Number.NaN)).toThrow(RangeError);
+  });
+});
+
+describe("formatReais", () => {
+  it("arredonda para centavos antes de formatar (2181,72 × 100 não é inteiro em ponto flutuante)", () => {
+    expect(2181.72 * 100).not.toBe(218172);
+    expect(formatReais(2181.72).replace(/\s/g, " ")).toBe("R$ 2.181,72");
+    expect(formatReais(null)).toBe("—");
   });
 });

@@ -1,5 +1,5 @@
 import { ChartInspector, InspectorLayer, type InspectPoint } from "@/components/charts/inspector";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatReais } from "@/lib/format";
 import { rem } from "@/lib/rem";
 
 import { cashFlow, type CashFlowData } from "../data";
@@ -79,8 +79,8 @@ export function CashFlowChart({
       x: x(i + 1),
       title: i + 1 === hoje ? `Hoje, dia ${hoje}` : `Dia ${i + 1}`,
       rows: [
-        { label: "Entradas", value: formatCurrency(entrada * 100), color: ENTRADAS, y: y(entrada) },
-        { label: "Saídas", value: formatCurrency(saida * 100), color: SAIDAS, y: y(saida) },
+        { label: "Entradas", value: formatReais(entrada), color: ENTRADAS, y: y(entrada) },
+        { label: "Saídas", value: formatReais(saida), color: SAIDAS, y: y(saida) },
       ],
     };
   });

@@ -10,7 +10,7 @@ import {
   roundedBar,
 } from "@/components/charts/primitives";
 import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
-import { formatCurrency } from "@/lib/format";
+import { formatReais } from "@/lib/format";
 
 import { moneyTicks, useGastosData } from "../context";
 
@@ -29,7 +29,7 @@ const paceLayout: Record<
 
 const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR")}`;
 /** Valor da leitura (os dados do design estão em reais inteiros). */
-const brl = (reais: number) => formatCurrency(reais * 100);
+const brl = (reais: number) => formatReais(reais);
 
 /** Gasto acumulado do mês contra o mês anterior (linha tracejada). */
 export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {

@@ -1,6 +1,6 @@
 import { ChartInspector, InspectorLayer, type InspectPoint } from "@/components/charts/inspector";
 import { ChartSvg, chartColors } from "@/components/charts/primitives";
-import { formatCurrency } from "@/lib/format";
+import { formatReais } from "@/lib/format";
 
 import { dailyBalance, weeklyFlow } from "../data";
 
@@ -74,7 +74,7 @@ export function BalanceChart({ variant }: { variant: ReportChartVariant }) {
       rows: [
         {
           label: "Saldo",
-          value: formatCurrency(v * 100),
+          value: formatReais(v),
           color: chartColors.arara,
           y: y(v),
         },
@@ -93,7 +93,7 @@ export function BalanceChart({ variant }: { variant: ReportChartVariant }) {
       rows: [
         {
           label: "Saldo previsto",
-          value: formatCurrency(v * 100),
+          value: formatReais(v),
           color: chartColors.arara,
           y: y(v),
         },
@@ -206,8 +206,8 @@ export function WeeklyFlowChart({ variant }: { variant: ReportChartVariant }) {
     x: X0 + (i + 0.5) * group,
     title: week.label.replace("*", " (até hoje)"),
     rows: [
-      { label: "Entrou", value: formatCurrency(week.entrou * 100), color: chartColors.arara },
-      { label: "Saiu", value: formatCurrency(week.saiu * 100), color: chartColors.urucum },
+      { label: "Entrou", value: formatReais(week.entrou), color: chartColors.arara },
+      { label: "Saiu", value: formatReais(week.saiu), color: chartColors.urucum },
     ],
   }));
 
