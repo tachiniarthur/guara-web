@@ -11,6 +11,7 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { percent, relativeDay } from "@/lib/live-format";
 
 import type { AlertHistoryItem, PriceAlert } from "./data";
+import type { PriceAlertDetail } from "./price-alerts";
 
 /* Alertas com os dados da API (modo real), no mesmo formato dos dados de exemplo. */
 
@@ -137,4 +138,128 @@ export function useAlertasView({ enabled }: { enabled: boolean }) {
     Notifications,
   ];
   return { data: toAlertasView({ budgets, alerts, notifications }, new Date()), error: null };
+}
+
+const HistorySchema = z.object({
+  points: z.array(z.object({ date: z.string(), closeCents: cents.nullable() })),
+});
+type History = z.infer<typeof HistorySchema>;
+
+const reais = (value: number) => formatCurrency(Math.round(value * 100)).replace(/,00$/, "");
+
+/** Detalhe de um alerta com os últimos 30 dias de cotação (função pura, testada). */
+export function toPriceAlertDetail(
+  alert: ApiPriceAlert,
+  history: History | null,
+  now: Date,
+): PriceAlertDetail {
+  const base = toPriceAlert(alert);
+  const sell = alert.direction === "sell";
+  const closes = (history?.points ?? []).filter((point) => point.closeCents !== null).slice(-30);
+  const prices = closes.map((point) => point.closeCents! / 100);
+  const current = alert.currentPriceCents === null ? null : alert.currentPriceCents / 100;
+  if (current !== null && prices.length === 0) prices.push(current);
+  const target = alert.targetPriceCents / 100;
+  const all = [...prices, target];
+  const low = Math.min(...all);
+  const high = Math.max(...all);
+  const pad = (high - low) * 0.1 || high * 0.05;
+  const distanceCents =
+    alert.currentPriceCents === null
+      ? null
+      : Math.abs(alert.targetPriceCents - alert.currentPriceCents);
+  const lastDay = closes.at(-1)?.date;
+  return {
+    ...base,
+    simbolo: alert.symbol.charAt(0),
+    ticker: alert.symbol,
+    alvo: formatCurrency(alert.targetPriceCents),
+    alvoNota: sell ? "avisar quando subir até" : "avisar quando cair até",
+    agora: alert.currentPriceCents === null ? "—" : formatCurrency(alert.currentPriceCents),
+    agoraHora: alert.quotedAt ? `às ${formatDate(alert.quotedAt, "HH:mm")}` : "",
+    distancia: base.faltam.toLowerCase(),
+    distanciaValor: distanceCents === null ? "—" : formatCurrency(distanceCents),
+    tipo: sell ? "Venda · avisar quando subir" : "Compra · avisar quando cair",
+    criadoEm: formatDate(alert.createdAt),
+    precos: prices,
+    faixa: { baixo: Math.max(0, low - pad), alto: high + pad, rotulo: reais },
+    minima: prices.length ? reais(Math.min(...prices)) : "—",
+    maxima: prices.length ? reais(Math.max(...prices)) : "—",
+    disparo: {
+      quando: alert.triggeredAt
+        ? `${relativeDay(formatDate(alert.triggeredAt, "yyyy-MM-dd"), now)}, ${formatDate(alert.triggeredAt, "HH:mm")}`
+        : "—",
+      cotacao: formatCurrency(alert.triggeredPriceCents),
+      hora: alert.triggeredAt ? formatDate(alert.triggeredAt, "HH:mm") : "—",
+      valor: (alert.triggeredPriceCents ?? alert.targetPriceCents) / 100,
+    },
+    ultimoRotulo: lastDay ? formatDate(`${lastDay}T12:00:00-03:00`, "dd/MM") : undefined,
+  };
+}
+
+/** Um alerta de preço e o histórico do ativo. `missing` quando o alerta não existe. */
+export function usePriceAlertDetail(id: string, { enabled }: { enabled: boolean }) {
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: ["alertas", "preco", id],
+        queryFn: ({ signal }: { signal: AbortSignal }) =>
+          apiRequest(`/v1/price-alerts/${encodeURIComponent(id)}`, ApiPriceAlertSchema, { signal }),
+        enabled,
+        staleTime: 60_000,
+        retry: false,
+      },
+    ],
+  });
+  const alert = results[0].data;
+  const history = useQueries({
+    queries: [
+      {
+        queryKey: ["alertas", "historico", alert?.symbol],
+        queryFn: ({ signal }: { signal: AbortSignal }) =>
+          apiRequest(
+            `/v1/market/assets/${encodeURIComponent(alert!.symbol)}/history?range=1mo`,
+            HistorySchema,
+            { signal },
+          ),
+        enabled: enabled && Boolean(alert),
+        staleTime: 30 * 60_000,
+        retry: false,
+      },
+    ],
+  })[0];
+  const error = results[0].error;
+  const missing =
+    error !== null &&
+    typeof error === "object" &&
+    "code" in error &&
+    (error.code === "not_found" || error.code === "validation_failed");
+  if (error) return { data: undefined, error, missing };
+  // O histórico é opcional: sem ele (serviço fora, plano), o gráfico fica só com o preço atual.
+  if (!alert || history.isPending) return { data: undefined, error: null, missing: false };
+  return {
+    data: toPriceAlertDetail(alert, history.data ?? null, new Date()),
+    fired: alert.status === "triggered",
+    error: null,
+    missing: false,
+  };
+}
+
+/** Todos os alertas de preço ativos. */
+export function usePriceAlerts({ enabled }: { enabled: boolean }) {
+  const result = useQueries({
+    queries: [
+      {
+        queryKey: ["alertas", "/v1/price-alerts"],
+        queryFn: ({ signal }: { signal: AbortSignal }) =>
+          apiRequest("/v1/price-alerts", PriceAlertListSchema, { signal }),
+        enabled,
+        staleTime: 60_000,
+      },
+    ],
+  })[0];
+  return {
+    data: result.data?.data.filter((a) => a.status === "active").map(toPriceAlert),
+    error: result.error,
+  };
 }

@@ -20,6 +20,8 @@ export type PriceAlertDetail = PriceAlert & {
   maxima: string;
   /** Quando já disparou (estado "disparado"). */
   disparo: { quando: string; cotacao: string; hora: string; valor: number };
+  /** Rótulo do último ponto do gráfico ("23/09"); padrão: o do protótipo. */
+  ultimoRotulo?: string;
 };
 
 const mil = (v: number) => `${Math.round(v / 1000)} mil`;

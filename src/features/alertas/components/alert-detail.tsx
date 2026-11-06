@@ -112,7 +112,7 @@ export function AlertChart({
       />
       <TargetLineChart
         prices={fired ? [...alert.precos, alert.disparo.valor] : alert.precos}
-        lastLabel={fired ? "hoje" : "23/09"}
+        lastLabel={fired ? "hoje" : (alert.ultimoRotulo ?? "23/09")}
         low={alert.faixa.baixo}
         high={alert.faixa.alto}
         target={{ value: target, label: `alvo ${alert.alvo}` }}
