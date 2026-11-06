@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { apiRequest } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { MONTHS, capitalize, formatWhole, apiPercent } from "@/lib/live-format";
+import { MONTHS, capitalize, formatWhole, apiPercent, buildView } from "@/lib/live-format";
 
 import type { CategorySpending } from "./data";
 import type { LancamentosData } from "./lancamentos-context";
@@ -158,19 +158,20 @@ export function useLancamentos({ enabled }: { enabled: boolean }) {
     Anomalies,
   ];
   return {
-    data: toLancamentos(
-      {
-        transactions: pages.data!.pages.flatMap((page) => page.data),
-        hasMore: pages.hasNextPage,
-        summary,
-        accounts,
-        categories,
-        anomalies,
-      },
-      now,
-      () => void pages.fetchNextPage(),
-      pages.isFetchingNextPage,
+    ...buildView("lançamentos", () =>
+      toLancamentos(
+        {
+          transactions: pages.data!.pages.flatMap((page) => page.data),
+          hasMore: pages.hasNextPage,
+          summary,
+          accounts,
+          categories,
+          anomalies,
+        },
+        now,
+        () => void pages.fetchNextPage(),
+        pages.isFetchingNextPage,
+      ),
     ),
-    error: null,
   };
 }

@@ -15,6 +15,7 @@ import {
   greeting,
   monthLabels,
   percent,
+  buildView,
   relativeDay,
   signed,
   since,
@@ -672,22 +673,24 @@ export function useHomeView({ enabled }: { enabled: boolean }) {
     z.infer<typeof MeSchema>,
   ];
 
-  const view = toHomeView(
-    {
-      dashboard,
-      daily,
-      monthly,
-      spending,
-      budgets,
-      transactions,
-      anomalies,
-      subscriptions,
-      allocation,
-      goals,
-      categories,
-      me,
-    },
-    now,
+  const view = buildView("início", () =>
+    toHomeView(
+      {
+        dashboard,
+        daily,
+        monthly,
+        spending,
+        budgets,
+        transactions,
+        anomalies,
+        subscriptions,
+        allocation,
+        goals,
+        categories,
+        me,
+      },
+      now,
+    ),
   );
-  return { data: view, error: null, refetch };
+  return { ...view, refetch };
 }

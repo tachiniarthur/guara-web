@@ -74,3 +74,19 @@ export function since(iso: string | null, now: Date) {
  * também número e converte; `null` continua `null` (a tela mostra "—").
  */
 export const apiPercent = z.union([z.string(), z.number()]).transform((value) => Number(value));
+
+/**
+ * Monta a tela com os dados da API sem derrubar o site: se a conversão falhar (dado num formato
+ * inesperado), a tela mostra "Não deu para carregar" e o erro vai para o console.
+ */
+export function buildView<T>(
+  screen: string,
+  build: () => T,
+): { data: T | undefined; error: Error | null } {
+  try {
+    return { data: build(), error: null };
+  } catch (error) {
+    console.error(`[${screen}] dados da API num formato inesperado`, error);
+    return { data: undefined, error: error instanceof Error ? error : new Error(String(error)) };
+  }
+}

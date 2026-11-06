@@ -8,7 +8,7 @@ import { BudgetSummarySchema, buildTetos, type BudgetSummary } from "@/features/
 import type { TetoProgress } from "@/features/gastos/data";
 import { apiRequest } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { percent, relativeDay, apiPercent } from "@/lib/live-format";
+import { percent, relativeDay, apiPercent, buildView } from "@/lib/live-format";
 
 import type { AlertHistoryItem, PriceAlert } from "./data";
 import type { PriceAlertDetail } from "./price-alerts";
@@ -137,7 +137,7 @@ export function useAlertasView({ enabled }: { enabled: boolean }) {
     PriceAlertList,
     Notifications,
   ];
-  return { data: toAlertasView({ budgets, alerts, notifications }, new Date()), error: null };
+  return buildView("alertas", () => toAlertasView({ budgets, alerts, notifications }, new Date()));
 }
 
 const HistorySchema = z.object({
@@ -234,13 +234,16 @@ export function usePriceAlertDetail(id: string, { enabled }: { enabled: boolean 
     typeof error === "object" &&
     "code" in error &&
     (error.code === "not_found" || error.code === "validation_failed");
-  if (error) return { data: undefined, error, missing };
+  if (error) return { data: undefined, error, missing, fired: false };
   // O histórico é opcional: sem ele (serviço fora, plano), o gráfico fica só com o preço atual.
-  if (!alert || history.isPending) return { data: undefined, error: null, missing: false };
+  if (!alert || history.isPending) {
+    return { data: undefined, error: null, missing: false, fired: false };
+  }
   return {
-    data: toPriceAlertDetail(alert, history.data ?? null, new Date()),
+    ...buildView("alerta de preço", () =>
+      toPriceAlertDetail(alert, history.data ?? null, new Date()),
+    ),
     fired: alert.status === "triggered",
-    error: null,
     missing: false,
   };
 }

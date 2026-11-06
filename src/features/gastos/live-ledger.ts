@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { apiRequest } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { MONTHS, formatWhole, percent, apiPercent } from "@/lib/live-format";
+import { MONTHS, formatWhole, percent, apiPercent, buildView } from "@/lib/live-format";
 
 import { formatDayTotal, type CategoryLedger, type TransactionDay } from "./lancamentos";
 
@@ -274,8 +274,9 @@ export function useCategoryLedger(categoryId: string, { enabled }: { enabled: bo
     (result) => result.data,
   ) as [CategoryResponse, Summary, BudgetSummary, Accounts, Categories, Anomalies];
   return {
-    data: toCategoryLedger({ category, summary, budgets, accounts, categories, anomalies }, now),
-    error: null,
+    ...buildView("categoria", () =>
+      toCategoryLedger({ category, summary, budgets, accounts, categories, anomalies }, now),
+    ),
   };
 }
 
@@ -392,8 +393,9 @@ export function useTransactionDetail(id: string, { enabled }: { enabled: boolean
     z.infer<typeof BudgetsSchema>,
   ];
   return {
-    data: toTransactionDetail({ transaction, accounts, categories, anomalies, budgets }, now),
-    error: null,
+    ...buildView("lançamento", () =>
+      toTransactionDetail({ transaction, accounts, categories, anomalies, budgets }, now),
+    ),
     missing: false,
   };
 }

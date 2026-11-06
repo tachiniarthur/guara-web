@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { IconName } from "@/components/ui/icon";
 import { apiRequest } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { MONTHS, capitalize, formatWhole, percent } from "@/lib/live-format";
+import { MONTHS, capitalize, formatWhole, percent, buildView } from "@/lib/live-format";
 
 import { BudgetSummarySchema, buildTetos, type BudgetSummary } from "./live";
 import type { TetoDetail, TetoStatus } from "./tetos";
@@ -163,5 +163,5 @@ export function useTetosView({ enabled }: { enabled: boolean }) {
   const error = results.find((result) => result.error)?.error ?? null;
   if (error || results.some((result) => result.isPending)) return { data: undefined, error };
   const [budgets, ...months] = results.map((r) => r.data) as [BudgetSummary, ...Summary[]];
-  return { data: toTetosView({ budgets, months }, now), error: null };
+  return buildView("tetos", () => toTetosView({ budgets, months }, now));
 }

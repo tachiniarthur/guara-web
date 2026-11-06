@@ -12,6 +12,7 @@ import {
   monthLabels,
   relativeDay,
   apiPercent,
+  buildView,
 } from "@/lib/live-format";
 
 import { scaleTop, type GastosData } from "./context";
@@ -509,21 +510,22 @@ export function useGastosView({ enabled }: { enabled: boolean }) {
     Categories,
   ];
   return {
-    data: toGastosView(
-      {
-        current,
-        previous,
-        older: [older2, older3],
-        monthly,
-        summary,
-        budgets,
-        transactions,
-        anomalies,
-        accounts,
-        categories,
-      },
-      now,
+    ...buildView("gastos", () =>
+      toGastosView(
+        {
+          current,
+          previous,
+          older: [older2, older3],
+          monthly,
+          summary,
+          budgets,
+          transactions,
+          anomalies,
+          accounts,
+          categories,
+        },
+        now,
+      ),
     ),
-    error: null,
   };
 }
