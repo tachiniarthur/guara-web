@@ -68,9 +68,10 @@ function GroupToggle() {
 }
 
 function SeeAll() {
+  const { count } = useContext(PositionsCount);
   return (
     <Link href="/investimentos/posicoes" className={cn(panelLinkClass, "text-15")}>
-      Ver as 12
+      {`Ver as ${count}`}
       <Icon name="chevron-right" size={16} />
     </Link>
   );
@@ -265,8 +266,8 @@ export function InvestimentosScreen({ estado }: { estado?: string }) {
               <div className="flex flex-col gap-4 @tab:hidden">
                 <Skeleton active={state === "carregando"}>
                   <p className="m-0 text-13 text-caption">
-                    Cotações atualizadas às 14:30 · posições dos bancos conectados e cadastradas por
-                    você
+                    {(view ?? prototypeInvestimentos).portfolio.atualizacao} · posições dos bancos
+                    conectados e cadastradas por você
                   </p>
                   <PortfolioCard variant="mobile" />
                   <DuplicateBanner variant="mobile" />
@@ -285,7 +286,7 @@ export function InvestimentosScreen({ estado }: { estado?: string }) {
                     Investimentos
                   </h1>
                   <p className="m-0 text-15 text-mist">
-                    Cotações atualizadas às 14:30
+                    {(view ?? prototypeInvestimentos).portfolio.atualizacao}
                     <span className="hidden @desk:inline">
                       {" "}
                       · posições dos bancos conectados e cadastradas por você

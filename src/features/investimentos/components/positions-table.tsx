@@ -223,7 +223,7 @@ export function PositionsTable() {
             className="border-b border-line-strong px-3.5 py-4 text-left text-15 font-normal text-mist"
           >
             Outras {portfolio.outras.quantidade} posições{" "}
-            <span className="text-caption">· abra &quot;Ver as 12&quot; para ver cada uma</span>
+            <span className="text-caption">· abra a lista completa para ver cada uma</span>
           </th>
           <td className="border-b border-line-strong px-3.5 py-4 text-center text-15 font-bold whitespace-nowrap tabular-nums">
             {portfolio.outras.total}

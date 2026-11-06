@@ -395,6 +395,18 @@ export function toInvestimentosView(r: InvestimentosResponses, now: Date) {
             ? ` (${signed(change, `${percent.format(Math.abs((change / base) * 100))}%`)})`
             : ""),
     totalComBens: formatCurrency(r.summary.totalNetWorthCents),
+    investido: formatCurrency(invested),
+    bens: formatWhole(r.summary.totalNetWorthCents - invested),
+    atualizacao: (() => {
+      const latest = all
+        .map((p) => p.valuedOn)
+        .filter(Boolean)
+        .sort()
+        .at(-1);
+      return latest
+        ? `Valores de ${formatDate(`${latest}T12:00:00-03:00`, "dd/MM")}`
+        : "Sem valores atualizados";
+    })(),
     outras: {
       quantidade: rest.length,
       total: formatCurrency(restCents),

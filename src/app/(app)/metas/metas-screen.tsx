@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
@@ -15,7 +17,9 @@ import {
   NewGoalButton,
   OncaTip,
 } from "@/features/metas/components/goal-parts";
-import { goals, goalsSummary } from "@/features/metas/data";
+import { goals as prototypeGoals, goalsSummary as prototypeSummary } from "@/features/metas/data";
+import { useMetasView } from "@/features/metas/live";
+import { useSession } from "@/features/acesso/session";
 import { cn } from "@/lib/utils";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
@@ -62,7 +66,20 @@ function NoGoals() {
 
 /** `estado`: estados do protótipo (`?estado=`), abertos pela prévia (ver `src/proxy.ts`). */
 export function MetasScreen({ estado }: { estado?: string }) {
-  const state = parseScreenState(estado);
+  const { live } = useSession();
+  const real = useMetasView({ enabled: live });
+  const goals = real.data?.goals ?? prototypeGoals;
+  const goalsSummary = real.data?.summary ?? prototypeSummary;
+  // Modo real: carregando até a API responder; vazio sem nenhuma meta. Protótipo: `?estado=`.
+  const state = live
+    ? real.error
+      ? "erro"
+      : !real.data
+        ? "carregando"
+        : goals.length === 0
+          ? "vazio"
+          : null
+    : parseScreenState(estado);
   const failed = state === "erro";
 
   return (
@@ -82,7 +99,7 @@ export function MetasScreen({ estado }: { estado?: string }) {
       {state === "carregando" && <LoadingStatus />}
       <DetailHeader
         title="Suas metas"
-        subtitle={`Acompanhadas pela Onça · ${goals.length} metas`}
+        subtitle={`Acompanhadas pela Onça · ${goals.length === 1 ? "1 meta" : `${goals.length} metas`}`}
         actions={<NewGoalButton />}
       />
       {state === "vazio" ? (
@@ -99,6 +116,7 @@ export function MetasScreen({ estado }: { estado?: string }) {
           <div className="flex flex-col gap-4 @desk:grid @desk:grid-cols-[minmax(0,1fr)_minmax(0,23rem)] @desk:items-start @desk:gap-5">
             <div className="flex min-w-0 flex-col gap-4 @tab:grid @tab:grid-cols-2 @tab:items-stretch @desk:order-2 @desk:flex @desk:flex-col">
               <GoalsHero
+                summary={goalsSummary}
                 replacement={failed && <ErrorBlocks mobile="tile" tablet="big" desktop="compact" />}
               />
               <StateSwap

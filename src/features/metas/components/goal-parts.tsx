@@ -9,7 +9,7 @@ import { Tag } from "@/components/ui/tag";
 import { MataCard } from "@/features/gastos/components/teto-cards";
 import { cn } from "@/lib/utils";
 
-import { goalsSummary, type Goal, type GoalTone } from "../data";
+import { goalsSummary as prototypeSummary, type Goal, type GoalTone } from "../data";
 
 const ringStroke: Record<GoalTone, string> = {
   folha: "stroke-folha",
@@ -118,7 +118,13 @@ export function GoalCard({ goal }: { goal: Goal }) {
 }
 
 /** Resumo das metas sobre a mata: quanto já tem, o planejado por mês e o que sobrou no mês. */
-export function GoalsHero({ replacement }: { replacement?: ReactNode }) {
+export function GoalsHero({
+  replacement,
+  summary: goalsSummary = prototypeSummary,
+}: {
+  replacement?: ReactNode;
+  summary?: typeof prototypeSummary;
+}) {
   return (
     <MataCard className="gap-4">
       <StateSwap replacement={replacement} className="grow gap-4">

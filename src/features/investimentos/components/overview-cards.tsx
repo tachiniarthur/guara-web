@@ -18,6 +18,8 @@ import {
 } from "@/features/alocacao/components/allocation-parts";
 import { OpenChat } from "@/features/conversas/components/open-chat";
 import { useSession } from "@/features/acesso/session";
+import { usePortfolioAllocation } from "@/features/alocacao/context";
+import { formatDiff, groups, offTargetGroups } from "@/features/alocacao/data";
 import { cn } from "@/lib/utils";
 
 import { useInvestimentosData } from "../context";
@@ -76,7 +78,7 @@ function TotalWithAssets({ compact }: { compact?: boolean }) {
       <div className="flex flex-col gap-0.5 rounded-tile border border-line px-3.5 py-3 text-12 text-caption">
         <span className="text-13 text-mist">Patrimônio total com bens</span>
         <strong className="text-18 text-sand tabular-nums">{portfolio.totalComBens}</strong>
-        <span>investimentos + bens de R$ 698.500</span>
+        <span>investimentos + bens de {portfolio.bens}</span>
       </div>
     );
   }
@@ -84,7 +86,9 @@ function TotalWithAssets({ compact }: { compact?: boolean }) {
     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 rounded-tile border border-line px-4 py-3 text-13 text-mist">
       <span>Patrimônio total com bens</span>
       <strong className="text-16 text-sand tabular-nums">{portfolio.totalComBens}</strong>
-      <span>investimentos R$ 48.310,90 + bens R$ 698.500</span>
+      <span>
+        investimentos {portfolio.investido} + bens {portfolio.bens}
+      </span>
     </div>
   );
 }
@@ -209,6 +213,9 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
 
 /** Alocação atual × alvo do perfil, grupo por grupo (5 grupos). */
 export function AllocationCard({ variant }: { variant: Variant }) {
+  const allocationData = usePortfolioAllocation();
+  const offTarget = offTargetGroups(allocationData.perfil, allocationData.atual);
+  const biggest = offTarget[0];
   const desktop = variant === "desktop";
   const mobile = variant === "mobile";
   const linkClass =
@@ -241,13 +248,20 @@ export function AllocationCard({ variant }: { variant: Variant }) {
         </div>
         <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-line pt-3">
           <p className="m-0 text-13 text-mist">
-            Fora do alvo em <strong className="text-sand">3 de 5 grupos</strong>
-            {variant === "tablet" ? (
+            Fora do alvo em{" "}
+            <strong className="text-sand">
+              {offTarget.length} de {groups.length} grupos
+            </strong>
+            {variant === "tablet" || !biggest ? (
               "."
             ) : (
               <>
-                . A maior diferença é <strong className="text-tucano">Renda variável Brasil</strong>
-                , <strong className="text-sand">17,2 p.p. acima</strong>.
+                . A maior diferença é <strong className="text-tucano">{biggest.grupo.nome}</strong>,{" "}
+                <strong className="text-sand">
+                  {formatDiff(biggest.diff).replace("p.p.", "")}p.p.{" "}
+                  {biggest.diff > 0 ? "acima" : "abaixo"}
+                </strong>
+                .
               </>
             )}
           </p>
@@ -270,13 +284,13 @@ export function AllocationCard({ variant }: { variant: Variant }) {
 
 /** Imóveis, veículos e outros bens (entram no patrimônio, fora da alocação). */
 export function AssetsCard({ variant }: { variant: Variant }) {
-  const { otherAssets } = useInvestimentosData();
+  const { otherAssets, portfolio } = useInvestimentosData();
   if (variant === "mobile") {
     return (
       <Panel className="gap-2 p-4">
         <PanelHeader
           title="Imóveis e outros bens"
-          subtitle={<CardNote numbers>Somam R$ 698.500 no patrimônio</CardNote>}
+          subtitle={<CardNote numbers>Somam {portfolio.bens} no patrimônio</CardNote>}
           titleClassName="text-18 tracking-normal"
           action={
             <CardAction>
@@ -329,7 +343,7 @@ export function AssetsCard({ variant }: { variant: Variant }) {
     <Panel className="gap-3">
       <PanelHeader
         title="Imóveis, veículos e outros bens"
-        subtitle={<CardNote numbers>Somam R$ 698.500 · entram no patrimônio total</CardNote>}
+        subtitle={<CardNote numbers>Somam {portfolio.bens} · entram no patrimônio total</CardNote>}
         action={
           <CardAction>
             <Link

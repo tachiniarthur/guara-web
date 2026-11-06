@@ -146,6 +146,11 @@ export interface PortfolioData {
   patrimonio: string;
   variacaoMes: string;
   totalComBens: string;
+  /** Partes do total: investimentos e bens (líquidos da dívida). */
+  investido: string;
+  bens: string;
+  /** Linha do topo da tela ("Cotações atualizadas às 14:30"). */
+  atualizacao: string;
   outras: { quantidade: number; total: string; percentual: string };
   /** Rentabilidade acumulada (%) mês a mês: carteira e CDI (`null` sem CDI no mês). */
   rentabilidade: {
@@ -163,6 +168,9 @@ export const portfolio: PortfolioData = {
   patrimonio: "R$ 48.310,90",
   variacaoMes: "+R$ 862,40 em setembro (+1,8%)",
   totalComBens: "R$ 746.810,90",
+  investido: "R$ 48.310,90",
+  bens: "R$ 698.500",
+  atualizacao: "Cotações atualizadas às 14:30",
   outras: { quantidade: 6, total: "R$ 3.824,14", percentual: "7,9%" },
   /** Rentabilidade acumulada (%) de out a set: carteira e CDI. */
   rentabilidade: {
