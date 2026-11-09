@@ -54,6 +54,7 @@ const paths = {
   fingerprint:
     "M12 11v3M8.5 6.6A6 6 0 0 1 18 11v1M6 11a6 6 0 0 1 .5-2.4M6 15c0 2 .6 3.8 1.6 5.3M9 11a3 3 0 0 1 6 0v2c0 3 .8 5.4 2 7M12 14c0 2.8.8 5.3 2.2 7M15.8 17.5c.1 1.2.4 2.3.8 3.3",
   flag: "M5 21V4M5 4h11l-2 4 2 4H5",
+  grip: "M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01",
   globe:
     "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18",
   grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
@@ -71,8 +72,10 @@ const paths = {
   mail: "M3 6h18v12H3zM3 7l9 6 9-6",
   merge: "M6 3v6a6 6 0 0 0 6 6h6M15 12l3 3-3 3M6 21v-6",
   mic: "M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zM19 11a7 7 0 0 1-14 0M12 18v3",
+  minus: "M5 12h14",
   minimize: "M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7",
   more: "M5 12h.01M12 12h.01M19 12h.01",
+  "move-horizontal": "M18 8l4 4-4 4M6 8l-4 4 4 4M2 12h20",
   "panel-right": "M4 4h16v16H4zM15 4v16",
   paperclip: "M21 11l-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 7",
   pause: "M8 5v14M16 5v14",

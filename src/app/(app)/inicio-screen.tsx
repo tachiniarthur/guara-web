@@ -27,6 +27,10 @@ import { useSession } from "@/features/acesso/session";
 import { useHomeView } from "@/features/inicio/live";
 import { user } from "@/features/usuario/data";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { HOME_BLOCKS } from "@/features/inicio/layout";
+import { EditableGrid } from "@/features/layout/components/editable-grid";
+import { EditLayoutButton, LayoutEditBar } from "@/features/layout/components/layout-edit-bar";
+import { useScreenLayout } from "@/features/layout/use-screen-layout";
 
 /**
  * Início (e o caso de quem ainda não conectou banco: ?estado=novo). Estados do protótipo por
@@ -35,6 +39,7 @@ import { Breadcrumb } from "@/components/ui/breadcrumb";
 export function InicioScreen({ estado }: { estado?: string }) {
   const { live } = useSession();
   const home = useHomeView({ enabled: live });
+  const layout = useScreenLayout("home", HOME_BLOCKS);
   if (estado === "novo" || (live && home.data?.semBanco)) return <NewUserHome />;
   // Modo real: carregando até a API responder, erro se alguma rota falhar. Protótipo: `?estado=`.
   const state = live
@@ -49,6 +54,65 @@ export function InicioScreen({ estado }: { estado?: string }) {
   const notificacoes = view ? view.notificacoes : user.notificacoesNovas;
   const pendencias = view ? view.pendencias : 3;
   const mes = view?.mes ?? { name: "setembro", short: "Set 2026", long: "Setembro 2026" };
+  /** Seção sem nenhum bloco à vista some fora da edição (na edição, mostra onde ficaria). */
+  const sectionShown = (group: string) =>
+    layout.editing ||
+    layout.blocks.some(
+      (b) => !b.hidden && HOME_BLOCKS.some((def) => def.id === b.id && def.group === group),
+    );
+  const renderBlock = (id: string) => {
+    switch (id) {
+      case "resumo":
+        return (
+          <SummaryCard
+            className="@desk:min-h-[18.75rem]"
+            summary={view?.summary}
+            cashFlow={view?.cashFlow ?? undefined}
+          />
+        );
+      case "pendencias":
+        return <PendingCard className="@desk:min-h-[18.75rem]" pendingItems={view?.pending} />;
+      case "investimentos":
+      case "cobrancas":
+      case "metas":
+      case "alertas":
+        return <OverviewCards data={view?.overview} only={id} />;
+      case "categorias":
+        return (
+          <Card className="gap-3.5">
+            <CardHeader
+              title="Gastos por categoria"
+              action={
+                <CardAction>
+                  <TextLink href="/alertas/novo-teto">Ajustar tetos</TextLink>
+                </CardAction>
+              }
+            />
+            <CardBody className="grow">
+              <CategoryBudgetList items={view ? view.categoryBudgets : categoryBudgets} />
+            </CardBody>
+          </Card>
+        );
+      case "lancamentos":
+        return (
+          <Card className="gap-2.5">
+            <CardHeader
+              title="Últimos lançamentos"
+              action={
+                <CardAction>
+                  <TextLink href="/gastos">{view ? "Ver todos" : "Ver os 118"}</TextLink>
+                </CardAction>
+              }
+            />
+            <CardBody className="grow">
+              <TransactionList items={view ? view.recent : recentTransactions} />
+            </CardBody>
+          </Card>
+        );
+      default:
+        return null;
+    }
+  };
   return (
     <ScreenStateProvider state={state}>
       <Page
@@ -112,6 +176,8 @@ export function InicioScreen({ estado }: { estado?: string }) {
               <Icon name="chevron-down" size={16} />
             </button>
             <ShowValuesButton variant="pill" className="hidden @tab:flex" />
+            <EditLayoutButton layout={layout} className="hidden h-12 @desk:inline-flex" />
+            <EditLayoutButton layout={layout} compact className="h-12 @desk:hidden" />
             <IconButtonLink
               href="/notificacoes"
               icon="bell"
@@ -122,83 +188,72 @@ export function InicioScreen({ estado }: { estado?: string }) {
           </div>
         </header>
 
-        <section aria-labelledby="sec-resumo" className="flex min-h-0 flex-col gap-3.5">
-          <SectionHeader
-            id="sec-resumo"
-            title={`Resumo de ${mes.name}`}
-            subtitle="Como está o seu mês"
-            aside={
-              view ? (
-                view.atualizado && <span className="text-13 text-caption">{view.atualizado}</span>
-              ) : (
-                <span className="text-13 text-caption">Atualizado há 5 min · 2 de 4 bancos</span>
-              )
-            }
-          />
-          <Skeleton active={loading}>
-            <div className="grid grid-cols-1 gap-4 @desk:grid-cols-12 @desk:gap-6">
-              <SummaryCard
-                className="@desk:col-span-8 @desk:h-[18.75rem]"
-                summary={view?.summary}
-                cashFlow={view?.cashFlow ?? undefined}
-              />
-              <PendingCard
-                className="@desk:col-span-4 @desk:h-[18.75rem]"
-                pendingItems={view?.pending}
-              />
-            </div>
-          </Skeleton>
-        </section>
+        <LayoutEditBar layout={layout} defs={HOME_BLOCKS} />
 
-        <section aria-labelledby="sec-visao" className="flex min-h-0 flex-col gap-3.5">
-          <SectionHeader
-            id="sec-visao"
-            title="Visão geral"
-            subtitle="Seus investimentos, cobranças, metas e alertas"
-          />
-          <Skeleton active={loading}>
-            <OverviewCards data={view?.overview} />
-          </Skeleton>
-        </section>
+        {sectionShown("resumo") && (
+          <section aria-labelledby="sec-resumo" className="flex min-h-0 flex-col gap-3.5">
+            <SectionHeader
+              id="sec-resumo"
+              title={`Resumo de ${mes.name}`}
+              subtitle="Como está o seu mês"
+              aside={
+                view ? (
+                  view.atualizado && <span className="text-13 text-caption">{view.atualizado}</span>
+                ) : (
+                  <span className="text-13 text-caption">Atualizado há 5 min · 2 de 4 bancos</span>
+                )
+              }
+            />
+            <Skeleton active={loading}>
+              <EditableGrid
+                layout={layout}
+                defs={HOME_BLOCKS}
+                group="resumo"
+                renderBlock={renderBlock}
+                emptyLabel="Os blocos desta seção estão ocultos."
+              />
+            </Skeleton>
+          </section>
+        )}
 
-        <section aria-labelledby="sec-detalhes" className="flex min-h-0 flex-col gap-3.5">
-          <SectionHeader
-            id="sec-detalhes"
-            title={`Detalhes de ${mes.name}`}
-            subtitle="Para onde foi o dinheiro"
-            aside={<TextLink href="/relatorio">Relatório completo</TextLink>}
-          />
-          <Skeleton active={loading}>
-            <div className="grid grid-cols-1 gap-4 @desk:grid-cols-12 @desk:gap-6">
-              <Card className="gap-3.5 @desk:col-span-7">
-                <CardHeader
-                  title="Gastos por categoria"
-                  action={
-                    <CardAction>
-                      <TextLink href="/alertas/novo-teto">Ajustar tetos</TextLink>
-                    </CardAction>
-                  }
-                />
-                <CardBody className="grow">
-                  <CategoryBudgetList items={view ? view.categoryBudgets : categoryBudgets} />
-                </CardBody>
-              </Card>
-              <Card className="gap-2.5 @desk:col-span-5">
-                <CardHeader
-                  title="Últimos lançamentos"
-                  action={
-                    <CardAction>
-                      <TextLink href="/gastos">{view ? "Ver todos" : "Ver os 118"}</TextLink>
-                    </CardAction>
-                  }
-                />
-                <CardBody className="grow">
-                  <TransactionList items={view ? view.recent : recentTransactions} />
-                </CardBody>
-              </Card>
-            </div>
-          </Skeleton>
-        </section>
+        {sectionShown("visao") && (
+          <section aria-labelledby="sec-visao" className="flex min-h-0 flex-col gap-3.5">
+            <SectionHeader
+              id="sec-visao"
+              title="Visão geral"
+              subtitle="Seus investimentos, cobranças, metas e alertas"
+            />
+            <Skeleton active={loading}>
+              <EditableGrid
+                layout={layout}
+                defs={HOME_BLOCKS}
+                group="visao"
+                renderBlock={renderBlock}
+                emptyLabel="Os blocos desta seção estão ocultos."
+              />
+            </Skeleton>
+          </section>
+        )}
+
+        {sectionShown("detalhes") && (
+          <section aria-labelledby="sec-detalhes" className="flex min-h-0 flex-col gap-3.5">
+            <SectionHeader
+              id="sec-detalhes"
+              title={`Detalhes de ${mes.name}`}
+              subtitle="Para onde foi o dinheiro"
+              aside={<TextLink href="/relatorio">Relatório completo</TextLink>}
+            />
+            <Skeleton active={loading}>
+              <EditableGrid
+                layout={layout}
+                defs={HOME_BLOCKS}
+                group="detalhes"
+                renderBlock={renderBlock}
+                emptyLabel="Os blocos desta seção estão ocultos."
+              />
+            </Skeleton>
+          </section>
+        )}
       </Page>
     </ScreenStateProvider>
   );

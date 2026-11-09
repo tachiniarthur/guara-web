@@ -32,6 +32,10 @@ import { useSession } from "@/features/acesso/session";
 import { NewUserSpending } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { SPENDING_BLOCKS } from "@/features/gastos/layout";
+import { EditableGrid } from "@/features/layout/components/editable-grid";
+import { EditLayoutButton, LayoutEditBar } from "@/features/layout/components/layout-edit-bar";
+import { useScreenLayout } from "@/features/layout/use-screen-layout";
 
 const SAIDAS = "#E0935A";
 
@@ -89,6 +93,7 @@ const noSpending = (
 export function GastosScreen({ estado }: { estado?: string }) {
   const { live } = useSession();
   const gastos = useGastosView({ enabled: live });
+  const layout = useScreenLayout("spending", SPENDING_BLOCKS);
   if (estado === "novo" || (live && gastos.data?.semDados)) return <NewUserSpending />;
   // Modo real: carregando até a API responder, erro se alguma rota falhar. Protótipo: `?estado=`.
   const state = live
@@ -135,6 +140,212 @@ export function GastosScreen({ estado }: { estado?: string }) {
       <div className="hidden grow flex-col @tab:flex @desk:hidden">{noSpending}</div>
     </>
   );
+  const renderBlock = (id: string) => {
+    switch (id) {
+      case "ritmo":
+        return (
+          <Panel id="g-ritmo">
+            <PanelHeader title="Ritmo do mês" subtitle={sub("Gasto acumulado dia a dia")} />
+            <StateSwap replacement={body()} className="grow gap-3.5">
+              <ChartLegend
+                items={[
+                  { label: data.spendingPace.nomeAtual, color: SAIDAS },
+                  { label: data.spendingPace.nomeAnterior, color: "#93A198", dashed: true },
+                ]}
+              />
+              <div className="flex grow items-end">
+                <ChartFit
+                  narrow={<SpendingPaceChart variant="mobile" />}
+                  wide={<SpendingPaceChart variant="desktop" />}
+                />
+              </div>
+              {view ? (
+                <Footer parts={view.rodapes.ritmo} />
+              ) : (
+                <ChartFooter>
+                  <strong className="text-sand">R$ 1.012 acima</strong> de agosto no mesmo dia,
+                  puxado pela compra de eletrônicos de hoje.
+                </ChartFooter>
+              )}
+            </StateSwap>
+          </Panel>
+        );
+      case "meses":
+        return (
+          <Panel id="g-meses">
+            <PanelHeader title="Últimos 6 meses" subtitle={sub("Total gasto por mês")} />
+            <StateSwap replacement={body()} className="grow gap-3.5">
+              <ChartLegend
+                items={[
+                  { label: "Gasto no mês", color: SAIDAS },
+                  { label: data.monthlySpending.rotuloMedia, color: "#BDC6BE", dashed: true },
+                  { label: data.monthlySpending.rotuloPrevisao, color: SAIDAS, dashed: true },
+                ]}
+              />
+              <div className="flex grow items-end">
+                <ChartFit
+                  narrow={<MonthlySpendingChart variant="narrow" />}
+                  wide={<MonthlySpendingChart variant="wide" />}
+                />
+              </div>
+              {view ? (
+                <Footer parts={view.rodapes.meses} />
+              ) : (
+                <ChartFooter>
+                  Setembro deve fechar perto de <strong className="text-sand">R$ 6.050</strong>, 4%
+                  acima da média dos últimos meses.
+                </ChartFooter>
+              )}
+            </StateSwap>
+          </Panel>
+        );
+      case "semana":
+        return (
+          <Panel>
+            <PanelHeader
+              title="Por dia da semana"
+              subtitle={sub(
+                view
+                  ? "Gasto médio por dia nos últimos 3 meses"
+                  : "Gasto médio por dia, sem aluguel e compras acima de R$ 1.000",
+                true,
+              )}
+            />
+            <StateSwap replacement={body()} className="grow gap-3.5">
+              <div className="flex grow items-end">
+                <ChartFit
+                  narrow={<WeekdaySpendingChart variant="narrow" />}
+                  wide={<WeekdaySpendingChart variant="wide" />}
+                />
+              </div>
+              {view ? (
+                <Footer parts={view.rodapes.semana} />
+              ) : (
+                <ChartFooter>
+                  Sexta e sábado concentram <strong className="text-sand">36%</strong> dos gastos do
+                  mês, quase tudo em delivery e lazer.
+                </ChartFooter>
+              )}
+            </StateSwap>
+          </Panel>
+        );
+      case "categorias":
+        return (
+          <Panel id="g-cat" className="gap-2 p-4 @tab:gap-4 @tab:p-5">
+            <div className="mb-1 flex flex-col gap-0.5 @tab:hidden">
+              <h2 className="m-0 font-display text-18 leading-[1.25] font-bold">Por categoria</h2>
+              <p className="m-0 text-13 text-caption">
+                {sub("Toque numa categoria para ver os lançamentos")}
+              </p>
+            </div>
+            <PanelHeader
+              className="hidden @tab:flex"
+              title="Por categoria"
+              subtitle={sub("Clique numa categoria para ver os lançamentos")}
+            />
+            <StateSwap replacement={body(categoryMain)} className="grow gap-2 @tab:gap-4">
+              <div className="flex flex-col gap-2 @tab:hidden">
+                <CategoryBreakdown variant="mobile" />
+              </div>
+              <div className="hidden @tab:block @desk:hidden">
+                <CategoryBreakdown variant="tablet" />
+              </div>
+              <div className="hidden grow @desk:flex">
+                <CategoryBreakdown variant="desktop" />
+              </div>
+            </StateSwap>
+          </Panel>
+        );
+      case "lancamentos":
+        return (
+          <Panel id="g-lanc" className="gap-1 p-4 @tab:gap-3 @tab:p-5">
+            <PanelHeader
+              title={
+                <>
+                  <span className="@tab:hidden">Últimos lançamentos</span>
+                  <span className="hidden @tab:inline">Lançamentos</span>
+                </>
+              }
+              titleClassName="@max-tab:text-18 @max-tab:tracking-normal"
+              action={
+                !noData && (
+                  <Link href="/gastos/lancamentos" className={panelLinkClass}>
+                    {view ? "Ver todos" : "Ver 118"}
+                    <Icon name="chevron-right" size={16} />
+                  </Link>
+                )
+              }
+            />
+            <StateSwap replacement={body(ledgerMain)} className="grow gap-1 @tab:gap-3">
+              <SearchField
+                label="Buscar lançamento"
+                size="sm"
+                className="mt-2 mb-1 @tab:my-0"
+                inputClassName="@max-tab:text-16"
+              />
+              <div className="@tab:hidden">
+                <LedgerList
+                  items={
+                    view
+                      ? ledger.slice(0, 4)
+                      : ledger.filter((l) => ["l1", "l2", "l3", "l6"].includes(l.id))
+                  }
+                  short
+                />
+              </div>
+              <div className="hidden @tab:block @desk:hidden">
+                <LedgerList items={ledger.slice(0, 5)} />
+              </div>
+              <div className="hidden @desk:block">
+                <LedgerList items={ledger} />
+              </div>
+            </StateSwap>
+          </Panel>
+        );
+      case "tetos":
+        return (
+          <Panel id="g-tetos" className="gap-5 p-4 @tab:p-5">
+            <PanelHeader
+              title={
+                <Link href="/alertas/tetos" className={inlineLinkClass}>
+                  Tetos do mês
+                </Link>
+              }
+              subtitle={sub("Cada aviso chega uma vez por mês, somando crédito e débito")}
+              action={
+                !noData && (
+                  <ButtonLink href="/alertas/novo-teto" size="sm">
+                    <Icon name="plus" size={18} />
+                    <span>Novo teto</span>
+                  </ButtonLink>
+                )
+              }
+            />
+            <StateSwap replacement={body()} className="grow gap-5">
+              {tetos.map((teto, i) => (
+                <div key={teto.id} className={cn(i === 2 && "hidden @desk:block")}>
+                  <TetoMeter teto={teto} />
+                </div>
+              ))}
+            </StateSwap>
+          </Panel>
+        );
+      case "previsao":
+        return (
+          <Panel id="g-previsao" className="gap-4 p-4 @tab:p-5">
+            <PanelHeader
+              title="Previsão do mês"
+              subtitle={sub(`No ritmo de ${mes.name}, comparado aos últimos meses`)}
+            />
+            <StateSwap replacement={body()} className="grow">
+              <MonthForecast />
+            </StateSwap>
+          </Panel>
+        );
+      default:
+        return null;
+    }
+  };
   return (
     <GastosDataProvider value={data}>
       <Page
@@ -145,15 +356,18 @@ export function GastosScreen({ estado }: { estado?: string }) {
             title="Gastos"
             account
             actions={
-              <button
-                type="button"
-                aria-haspopup="dialog"
-                className="flex h-11 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 font-medium whitespace-nowrap"
-              >
-                <Icon name="calendar" size={18} />
-                {mes.short.slice(0, 3)}
-                <Icon name="chevron-down" size={16} />
-              </button>
+              <>
+                <EditLayoutButton layout={layout} compact />
+                <button
+                  type="button"
+                  aria-haspopup="dialog"
+                  className="flex h-11 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 font-medium whitespace-nowrap"
+                >
+                  <Icon name="calendar" size={18} />
+                  {mes.short.slice(0, 3)}
+                  <Icon name="chevron-down" size={16} />
+                </button>
+              </>
             }
           />
         }
@@ -194,6 +408,8 @@ export function GastosScreen({ estado }: { estado?: string }) {
               <span className="hidden @desk:inline">{mes.long}</span>
               <Icon name="chevron-down" size={16} />
             </button>
+            <EditLayoutButton layout={layout} className="hidden @desk:inline-flex" />
+            <EditLayoutButton layout={layout} compact className="@desk:hidden" />
             <ButtonLink
               href="/alertas/novo-teto"
               size="md"
@@ -238,199 +454,14 @@ export function GastosScreen({ estado }: { estado?: string }) {
         </div>
 
         <Skeleton active={state === "carregando"}>
-          <div className="grid grid-cols-1 gap-4 @tab:grid-cols-2 @tab:gap-x-4 @tab:gap-y-5 @desk:grid-cols-6 @desk:gap-x-5 @desk:gap-y-6">
-            <Panel id="g-ritmo" className="@tab:col-span-2">
-              <PanelHeader title="Ritmo do mês" subtitle={sub("Gasto acumulado dia a dia")} />
-              <StateSwap replacement={body()} className="grow gap-3.5">
-                <ChartLegend
-                  items={[
-                    { label: data.spendingPace.nomeAtual, color: SAIDAS },
-                    { label: data.spendingPace.nomeAnterior, color: "#93A198", dashed: true },
-                  ]}
-                />
-                <div className="flex grow items-end">
-                  <ChartFit
-                    narrow={<SpendingPaceChart variant="mobile" />}
-                    wide={<SpendingPaceChart variant="desktop" />}
-                  />
-                </div>
-                {view ? (
-                  <Footer parts={view.rodapes.ritmo} />
-                ) : (
-                  <ChartFooter>
-                    <strong className="text-sand">R$ 1.012 acima</strong> de agosto no mesmo dia,
-                    puxado pela compra de eletrônicos de hoje.
-                  </ChartFooter>
-                )}
-              </StateSwap>
-            </Panel>
-
-            <Panel id="g-meses" className="@tab:-mt-1 @desk:col-span-2 @desk:mt-0">
-              <PanelHeader title="Últimos 6 meses" subtitle={sub("Total gasto por mês")} />
-              <StateSwap replacement={body()} className="grow gap-3.5">
-                <ChartLegend
-                  items={[
-                    { label: "Gasto no mês", color: SAIDAS },
-                    { label: data.monthlySpending.rotuloMedia, color: "#BDC6BE", dashed: true },
-                    { label: data.monthlySpending.rotuloPrevisao, color: SAIDAS, dashed: true },
-                  ]}
-                />
-                <div className="flex grow items-end">
-                  <ChartFit
-                    narrow={<MonthlySpendingChart variant="narrow" />}
-                    wide={<MonthlySpendingChart variant="wide" />}
-                  />
-                </div>
-                {view ? (
-                  <Footer parts={view.rodapes.meses} />
-                ) : (
-                  <ChartFooter>
-                    Setembro deve fechar perto de <strong className="text-sand">R$ 6.050</strong>,
-                    4% acima da média dos últimos meses.
-                  </ChartFooter>
-                )}
-              </StateSwap>
-            </Panel>
-
-            <Panel className="@tab:-mt-1 @desk:col-span-2 @desk:mt-0">
-              <PanelHeader
-                title="Por dia da semana"
-                subtitle={sub(
-                  view
-                    ? "Gasto médio por dia nos últimos 3 meses"
-                    : "Gasto médio por dia, sem aluguel e compras acima de R$ 1.000",
-                  true,
-                )}
-              />
-              <StateSwap replacement={body()} className="grow gap-3.5">
-                <div className="flex grow items-end">
-                  <ChartFit
-                    narrow={<WeekdaySpendingChart variant="narrow" />}
-                    wide={<WeekdaySpendingChart variant="wide" />}
-                  />
-                </div>
-                {view ? (
-                  <Footer parts={view.rodapes.semana} />
-                ) : (
-                  <ChartFooter>
-                    Sexta e sábado concentram <strong className="text-sand">36%</strong> dos gastos
-                    do mês, quase tudo em delivery e lazer.
-                  </ChartFooter>
-                )}
-              </StateSwap>
-            </Panel>
-
-            <Panel
-              id="g-cat"
-              className="gap-2 p-4 @tab:col-span-2 @tab:gap-4 @tab:p-5 @desk:col-span-3"
-            >
-              <div className="mb-1 flex flex-col gap-0.5 @tab:hidden">
-                <h2 className="m-0 font-display text-18 leading-[1.25] font-bold">Por categoria</h2>
-                <p className="m-0 text-13 text-caption">
-                  {sub("Toque numa categoria para ver os lançamentos")}
-                </p>
-              </div>
-              <PanelHeader
-                className="hidden @tab:flex"
-                title="Por categoria"
-                subtitle={sub("Clique numa categoria para ver os lançamentos")}
-              />
-              <StateSwap replacement={body(categoryMain)} className="grow gap-2 @tab:gap-4">
-                <div className="flex flex-col gap-2 @tab:hidden">
-                  <CategoryBreakdown variant="mobile" />
-                </div>
-                <div className="hidden @tab:block @desk:hidden">
-                  <CategoryBreakdown variant="tablet" />
-                </div>
-                <div className="hidden grow @desk:flex">
-                  <CategoryBreakdown variant="desktop" />
-                </div>
-              </StateSwap>
-            </Panel>
-
-            <Panel
-              id="g-lanc"
-              className="order-last gap-1 p-4 @tab:order-none @tab:col-span-2 @tab:gap-3 @tab:p-5 @desk:col-span-3"
-            >
-              <PanelHeader
-                title={
-                  <>
-                    <span className="@tab:hidden">Últimos lançamentos</span>
-                    <span className="hidden @tab:inline">Lançamentos</span>
-                  </>
-                }
-                titleClassName="@max-tab:text-18 @max-tab:tracking-normal"
-                action={
-                  !noData && (
-                    <Link href="/gastos/lancamentos" className={panelLinkClass}>
-                      {view ? "Ver todos" : "Ver 118"}
-                      <Icon name="chevron-right" size={16} />
-                    </Link>
-                  )
-                }
-              />
-              <StateSwap replacement={body(ledgerMain)} className="grow gap-1 @tab:gap-3">
-                <SearchField
-                  label="Buscar lançamento"
-                  size="sm"
-                  className="mt-2 mb-1 @tab:my-0"
-                  inputClassName="@max-tab:text-16"
-                />
-                <div className="@tab:hidden">
-                  <LedgerList
-                    items={
-                      view
-                        ? ledger.slice(0, 4)
-                        : ledger.filter((l) => ["l1", "l2", "l3", "l6"].includes(l.id))
-                    }
-                    short
-                  />
-                </div>
-                <div className="hidden @tab:block @desk:hidden">
-                  <LedgerList items={ledger.slice(0, 5)} />
-                </div>
-                <div className="hidden @desk:block">
-                  <LedgerList items={ledger} />
-                </div>
-              </StateSwap>
-            </Panel>
-
-            <Panel id="g-tetos" className="gap-5 p-4 @tab:p-5 @desk:col-span-3">
-              <PanelHeader
-                title={
-                  <Link href="/alertas/tetos" className={inlineLinkClass}>
-                    Tetos do mês
-                  </Link>
-                }
-                subtitle={sub("Cada aviso chega uma vez por mês, somando crédito e débito")}
-                action={
-                  !noData && (
-                    <ButtonLink href="/alertas/novo-teto" size="sm">
-                      <Icon name="plus" size={18} />
-                      <span>Novo teto</span>
-                    </ButtonLink>
-                  )
-                }
-              />
-              <StateSwap replacement={body()} className="grow gap-5">
-                {tetos.map((teto, i) => (
-                  <div key={teto.id} className={cn(i === 2 && "hidden @desk:block")}>
-                    <TetoMeter teto={teto} />
-                  </div>
-                ))}
-              </StateSwap>
-            </Panel>
-
-            <Panel id="g-previsao" className="gap-4 p-4 @tab:p-5 @desk:col-span-3">
-              <PanelHeader
-                title="Previsão do mês"
-                subtitle={sub(`No ritmo de ${mes.name}, comparado aos últimos meses`)}
-              />
-              <StateSwap replacement={body()} className="grow">
-                <MonthForecast />
-              </StateSwap>
-            </Panel>
-          </div>
+          <LayoutEditBar layout={layout} defs={SPENDING_BLOCKS} className="mb-4" />
+          <EditableGrid
+            layout={layout}
+            defs={SPENDING_BLOCKS}
+            renderBlock={renderBlock}
+            className="@tab:gap-x-4 @tab:gap-y-5 @desk:gap-x-5 @desk:gap-y-6"
+            emptyLabel="Todos os blocos estão ocultos. Reexiba algum pela barra acima."
+          />
         </Skeleton>
       </Page>
     </GastosDataProvider>

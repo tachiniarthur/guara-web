@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 
 import type { OverviewData } from "../live";
 
+export type OverviewCardId = "investimentos" | "cobrancas" | "metas" | "alertas";
+
 /** Card resumido da Visão geral: ícone e título, número em destaque, detalhe e link. */
 function OverviewCard({
   icon,
@@ -109,18 +111,16 @@ function prototypeOverview(): OverviewData {
 export function OverviewCards({
   className,
   data = prototypeOverview(),
+  only,
 }: {
   className?: string;
   data?: OverviewData;
+  /** Só um dos cartões, sem a grade (cada cartão é um bloco do layout editável). */
+  only?: OverviewCardId;
 }) {
   const { investimentos, cobrancas, metas, alertas } = data;
-  return (
-    <div
-      className={cn(
-        "grid grid-cols-1 gap-4 @tab:grid-cols-2 @desk:grid-cols-4 @desk:gap-6",
-        className,
-      )}
-    >
+  const cards: Record<OverviewCardId, ReactNode> = {
+    investimentos: (
       <OverviewCard
         icon="trending-up"
         title="Investimentos"
@@ -138,7 +138,8 @@ export function OverviewCards({
           ))}
         </div>
       </OverviewCard>
-
+    ),
+    cobrancas: (
       <OverviewCard
         icon="repeat"
         title="Próximas cobranças"
@@ -157,7 +158,8 @@ export function OverviewCards({
           ))}
         </ul>
       </OverviewCard>
-
+    ),
+    metas: (
       <OverviewCard
         icon="target"
         title="Metas"
@@ -183,7 +185,8 @@ export function OverviewCards({
           </div>
         )}
       </OverviewCard>
-
+    ),
+    alertas: (
       <OverviewCard
         icon="bell"
         title="Alertas de preço"
@@ -210,6 +213,20 @@ export function OverviewCards({
           </div>
         )}
       </OverviewCard>
+    ),
+  };
+  if (only) return cards[only];
+  return (
+    <div
+      className={cn(
+        "grid grid-cols-1 gap-4 @tab:grid-cols-2 @desk:grid-cols-4 @desk:gap-6",
+        className,
+      )}
+    >
+      {cards.investimentos}
+      {cards.cobrancas}
+      {cards.metas}
+      {cards.alertas}
     </div>
   );
 }
