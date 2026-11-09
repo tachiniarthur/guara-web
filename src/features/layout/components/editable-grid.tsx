@@ -21,7 +21,13 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { AnimatePresence, MotionConfig, motion, type Transition } from "motion/react";
+import {
+  AnimatePresence,
+  MotionConfig,
+  motion,
+  useReducedMotion,
+  type Transition,
+} from "motion/react";
 import { useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
@@ -34,6 +40,7 @@ import {
   type LayoutSize,
   SIZE_LABELS,
   moveBlock,
+  tabletHalf,
   sizeForColumns,
   stepSize,
   updateBlock,
@@ -41,16 +48,18 @@ import {
 import type { ScreenLayout } from "../use-screen-layout";
 
 /**
- * Colunas de cada tamanho por largura (classes escritas por extenso: o Tailwind não enxerga
- * classes montadas). Celular: tudo na largura toda; tablet: até `m`, metade.
+ * Colunas no desktop por tamanho e no tablet (metade ou tudo, ver `tabletHalf`). Classes escritas
+ * por extenso: o Tailwind não enxerga classes montadas. Celular: sempre a largura toda.
  */
-const SPAN: Record<LayoutSize, string> = {
-  xs: "col-span-12 @tab:col-span-6 @desk:col-span-3",
-  s: "col-span-12 @tab:col-span-6 @desk:col-span-4",
-  m: "col-span-12 @tab:col-span-6 @desk:col-span-6",
-  l: "col-span-12 @desk:col-span-8",
-  xl: "col-span-12",
+const DESK: Record<LayoutSize, string> = {
+  xs: "@desk:col-span-3",
+  s: "@desk:col-span-4",
+  m: "@desk:col-span-6",
+  l: "@desk:col-span-8",
+  xl: "@desk:col-span-12",
 };
+const spanOf = (def: BlockDef, size: LayoutSize) =>
+  cn("col-span-12", tabletHalf(def, size) && "@tab:col-span-6", DESK[size]);
 
 /**
  * Reflow dos vizinhos (tamanho, ocultar, reexibir): mola curta e sem ultrapassar o ponto, como
@@ -116,7 +125,7 @@ export function EditableGrid({
     return (
       <div className={gridClass}>
         {visible.map((block) => (
-          <BlockFrame key={block.id} block={block}>
+          <BlockFrame key={block.id} block={block} def={defOf(block.id)}>
             {renderBlock(block.id)}
           </BlockFrame>
         ))}
@@ -137,9 +146,17 @@ export function EditableGrid({
 }
 
 /** O bloco fora da edição: só a coluna e, no celular, a altura compacta. */
-function BlockFrame({ block, children }: { block: LayoutBlock; children: ReactNode }) {
+function BlockFrame({
+  block,
+  def,
+  children,
+}: {
+  block: LayoutBlock;
+  def: BlockDef;
+  children: ReactNode;
+}) {
   return (
-    <div className={cn("flex min-w-0 flex-col *:grow", SPAN[block.size])}>
+    <div className={cn("flex min-w-0 flex-col *:grow", spanOf(def, block.size))}>
       {block.compact ? <Compact>{children}</Compact> : children}
     </div>
   );
@@ -170,6 +187,8 @@ function EditingGrid({
   emptyLabel?: string;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  // Menos movimento pedido no sistema: o bloco solto aparece no lugar, sem deslizar.
+  const reduceMotion = useReducedMotion();
   const gridRef = useRef<HTMLDivElement>(null);
   /** A ordem de antes do arrasto, para o Esc devolver tudo. */
   const before = useRef<LayoutBlock[] | null>(null);
@@ -245,7 +264,7 @@ function EditingGrid({
         {/* No `body`: um ancestral com `transform` (entrada da página) desloca o `position: fixed`. */}
         {typeof document !== "undefined" &&
           createPortal(
-            <DragOverlay dropAnimation={DROP}>
+            <DragOverlay dropAnimation={reduceMotion ? null : DROP}>
               {active ? <DragGhost label={labelOf(active.id)} size={active.size} /> : null}
             </DragOverlay>,
             document.body,
@@ -307,7 +326,7 @@ function EditableBlock({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={cn("flex min-w-0 touch-manipulation flex-col *:grow", SPAN[block.size])}
+      className={cn("flex min-w-0 touch-manipulation flex-col *:grow", spanOf(def, block.size))}
       {...pointerListeners}
     >
       <motion.div

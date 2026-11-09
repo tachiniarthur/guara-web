@@ -37,6 +37,17 @@ export interface BlockDef {
   sizes: readonly LayoutSize[];
   /** Grupo da tela (as seções do Início); blocos só trocam de lugar dentro do grupo. */
   group?: string;
+  /**
+   * Largura no tablet enquanto o bloco está no tamanho padrão (a do design, que nem sempre segue
+   * a regra geral). Depois que a pessoa muda o tamanho, vale a regra: até `m`, metade.
+   */
+  tablet?: "half" | "full";
+}
+
+/** O bloco ocupa metade da largura no tablet? */
+export function tabletHalf(def: BlockDef, size: LayoutSize): boolean {
+  if (size === def.defaultSize && def.tablet) return def.tablet === "half";
+  return size === "xs" || size === "s" || size === "m";
 }
 
 /** Como um bloco está agora. */

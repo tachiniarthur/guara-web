@@ -18,6 +18,7 @@ export const HOME_BLOCKS: readonly BlockDef[] = [
     defaultSize: "s",
     sizes: ["s", "m", "l", "xl"],
     group: "resumo",
+    tablet: "full",
   },
   {
     id: "investimentos",
@@ -54,5 +55,6 @@ export const HOME_BLOCKS: readonly BlockDef[] = [
     defaultSize: "s",
     sizes: ["s", "m", "l", "xl"],
     group: "detalhes",
+    tablet: "full",
   },
 ];

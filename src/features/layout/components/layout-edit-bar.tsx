@@ -58,9 +58,18 @@ export function LayoutEditBar({
           <motion.section
             key="barra"
             aria-label="Editar layout"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0, transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }}
-            exit={{ opacity: 0, y: -8, transition: { duration: 0.17, ease: [0.22, 1, 0.36, 1] } }}
+            // `transform` em string: acelerado no Motion 13 (o atalho `y` roda na thread principal).
+            initial={{ opacity: 0, transform: "translateY(-8px)" }}
+            animate={{
+              opacity: 1,
+              transform: "translateY(0px)",
+              transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
+            }}
+            exit={{
+              opacity: 0,
+              transform: "translateY(-8px)",
+              transition: { duration: 0.17, ease: [0.22, 1, 0.36, 1] },
+            }}
             className={cn(
               "sticky top-2 z-30 flex flex-col gap-3 rounded-card border border-line-strong bg-canvas/95 p-4 shadow-[0_12px_32px_rgba(0,0,0,.35)] backdrop-blur @desk:flex-row @desk:items-center @desk:justify-between @desk:p-5",
               className,

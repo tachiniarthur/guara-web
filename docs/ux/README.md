@@ -56,6 +56,16 @@ e em poucos componentes de `src/components`. **Não crie keyframes, curvas ou du
 | Fim do carregamento                             | `Skeleton`: ao terminar, o conteúdo entra como tela recém-aberta                             |
 | `--duration-chart`                              | 1200 ms                                                                                      | Gráfico se desenhando ao entrar (linhas: 1800 ms)        |
 
+### Exceção registrada: editor de layout (Início e Gastos)
+
+`src/features/layout`. Arrasto pelo dnd-kit (o fantasma segue o ponteiro 1:1, `transform` no
+próprio elemento) e reflow dos vizinhos pelo `layout="position"` do Motion: mola sem ultrapassar
+(`bounce: 0`, `visualDuration: 0.28`, perto do `--duration-move`), só posição (o tamanho encaixa na
+hora para não esticar gráficos). É animação de layout, então roda na thread principal; só acontece
+com a página ociosa (edição). Soltar: 240 ms com `--ease-out-soft`. Barra de edição: entra em
+200 ms e sai em 170 ms (`--duration-popover`/`--duration-exit`), `transform` em string. Menos
+movimento: `MotionConfig reducedMotion="user"` e soltar sem deslizar.
+
 ### Comportamentos globais (use em vez de reinventar)
 
 | Precisa de…                                           | Use                                                                                                                                                                                                               |
