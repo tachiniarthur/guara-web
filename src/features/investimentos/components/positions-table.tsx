@@ -192,6 +192,9 @@ export function PositionsTable() {
                     className={cn(cell, "font-bold whitespace-nowrap tabular-nums")}
                   >
                     {p.total}
+                    {p.totalOriginal && (
+                      <span className="block text-13 font-normal text-mist">{p.totalOriginal}</span>
+                    )}
                   </SlideCell>
                   <SlideCell open={expanded} className={cn(cell, "text-soft tabular-nums")}>
                     {p.percentual}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCurrency, formatReais } from "./currency";
+import { formatMoney, formatUsd, formatCurrency, formatReais } from "./currency";
 
 // O Intl separa "R$" do número com espaço não separável (U+00A0).
 const NBSP = " ";
@@ -40,5 +40,22 @@ describe("formatReais", () => {
     expect(2181.72 * 100).not.toBe(218172);
     expect(formatReais(2181.72).replace(/\s/g, " ")).toBe("R$ 2.181,72");
     expect(formatReais(null)).toBe("—");
+  });
+});
+
+describe("formatUsd / formatMoney", () => {
+  const plain = (text: string) => text.replace(/ /g, " ");
+
+  it("dólar no formato brasileiro, sem float", () => {
+    expect(plain(formatUsd("350.79"))).toBe("US$ 350,79");
+    expect(plain(formatUsd("1234567.8"))).toBe("US$ 1.234.567,80");
+    expect(formatUsd(null)).toBe("—");
+    expect(formatUsd("abc")).toBe("—");
+  });
+
+  it("centavos na moeda do ativo", () => {
+    expect(plain(formatMoney(30000, "USD"))).toBe("US$ 300,00");
+    expect(plain(formatMoney(5800, "BRL"))).toBe("R$ 58,00");
+    expect(formatMoney(null, "USD")).toBe("—");
   });
 });

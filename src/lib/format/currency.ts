@@ -43,3 +43,32 @@ export function formatReais(reais: number | null | undefined): string {
   if (isNil(reais)) return EMPTY_VALUE;
   return formatCurrency(Math.round(reais * 100) as Cents);
 }
+
+const usd = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/** Texto decimal da API em dólar ("350.79") como "US$ 350,79". Ausente ou inválido: "—". */
+export function formatUsd(decimal: string | null | undefined): string {
+  if (isNil(decimal) || !/^-?\d+(\.\d+)?$/.test(decimal)) return EMPTY_VALUE;
+  // Intl aceita a string decimal exata (sem passar por float).
+  return usd.format(decimal as unknown as number);
+}
+
+/** Centavos da moeda indicada: BRL como "R$ 1.234,56", USD como "US$ 1.234,56". */
+export function formatMoney(cents: Cents | null | undefined, currency: string): string {
+  if (currency !== "USD") return formatCurrency(cents);
+  if (isNil(cents)) return EMPTY_VALUE;
+  if (!Number.isSafeInteger(cents)) {
+    throw new RangeError(`formatMoney espera centavos inteiros, recebeu: ${cents}`);
+  }
+  const value = BigInt(cents);
+  const negative = value < 0n;
+  const abs = negative ? -value : value;
+  return formatUsd(
+    `${negative ? "-" : ""}${abs / 100n}.${(abs % 100n).toString().padStart(2, "0")}`,
+  );
+}

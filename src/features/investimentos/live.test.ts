@@ -157,4 +157,50 @@ describe("Investimentos com os dados da API", () => {
       extra: "Saldo devedor R$ 200.000",
     });
   });
+
+  it("ativo dos EUA: bolsa na descrição, preço médio e valor em US$ ao lado dos reais", () => {
+    const aapl = position({
+      id: "us",
+      assetClass: "equities",
+      instrumentType: "stock",
+      name: "Apple Inc.",
+      symbol: "AAPL",
+      risk: "high",
+      quantity: "2",
+      averagePriceCents: 161_994,
+      valueCents: 377_942,
+      country: "US",
+      micCode: "XNAS",
+      currency: "USD",
+      originalAveragePrice: "300",
+      originalValue: "701.58",
+    });
+    const us = plain(
+      toInvestimentosView(
+        {
+          ...responses,
+          positions: {
+            data: [aapl],
+            groups: [
+              {
+                assetClass: "equities",
+                label: "Renda variável",
+                valueCents: 377_942,
+                pct: 100,
+                positions: [aapl],
+              },
+            ],
+          },
+        } as unknown as InvestimentosResponses,
+        now,
+      ),
+    );
+    expect(us.positionGroups[0]!.posicoes[0]).toMatchObject({
+      nome: "AAPL",
+      descricao: "Apple Inc. · Nasdaq",
+      precoMedio: "US$ 300,00",
+      total: "R$ 3.779,42",
+      totalOriginal: "US$ 701,58",
+    });
+  });
 });

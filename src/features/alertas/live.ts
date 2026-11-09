@@ -7,7 +7,7 @@ import type { AgentId } from "@/features/assistentes/data";
 import { BudgetSummarySchema, buildTetos, type BudgetSummary } from "@/features/gastos/live";
 import type { TetoProgress } from "@/features/gastos/data";
 import { apiRequest } from "@/lib/api";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 import { percent, relativeDay, apiPercent, buildView } from "@/lib/live-format";
 
 import type { AlertHistoryItem, PriceAlert } from "./data";
@@ -20,6 +20,9 @@ const cents = z.number().int();
 export const ApiPriceAlertSchema = z.object({
   id: z.string(),
   symbol: z.string(),
+  /** Bolsa dos EUA (alvo em dólar); ausente ou `null` = B3. */
+  micCode: z.string().nullable().optional(),
+  currency: z.string().optional(),
   assetName: z.string().nullable(),
   direction: z.enum(["buy", "sell"]),
   targetPriceCents: cents,
@@ -49,17 +52,24 @@ const NotificationsSchema = z.object({
 });
 type Notifications = z.infer<typeof NotificationsSchema>;
 
+/** Valores do alerta na moeda do ativo: reais na B3, dólares nos EUA. */
+const moneyOf =
+  (alert: Pick<ApiPriceAlert, "currency">) =>
+  (cents: number | null): string =>
+    formatMoney(cents, alert.currency ?? "BRL");
+
 /** Um alerta de preço como a lista do design mostra ("Faltam 10,1%", barra de progresso). */
 export function toPriceAlert(alert: ApiPriceAlert): PriceAlert {
   const sell = alert.direction === "sell";
-  const target = formatCurrency(alert.targetPriceCents);
-  const now = alert.currentPriceCents === null ? "—" : formatCurrency(alert.currentPriceCents);
+  const money = moneyOf(alert);
+  const target = money(alert.targetPriceCents);
+  const now = alert.currentPriceCents === null ? "—" : money(alert.currentPriceCents);
   if (alert.status === "triggered") {
     return {
       id: alert.id,
       ativo: alert.symbol,
       direcao: sell ? "venda" : "compra",
-      condicao: `Disparou a ${formatCurrency(alert.triggeredPriceCents)} · alvo ${target}`,
+      condicao: `Disparou a ${money(alert.triggeredPriceCents)} · alvo ${target}`,
       progresso: 100,
       faltam: "Disparou",
     };
@@ -145,7 +155,9 @@ const HistorySchema = z.object({
 });
 type History = z.infer<typeof HistorySchema>;
 
-const reais = (value: number) => formatCurrency(Math.round(value * 100)).replace(/,00$/, "");
+/** Rótulo do gráfico na moeda do ativo, sem centavos redondos ("R$ 38", "US$ 350"). */
+const axisLabel = (currency: string) => (value: number) =>
+  formatMoney(Math.round(value * 100), currency).replace(/,00$/, "");
 
 /** Detalhe de um alerta com os últimos 30 dias de cotação (função pura, testada). */
 export function toPriceAlertDetail(
@@ -155,6 +167,8 @@ export function toPriceAlertDetail(
 ): PriceAlertDetail {
   const base = toPriceAlert(alert);
   const sell = alert.direction === "sell";
+  const money = moneyOf(alert);
+  const reais = axisLabel(alert.currency ?? "BRL");
   const closes = (history?.points ?? []).filter((point) => point.closeCents !== null).slice(-30);
   const prices = closes.map((point) => point.closeCents! / 100);
   const current = alert.currentPriceCents === null ? null : alert.currentPriceCents / 100;
@@ -173,12 +187,12 @@ export function toPriceAlertDetail(
     ...base,
     simbolo: alert.symbol.charAt(0),
     ticker: alert.symbol,
-    alvo: formatCurrency(alert.targetPriceCents),
+    alvo: money(alert.targetPriceCents),
     alvoNota: sell ? "avisar quando subir até" : "avisar quando cair até",
-    agora: alert.currentPriceCents === null ? "—" : formatCurrency(alert.currentPriceCents),
+    agora: alert.currentPriceCents === null ? "—" : money(alert.currentPriceCents),
     agoraHora: alert.quotedAt ? `às ${formatDate(alert.quotedAt, "HH:mm")}` : "",
     distancia: base.faltam.toLowerCase(),
-    distanciaValor: distanceCents === null ? "—" : formatCurrency(distanceCents),
+    distanciaValor: distanceCents === null ? "—" : money(distanceCents),
     tipo: sell ? "Venda · avisar quando subir" : "Compra · avisar quando cair",
     criadoEm: formatDate(alert.createdAt),
     precos: prices,
@@ -189,7 +203,7 @@ export function toPriceAlertDetail(
       quando: alert.triggeredAt
         ? `${relativeDay(formatDate(alert.triggeredAt, "yyyy-MM-dd"), now)}, ${formatDate(alert.triggeredAt, "HH:mm")}`
         : "—",
-      cotacao: formatCurrency(alert.triggeredPriceCents),
+      cotacao: money(alert.triggeredPriceCents),
       hora: alert.triggeredAt ? formatDate(alert.triggeredAt, "HH:mm") : "—",
       valor: (alert.triggeredPriceCents ?? alert.targetPriceCents) / 100,
     },
@@ -222,7 +236,8 @@ export function usePriceAlertDetail(id: string, { enabled }: { enabled: boolean 
             HistorySchema,
             { signal },
           ),
-        enabled: enabled && Boolean(alert),
+        // O histórico diário é só da B3 por enquanto: ativo dos EUA fica com o preço atual.
+        enabled: enabled && Boolean(alert) && !alert?.micCode,
         staleTime: 30 * 60_000,
         retry: false,
       },
@@ -236,7 +251,7 @@ export function usePriceAlertDetail(id: string, { enabled }: { enabled: boolean 
     (error.code === "not_found" || error.code === "validation_failed");
   if (error) return { data: undefined, error, missing, fired: false };
   // O histórico é opcional: sem ele (serviço fora, plano), o gráfico fica só com o preço atual.
-  if (!alert || history.isPending) {
+  if (!alert || (!alert.micCode && history.isPending)) {
     return { data: undefined, error: null, missing: false, fired: false };
   }
   return {

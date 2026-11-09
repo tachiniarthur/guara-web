@@ -12,8 +12,9 @@ import {
   type HeldSubclass,
   type ProfileId,
 } from "@/features/alocacao/data";
+import { exchangeLabel } from "@/features/mercado/live";
 import { apiRequest } from "@/lib/api";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency, formatDate, formatUsd } from "@/lib/format";
 import { MONTHS, apiPercent, buildView, formatWhole, percent, signed } from "@/lib/live-format";
 
 import type { AllocationSlice, CountryExposure, Position, PositionGroup, Risk } from "./data";
@@ -43,6 +44,11 @@ const ApiPositionSchema = z.object({
   returnPct: apiPercent.nullable(),
   portfolioPct: apiPercent.nullable(),
   country: z.string().nullable(),
+  /** Ativo dos EUA: bolsa, moeda e valores em US$ (a API antiga não manda: opcionais). */
+  micCode: z.string().nullable().optional(),
+  currency: z.string().optional(),
+  originalAveragePrice: z.string().nullable().optional(),
+  originalValue: z.string().nullable().optional(),
   source: z.string(),
   updatedAt: z.string(),
 });
@@ -206,12 +212,18 @@ const slugOf = (p: ApiPosition) => (p.symbol ?? p.name).toLowerCase().replace(/[
 
 function toPosition(p: ApiPosition, groupLabel: string): Position {
   const manual = p.source === "manual";
+  const abroad = Boolean(p.micCode);
+  const exchange = p.micCode ? exchangeLabel(p.micCode) : null;
   const when = p.valuedOn ? formatDate(`${p.valuedOn}T12:00:00-03:00`, "dd/MM") : null;
   return {
     id: p.id,
     slug: slugOf(p),
     nome: p.symbol ?? p.name,
-    descricao: p.symbol ? p.name : (INSTRUMENT[p.instrumentType] ?? p.instrumentType),
+    descricao: p.symbol
+      ? exchange
+        ? `${p.name} · ${exchange}`
+        : p.name
+      : (INSTRUMENT[p.instrumentType] ?? p.instrumentType),
     classe: groupLabel,
     instrumento: INSTRUMENT[p.instrumentType] ?? p.instrumentType,
     risco: RISK[p.risk],
@@ -219,8 +231,13 @@ function toPosition(p: ApiPosition, groupLabel: string): Position {
       ? { tipo: "manual", texto: "Cadastro manual", atualizado: when ? `valor de ${when}` : "—" }
       : { tipo: "open-finance", texto: "Open Finance" },
     quantidade: p.symbol ? Number(p.quantity).toLocaleString("pt-BR") : undefined,
-    precoMedio: p.symbol ? formatCurrency(p.averagePriceCents) : undefined,
+    precoMedio: !p.symbol
+      ? undefined
+      : abroad
+        ? formatUsd(p.originalAveragePrice ?? null)
+        : formatCurrency(p.averagePriceCents),
     total: formatCurrency(p.valueCents),
+    totalOriginal: abroad ? formatUsd(p.originalValue ?? null) : undefined,
     percentual: p.portfolioPct === null ? "—" : `${percent.format(p.portfolioPct)}%`,
     hoje:
       p.returnPct === null

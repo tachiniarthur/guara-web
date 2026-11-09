@@ -16,6 +16,8 @@ export type Position = {
   quantidade?: string;
   precoMedio?: string;
   total: string;
+  /** Ativo dos EUA: o valor em US$ (o `total` é em reais). */
+  totalOriginal?: string;
   percentual: string;
   hoje: { valor: string; alta: boolean };
 };

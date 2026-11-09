@@ -149,6 +149,11 @@ function PositionCard({ position: p, open }: { position: Position; open?: boolea
         </span>
         <span className="flex flex-col items-end leading-[1.35]">
           <strong className="text-16 whitespace-nowrap tabular-nums">{p.total}</strong>
+          {p.totalOriginal && (
+            <span className="text-13 whitespace-nowrap text-mist tabular-nums">
+              {p.totalOriginal}
+            </span>
+          )}
           <DayChange change={p.hoje} className="text-14" />
         </span>
         <span aria-hidden="true" className="text-mist group-open:rotate-180">
