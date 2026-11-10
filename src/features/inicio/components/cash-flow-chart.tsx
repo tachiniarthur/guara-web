@@ -1,25 +1,50 @@
+"use client";
+
+import { ChartBox } from "@/components/charts/chart-box";
 import { ChartInspector, InspectorLayer, type InspectPoint } from "@/components/charts/inspector";
 import { formatCurrency, formatReais } from "@/lib/format";
-import { rem } from "@/lib/rem";
 
 import { cashFlow, type CashFlowData } from "../data";
 
-/** Área do gráfico em unidades do viewBox (iguais ao protótipo). */
+/** Área do gráfico em unidades do viewBox (iguais ao protótipo, no tamanho natural). */
 const X0 = 52;
-const X1 = 510;
-const Y0 = 140;
 const Y_TOP = 14;
+/** Tamanho natural do viewBox: largo (rótulos à direita) e compacto (celular). */
+const WIDE = { width: 660, height: 170 } as const;
+const COMPACT = { width: 538, height: 180 } as const;
+/** Espaço à direita da área para os rótulos (largo) e a borda (compacto). */
+const WIDE_LABELS = 150;
+/** Distância mínima entre os rótulos de entradas e saídas (uma linha de texto). */
+const LABEL_GAP = 17;
 const ENTRADAS = "#6DB3EC";
 const SAIDAS = "#E0935A";
 
 const FONT = "var(--font-figtree), Figtree, system-ui, sans-serif";
 
-function scale(diasNoMes: number, maximo: number) {
-  const step = (X1 - X0) / (diasNoMes - 1);
+function scale(diasNoMes: number, maximo: number, x1: number, y0: number) {
+  const step = (x1 - X0) / (diasNoMes - 1);
   return {
     x: (dia: number) => X0 + (dia - 1) * step,
-    y: (valor: number) => Y0 - (valor / maximo) * (Y0 - Y_TOP),
+    y: (valor: number) => y0 - (valor / maximo) * (y0 - Y_TOP),
   };
+}
+
+/**
+ * Altura (y) dos rótulos de entradas e saídas à direita: no ponto de cada linha, afastados quando
+ * os valores são parecidos (com espaço para a "previsão" embaixo do de saídas).
+ */
+export function endLabels(entradas: number, saidas: number, note: boolean) {
+  if (entradas <= saidas) {
+    // Entradas em cima: a nota da previsão fica embaixo das saídas, sem conflito.
+    if (saidas - entradas >= LABEL_GAP) return { entradas, saidas };
+    const mid = (entradas + saidas) / 2;
+    return { entradas: mid - LABEL_GAP / 2, saidas: mid + LABEL_GAP / 2 };
+  }
+  // Saídas em cima: a nota fica entre as duas.
+  const need = LABEL_GAP + (note ? 16 : 0);
+  if (entradas - saidas >= need) return { entradas, saidas };
+  const mid = (entradas + saidas) / 2;
+  return { saidas: mid - need / 2, entradas: mid + need / 2 };
 }
 
 /** Linha em degraus: cada dia é um patamar até o próximo lançamento. */
@@ -36,6 +61,7 @@ function stepPath(values: number[], x: (d: number) => number, y: (v: number) => 
 /**
  * Entradas e saídas acumuladas no mês, com previsão tracejada até o fim.
  * "wide": rótulos à direita (desktop e tablet) · "compact": letras maiores e legenda fora (mobile).
+ * Ocupa a largura e a altura do bloco (o largo alarga sem aumentar o texto).
  */
 export function CashFlowChart({
   variant,
@@ -44,9 +70,29 @@ export function CashFlowChart({
   variant: "wide" | "compact";
   data?: CashFlowData;
 }) {
+  const natural = variant === "compact" ? COMPACT : WIDE;
+  return (
+    <ChartBox width={natural.width} height={natural.height} stretchX={variant === "wide"}>
+      {(size) => <CashFlowSvg variant={variant} data={data} size={size} />}
+    </ChartBox>
+  );
+}
+
+function CashFlowSvg({
+  variant,
+  data,
+  size,
+}: {
+  variant: "wide" | "compact";
+  data: CashFlowData;
+  size: { width: number; height: number };
+}) {
   const { diasNoMes, hoje, entradas, saidas, eixo, maximo, sobrou, descricao } = data;
-  const { x, y } = scale(diasNoMes, maximo);
   const compact = variant === "compact";
+  const extra = size.height - (compact ? COMPACT.height : WIDE.height);
+  const X1 = compact ? 510 : size.width - WIDE_LABELS;
+  const Y0 = 140 + extra;
+  const { x, y } = scale(diasNoMes, maximo, X1, Y0);
   const fontSize = compact ? 19 : 12;
   const xHoje = x(hoje);
   // Pílula "Sobrou" à esquerda de hoje; no começo do mês, encosta no início do gráfico.
@@ -55,6 +101,11 @@ export function CashFlowChart({
   const ultimaSaida = saidas[saidas.length - 1] ?? 0;
   // Sem previsão (sem teto total), a linha de saídas segue reta até o fim do mês.
   const previsaoSaidas = data.previsaoSaidas ?? ultimaSaida;
+  const labels = endLabels(
+    y(ultimaEntrada) + 5,
+    y(previsaoSaidas) + 5,
+    data.previsaoSaidas !== null,
+  );
 
   // Área entre as duas linhas (sobra acumulada).
   const top = entradas.flatMap((v, i) => [
@@ -71,7 +122,10 @@ export function CashFlowChart({
     .map(([px, py]) => `${px!.toFixed(1)},${py!.toFixed(1)}`)
     .join(" ");
 
-  const ticks = [1, 10, 20, hoje, diasNoMes];
+  // Dia que encostaria no "hoje" sai (o "hoje" fica).
+  const ticks = [...new Set([1, 10, 20, hoje, diasNoMes])].filter(
+    (dia) => dia === hoje || Math.abs(x(dia) - xHoje) >= (compact ? 34 : 24),
+  );
   // Leitura dia a dia (até hoje): entradas e saídas acumuladas.
   const points: InspectPoint[] = entradas.map((entrada, i) => {
     const saida = saidas[i] ?? 0;
@@ -86,14 +140,18 @@ export function CashFlowChart({
   });
 
   return (
-    <ChartInspector points={points} label="Entradas e saídas do mês, dia a dia">
+    <ChartInspector
+      className="size-full"
+      points={points}
+      label="Entradas e saídas do mês, dia a dia"
+    >
       <svg
         width="100%"
-        style={{ width: rem(compact ? 538 : 660) }}
-        viewBox={compact ? "-8 0 538 180" : "0 0 660 170"}
+        height="100%"
+        viewBox={compact ? `-8 0 ${size.width} ${size.height}` : `0 0 ${size.width} ${size.height}`}
         role="img"
         aria-label={descricao}
-        className="block h-auto max-w-full animate-reveal-x"
+        className="block animate-reveal-x"
         fontFamily={FONT}
       >
         {eixo.map((tick) => (
@@ -148,14 +206,14 @@ export function CashFlowChart({
         />
         {!compact && (
           <>
-            <text x="520" y={y(ultimaEntrada) + 5} fontSize="13" fontWeight="800" fill={ENTRADAS}>
+            <text x={X1 + 10} y={labels.entradas} fontSize="13" fontWeight="800" fill={ENTRADAS}>
               Entradas {formatCurrency(Math.round(ultimaEntrada * 100)).replace(/,\d{2}$/, "")}
             </text>
-            <text x="520" y={y(previsaoSaidas) + 5} fontSize="13" fontWeight="800" fill={SAIDAS}>
+            <text x={X1 + 10} y={labels.saidas} fontSize="13" fontWeight="800" fill={SAIDAS}>
               Saídas {formatCurrency(Math.round(previsaoSaidas * 100)).replace(/,\d{2}$/, "")}
             </text>
             {data.previsaoSaidas !== null && (
-              <text x="520" y={y(previsaoSaidas) + 21} fontSize="12" fill="#93A198">
+              <text x={X1 + 10} y={labels.saidas + 16} fontSize="12" fill="#93A198">
                 previsão até dia {diasNoMes}
               </text>
             )}
@@ -202,7 +260,7 @@ export function CashFlowChart({
           <text
             key={dia}
             x={x(dia)}
-            y={compact ? 174 : 164}
+            y={(compact ? 174 : 164) + extra}
             textAnchor="middle"
             fontSize={fontSize}
             fill={dia === hoje ? "#F2EFE6" : "#93A198"}

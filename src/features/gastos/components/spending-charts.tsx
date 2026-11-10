@@ -9,11 +9,14 @@ import {
   buildBar,
   roundedBar,
 } from "@/components/charts/primitives";
+import { ChartBox } from "@/components/charts/chart-box";
 import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
 import { formatReais } from "@/lib/format";
 
 import { moneyTicks, useGastosData } from "../context";
 
+/** Altura natural dos gráficos (viewBox) e linha de base das barras nela. */
+const HEIGHT = 230;
 const BASE = 190;
 
 type PaceVariant = "desktop" | "tablet" | "mobile";
@@ -33,7 +36,18 @@ const brl = (reais: number) => formatReais(reais);
 
 /** Gasto acumulado do mês contra o mês anterior (linha tracejada). */
 export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
+  return (
+    <ChartBox width={paceLayout[variant].width} height={HEIGHT}>
+      {({ height }) => <PaceChart variant={variant} height={height} />}
+    </ChartBox>
+  );
+}
+
+/** `height`: a do viewBox; o que passa da natural vai para a área do gráfico. */
+function PaceChart({ variant, height }: { variant: PaceVariant; height: number }) {
   const { width, x0, x1, labelSide, showClose } = paceLayout[variant];
+  const extra = height - HEIGHT;
+  const base = BASE + extra;
   const {
     atual: setembro,
     anterior: agosto,
@@ -45,7 +59,7 @@ export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
   } = useGastosData().spendingPace;
   const step = (x1 - x0) / (agosto.length - 1);
   const x = (day: number) => x0 + (day - 1) * step;
-  const y = (value: number) => BASE - (value / maximo) * 147.4;
+  const y = (value: number) => base - (value / maximo) * (147.4 + extra);
   const line = (values: number[]) =>
     values.map((v, i) => `${i ? "L" : "M"}${x(i + 1).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   const xHoje = x(hoje);
@@ -68,8 +82,8 @@ export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
   }));
 
   return (
-    <ChartInspector points={points} label="Ritmo de gastos do mês, dia a dia">
-      <ChartSvg width={width} height={230} label={descricao}>
+    <ChartInspector className="size-full" points={points} label="Ritmo de gastos do mês, dia a dia">
+      <ChartSvg width={width} height={height} fill label={descricao}>
         <GridLines ticks={moneyTicks(maximo)} x0={x0} x1={x1} y={y} labelX={x0 - 8} />
         <path
           d={line(agosto)}
@@ -80,7 +94,7 @@ export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
           strokeLinejoin="round"
         />
         <path
-          d={`${line(setembro)} L${xHoje.toFixed(1)},${BASE} L${x0.toFixed(1)},${BASE} Z`}
+          d={`${line(setembro)} L${xHoje.toFixed(1)},${base} L${x0.toFixed(1)},${base} Z`}
           fill={chartColors.saidas}
           fillOpacity=".12"
         />
@@ -95,7 +109,7 @@ export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
           x1={xHoje.toFixed(1)}
           x2={xHoje.toFixed(1)}
           y1="18"
-          y2={BASE}
+          y2={base}
           stroke={chartColors.axis}
         />
         <circle
@@ -149,13 +163,16 @@ export function SpendingPaceChart({ variant }: { variant: PaceVariant }) {
             {fmt(agoFim)}
           </text>
         )}
-        <line x1={x0} x2={x1} y1={BASE} y2={BASE} stroke={chartColors.axis} />
-        {[1, 10, 20, hoje, agosto.length].map((day) => (
-          <AxisLabel key={day} x={x(day)} y={208} highlight={day === hoje}>
-            {day === hoje ? "hoje" : day}
-          </AxisLabel>
-        ))}
-        <InspectorLayer x0={x0 - 6} x1={x1 + 6} top={14} bottom={BASE} />
+        <line x1={x0} x2={x1} y1={base} y2={base} stroke={chartColors.axis} />
+        {[...new Set([1, 10, 20, hoje, agosto.length])]
+          // Dia que encostaria no "hoje" sai (o "hoje" fica).
+          .filter((day) => day === hoje || Math.abs(x(day) - xHoje) >= 24)
+          .map((day) => (
+            <AxisLabel key={day} x={x(day)} y={208 + extra} highlight={day === hoje}>
+              {day === hoje ? "hoje" : day}
+            </AxisLabel>
+          ))}
+        <InspectorLayer x0={x0 - 6} x1={x1 + 6} top={14} bottom={base} />
       </ChartSvg>
     </ChartInspector>
   );
@@ -186,6 +203,16 @@ function barLayout(
 
 /** Total gasto por mês, com a média dos meses anteriores e a previsão do mês atual. */
 export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
+  return (
+    <ChartBox width={variant === "wide" ? 540 : 360} height={HEIGHT}>
+      {({ height }) => <MonthlyChart variant={variant} height={height} />}
+    </ChartBox>
+  );
+}
+
+function MonthlyChart({ variant, height }: { variant: BarVariant; height: number }) {
+  const extra = height - HEIGHT;
+  const base = BASE + extra;
   const { meses, previsao, media, descricao, maximo } = useGastosData().monthlySpending;
   const { width, x0, x1, bar, slot, barX } = barLayout(
     variant,
@@ -193,7 +220,7 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
     { x0: 48, bar: 40 },
     { x0: 40, bar: 30 },
   );
-  const y = (v: number) => BASE - (v / maximo) * 144;
+  const y = (v: number) => base - (v / maximo) * (144 + extra);
   const maxIndex = meses
     .slice(0, -1)
     .reduce((best, m, i, arr) => (m.valor > (arr[best]?.valor ?? 0) ? i : best), 0);
@@ -211,8 +238,8 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
   }));
 
   return (
-    <ChartInspector points={points} label="Gasto por mês">
-      <ChartSvg reveal="none" width={width} height={230} label={descricao}>
+    <ChartInspector className="size-full" points={points} label="Gasto por mês">
+      <ChartSvg reveal="none" width={width} height={height} fill label={descricao}>
         <GridLines ticks={moneyTicks(maximo)} x0={x0} x1={x1} y={y} labelX={x0 - 8} />
         {meses.map((mes, i) => {
           const bx = barX(i);
@@ -225,7 +252,7 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
                   x={bx.toFixed(1)}
                   y={y(previsao).toFixed(1)}
                   width={bar}
-                  height={(BASE - y(previsao)).toFixed(1)}
+                  height={(base - y(previsao)).toFixed(1)}
                   rx="4"
                   fill="none"
                   stroke={chartColors.saidas}
@@ -235,7 +262,7 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
                 />
               )}
               <path
-                d={roundedBar(bx, y(mes.valor), bar, BASE)}
+                d={roundedBar(bx, y(mes.valor), bar, base)}
                 fill={chartColors.saidas}
                 fillOpacity={current ? 1 : 0.55}
                 {...buildBar(i)}
@@ -253,7 +280,7 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
                   {fmt(mes.valor)}
                 </text>
               )}
-              <AxisLabel x={cx} y={208} highlight={current}>
+              <AxisLabel x={cx} y={208 + extra} highlight={current}>
                 {mes.rotulo}
               </AxisLabel>
             </g>
@@ -275,8 +302,8 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
             </text>
           </>
         )}
-        <line x1={x0} x2={x1} y1={BASE} y2={BASE} stroke={chartColors.axis} />
-        <InspectorLayer x0={x0} x1={x1} top={14} bottom={BASE} mode="band" bandWidth={slot} />
+        <line x1={x0} x2={x1} y1={base} y2={base} stroke={chartColors.axis} />
+        <InspectorLayer x0={x0} x1={x1} top={14} bottom={base} mode="band" bandWidth={slot} />
       </ChartSvg>
     </ChartInspector>
   );
@@ -284,6 +311,16 @@ export function MonthlySpendingChart({ variant }: { variant: BarVariant }) {
 
 /** Gasto médio por dia da semana; os dois dias mais caros ficam em destaque. */
 export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
+  return (
+    <ChartBox width={variant === "wide" ? 540 : 360} height={HEIGHT}>
+      {({ height }) => <WeekdayChart variant={variant} height={height} />}
+    </ChartBox>
+  );
+}
+
+function WeekdayChart({ variant, height }: { variant: BarVariant; height: number }) {
+  const extra = height - HEIGHT;
+  const base = BASE + extra;
   const { dias, descricao, maximo } = useGastosData().weekdaySpending;
   const { width, x0, x1, bar, slot, barX } = barLayout(
     variant,
@@ -291,7 +328,7 @@ export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
     { x0: 48, bar: 36 },
     { x0: 36, bar: 26 },
   );
-  const y = (v: number) => BASE - (v / maximo) * 134.4;
+  const y = (v: number) => base - (v / maximo) * (134.4 + extra);
   const top = [...dias]
     .sort((a, b) => b.valor - a.valor)
     .slice(0, 2)
@@ -303,8 +340,8 @@ export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
   }));
 
   return (
-    <ChartInspector points={points} label="Gasto médio por dia da semana">
-      <ChartSvg reveal="none" width={width} height={230} label={descricao}>
+    <ChartInspector className="size-full" points={points} label="Gasto médio por dia da semana">
+      <ChartSvg reveal="none" width={width} height={height} fill label={descricao}>
         <GridLines
           ticks={[
             { value: 0, label: "0" },
@@ -323,7 +360,7 @@ export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
           return (
             <g key={dia.rotulo}>
               <path
-                d={roundedBar(bx, y(dia.valor), bar, BASE)}
+                d={roundedBar(bx, y(dia.valor), bar, base)}
                 fill={chartColors.saidas}
                 fillOpacity={highlight ? 1 : 0.45}
                 {...buildBar(i)}
@@ -341,14 +378,14 @@ export function WeekdaySpendingChart({ variant }: { variant: BarVariant }) {
                   {fmt(dia.valor)}
                 </text>
               )}
-              <AxisLabel x={cx} y={208} highlight={highlight}>
+              <AxisLabel x={cx} y={208 + extra} highlight={highlight}>
                 {dia.rotulo}
               </AxisLabel>
             </g>
           );
         })}
-        <line x1={x0} x2={x1} y1={BASE} y2={BASE} stroke={chartColors.axis} />
-        <InspectorLayer x0={x0} x1={x1} top={14} bottom={BASE} mode="band" bandWidth={slot} />
+        <line x1={x0} x2={x1} y1={base} y2={base} stroke={chartColors.axis} />
+        <InspectorLayer x0={x0} x1={x1} top={14} bottom={base} mode="band" bandWidth={slot} />
       </ChartSvg>
     </ChartInspector>
   );

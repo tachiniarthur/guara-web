@@ -54,16 +54,17 @@ export function ChartFit({
     <div
       ref={ref}
       data-chart-settled={settled || undefined}
-      className={cn("@container w-full", className)}
+      className={cn("@container flex w-full flex-col", className)}
     >
-      <div className="@min-[480px]:hidden">{narrow}</div>
+      {/* Em coluna flexível: um gráfico que ocupa a altura do bloco (`ChartBox`) recebe o espaço. */}
+      <div className="flex grow flex-col @min-[480px]:hidden">{narrow}</div>
       {medium ? (
         <>
-          <div className="hidden @min-[480px]:block @min-[800px]:hidden">{medium}</div>
-          <div className="hidden @min-[800px]:block">{wide}</div>
+          <div className="hidden grow flex-col @min-[480px]:flex @min-[800px]:hidden">{medium}</div>
+          <div className="hidden grow flex-col @min-[800px]:flex">{wide}</div>
         </>
       ) : (
-        <div className="hidden @min-[480px]:block">{wide}</div>
+        <div className="hidden grow flex-col @min-[480px]:flex">{wide}</div>
       )}
     </div>
   );

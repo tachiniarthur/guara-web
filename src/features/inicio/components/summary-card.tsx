@@ -124,7 +124,7 @@ export function SummaryCard({
               }
             />
             <ChartFit
-              className="shrink-0"
+              className="grow"
               narrow={
                 <div className="flex flex-col gap-3">
                   <CashFlowChart variant="compact" data={cashFlow} />

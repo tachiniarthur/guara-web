@@ -26,6 +26,8 @@ type ChartSvgProps = {
   label: string;
   /** Ocupa a largura do container (altura proporcional), como nos protótipos. */
   fluid?: boolean;
+  /** Ocupa a caixa inteira (dentro de um `ChartBox`, com o viewBox na proporção dela). */
+  fill?: boolean;
   viewBox?: string;
   className?: string;
   /**
@@ -59,6 +61,7 @@ export function ChartSvg({
   height,
   label,
   fluid = true,
+  fill = false,
   viewBox,
   className,
   reveal = "wipe",
@@ -66,12 +69,12 @@ export function ChartSvg({
 }: ChartSvgProps) {
   return (
     <svg
-      width={fluid ? "100%" : width}
-      height={fluid ? undefined : height}
+      width={fluid || fill ? "100%" : width}
+      height={fill ? "100%" : fluid ? undefined : height}
       viewBox={viewBox ?? `0 0 ${width} ${height}`}
       role="img"
       aria-label={label}
-      className={cn(className ?? "block h-auto", revealClass[reveal])}
+      className={cn(className ?? (fill ? "block" : "block h-auto"), revealClass[reveal])}
       fontFamily={CHART_FONT}
     >
       {children}

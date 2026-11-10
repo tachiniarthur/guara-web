@@ -153,8 +153,9 @@ export function GastosScreen({ estado }: { estado?: string }) {
                   { label: data.spendingPace.nomeAnterior, color: "#93A198", dashed: true },
                 ]}
               />
-              <div className="flex grow items-end">
+              <div className="flex grow flex-col">
                 <ChartFit
+                  className="grow"
                   narrow={<SpendingPaceChart variant="mobile" />}
                   wide={<SpendingPaceChart variant="desktop" />}
                 />
@@ -182,8 +183,9 @@ export function GastosScreen({ estado }: { estado?: string }) {
                   { label: data.monthlySpending.rotuloPrevisao, color: SAIDAS, dashed: true },
                 ]}
               />
-              <div className="flex grow items-end">
+              <div className="flex grow flex-col">
                 <ChartFit
+                  className="grow"
                   narrow={<MonthlySpendingChart variant="narrow" />}
                   wide={<MonthlySpendingChart variant="wide" />}
                 />
@@ -212,8 +214,9 @@ export function GastosScreen({ estado }: { estado?: string }) {
               )}
             />
             <StateSwap replacement={body()} className="grow gap-3.5">
-              <div className="flex grow items-end">
+              <div className="flex grow flex-col">
                 <ChartFit
+                  className="grow"
                   narrow={<WeekdaySpendingChart variant="narrow" />}
                   wide={<WeekdaySpendingChart variant="wide" />}
                 />
