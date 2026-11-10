@@ -90,4 +90,16 @@ describe("Editar layout (Início)", () => {
     expect(screen.queryByText("Metas")).not.toBeInTheDocument();
     expect(screen.getByText("Investimentos")).toBeInTheDocument();
   });
+
+  it("altura pelo teclado na alça de baixo: baixa, automática, alta", () => {
+    render(<InicioScreen />);
+    startEditing();
+    const handle = () => screen.getByRole("button", { name: /Mudar a altura de Metas/ });
+    expect(handle()).toHaveAccessibleName("Mudar a altura de Metas: Automática");
+    fireEvent.keyDown(handle(), { key: "ArrowDown" });
+    expect(handle()).toHaveAccessibleName("Mudar a altura de Metas: Alta");
+    fireEvent.keyDown(handle(), { key: "ArrowUp" });
+    fireEvent.keyDown(handle(), { key: "ArrowUp" });
+    expect(handle()).toHaveAccessibleName("Mudar a altura de Metas: Baixa");
+  });
 });

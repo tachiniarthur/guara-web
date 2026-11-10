@@ -8,6 +8,7 @@ import {
   moveBlock,
   shiftBlock,
   sizeForColumns,
+  stepHeight,
   stepSize,
   updateBlock,
 } from "./model";
@@ -43,6 +44,7 @@ describe("layout editável", () => {
       size: "m",
       hidden: true,
       compact: false,
+      height: "auto",
     });
     expect(merged.find((b) => b.id === "resumo")).toMatchObject({ size: "l", compact: true });
   });
@@ -82,5 +84,19 @@ describe("layout editável", () => {
   it("ocultar e reexibir não mexe no resto", () => {
     const hidden = updateBlock(defaultLayout(defs), "metas", { hidden: true });
     expect(updateBlock(hidden, "metas", { hidden: false })).toEqual(defaultLayout(defs));
+  });
+
+  it("altura: o formato antigo (compactar) vira baixa e a alça anda entre baixa, automática e alta", () => {
+    const merged = mergeLayout(defs, [{ id: "resumo", size: "l", hidden: false, compact: true }]);
+    expect(merged.find((b) => b.id === "resumo")).toMatchObject({ height: "short", compact: true });
+    expect(stepHeight("auto", 1)).toBe("tall");
+    expect(stepHeight("tall", 1)).toBe("tall");
+    expect(stepHeight("auto", -1)).toBe("short");
+    expect(
+      updateBlock(merged, "resumo", { height: "tall" }).find((b) => b.id === "resumo"),
+    ).toMatchObject({
+      height: "tall",
+      compact: false,
+    });
   });
 });

@@ -9,6 +9,7 @@ import { apiRequest } from "@/lib/api";
 
 import {
   type BlockDef,
+  LAYOUT_HEIGHTS,
   LAYOUT_SIZES,
   LAYOUT_VERSION,
   type LayoutBlock,
@@ -23,7 +24,12 @@ const BlockSchema = z.object({
   size: z.enum(LAYOUT_SIZES),
   hidden: z.boolean(),
   compact: z.boolean(),
+  // Opcional: layouts salvos antes da altura existir.
+  height: z.enum(LAYOUT_HEIGHTS).optional(),
 });
+
+/** Bloco como é guardado (local e API); `height` falta nos salvos antes da altura. */
+type StoredBlock = z.infer<typeof BlockSchema>;
 
 const LayoutSchema = z.object({
   version: z.number().int().nullable(),
@@ -107,7 +113,7 @@ export function useScreenLayout(screen: LayoutScreen, defs: readonly BlockDef[])
   });
 
   const save = useMutation({
-    mutationFn: (blocks: LayoutBlock[]) =>
+    mutationFn: (blocks: StoredBlock[]) =>
       apiRequest(`/v1/me/layouts/${screen}`, LayoutSchema, {
         method: "PUT",
         body: { version: LAYOUT_VERSION, blocks },

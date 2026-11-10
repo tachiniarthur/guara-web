@@ -24,6 +24,19 @@ export const SIZE_LABELS: Record<LayoutSize, string> = {
 /** Colunas que cada tamanho ocupa na grade de 12 do desktop. */
 export const SIZE_COLUMNS: Record<LayoutSize, number> = { xs: 3, s: 4, m: 6, l: 8, xl: 12 };
 
+/**
+ * Altura do bloco: `short` (baixo, o resto rola dentro dele), `auto` (a do conteúdo) ou `tall`
+ * (mais alto). Vale em qualquer largura de tela.
+ */
+export const LAYOUT_HEIGHTS = ["short", "auto", "tall"] as const;
+export type LayoutHeight = (typeof LAYOUT_HEIGHTS)[number];
+
+export const HEIGHT_LABELS: Record<LayoutHeight, string> = {
+  short: "Baixa",
+  auto: "Automática",
+  tall: "Alta",
+};
+
 /** Versão do formato salvo. Suba quando o significado de um campo mudar. */
 export const LAYOUT_VERSION = 1;
 
@@ -55,12 +68,20 @@ export interface LayoutBlock {
   id: string;
   size: LayoutSize;
   hidden: boolean;
-  /** Celular: altura reduzida. */
+  /** Formato antigo de "baixo" (só celular); mantido igual a `height === "short"`. */
   compact: boolean;
+  height: LayoutHeight;
 }
 
-export const defaultLayout = (defs: readonly BlockDef[]): LayoutBlock[] =>
-  defs.map((def) => ({ id: def.id, size: def.defaultSize, hidden: false, compact: false }));
+const fresh = (def: BlockDef): LayoutBlock => ({
+  id: def.id,
+  size: def.defaultSize,
+  hidden: false,
+  compact: false,
+  height: "auto",
+});
+
+export const defaultLayout = (defs: readonly BlockDef[]): LayoutBlock[] => defs.map(fresh);
 
 /**
  * Junta o layout salvo com os blocos que a tela tem hoje: bloco que o app não conhece mais sai;
@@ -69,7 +90,7 @@ export const defaultLayout = (defs: readonly BlockDef[]): LayoutBlock[] =>
  */
 export function mergeLayout(
   defs: readonly BlockDef[],
-  saved: readonly LayoutBlock[] | null | undefined,
+  saved: readonly (Omit<LayoutBlock, "height"> & { height?: LayoutHeight })[] | null | undefined,
 ): LayoutBlock[] {
   if (!saved || saved.length === 0) return defaultLayout(defs);
   const byId = new Map(defs.map((def) => [def.id, def]));
@@ -79,22 +100,25 @@ export function mergeLayout(
     const def = byId.get(block.id);
     if (!def || seen.has(block.id)) continue;
     seen.add(block.id);
+    // Sem `height` (salvo antes da altura existir): `compact` vira "baixa".
+    const height = block.height ?? (block.compact ? "short" : "auto");
     result.push({
       id: block.id,
       size: def.sizes.includes(block.size) ? block.size : def.defaultSize,
       hidden: Boolean(block.hidden),
-      compact: Boolean(block.compact),
+      compact: height === "short",
+      height,
     });
   }
   defs.forEach((def, index) => {
     if (seen.has(def.id)) return;
-    const fresh: LayoutBlock = { id: def.id, size: def.defaultSize, hidden: false, compact: false };
+    const added = fresh(def);
     const previous = defs
       .slice(0, index)
       .reverse()
       .find((other) => seen.has(other.id));
     const at = previous ? result.findIndex((b) => b.id === previous.id) + 1 : 0;
-    result.splice(at, 0, fresh);
+    result.splice(at, 0, added);
     seen.add(def.id);
   });
   return result;
@@ -152,11 +176,22 @@ export function sizeForColumns(def: BlockDef, columns: number): LayoutSize {
   return best;
 }
 
+/** Próxima altura na direção pedida (1 mais alta, −1 mais baixa), ou a mesma no limite. */
+export function stepHeight(height: LayoutHeight, direction: -1 | 1): LayoutHeight {
+  const index = LAYOUT_HEIGHTS.indexOf(height) + direction;
+  return LAYOUT_HEIGHTS[Math.min(LAYOUT_HEIGHTS.length - 1, Math.max(0, index))]!;
+}
+
 export const updateBlock = (
   layout: readonly LayoutBlock[],
   id: string,
   patch: Partial<Omit<LayoutBlock, "id">>,
-): LayoutBlock[] => layout.map((b) => (b.id === id ? { ...b, ...patch } : b));
+): LayoutBlock[] =>
+  layout.map((b) => {
+    if (b.id !== id) return b;
+    const next = { ...b, ...patch };
+    return { ...next, compact: next.height === "short" };
+  });
 
 /** O layout é igual ao padrão? (então não há o que salvar nem restaurar) */
 export const isDefaultLayout = (defs: readonly BlockDef[], layout: readonly LayoutBlock[]) =>

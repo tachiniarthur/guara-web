@@ -82,10 +82,11 @@ export function LayoutEditBar({
               </p>
               <p className="m-0 text-13 text-mist">
                 <span className="@max-tab:hidden">
-                  Arraste os blocos para trocar de lugar e use a alça ao lado para mudar o tamanho.
+                  Arraste os blocos para trocar de lugar. A alça ao lado muda a largura e a de
+                  baixo, a altura.
                 </span>
                 <span className="@tab:hidden">
-                  Segure um bloco para arrastar. O ícone de compactar deixa o bloco mais baixo.
+                  Segure um bloco para arrastar. A alça de baixo muda a altura.
                 </span>{" "}
                 Nada é apagado ao ocultar.
               </p>

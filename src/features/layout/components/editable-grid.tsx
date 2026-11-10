@@ -38,8 +38,11 @@ import {
   type BlockDef,
   type LayoutBlock,
   type LayoutSize,
+  HEIGHT_LABELS,
+  type LayoutHeight,
   SIZE_LABELS,
   moveBlock,
+  stepHeight,
   tabletHalf,
   sizeForColumns,
   stepSize,
@@ -106,7 +109,8 @@ interface GridProps {
 /**
  * Grade de blocos da tela. Fora da edição é uma grade comum (nada muda no uso); na edição, cada
  * bloco pode ser arrastado (mouse, toque longo de 250 ms ou teclado pela alça), redimensionado
- * (alça lateral que encaixa nos tamanhos da grade, ou − e +), ocultado e, no celular, compactado.
+ * (alça lateral que encaixa nos tamanhos da grade, ou − e +), mudar de altura (alça de baixo:
+ * baixa, automática, alta) e ser ocultado.
  */
 export function EditableGrid({
   layout,
@@ -145,7 +149,7 @@ export function EditableGrid({
   );
 }
 
-/** O bloco fora da edição: só a coluna e, no celular, a altura compacta. */
+/** O bloco fora da edição: só a coluna e a altura escolhida. */
 function BlockFrame({
   block,
   def,
@@ -157,15 +161,24 @@ function BlockFrame({
 }) {
   return (
     <div className={cn("flex min-w-0 flex-col *:grow", spanOf(def, block.size))}>
-      {block.compact ? <Compact>{children}</Compact> : children}
+      <HeightBox height={block.height}>{children}</HeightBox>
     </div>
   );
 }
 
-/** Celular: altura reduzida com o fim esmaecido (no tablet e no desktop, o bloco inteiro). */
-function Compact({ children }: { children: ReactNode }) {
+/**
+ * Altura escolhida: baixa (o resto rola dentro do bloco, com o fim esmaecido), automática (a do
+ * conteúdo) ou alta (mais espaço; o card estica e o conteúdo mantém o desenho).
+ */
+function HeightBox({ height, children }: { height: LayoutHeight; children: ReactNode }) {
   return (
-    <div className="flex flex-col *:grow @max-tab:max-h-60 @max-tab:overflow-hidden @max-tab:mask-b-from-70%">
+    <div
+      className={cn(
+        "flex min-w-0 flex-col *:grow",
+        height === "short" && "max-h-60 overflow-y-auto overscroll-contain mask-b-from-80%",
+        height === "tall" && "min-h-[30rem]",
+      )}
+    >
       {children}
     </div>
   );
@@ -345,7 +358,7 @@ function EditableBlock({
       >
         {/* O conteúdo continua à vista, mas não reage a clique nem a foco durante a edição. */}
         <div inert className="flex min-w-0 flex-col *:grow">
-          {block.compact ? <Compact>{children}</Compact> : children}
+          <HeightBox height={block.height}>{children}</HeightBox>
         </div>
 
         <div
@@ -385,18 +398,17 @@ function EditableBlock({
             onClick={() => onChange({ size: stepSize(def, block.size, 1) })}
           />
           <PillButton
-            label={block.compact ? `Mostrar ${def.label} inteiro` : `Compactar ${def.label}`}
-            icon={block.compact ? "expand" : "minimize"}
-            pressed={block.compact}
-            className="@tab:hidden"
-            onClick={() => onChange({ compact: !block.compact })}
-          />
-          <PillButton
             label={`Ocultar ${def.label}`}
             icon="eye-off"
             onClick={() => onChange({ hidden: true })}
           />
         </div>
+
+        <HeightHandle
+          label={def.label}
+          height={block.height}
+          onChange={(height) => onChange({ height })}
+        />
 
         {def.sizes.length > 1 && (
           <ResizeHandle
@@ -509,6 +521,68 @@ function ResizeHandle({
       }}
     >
       <Icon name="move-horizontal" size={14} />
+    </button>
+  );
+}
+
+/** Distância do arrasto (px) para passar de uma altura à próxima. */
+const HEIGHT_STEP = 56;
+
+/**
+ * Alça na borda de baixo (todas as larguras): arrastar para baixo deixa o bloco mais alto e para
+ * cima, mais baixo, encaixando em baixa, automática e alta. O estado só muda ao trocar de altura.
+ * Teclado: setas para cima e para baixo.
+ */
+function HeightHandle({
+  label,
+  height,
+  onChange,
+}: {
+  label: string;
+  height: LayoutHeight;
+  onChange: (height: LayoutHeight) => void;
+}) {
+  const start = useRef<{ y: number; height: LayoutHeight } | null>(null);
+
+  const onPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    start.current = { y: event.clientY, height };
+  };
+  const onPointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const origin = start.current;
+    if (!origin) return;
+    const steps = Math.trunc((event.clientY - origin.y) / HEIGHT_STEP);
+    let next = origin.height;
+    for (let i = 0; i < Math.abs(steps); i++) next = stepHeight(next, steps > 0 ? 1 : -1);
+    if (next !== height) onChange(next);
+  };
+  const end = () => {
+    start.current = null;
+  };
+
+  return (
+    <button
+      type="button"
+      aria-label={`Mudar a altura de ${label}: ${HEIGHT_LABELS[height]}`}
+      title="Arraste para cima ou para baixo para mudar a altura"
+      className="absolute -bottom-3 left-1/2 z-10 flex h-6 w-16 -translate-x-1/2 cursor-ns-resize items-center justify-center gap-1 rounded-full border border-line-strong bg-canvas text-11 text-mist shadow-[0_6px_16px_rgba(0,0,0,.25)] hover:text-sand focus-visible:outline-2 focus-visible:outline-sand"
+      style={{ touchAction: "none" }}
+      onMouseDown={(event) => event.stopPropagation()}
+      onTouchStart={(event) => event.stopPropagation()}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={end}
+      onPointerCancel={end}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowDown") onChange(stepHeight(height, 1));
+        else if (event.key === "ArrowUp") onChange(stepHeight(height, -1));
+        else return;
+        event.preventDefault();
+      }}
+    >
+      <Icon name="move-vertical" size={12} />
+      <span>{HEIGHT_LABELS[height]}</span>
     </button>
   );
 }
