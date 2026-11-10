@@ -50,17 +50,25 @@ describe("Editar layout (Início)", () => {
     expect(screen.getByText("Investimentos")).toBeInTheDocument();
   });
 
-  it("tamanho pelos botões − e + só entre os tamanhos aceitos", () => {
+  it("largura pelos botões − e +, coluna a coluna, só entre as larguras aceitas", () => {
     render(<InicioScreen />);
     startEditing();
-    const grow = () => screen.getByRole("button", { name: "Aumentar Metas" });
+    const grow = () => screen.getByRole("button", { name: "Aumentar a largura de Metas" });
+    const width = () => screen.getByRole("button", { name: /^Largura de Metas:/ });
+    expect(width()).toHaveAccessibleName(
+      "Largura de Metas: 1/4 da largura. Setas para os lados mudam.",
+    );
+    fireEvent.click(grow());
+    expect(width()).toHaveAccessibleName(
+      "Largura de Metas: 1/3 da largura. Setas para os lados mudam.",
+    );
     fireEvent.click(grow());
     fireEvent.click(grow());
     // Metas aceita até a metade: o + desliga no limite.
     expect(grow()).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: "Mudar o tamanho de Metas: Metade" }),
-    ).toBeInTheDocument();
+    expect(width()).toHaveAccessibleName("Largura de Metas: Metade. Setas para os lados mudam.");
+    fireEvent.keyDown(width(), { key: "ArrowLeft" });
+    expect(width()).toHaveAccessibleName(/5 de 12 colunas/);
   });
 
   it("restaurar padrão desfaz tudo (e fica desligado quando já é o padrão)", () => {
@@ -91,15 +99,43 @@ describe("Editar layout (Início)", () => {
     expect(screen.getByText("Investimentos")).toBeInTheDocument();
   });
 
-  it("altura pelo teclado na alça de baixo: baixa, automática, alta", () => {
+  it("altura pelo teclado na alça de baixo; Delete e o botão voltam à automática", () => {
     render(<InicioScreen />);
     startEditing();
-    const handle = () => screen.getByRole("button", { name: /Mudar a altura de Metas/ });
-    expect(handle()).toHaveAccessibleName("Mudar a altura de Metas: Automática");
+    const handle = () => screen.getByRole("button", { name: /^Altura de Metas:/ });
+    expect(handle()).toHaveAccessibleName(/^Altura de Metas: Altura automática\./);
     fireEvent.keyDown(handle(), { key: "ArrowDown" });
-    expect(handle()).toHaveAccessibleName("Mudar a altura de Metas: Alta");
-    fireEvent.keyDown(handle(), { key: "ArrowUp" });
-    fireEvent.keyDown(handle(), { key: "ArrowUp" });
-    expect(handle()).toHaveAccessibleName("Mudar a altura de Metas: Baixa");
+    expect(handle()).toHaveAccessibleName(/^Altura de Metas: 160 px de altura\./);
+    fireEvent.keyDown(handle(), { key: "ArrowDown" });
+    expect(handle()).toHaveAccessibleName(/^Altura de Metas: 200 px de altura\./);
+    fireEvent.keyDown(handle(), { key: "Delete" });
+    expect(handle()).toHaveAccessibleName(/^Altura de Metas: Altura automática\./);
+    fireEvent.keyDown(handle(), { key: "ArrowDown" });
+    fireEvent.click(screen.getByRole("button", { name: "Altura automática para Metas" }));
+    expect(handle()).toHaveAccessibleName(/^Altura de Metas: Altura automática\./);
+  });
+
+  it("formato antigo: baixo (que cortava o bloco) vira automático e alto vira 480 px", () => {
+    window.localStorage.setItem(
+      "guara:layout:home",
+      JSON.stringify({
+        version: 1,
+        blocks: [
+          { id: "metas", size: "s", hidden: false, compact: true, height: "short" },
+          { id: "alertas", size: "xs", hidden: false, compact: false, height: "tall" },
+        ],
+      }),
+    );
+    render(<InicioScreen />);
+    startEditing();
+    expect(screen.getByRole("button", { name: /^Altura de Metas:/ })).toHaveAccessibleName(
+      /Altura automática/,
+    );
+    expect(
+      screen.getByRole("button", { name: /^Altura de Alertas de preço:/ }),
+    ).toHaveAccessibleName(/480 px de altura/);
+    expect(screen.getByRole("button", { name: /^Largura de Metas:/ })).toHaveAccessibleName(
+      /1\/3 da largura/,
+    );
   });
 });

@@ -8,8 +8,11 @@ import {
   moveBlock,
   shiftBlock,
   sizeForColumns,
+  snapHeight,
+  stepColumns,
   stepHeight,
-  stepSize,
+  tabletHalf,
+  toStored,
   updateBlock,
 } from "./model";
 
@@ -22,11 +25,11 @@ const defs: BlockDef[] = [
 
 describe("layout editável", () => {
   it("padrão: na ordem da tela, nada oculto", () => {
-    expect(defaultLayout(defs).map((b) => [b.id, b.size, b.hidden])).toEqual([
-      ["resumo", "l", false],
-      ["pendencias", "s", false],
-      ["metas", "xs", false],
-      ["alertas", "xs", false],
+    expect(defaultLayout(defs).map((b) => [b.id, b.columns, b.minHeight, b.hidden])).toEqual([
+      ["resumo", 8, null, false],
+      ["pendencias", 4, null, false],
+      ["metas", 3, null, false],
+      ["alertas", 3, null, false],
     ]);
   });
 
@@ -41,12 +44,12 @@ describe("layout editável", () => {
     // Oculto continua oculto (volta idêntico ao reexibir); tamanho que o bloco não aceita volta ao padrão.
     expect(merged.find((b) => b.id === "metas")).toEqual({
       id: "metas",
-      size: "m",
       hidden: true,
-      compact: false,
-      height: "auto",
+      columns: 6,
+      minHeight: null,
     });
-    expect(merged.find((b) => b.id === "resumo")).toMatchObject({ size: "l", compact: true });
+    // "xs" não é aceito pelo resumo: volta ao padrão (8 colunas); "baixo" vira automático.
+    expect(merged.find((b) => b.id === "resumo")).toMatchObject({ columns: 8, minHeight: null });
   });
 
   it("sem layout salvo: o padrão", () => {
@@ -72,13 +75,36 @@ describe("layout editável", () => {
     ]);
   });
 
-  it("tamanho só entre os aceitos, e a alça encaixa no mais perto", () => {
+  it("largura livre entre as colunas aceitas; no tablet, metade ⇄ tudo", () => {
     const resumo = defs[0]!;
-    expect(stepSize(resumo, "l", 1)).toBe("xl");
-    expect(stepSize(resumo, "xl", 1)).toBe("xl");
-    expect(stepSize(resumo, "m", -1)).toBe("m");
+    expect(stepColumns(resumo, 8, 1, "desk")).toBe(9);
+    expect(stepColumns(resumo, 12, 1, "desk")).toBe(12);
+    expect(stepColumns(resumo, 6, -1, "desk")).toBe(6);
+    expect(stepColumns(resumo, 8, -1, "tablet")).toBe(6);
+    expect(stepColumns(resumo, 6, 1, "tablet")).toBe(12);
+    // Metas só aceita até a metade: no tablet não vira largura toda.
+    expect(stepColumns(defs[2]!, 3, 1, "tablet")).toBe(3);
+    expect(tabletHalf(resumo, 7)).toBe(false);
     expect(sizeForColumns(resumo, 9)).toBe("l");
     expect(sizeForColumns(resumo, 2)).toBe("m");
+  });
+
+  it("formato salvo: campos novos e os antigos preenchidos para quem só lê esses", () => {
+    const layout = updateBlock(defaultLayout(defs), "resumo", { columns: 7, minHeight: 333 });
+    const [resumo, pendencias] = toStored(defs, layout);
+    expect(resumo).toEqual({
+      id: "resumo",
+      size: "m",
+      hidden: false,
+      compact: false,
+      height: "tall",
+      columns: 7,
+      minHeight: 333,
+    });
+    expect(pendencias).not.toHaveProperty("minHeight");
+    expect(mergeLayout(defs, toStored(defs, layout))).toEqual(
+      updateBlock(layout, "resumo", { minHeight: snapHeight(333) }),
+    );
   });
 
   it("ocultar e reexibir não mexe no resto", () => {
@@ -86,17 +112,12 @@ describe("layout editável", () => {
     expect(updateBlock(hidden, "metas", { hidden: false })).toEqual(defaultLayout(defs));
   });
 
-  it("altura: o formato antigo (compactar) vira baixa e a alça anda entre baixa, automática e alta", () => {
-    const merged = mergeLayout(defs, [{ id: "resumo", size: "l", hidden: false, compact: true }]);
-    expect(merged.find((b) => b.id === "resumo")).toMatchObject({ height: "short", compact: true });
-    expect(stepHeight("auto", 1)).toBe("tall");
-    expect(stepHeight("tall", 1)).toBe("tall");
-    expect(stepHeight("auto", -1)).toBe("short");
-    expect(
-      updateBlock(merged, "resumo", { height: "tall" }).find((b) => b.id === "resumo"),
-    ).toMatchObject({
-      height: "tall",
-      compact: false,
-    });
+  it("altura de 8 em 8 px, entre o mínimo e o máximo; abaixo do mínimo volta à automática", () => {
+    expect(snapHeight(333)).toBe(336);
+    expect(snapHeight(10)).toBe(160);
+    expect(snapHeight(99999)).toBe(1600);
+    expect(stepHeight(null, 300, 1)).toBe(344);
+    expect(stepHeight(200, 300, -1)).toBe(160);
+    expect(stepHeight(160, 300, -1)).toBeNull();
   });
 });

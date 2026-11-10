@@ -17,6 +17,7 @@ import {
   defaultLayout,
   isDefaultLayout,
   mergeLayout,
+  toStored,
 } from "./model";
 
 const BlockSchema = z.object({
@@ -24,11 +25,13 @@ const BlockSchema = z.object({
   size: z.enum(LAYOUT_SIZES),
   hidden: z.boolean(),
   compact: z.boolean(),
-  // Opcional: layouts salvos antes da altura existir.
+  // Opcionais: layouts salvos antes da altura e da largura livre.
   height: z.enum(LAYOUT_HEIGHTS).optional(),
+  columns: z.number().int().optional(),
+  minHeight: z.number().int().optional(),
 });
 
-/** Bloco como é guardado (local e API); `height` falta nos salvos antes da altura. */
+/** Bloco como é guardado (local e API). */
 type StoredBlock = z.infer<typeof BlockSchema>;
 
 const LayoutSchema = z.object({
@@ -156,7 +159,11 @@ export function useScreenLayout(screen: LayoutScreen, defs: readonly BlockDef[])
     /** Salva o rascunho e sai da edição. */
     finish: () => {
       if (!draft) return;
-      writeLocal(screen, { version: LAYOUT_VERSION, blocks: draft, pending: live });
+      writeLocal(screen, {
+        version: LAYOUT_VERSION,
+        blocks: toStored(defs, draft),
+        pending: live,
+      });
       setDraft(null);
     },
   };

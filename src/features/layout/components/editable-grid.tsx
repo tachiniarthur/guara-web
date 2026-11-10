@@ -37,32 +37,52 @@ import { cn } from "@/lib/utils";
 import {
   type BlockDef,
   type LayoutBlock,
-  type LayoutSize,
-  HEIGHT_LABELS,
-  type LayoutHeight,
-  SIZE_LABELS,
+  MIN_HEIGHT,
+  clampColumns,
+  columnRange,
+  heightLabel,
   moveBlock,
+  snapHeight,
+  stepColumns,
   stepHeight,
   tabletHalf,
-  sizeForColumns,
-  stepSize,
   updateBlock,
+  widthLabel,
 } from "../model";
 import type { ScreenLayout } from "../use-screen-layout";
 
 /**
- * Colunas no desktop por tamanho e no tablet (metade ou tudo, ver `tabletHalf`). Classes escritas
+ * Colunas no desktop (1 a 12) e no tablet (metade ou tudo, ver `tabletHalf`). Classes escritas
  * por extenso: o Tailwind não enxerga classes montadas. Celular: sempre a largura toda.
  */
-const DESK: Record<LayoutSize, string> = {
-  xs: "@desk:col-span-3",
-  s: "@desk:col-span-4",
-  m: "@desk:col-span-6",
-  l: "@desk:col-span-8",
-  xl: "@desk:col-span-12",
-};
-const spanOf = (def: BlockDef, size: LayoutSize) =>
-  cn("col-span-12", tabletHalf(def, size) && "@tab:col-span-6", DESK[size]);
+const DESK = [
+  "",
+  "@desk:col-span-1",
+  "@desk:col-span-2",
+  "@desk:col-span-3",
+  "@desk:col-span-4",
+  "@desk:col-span-5",
+  "@desk:col-span-6",
+  "@desk:col-span-7",
+  "@desk:col-span-8",
+  "@desk:col-span-9",
+  "@desk:col-span-10",
+  "@desk:col-span-11",
+  "@desk:col-span-12",
+] as const;
+const spanOf = (def: BlockDef, columns: number) =>
+  cn("col-span-12", tabletHalf(def, columns) && "@tab:col-span-6", DESK[columns]);
+
+/** Arranjo em uso agora (o da página, pelas mesmas medidas dos `@tab`/`@desk` do CSS). */
+type GridMode = "phone" | "tablet" | "desk";
+function gridMode(grid: HTMLElement): GridMode {
+  const page = grid.parentElement?.closest<HTMLElement>(".\\@container") ?? grid;
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  const width = page.getBoundingClientRect().width;
+  // Sem medida (fora da tela, testes): o arranjo mais completo.
+  if (width === 0 || width >= 68.75 * rem) return "desk";
+  return width >= 37.5 * rem ? "tablet" : "phone";
+}
 
 /**
  * Reflow dos vizinhos (tamanho, ocultar, reexibir): mola curta e sem ultrapassar o ponto, como
@@ -108,9 +128,9 @@ interface GridProps {
 
 /**
  * Grade de blocos da tela. Fora da edição é uma grade comum (nada muda no uso); na edição, cada
- * bloco pode ser arrastado (mouse, toque longo de 250 ms ou teclado pela alça), redimensionado
- * (alça lateral que encaixa nos tamanhos da grade, ou − e +), mudar de altura (alça de baixo:
- * baixa, automática, alta) e ser ocultado.
+ * bloco pode ser arrastado (mouse, toque longo de 250 ms ou teclado pela alça), ter a largura
+ * mudada coluna a coluna (alça do lado, ou − e +), a altura de 8 em 8 px (alça de baixo; dois
+ * cliques voltam à automática), as duas juntas (alça do canto) e ser ocultado.
  */
 export function EditableGrid({
   layout,
@@ -160,24 +180,21 @@ function BlockFrame({
   children: ReactNode;
 }) {
   return (
-    <div className={cn("flex min-w-0 flex-col *:grow", spanOf(def, block.size))}>
-      <HeightBox height={block.height}>{children}</HeightBox>
+    <div className={cn("flex min-w-0 flex-col *:grow", spanOf(def, block.columns))}>
+      <HeightBox minHeight={block.minHeight}>{children}</HeightBox>
     </div>
   );
 }
 
 /**
- * Altura escolhida: baixa (o resto rola dentro do bloco, com o fim esmaecido), automática (a do
- * conteúdo) ou alta (mais espaço; o card estica e o conteúdo mantém o desenho).
+ * Altura escolhida: o card cresce até ela e os gráficos ocupam o espaço (nunca corta nem rola
+ * dentro do bloco). Automática: a do conteúdo.
  */
-function HeightBox({ height, children }: { height: LayoutHeight; children: ReactNode }) {
+function HeightBox({ minHeight, children }: { minHeight: number | null; children: ReactNode }) {
   return (
     <div
-      className={cn(
-        "flex min-w-0 flex-col *:grow",
-        height === "short" && "max-h-60 overflow-y-auto overscroll-contain mask-b-from-80%",
-        height === "tall" && "min-h-[30rem]",
-      )}
+      className="flex min-w-0 flex-col *:grow"
+      style={minHeight === null ? undefined : { minHeight }}
     >
       {children}
     </div>
@@ -278,7 +295,7 @@ function EditingGrid({
         {typeof document !== "undefined" &&
           createPortal(
             <DragOverlay dropAnimation={reduceMotion ? null : DROP}>
-              {active ? <DragGhost label={labelOf(active.id)} size={active.size} /> : null}
+              {active ? <DragGhost label={labelOf(active.id)} columns={active.columns} /> : null}
             </DragOverlay>,
             document.body,
           )}
@@ -287,16 +304,18 @@ function EditingGrid({
   );
 }
 
-/** O que acompanha o dedo: leve (sem redesenhar gráficos), com o nome e o tamanho do bloco. */
-function DragGhost({ label, size }: { label: string; size: LayoutSize }) {
+/** O que acompanha o dedo: leve (sem redesenhar gráficos), com o nome e a largura do bloco. */
+function DragGhost({ label, columns }: { label: string; columns: number }) {
   return (
     <div className="flex h-full min-h-24 scale-[1.02] cursor-grabbing items-center justify-center gap-2 rounded-card border-2 border-sand bg-card shadow-[0_18px_40px_rgba(0,0,0,.35)]">
       <Icon name="grip" size={18} strokeWidth={2.6} className="text-mist" />
       <span className="text-15 font-bold">{label}</span>
-      <span className="text-13 text-mist">· {SIZE_LABELS[size]}</span>
+      <span className="text-13 text-mist">· {widthLabel(columns)}</span>
     </div>
   );
 }
+
+type Patch = Partial<Omit<LayoutBlock, "id">>;
 
 function EditableBlock({
   block,
@@ -308,7 +327,7 @@ function EditableBlock({
   block: LayoutBlock;
   def: BlockDef;
   gridRef: React.RefObject<HTMLDivElement | null>;
-  onChange: (patch: Partial<Omit<LayoutBlock, "id">>) => void;
+  onChange: (patch: Patch) => void;
   children: ReactNode;
 }) {
   const {
@@ -320,8 +339,10 @@ function EditableBlock({
     transition,
     isDragging,
   } = useSortable({ id: block.id });
-  const canShrink = stepSize(def, block.size, -1) !== block.size;
-  const canGrow = stepSize(def, block.size, 1) !== block.size;
+  /** Enquanto uma alça é arrastada: mostra a medida no meio do bloco. */
+  const [resizing, setResizing] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const { min, max } = columnRange(def);
   // Os ouvintes do dnd-kit vêm tipados como `Function`: estes são os dos três sensores usados.
   const on = listeners as
     | {
@@ -332,6 +353,16 @@ function EditableBlock({
     | undefined;
   // Mouse e toque arrastam pelo bloco inteiro; o teclado, pela alça (foco e leitor de tela).
   const pointerListeners = { onMouseDown: on?.onMouseDown, onTouchStart: on?.onTouchStart };
+  const mode = () => (gridRef.current ? gridMode(gridRef.current) : "desk");
+  const stepWidth = (direction: -1 | 1) => {
+    const current = mode();
+    if (current === "phone") return;
+    const next = stepColumns(def, block.columns, direction, current);
+    if (next !== block.columns) onChange({ columns: next });
+  };
+  const currentHeight = () => boxRef.current?.getBoundingClientRect().height ?? MIN_HEIGHT;
+  const stepBlockHeight = (direction: -1 | 1) =>
+    onChange({ minHeight: stepHeight(block.minHeight, currentHeight(), direction) });
 
   return (
     // Fora: a coluna (o deslocamento do dnd-kit fica nulo com o reordenar ao vivo).
@@ -339,27 +370,37 @@ function EditableBlock({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={cn("flex min-w-0 touch-manipulation flex-col *:grow", spanOf(def, block.size))}
+      className={cn("flex min-w-0 touch-manipulation flex-col *:grow", spanOf(def, block.columns))}
       {...pointerListeners}
     >
       <motion.div
-        // Reflow dos vizinhos (arrasto, tamanho, ocultar). Só a posição anima: o tamanho encaixa
-        // na hora (esticar o conteúdo deformaria os gráficos).
+        // Reflow dos vizinhos (arrasto, tamanho, ocultar). Só a posição anima: o tamanho segue o
+        // ponteiro na hora (esticar o conteúdo deformaria os gráficos).
         layout="position"
         transition={REFLOW}
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.17 } }}
         className={cn(
-          "relative flex min-w-0 flex-col rounded-card outline-2 outline-offset-4 outline-line-strong outline-dashed select-none *:grow",
+          "relative flex min-w-0 flex-col rounded-card outline-2 outline-offset-4 outline-dashed select-none *:grow",
+          resizing ? "outline-sand" : "outline-line-strong",
           isDragging && "opacity-40",
           !isDragging && "cursor-grab",
         )}
       >
         {/* O conteúdo continua à vista, mas não reage a clique nem a foco durante a edição. */}
-        <div inert className="flex min-w-0 flex-col *:grow">
-          <HeightBox height={block.height}>{children}</HeightBox>
+        <div ref={boxRef} inert className="flex min-w-0 flex-col *:grow">
+          <HeightBox minHeight={block.minHeight}>{children}</HeightBox>
         </div>
+
+        {resizing && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 left-1/2 z-20 -translate-1/2 rounded-full border border-line-strong bg-canvas/95 px-3.5 py-1.5 text-13 font-bold whitespace-nowrap text-sand shadow-[0_8px_24px_rgba(0,0,0,.35)] backdrop-blur"
+          >
+            {widthLabel(block.columns)} · {heightLabel(block.minHeight)}
+          </div>
+        )}
 
         <div
           className="absolute -top-3.5 right-3 z-10 flex items-center gap-0.5 rounded-full border border-line-strong bg-canvas p-0.5 shadow-[0_6px_16px_rgba(0,0,0,.25)]"
@@ -380,23 +421,27 @@ function EditableBlock({
           >
             <Icon name="grip" size={18} strokeWidth={2.6} />
           </button>
-          <span className="hidden px-1.5 text-12 whitespace-nowrap text-mist @tab:inline">
-            {SIZE_LABELS[block.size]}
-          </span>
           <PillButton
-            label={`Diminuir ${def.label}`}
+            label={`Diminuir a largura de ${def.label}`}
             icon="minus"
-            disabled={!canShrink}
+            disabled={block.columns <= min}
             className="hidden @tab:flex"
-            onClick={() => onChange({ size: stepSize(def, block.size, -1) })}
+            onClick={() => stepWidth(-1)}
           />
           <PillButton
-            label={`Aumentar ${def.label}`}
+            label={`Aumentar a largura de ${def.label}`}
             icon="plus"
-            disabled={!canGrow}
+            disabled={block.columns >= max}
             className="hidden @tab:flex"
-            onClick={() => onChange({ size: stepSize(def, block.size, 1) })}
+            onClick={() => stepWidth(1)}
           />
+          {block.minHeight !== null && (
+            <PillButton
+              label={`Altura automática para ${def.label}`}
+              icon="refresh"
+              onClick={() => onChange({ minHeight: null })}
+            />
+          )}
           <PillButton
             label={`Ocultar ${def.label}`}
             icon="eye-off"
@@ -404,19 +449,63 @@ function EditableBlock({
           />
         </div>
 
-        <HeightHandle
-          label={def.label}
-          height={block.height}
-          onChange={(height) => onChange({ height })}
+        <ResizeHandle
+          axis="y"
+          label={`Altura de ${def.label}: ${heightLabel(block.minHeight)}. Setas para cima e para baixo mudam; Delete volta à automática.`}
+          title="Arraste para mudar a altura · dois cliques: automática"
+          block={block}
+          def={def}
+          gridRef={gridRef}
+          boxRef={boxRef}
+          onResizing={setResizing}
+          onChange={onChange}
+          onKey={(key) => {
+            if (key === "ArrowDown") stepBlockHeight(1);
+            else if (key === "ArrowUp") stepBlockHeight(-1);
+            else if (key === "Delete" || key === "Backspace") onChange({ minHeight: null });
+            else return false;
+            return true;
+          }}
         />
-
-        {def.sizes.length > 1 && (
-          <ResizeHandle
-            def={def}
-            size={block.size}
-            gridRef={gridRef}
-            onResize={(size) => onChange({ size })}
-          />
+        {max > min && (
+          <>
+            <ResizeHandle
+              axis="x"
+              label={`Largura de ${def.label}: ${widthLabel(block.columns)}. Setas para os lados mudam.`}
+              title="Arraste para mudar a largura"
+              block={block}
+              def={def}
+              gridRef={gridRef}
+              boxRef={boxRef}
+              onResizing={setResizing}
+              onChange={onChange}
+              onKey={(key) => {
+                if (key === "ArrowRight") stepWidth(1);
+                else if (key === "ArrowLeft") stepWidth(-1);
+                else return false;
+                return true;
+              }}
+            />
+            <ResizeHandle
+              axis="both"
+              label={`Largura e altura de ${def.label}: ${widthLabel(block.columns)}, ${heightLabel(block.minHeight)}. Setas mudam.`}
+              title="Arraste para mudar largura e altura"
+              block={block}
+              def={def}
+              gridRef={gridRef}
+              boxRef={boxRef}
+              onResizing={setResizing}
+              onChange={onChange}
+              onKey={(key) => {
+                if (key === "ArrowRight") stepWidth(1);
+                else if (key === "ArrowLeft") stepWidth(-1);
+                else if (key === "ArrowDown") stepBlockHeight(1);
+                else if (key === "ArrowUp") stepBlockHeight(-1);
+                else return false;
+                return true;
+              }}
+            />
+          </>
         )}
       </motion.div>
     </div>
@@ -428,14 +517,12 @@ function PillButton({
   icon,
   onClick,
   disabled,
-  pressed,
   className,
 }: {
   label: string;
-  icon: "minus" | "plus" | "eye-off" | "expand" | "minimize";
+  icon: "minus" | "plus" | "eye-off" | "refresh";
   onClick: () => void;
   disabled?: boolean;
-  pressed?: boolean;
   className?: string;
 }) {
   return (
@@ -443,7 +530,6 @@ function PillButton({
       type="button"
       aria-label={label}
       title={label}
-      aria-pressed={pressed}
       disabled={disabled}
       onClick={onClick}
       className={cn(
@@ -456,56 +542,110 @@ function PillButton({
   );
 }
 
+const HANDLE_CLASS: Record<"x" | "y" | "both", string> = {
+  // Lado direito, no meio (tablet e desktop).
+  x: "top-1/2 -right-3 hidden h-14 w-6 -translate-y-1/2 cursor-ew-resize @tab:flex",
+  // Embaixo, no meio (todas as larguras).
+  y: "-bottom-3 left-1/2 h-6 w-14 -translate-x-1/2 cursor-ns-resize flex",
+  // Canto de baixo à direita (tablet e desktop).
+  both: "-right-3 -bottom-3 hidden size-7 cursor-nwse-resize @tab:flex",
+};
+
 /**
- * Alça na borda direita (tablet e desktop): arrastar para os lados escolhe o tamanho que encaixa
- * na grade. O estado só muda quando o tamanho muda (não a cada movimento do ponteiro). Teclado:
- * setas para os lados.
+ * Alça de redimensionar. Segue o ponteiro: a largura encaixa coluna a coluna (no tablet, metade
+ * ou tudo) e a altura de 8 em 8 px, e o bloco muda na hora, com a medida no meio dele. O estado
+ * só muda quando a medida encaixada muda (não a cada movimento do ponteiro).
  */
 function ResizeHandle({
+  axis,
+  label,
+  title,
+  block,
   def,
-  size,
   gridRef,
-  onResize,
+  boxRef,
+  onResizing,
+  onChange,
+  onKey,
 }: {
+  axis: "x" | "y" | "both";
+  label: string;
+  title: string;
+  block: LayoutBlock;
   def: BlockDef;
-  size: LayoutSize;
   gridRef: React.RefObject<HTMLDivElement | null>;
-  onResize: (size: LayoutSize) => void;
+  boxRef: React.RefObject<HTMLDivElement | null>;
+  onResizing: (resizing: boolean) => void;
+  onChange: (patch: Patch) => void;
+  /** Teclado: devolve `true` quando a tecla foi usada. */
+  onKey: (key: string) => boolean;
 }) {
-  const start = useRef<{ x: number; width: number; column: number } | null>(null);
+  const start = useRef<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    column: number;
+    gridWidth: number;
+    mode: GridMode;
+  } | null>(null);
 
   const onPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    // A coluna é a caixa de fora (a de dentro pode estar no meio de uma animação).
-    const block = event.currentTarget.parentElement?.parentElement;
     const grid = gridRef.current;
-    if (!block || !grid) return;
+    const box = boxRef.current;
+    // A coluna é a caixa de fora (a de dentro pode estar no meio de uma animação).
+    const cell = event.currentTarget.parentElement?.parentElement;
+    if (!grid || !box || !cell) return;
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
     const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
+    const gridWidth = grid.getBoundingClientRect().width;
     start.current = {
       x: event.clientX,
-      width: block.getBoundingClientRect().width,
-      column: (grid.getBoundingClientRect().width + gap) / 12,
+      y: event.clientY,
+      width: cell.getBoundingClientRect().width,
+      height: box.getBoundingClientRect().height,
+      column: (gridWidth + gap) / 12,
+      gridWidth,
+      mode: gridMode(grid),
     };
+    onResizing(true);
   };
   const onPointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
     const origin = start.current;
     if (!origin) return;
-    const columns = (origin.width + event.clientX - origin.x) / origin.column;
-    const next = sizeForColumns(def, columns);
-    // O handler é recriado a cada render: `size` é sempre o tamanho atual.
-    if (next !== size) onResize(next);
+    const patch: Patch = {};
+    if (axis !== "y" && origin.mode !== "phone") {
+      const width = origin.width + event.clientX - origin.x;
+      const columns =
+        origin.mode === "desk"
+          ? clampColumns(def, width / origin.column)
+          : // Tablet: duas colunas só. Passou de 3/4 da grade, largura toda.
+            clampColumns(def, width > origin.gridWidth * 0.75 ? 12 : 6);
+      if (columns !== block.columns) patch.columns = columns;
+    }
+    if (axis !== "x") {
+      const height = snapHeight(origin.height + event.clientY - origin.y);
+      if (height !== block.minHeight) patch.minHeight = height;
+    }
+    // O handler é recriado a cada render: `block` é sempre o atual.
+    if (Object.keys(patch).length > 0) onChange(patch);
   };
   const end = () => {
+    if (!start.current) return;
     start.current = null;
+    onResizing(false);
   };
 
   return (
     <button
       type="button"
-      aria-label={`Mudar o tamanho de ${def.label}: ${SIZE_LABELS[size]}`}
-      title="Arraste para mudar o tamanho"
-      className="absolute top-1/2 -right-3 z-10 hidden h-14 w-6 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border border-line-strong bg-canvas text-mist shadow-[0_6px_16px_rgba(0,0,0,.25)] hover:text-sand focus-visible:outline-2 focus-visible:outline-sand @tab:flex"
+      aria-label={label}
+      title={title}
+      className={cn(
+        "absolute z-10 items-center justify-center rounded-full border border-line-strong bg-canvas text-mist shadow-[0_6px_16px_rgba(0,0,0,.25)] hover:border-sand hover:text-sand focus-visible:outline-2 focus-visible:outline-sand",
+        HANDLE_CLASS[axis],
+      )}
       style={{ touchAction: "none" }}
       onMouseDown={(event) => event.stopPropagation()}
       onTouchStart={(event) => event.stopPropagation()}
@@ -513,76 +653,15 @@ function ResizeHandle({
       onPointerMove={onPointerMove}
       onPointerUp={end}
       onPointerCancel={end}
+      onDoubleClick={axis === "y" ? () => onChange({ minHeight: null }) : undefined}
       onKeyDown={(event) => {
-        if (event.key === "ArrowRight") onResize(stepSize(def, size, 1));
-        else if (event.key === "ArrowLeft") onResize(stepSize(def, size, -1));
-        else return;
-        event.preventDefault();
+        if (onKey(event.key)) event.preventDefault();
       }}
     >
-      <Icon name="move-horizontal" size={14} />
-    </button>
-  );
-}
-
-/** Distância do arrasto (px) para passar de uma altura à próxima. */
-const HEIGHT_STEP = 56;
-
-/**
- * Alça na borda de baixo (todas as larguras): arrastar para baixo deixa o bloco mais alto e para
- * cima, mais baixo, encaixando em baixa, automática e alta. O estado só muda ao trocar de altura.
- * Teclado: setas para cima e para baixo.
- */
-function HeightHandle({
-  label,
-  height,
-  onChange,
-}: {
-  label: string;
-  height: LayoutHeight;
-  onChange: (height: LayoutHeight) => void;
-}) {
-  const start = useRef<{ y: number; height: LayoutHeight } | null>(null);
-
-  const onPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    start.current = { y: event.clientY, height };
-  };
-  const onPointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    const origin = start.current;
-    if (!origin) return;
-    const steps = Math.trunc((event.clientY - origin.y) / HEIGHT_STEP);
-    let next = origin.height;
-    for (let i = 0; i < Math.abs(steps); i++) next = stepHeight(next, steps > 0 ? 1 : -1);
-    if (next !== height) onChange(next);
-  };
-  const end = () => {
-    start.current = null;
-  };
-
-  return (
-    <button
-      type="button"
-      aria-label={`Mudar a altura de ${label}: ${HEIGHT_LABELS[height]}`}
-      title="Arraste para cima ou para baixo para mudar a altura"
-      className="absolute -bottom-3 left-1/2 z-10 flex h-6 w-16 -translate-x-1/2 cursor-ns-resize items-center justify-center gap-1 rounded-full border border-line-strong bg-canvas text-11 text-mist shadow-[0_6px_16px_rgba(0,0,0,.25)] hover:text-sand focus-visible:outline-2 focus-visible:outline-sand"
-      style={{ touchAction: "none" }}
-      onMouseDown={(event) => event.stopPropagation()}
-      onTouchStart={(event) => event.stopPropagation()}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={end}
-      onPointerCancel={end}
-      onKeyDown={(event) => {
-        if (event.key === "ArrowDown") onChange(stepHeight(height, 1));
-        else if (event.key === "ArrowUp") onChange(stepHeight(height, -1));
-        else return;
-        event.preventDefault();
-      }}
-    >
-      <Icon name="move-vertical" size={12} />
-      <span>{HEIGHT_LABELS[height]}</span>
+      <Icon
+        name={axis === "x" ? "move-horizontal" : axis === "y" ? "move-vertical" : "move-diagonal"}
+        size={14}
+      />
     </button>
   );
 }
