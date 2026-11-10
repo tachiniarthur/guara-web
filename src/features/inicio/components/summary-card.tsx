@@ -3,7 +3,7 @@ import { ChartFit } from "@/components/charts/chart-fit";
 import { Icon } from "@/components/ui/icon";
 import { PrivacyToggle } from "@/components/layout/privacy-toggle";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { CardBody, WhenHasData, WhenNoData } from "@/components/states/screen-state-context";
+import { CardBody, WhenNoData } from "@/components/states/screen-state-context";
 import { StateBlock } from "@/components/states/state-block";
 import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -73,27 +73,24 @@ export function SummaryCard({
       <WhenNoData>
         <CardHeader title="Entradas e saídas" />
       </WhenNoData>
-      <WhenHasData>
-        {/*
-          Curvas de nível decorativas atrás do saldo: ocupam a coluna inteira (no celular, o topo
-          do card), centradas e com as bordas esmaecidas, então nunca terminam numa linha reta
-          quando o bloco fica mais alto ou mais estreito.
-        */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[21.25rem] overflow-hidden mask-x-from-70% mask-b-from-60% @min-[48rem]:inset-y-0 @min-[48rem]:right-auto @min-[48rem]:h-auto @min-[48rem]:w-[25rem] @min-[48rem]:mask-y-from-75%"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element -- desenho decorativo */}
-          <img
-            src="/images/marca/curvas-de-nivel.svg"
-            alt=""
-            className="block size-full max-w-none object-none object-center"
-          />
-        </div>
-      </WhenHasData>
       <CardBody main={noBank} className="relative z-1 grow">
         <div className="relative z-1 flex min-h-0 grow flex-col gap-5 @min-[48rem]:flex-row @min-[48rem]:gap-6">
-          <div className="flex w-full shrink-0 flex-col gap-3.5 @min-[48rem]:w-[20.625rem]">
+          {/*
+            Coluna do saldo: acompanha o card (largura proporcional, conteúdo no meio da altura) e
+            leva junto as curvas de nível, inteiras e esmaecidas em círculo, sem borda reta.
+          */}
+          <div className="relative isolate flex w-full shrink-0 flex-col justify-center gap-3.5 @min-[48rem]:w-[clamp(20.625rem,32%,27rem)]">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-x-4 -inset-y-8 -z-10 flex items-center justify-center"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- desenho decorativo */}
+              <img
+                src="/images/marca/curvas-de-nivel.svg"
+                alt=""
+                className="block w-full max-w-[28.75rem] [mask-image:radial-gradient(closest-side,#000_55%,transparent)]"
+              />
+            </div>
             <div className="flex items-start justify-between gap-2">
               <div className="flex flex-col gap-1">
                 <span className="text-14 text-mist">{summary.saldoRotulo}</span>
