@@ -8,6 +8,8 @@ import {
   moveBlock,
   shiftBlock,
   sizeForColumns,
+  heightForDrag,
+  snapColumns,
   snapHeight,
   stepColumns,
   stepHeight,
@@ -75,11 +77,17 @@ describe("layout editável", () => {
     ]);
   });
 
-  it("largura livre entre as colunas aceitas; no tablet, metade ⇄ tudo", () => {
+  it("largura entre as pré-definidas que o bloco aceita; no tablet, metade ⇄ tudo", () => {
     const resumo = defs[0]!;
     expect(stepColumns(resumo, 8, 1, "desk")).toBe(9);
+    expect(stepColumns(resumo, 9, 1, "desk")).toBe(12);
     expect(stepColumns(resumo, 12, 1, "desk")).toBe(12);
+    expect(stepColumns(resumo, 8, -1, "desk")).toBe(6);
     expect(stepColumns(resumo, 6, -1, "desk")).toBe(6);
+    // Arrastar encaixa na mais perto; layouts com a largura livre de antes também.
+    expect(snapColumns(resumo, 7.2)).toBe(8);
+    expect(snapColumns(resumo, 10.4)).toBe(9);
+    expect(snapColumns(resumo, 2)).toBe(6);
     expect(stepColumns(resumo, 8, -1, "tablet")).toBe(6);
     expect(stepColumns(resumo, 6, 1, "tablet")).toBe(12);
     // Metas só aceita até a metade: no tablet não vira largura toda.
@@ -90,21 +98,19 @@ describe("layout editável", () => {
   });
 
   it("formato salvo: campos novos e os antigos preenchidos para quem só lê esses", () => {
-    const layout = updateBlock(defaultLayout(defs), "resumo", { columns: 7, minHeight: 333 });
+    const layout = updateBlock(defaultLayout(defs), "resumo", { columns: 9, minHeight: 400 });
     const [resumo, pendencias] = toStored(defs, layout);
     expect(resumo).toEqual({
       id: "resumo",
-      size: "m",
+      size: "l",
       hidden: false,
       compact: false,
       height: "tall",
-      columns: 7,
-      minHeight: 333,
+      columns: 9,
+      minHeight: 400,
     });
     expect(pendencias).not.toHaveProperty("minHeight");
-    expect(mergeLayout(defs, toStored(defs, layout))).toEqual(
-      updateBlock(layout, "resumo", { minHeight: snapHeight(333) }),
-    );
+    expect(mergeLayout(defs, toStored(defs, layout))).toEqual(layout);
   });
 
   it("ocultar e reexibir não mexe no resto", () => {
@@ -112,12 +118,18 @@ describe("layout editável", () => {
     expect(updateBlock(hidden, "metas", { hidden: false })).toEqual(defaultLayout(defs));
   });
 
-  it("altura de 8 em 8 px, entre o mínimo e o máximo; abaixo do mínimo volta à automática", () => {
-    expect(snapHeight(333)).toBe(336);
-    expect(snapHeight(10)).toBe(160);
-    expect(snapHeight(99999)).toBe(1600);
-    expect(stepHeight(null, 300, 1)).toBe(344);
-    expect(stepHeight(200, 300, -1)).toBe(160);
-    expect(stepHeight(160, 300, -1)).toBeNull();
+  it("altura entre a automática e as pré-definidas (P a XG)", () => {
+    expect(snapHeight(333)).toBe(320);
+    expect(snapHeight(10)).toBe(320);
+    expect(snapHeight(99999)).toBe(640);
+    expect(heightForDrag(250)).toBeNull();
+    expect(heightForDrag(450)).toBe(480);
+    // Da automática para cima: a primeira maior que a altura atual do bloco.
+    expect(stepHeight(null, 300, 1)).toBe(320);
+    expect(stepHeight(null, 450, 1)).toBe(480);
+    expect(stepHeight(null, 450, -1)).toBeNull();
+    expect(stepHeight(400, 0, -1)).toBe(320);
+    expect(stepHeight(320, 0, -1)).toBeNull();
+    expect(stepHeight(640, 0, 1)).toBe(640);
   });
 });

@@ -22,11 +22,25 @@ export const LAYOUT_HEIGHTS = ["short", "auto", "tall"] as const;
 export type LayoutHeight = (typeof LAYOUT_HEIGHTS)[number];
 
 export const GRID_COLUMNS = 12;
-/** A altura anda de 8 em 8 px (a grade de espaçamento do design). */
-export const HEIGHT_STEP = 8;
-export const MIN_HEIGHT = 160;
-export const MAX_HEIGHT = 1600;
-/** Altura de um bloco salvo como "alto" antes da altura livre. */
+
+/**
+ * Larguras que a pessoa escolhe (colunas da grade de 12): 1/4, 1/3, metade, 2/3, 3/4 e toda. Cada
+ * bloco usa as que cabem entre o menor e o maior tamanho dele.
+ */
+export const WIDTH_PRESETS = [3, 4, 6, 8, 9, 12] as const;
+
+/**
+ * Alturas que a pessoa escolhe, como tamanho de roupa, além da automática (a do conteúdo). É a
+ * altura mínima: o bloco nunca corta o conteúdo.
+ */
+export const HEIGHT_PRESETS = [
+  { px: 320, name: "P" },
+  { px: 400, name: "M" },
+  { px: 480, name: "G" },
+  { px: 560, name: "GG" },
+  { px: 640, name: "XG" },
+] as const;
+/** Altura de um bloco salvo como "alto" antes das alturas escolhidas. */
 const LEGACY_TALL = 480;
 
 /** Versão do formato salvo. Suba quando o significado de um campo mudar. */
@@ -73,8 +87,6 @@ export interface StoredBlock {
   minHeight?: number;
 }
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-
 export const defaultColumns = (def: BlockDef) => SIZE_COLUMNS[def.defaultSize];
 
 /** Menor e maior largura (colunas) que o bloco aceita. */
@@ -85,14 +97,32 @@ export function columnRange(def: BlockDef): { min: number; max: number } {
   };
 }
 
-export function clampColumns(def: BlockDef, columns: number): number {
+/** Larguras que o bloco aceita, da menor à maior. */
+export function widthOptions(def: BlockDef): number[] {
   const { min, max } = columnRange(def);
-  return clamp(Math.round(columns), min, max);
+  return WIDTH_PRESETS.filter((columns) => columns >= min && columns <= max);
 }
 
-/** Altura encaixada na grade de 8 px e dentro dos limites. */
-export const snapHeight = (px: number) =>
-  clamp(Math.round(px / HEIGHT_STEP) * HEIGHT_STEP, MIN_HEIGHT, MAX_HEIGHT);
+/** A largura aceita mais perto de um número de colunas (arrastar a alça, layouts antigos). */
+export function snapColumns(def: BlockDef, columns: number): number {
+  const options = widthOptions(def);
+  return options.reduce((best, option) =>
+    Math.abs(option - columns) < Math.abs(best - columns) ? option : best,
+  );
+}
+
+/** A altura escolhida mais perto de uma medida (px). */
+export function snapHeight(px: number): number {
+  return HEIGHT_PRESETS.reduce(
+    (best, preset) => (Math.abs(preset.px - px) < Math.abs(best - px) ? preset.px : best),
+    HEIGHT_PRESETS[0].px as number,
+  );
+}
+
+/** Arrastando a alça: bem abaixo da menor altura, volta à automática. */
+export function heightForDrag(px: number): number | null {
+  return px < HEIGHT_PRESETS[0].px - 40 ? null : snapHeight(px);
+}
 
 /** O bloco ocupa metade da largura no tablet? */
 export function tabletHalf(def: BlockDef, columns: number): boolean {
@@ -113,8 +143,11 @@ export function widthLabel(columns: number): string {
   return named[columns] ?? `${columns} de 12 colunas`;
 }
 
-export const heightLabel = (minHeight: number | null) =>
-  minHeight === null ? "Altura automática" : `${minHeight} px de altura`;
+export function heightLabel(minHeight: number | null): string {
+  if (minHeight === null) return "Altura automática";
+  const preset = HEIGHT_PRESETS.find((p) => p.px === minHeight);
+  return preset ? `Altura ${preset.name}` : `${minHeight} px de altura`;
+}
 
 const fresh = (def: BlockDef): LayoutBlock => ({
   id: def.id,
@@ -150,7 +183,7 @@ export function mergeLayout(
     result.push({
       id: block.id,
       hidden: Boolean(block.hidden),
-      columns: clampColumns(def, columns),
+      columns: snapColumns(def, columns),
       minHeight: minHeight === null ? null : snapHeight(minHeight),
     });
   }
@@ -229,8 +262,8 @@ export function shiftBlock(
 }
 
 /**
- * Próxima largura na direção pedida: no desktop, uma coluna; no tablet (duas colunas), metade ⇄
- * largura toda.
+ * Próxima largura na direção pedida: no desktop, a próxima das pré-definidas; no tablet (duas
+ * colunas), metade ⇄ largura toda.
  */
 export function stepColumns(
   def: BlockDef,
@@ -238,32 +271,43 @@ export function stepColumns(
   direction: -1 | 1,
   mode: "desk" | "tablet",
 ): number {
-  if (mode === "desk") return clampColumns(def, columns + direction);
+  if (mode === "desk") {
+    const options = widthOptions(def);
+    const next =
+      direction === 1
+        ? options.find((option) => option > columns)
+        : [...options].reverse().find((option) => option < columns);
+    return next ?? columns;
+  }
   const half = tabletHalf(def, columns);
   if (direction === 1 && half) {
-    const next = clampColumns(def, GRID_COLUMNS);
+    const next = snapColumns(def, GRID_COLUMNS);
     return tabletHalf(def, next) ? columns : next;
   }
   if (direction === -1 && !half) {
-    const next = clampColumns(def, GRID_COLUMNS / 2);
+    const next = snapColumns(def, GRID_COLUMNS / 2);
     return tabletHalf(def, next) ? next : columns;
   }
   return columns;
 }
 
 /**
- * Altura um passo (40 px) acima ou abaixo, a partir da altura escolhida ou da atual; abaixo do
- * mínimo, volta a ser automática.
+ * Próxima altura na direção pedida, entre a automática e as pré-definidas. Da automática para
+ * cima, a primeira maior que a altura atual do bloco (`current`); abaixo da menor, automática.
  */
 export function stepHeight(
   minHeight: number | null,
   current: number,
   direction: -1 | 1,
-  step = HEIGHT_STEP * 5,
 ): number | null {
-  const next = (minHeight ?? current) + direction * step;
-  if (direction === -1 && next < MIN_HEIGHT) return null;
-  return snapHeight(next);
+  const sizes = HEIGHT_PRESETS.map((preset) => preset.px as number);
+  if (minHeight === null) {
+    if (direction === -1) return null;
+    return sizes.find((px) => px > current) ?? sizes[sizes.length - 1]!;
+  }
+  const index = sizes.indexOf(snapHeight(minHeight)) + direction;
+  if (index < 0) return null;
+  return sizes[Math.min(index, sizes.length - 1)]!;
 }
 
 export const updateBlock = (

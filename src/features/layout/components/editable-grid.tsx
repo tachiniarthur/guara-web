@@ -37,12 +37,11 @@ import { cn } from "@/lib/utils";
 import {
   type BlockDef,
   type LayoutBlock,
-  MIN_HEIGHT,
-  clampColumns,
   columnRange,
+  heightForDrag,
   heightLabel,
   moveBlock,
-  snapHeight,
+  snapColumns,
   stepColumns,
   stepHeight,
   tabletHalf,
@@ -128,9 +127,9 @@ interface GridProps {
 
 /**
  * Grade de blocos da tela. Fora da edição é uma grade comum (nada muda no uso); na edição, cada
- * bloco pode ser arrastado (mouse, toque longo de 250 ms ou teclado pela alça), ter a largura
- * mudada coluna a coluna (alça do lado, ou − e +), a altura de 8 em 8 px (alça de baixo; dois
- * cliques voltam à automática), as duas juntas (alça do canto) e ser ocultado.
+ * bloco pode ser arrastado (mouse, toque longo de 250 ms ou teclado pela alça), mudar de largura
+ * (alça do lado, ou − e +) e de altura (alça de baixo; dois cliques voltam à automática) entre
+ * tamanhos pré-definidos, as duas juntas (alça do canto), e ser ocultado.
  */
 export function EditableGrid({
   layout,
@@ -360,7 +359,7 @@ function EditableBlock({
     const next = stepColumns(def, block.columns, direction, current);
     if (next !== block.columns) onChange({ columns: next });
   };
-  const currentHeight = () => boxRef.current?.getBoundingClientRect().height ?? MIN_HEIGHT;
+  const currentHeight = () => boxRef.current?.getBoundingClientRect().height ?? 0;
   const stepBlockHeight = (direction: -1 | 1) =>
     onChange({ minHeight: stepHeight(block.minHeight, currentHeight(), direction) });
 
@@ -552,9 +551,10 @@ const HANDLE_CLASS: Record<"x" | "y" | "both", string> = {
 };
 
 /**
- * Alça de redimensionar. Segue o ponteiro: a largura encaixa coluna a coluna (no tablet, metade
- * ou tudo) e a altura de 8 em 8 px, e o bloco muda na hora, com a medida no meio dele. O estado
- * só muda quando a medida encaixada muda (não a cada movimento do ponteiro).
+ * Alça de redimensionar. Segue o ponteiro e encaixa nos tamanhos pré-definidos, igual nos dois
+ * eixos: largura 1/4, 1/3, metade, 2/3, 3/4 ou toda (no tablet, metade ou toda) e altura
+ * automática, P, M, G, GG ou XG. O bloco muda na hora, com o tamanho no meio dele; o estado só
+ * muda quando o tamanho encaixado muda (não a cada movimento do ponteiro).
  */
 function ResizeHandle({
   axis,
@@ -619,13 +619,13 @@ function ResizeHandle({
       const width = origin.width + event.clientX - origin.x;
       const columns =
         origin.mode === "desk"
-          ? clampColumns(def, width / origin.column)
+          ? snapColumns(def, width / origin.column)
           : // Tablet: duas colunas só. Passou de 3/4 da grade, largura toda.
-            clampColumns(def, width > origin.gridWidth * 0.75 ? 12 : 6);
+            snapColumns(def, width > origin.gridWidth * 0.75 ? 12 : 6);
       if (columns !== block.columns) patch.columns = columns;
     }
     if (axis !== "x") {
-      const height = snapHeight(origin.height + event.clientY - origin.y);
+      const height = heightForDrag(origin.height + event.clientY - origin.y);
       if (height !== block.minHeight) patch.minHeight = height;
     }
     // O handler é recriado a cada render: `block` é sempre o atual.
