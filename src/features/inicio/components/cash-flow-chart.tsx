@@ -72,7 +72,13 @@ export function CashFlowChart({
 }) {
   const natural = variant === "compact" ? COMPACT : WIDE;
   return (
-    <ChartBox width={natural.width} height={natural.height} stretchX={variant === "wide"}>
+    <ChartBox
+      width={natural.width}
+      height={natural.height}
+      stretchX={variant === "wide"}
+      // O largo aparece a partir de 480 px (ChartFit): daí para cima, texto em tamanho real.
+      minWidth={variant === "wide" ? 480 : natural.width}
+    >
       {(size) => <CashFlowSvg variant={variant} data={data} size={size} />}
     </ChartBox>
   );
@@ -97,10 +103,31 @@ function CashFlowSvg({
   const xHoje = x(hoje);
   // Pílula "Sobrou" à esquerda de hoje; no começo do mês, encosta no início do gráfico.
   const pillLeft = (width: number) => Math.max(4, xHoje - width - 10);
+  const PILL = compact
+    ? { width: 200, height: 40, font: 19, rx: 20 }
+    : { width: 140, height: 30, font: 13, rx: 15 };
   const ultimaEntrada = entradas[entradas.length - 1] ?? 0;
   const ultimaSaida = saidas[saidas.length - 1] ?? 0;
   // Sem previsão (sem teto total), a linha de saídas segue reta até o fim do mês.
   const previsaoSaidas = data.previsaoSaidas ?? ultimaSaida;
+  // A pílula fica no vão entre as duas linhas em "hoje" (é o que sobrou), centrada no dia; vão
+  // estreito demais, acima da linha de cima. Nunca em cima de uma linha ou de um rótulo.
+  const gapTop = Math.min(y(ultimaEntrada), y(ultimaSaida));
+  const gapBottom = Math.max(y(ultimaEntrada), y(ultimaSaida));
+  const pill =
+    gapBottom - gapTop >= PILL.height + 12
+      ? {
+          x: Math.min(Math.max(X0 + 4, xHoje - PILL.width / 2), X1 - PILL.width),
+          y: (gapTop + gapBottom) / 2 - PILL.height / 2,
+        }
+      : {
+          x: Math.max(X0 + 4, pillLeft(PILL.width)),
+          // Acima da linha de cima; sem espaço lá (linha no topo), abaixo da de baixo.
+          y:
+            gapTop - PILL.height - 6 >= Y_TOP
+              ? gapTop - PILL.height - 6
+              : Math.min(gapBottom + 6, Y0 - PILL.height - 4),
+        };
   const labels = endLabels(
     y(ultimaEntrada) + 5,
     y(previsaoSaidas) + 5,
@@ -219,42 +246,24 @@ function CashFlowSvg({
             )}
           </>
         )}
-        {compact ? (
-          <>
-            <rect x={pillLeft(200)} y="18" width="200" height="40" rx="20" fill="#F2EFE6" />
-            <text
-              x={pillLeft(200) + 100}
-              y="45"
-              textAnchor="middle"
-              fontSize="19"
-              fontWeight="800"
-              fill="#0B110E"
-            >
-              Sobrou {sobrou}
-            </text>
-          </>
-        ) : (
-          <>
-            <rect
-              x={pillLeft(140)}
-              y={y(ultimaEntrada) + 1}
-              width="140"
-              height="30"
-              rx="15"
-              fill="#F2EFE6"
-            />
-            <text
-              x={pillLeft(140) + 70}
-              y={y(ultimaEntrada) + 21}
-              textAnchor="middle"
-              fontSize="13"
-              fontWeight="800"
-              fill="#0B110E"
-            >
-              Sobrou {sobrou}
-            </text>
-          </>
-        )}
+        <rect
+          x={pill.x}
+          y={pill.y}
+          width={PILL.width}
+          height={PILL.height}
+          rx={PILL.rx}
+          fill="#F2EFE6"
+        />
+        <text
+          x={pill.x + PILL.width / 2}
+          y={pill.y + PILL.height / 2 + PILL.font * 0.36}
+          textAnchor="middle"
+          fontSize={PILL.font}
+          fontWeight="800"
+          fill="#0B110E"
+        >
+          Sobrou {sobrou}
+        </text>
         <line x1={X0} x2={X1} y1={Y0} y2={Y0} stroke="#34443B" />
         {ticks.map((dia) => (
           <text

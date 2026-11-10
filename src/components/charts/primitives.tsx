@@ -18,6 +18,21 @@ export const chartColors = {
   urucum: "#FF6A50",
 } as const;
 
+/**
+ * Contorno da cor do card atrás de um texto do gráfico: continua legível quando passa por cima
+ * de uma linha ou barra. Espalhe no `<text>`.
+ */
+export const halo = {
+  stroke: chartColors.card,
+  strokeWidth: 4,
+  strokeLinejoin: "round",
+  paintOrder: "stroke",
+} as const;
+
+/** Largura aproximada de um texto do gráfico (Figtree), para evitar rótulos sobrepostos. */
+export const textWidth = (text: string, fontSize: number, bold = false) =>
+  text.length * fontSize * (bold ? 0.6 : 0.54);
+
 export const CHART_FONT = "var(--font-figtree), Figtree, system-ui, sans-serif";
 
 type ChartSvgProps = {
