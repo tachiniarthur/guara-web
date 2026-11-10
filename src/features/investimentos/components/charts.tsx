@@ -1,7 +1,7 @@
 "use client";
 
 import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
-import { buildBar, ChartSvg, chartColors, roundedBar } from "@/components/charts/primitives";
+import { buildBar, ChartSvg, chartColors, halo, roundedBar } from "@/components/charts/primitives";
 import { rem } from "@/lib/rem";
 import { cn } from "@/lib/utils";
 
@@ -88,16 +88,35 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
   // Sem CDI (fonte fora do plano), a linha tracejada some.
   const hasCdi = cdiRaw.some((v) => v !== null);
   const cdi = cdiRaw.map((v) => v ?? 0);
-  // A escala do design cabe até ~12%; acima disso, encolhe para caber.
-  const peak = Math.max(12, ...carteira.map(Math.abs), ...cdi.map(Math.abs));
-  const scale = (l.scale * 12) / peak;
+  // A escala do design vai de 0 a ~12%; acima disso, encolhe para caber. Rentabilidade negativa
+  // desce o zero (até acima dos meses) em vez de sair do gráfico.
+  const values = [...carteira, ...(hasCdi ? cdi : [])];
+  const hi = Math.max(12, ...values);
+  const lo = Math.min(0, ...values);
+  const top = l.zero - l.scale * 12;
+  const bottom = lo < 0 ? l.monthY - l.monthFont - 8 : l.zero;
   const step = (l.x1 - 10) / Math.max(carteira.length - 1, 1);
   const x = (i: number) => 10 + i * step;
-  const y = (v: number) => l.zero - v * scale;
+  const y = (v: number) => bottom - ((v - lo) / (hi - lo)) * (bottom - top);
   const path = (values: number[]) =>
     values.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   const last = carteira.length - 1;
   const f = (n: number) => n.toFixed(1);
+  // Quem rendeu mais tem o rótulo em cima; o outro, embaixo, a uma linha de distância.
+  const yCarteira = y(carteira[last] ?? 0);
+  const yCdi = y(cdi[last] ?? 0);
+  const carteiraOnTop = !hasCdi || yCarteira <= yCdi;
+  const line = l.font * 1.4;
+  let carteiraLabel = yCarteira + (carteiraOnTop ? l.carteiraDy : l.cdiDy);
+  let cdiLabel = yCdi + (carteiraOnTop ? l.cdiDy : l.carteiraDy);
+  if (hasCdi && Math.abs(carteiraLabel - cdiLabel) < line) {
+    const mid = (carteiraLabel + cdiLabel) / 2;
+    carteiraLabel = mid + (carteiraOnTop ? -line / 2 : line / 2);
+    cdiLabel = mid + (carteiraOnTop ? line / 2 : -line / 2);
+  }
+  const inside = (v: number) => Math.min(l.monthY - l.monthFont - 4, Math.max(l.font + 2, v));
+  carteiraLabel = inside(carteiraLabel);
+  cdiLabel = inside(cdiLabel);
   const points = carteira.map((v, i) => ({
     x: x(i),
     title: `Até ${rotulos[i] ?? ""}`,
@@ -158,8 +177,9 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
           />
         )}
         <text
+          {...halo}
           x={l.labelX}
-          y={f(y(carteira[last] ?? 0) + l.carteiraDy)}
+          y={f(carteiraLabel)}
           textAnchor="end"
           fontSize={l.font}
           fontWeight="700"
@@ -169,8 +189,9 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
         </text>
         {hasCdi && (
           <text
+            {...halo}
             x={l.labelX}
-            y={f(y(cdi[last] ?? 0) + l.cdiDy)}
+            y={f(cdiLabel)}
             textAnchor="end"
             fontSize={l.font}
             fill={chartColors.mist}

@@ -45,7 +45,8 @@ export function ProjectionChart({
   const { width, height, goalFont, axisFont } = boxes[variant];
   const bottom = height - 26;
   const last = series.projected.length - 1;
-  const max = Math.max(...series.projected) * HEADROOM;
+  // A meta entra na escala: com a projeção abaixo dela, a linha da meta não sai do gráfico.
+  const max = Math.max(...series.projected, goal?.value ?? 0) * HEADROOM;
   const x = (i: number) => PAD_X + (i * (width - PAD_X * 2)) / last;
   const y = (v: number) => bottom - (v / max) * (bottom - TOP);
   const line = (values: number[]) =>

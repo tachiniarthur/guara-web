@@ -150,7 +150,7 @@ export function StockPriceChart({
           fontWeight="800"
           fill={chartColors.sand}
         >
-          R$ 37,82
+          {brl(prices[last] ?? 0)}
         </text>
         <line x1={x0} x2={x1} y1={bottom} y2={bottom} stroke={chartColors.axis} />
         {months.map((m, i) => (

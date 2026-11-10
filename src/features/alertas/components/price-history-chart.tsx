@@ -79,7 +79,10 @@ export function PriceHistoryChart({
   const { width, height, x0, x1, yLow, yHigh, font, title, minGap } = layout[variant];
   const step = (x1 - x0) / (prices.length - 1);
   const x = (i: number) => x0 + i * step;
-  const y = (v: number) => yLow - ((v - low) / (alert - low)) * (yLow - yHigh);
+  // Preço que passou do alvo (ou abaixo da linha de baixo) alarga a faixa em vez de sair do gráfico.
+  const top = Math.max(alert, ...prices);
+  const bottom = Math.min(low, ...prices);
+  const y = (v: number) => yLow - ((v - bottom) / (top - bottom || 1)) * (yLow - yHigh);
   const mid = (low + alert) / 2;
   const line = prices
     .map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p).toFixed(1)}`)

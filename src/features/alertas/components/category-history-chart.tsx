@@ -74,7 +74,9 @@ export function CategoryHistoryChart({
   const pad = 8;
   const slot = (width - pad * 2) / months.length;
   const bar = slot * barRatio;
-  const y = (v: number) => base - v * scale;
+  // A escala do design cabe até R$ 1.200; com valores maiores, encolhe para a barra não sair.
+  const fit = (scale * 1200) / Math.max(1200, teto, media, ...months.map((m) => m.valor));
+  const y = (v: number) => base - v * fit;
   const points = months.map((m, i) => ({
     x: pad + slot * i + slot / 2,
     title: m.atual ? `${m.rotulo} (até hoje)` : m.rotulo,
