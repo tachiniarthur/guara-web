@@ -244,15 +244,17 @@ export function GastosScreen({ estado }: { estado?: string }) {
               subtitle={sub("Clique numa categoria para ver os lançamentos")}
             />
             <StateSwap replacement={body(categoryMain)} className="grow gap-2 @tab:gap-4">
-              <div className="flex flex-col gap-2 @tab:hidden">
-                <CategoryBreakdown variant="mobile" />
-              </div>
-              <div className="hidden @tab:block @desk:hidden">
-                <CategoryBreakdown variant="tablet" />
-              </div>
-              <div className="hidden grow @desk:flex">
-                <CategoryBreakdown variant="desktop" />
-              </div>
+              {/* Pela largura do bloco (que a pessoa pode mudar), não da página. */}
+              <ChartFit
+                className="flex grow flex-col"
+                narrow={
+                  <div className="flex flex-col gap-2">
+                    <CategoryBreakdown variant="mobile" />
+                  </div>
+                }
+                medium={<CategoryBreakdown variant="tablet" />}
+                wide={<CategoryBreakdown variant="desktop" />}
+              />
             </StateSwap>
           </Panel>
         );

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 import { billingPeriodLabel, planComparison, plans, planUsage, type Plan } from "../planos";
 import { PlanPrice, useContractedPeriod, usePlansPeriod } from "./billing";
+import { barWidth } from "@/lib/bar-width";
 
 const current = plans.find((p) => p.atual)!;
 
@@ -110,7 +111,7 @@ export function UsagePanel({ className }: { className?: string }) {
         <div aria-hidden="true" className="relative h-2 rounded-[4px] bg-shade">
           <div
             className="h-2 origin-left animate-grow-x rounded-[4px] bg-arara"
-            style={{ width: `${Math.round((perguntas.usadas / perguntas.total) * 100)}%` }}
+            style={{ width: barWidth((perguntas.usadas / perguntas.total) * 100) }}
           />
         </div>
       </div>

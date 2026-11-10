@@ -4,6 +4,7 @@ import { inlineLinkClass } from "@/components/ui/text-link";
 import { cn } from "@/lib/utils";
 
 import type { TetoMilestone, TetoProgress } from "../data";
+import { barWidth } from "@/lib/bar-width";
 
 const fill: Record<TetoProgress["estado"], string> = {
   tranquilo: "bg-arara",
@@ -41,7 +42,7 @@ export function TetoBar({ percentual, estado, marcos, size = "sm" }: TetoBarProp
           "absolute top-0 left-0 h-2.5 origin-left animate-grow-x rounded-[0.3125rem]",
           fill[estado],
         )}
-        style={{ width: `${percentual.toFixed(1)}%` }}
+        style={{ width: barWidth(percentual) }}
       />
       {marcos.map((marco) => {
         const end = marco.percentual >= 100;
@@ -54,7 +55,7 @@ export function TetoBar({ percentual, estado, marcos, size = "sm" }: TetoBarProp
                 lg ? "-top-1 h-6" : "-top-[3px] h-4",
                 marco.atingido ? "bg-sand" : "bg-line-strong",
               )}
-              style={{ left: `calc(${marco.percentual.toFixed(2)}% - 1px)` }}
+              style={{ left: `calc(${barWidth(marco.percentual)} - 1px)` }}
             />
             <span
               className={cn(
@@ -63,7 +64,7 @@ export function TetoBar({ percentual, estado, marcos, size = "sm" }: TetoBarProp
                 end ? "-translate-x-full" : "-translate-x-1/2",
                 marco.atingido ? "text-mist" : "text-caption",
               )}
-              style={{ left: `${marco.percentual.toFixed(2)}%` }}
+              style={{ left: barWidth(marco.percentual) }}
             >
               {marco.atingido ? `✓ ${marco.rotulo}` : marco.rotulo}
             </span>

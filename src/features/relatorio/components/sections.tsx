@@ -27,6 +27,7 @@ import {
   type TimelineEntry,
 } from "../data";
 import { BalanceChart, WeeklyFlowChart, type ReportChartVariant } from "./charts";
+import { barWidth } from "@/lib/bar-width";
 
 const toneText = {
   arara: "text-arara",
@@ -476,7 +477,7 @@ function MonthBar({
       <span className="h-2.5 overflow-hidden rounded-[0.3125rem] bg-line">
         <span
           className="block h-full origin-left animate-grow-x rounded-[0.3125rem]"
-          style={{ width: `${width}%`, background: color }}
+          style={{ width: barWidth(width), background: color }}
         />
       </span>
       <strong className={cn("text-right tabular-nums", strong)}>{value}</strong>

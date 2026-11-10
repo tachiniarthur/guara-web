@@ -15,6 +15,7 @@ import {
   type TetoDetail,
   type TetoStatus,
 } from "../tetos";
+import { barWidth } from "@/lib/bar-width";
 
 const statusTone = { "no-ritmo": "folha", perto: "tucano", estourou: "urucum" } as const;
 
@@ -69,7 +70,7 @@ function MataBar({
           color,
           large ? "h-3 rounded-md" : "h-2.5 rounded-[5px]",
         )}
-        style={{ width: `${percentual}%` }}
+        style={{ width: barWidth(percentual) }}
       />
       {marcos.map((marco) => (
         <span
@@ -169,7 +170,7 @@ export function TetoListItem({ teto, last }: { teto: TetoDetail; last?: boolean 
       <div aria-hidden="true" className="relative h-2.5 rounded-[5px] bg-shade">
         <div
           className={cn("h-2.5 origin-left animate-grow-x rounded-[5px]", fill[teto.estado])}
-          style={{ width: `${teto.percentual}%` }}
+          style={{ width: barWidth(teto.percentual) }}
         />
         {teto.marcos
           .filter((m) => m.percentual < 100)

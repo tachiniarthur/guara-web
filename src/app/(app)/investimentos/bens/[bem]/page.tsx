@@ -16,6 +16,7 @@ import { StatTile } from "@/components/ui/stat-tile";
 import { propertyDetail, vehicleDetail } from "@/features/bens/data";
 import { MataCard } from "@/features/gastos/components/teto-cards";
 import { cn } from "@/lib/utils";
+import { barWidth } from "@/lib/bar-width";
 
 const details = { apto: propertyDetail, onix: vehicleDetail };
 type Detail = typeof propertyDetail | typeof vehicleDetail;
@@ -148,7 +149,7 @@ function Financing({ wide }: { wide?: boolean }) {
         <div aria-hidden="true" className="relative h-2.5 rounded-[5px] bg-shade">
           <div
             className="h-2.5 origin-left animate-grow-x rounded-[5px] bg-folha"
-            style={{ width: `${f.quitado}%` }}
+            style={{ width: barWidth(f.quitado) }}
           />
         </div>
       </div>

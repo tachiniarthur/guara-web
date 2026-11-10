@@ -27,6 +27,7 @@ import { MataCard } from "@/features/gastos/components/teto-cards";
 import { OncaTip } from "@/features/metas/components/goal-parts";
 import { goalDetail as detail, goals } from "@/features/metas/data";
 import { cn } from "@/lib/utils";
+import { barWidth } from "@/lib/bar-width";
 
 export function generateStaticParams() {
   return goals.filter((g) => g.detalhe).map((g) => ({ id: g.id }));
@@ -66,7 +67,7 @@ function HeroContent({ wide }: { wide?: boolean }) {
       <div aria-hidden="true" className="relative h-3 rounded-md bg-[rgba(11,17,14,.55)]">
         <div
           className="h-3 origin-left animate-grow-x rounded-md bg-folha"
-          style={{ width: `${goal.percentual}%` }}
+          style={{ width: barWidth(goal.percentual) }}
         />
         {[25, 50, 75].map((m) => (
           <span

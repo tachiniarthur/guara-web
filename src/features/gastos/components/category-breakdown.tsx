@@ -58,15 +58,17 @@ export function CategoryBreakdown({ variant }: { variant: "desktop" | "tablet" |
               style={{ background: c.cor }}
             />
             <span className="flex min-w-0 grow flex-col leading-[1.3]">
-              <span className="font-bold">{c.nome}</span>
-              <span className="text-12 text-caption">
+              <span className="truncate font-bold">{c.nome}</span>
+              <span className="truncate text-12 text-caption">
                 {`${c.lancamentos} ${c.lancamentos === 1 ? "lançamento" : "lançamentos"}${
                   mobile ? "" : ` · ${c.percentual}%`
                 }`}
               </span>
             </span>
-            <span className="font-bold tabular-nums">{c.valorFormatado}</span>
-            <Icon name="chevron-right" size={18} className="text-caption" />
+            <span className="shrink-0 font-bold whitespace-nowrap tabular-nums">
+              {c.valorFormatado}
+            </span>
+            <Icon name="chevron-right" size={18} className="shrink-0 text-caption" />
           </Link>
         </li>
       ))}
@@ -85,7 +87,9 @@ export function CategoryBreakdown({ variant }: { variant: "desktop" | "tablet" |
                 {mobile ? "outras categorias" : `outras categorias · ${otherPercent}%`}
               </span>
             </span>
-            <span className="font-bold tabular-nums">{otherSpending.valorFormatado}</span>
+            <span className="shrink-0 font-bold whitespace-nowrap tabular-nums">
+              {otherSpending.valorFormatado}
+            </span>
             <span aria-hidden="true" className="w-4.5" />
           </div>
         </li>

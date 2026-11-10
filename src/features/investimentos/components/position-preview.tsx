@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Note } from "@/components/ui/note";
 import { formatPercent } from "@/features/alocacao/data";
 import { cn } from "@/lib/utils";
+import { barWidth } from "@/lib/bar-width";
 
 /** Escala das barras de alocação: 0 a 50% da carteira. */
 const SCALE_MAX = 50;
@@ -36,12 +37,12 @@ function AllocationBar({ label, value, target }: { label: string; value: number;
       <div className="relative h-2.5 rounded-full bg-shade">
         <span
           className="absolute inset-y-0 left-0 origin-left animate-grow-x rounded-full bg-urucum"
-          style={{ width: `${(value / SCALE_MAX) * 100}%` }}
+          style={{ width: barWidth((value / SCALE_MAX) * 100) }}
         />
         <span
           aria-hidden="true"
           className="absolute -top-[3px] -bottom-[3px] w-0.5 bg-sand"
-          style={{ left: `${(target / SCALE_MAX) * 100}%` }}
+          style={{ left: barWidth((target / SCALE_MAX) * 100) }}
         />
       </div>
     </div>

@@ -6,6 +6,7 @@ import { Tag } from "@/components/ui/tag";
 import { cn } from "@/lib/utils";
 
 import type { PriceAlert } from "../data";
+import { barWidth } from "@/lib/bar-width";
 
 /** Etiqueta "↑ VENDA" (urucum) ou "↓ COMPRA" (folha). */
 export function DirectionTag({
@@ -69,7 +70,7 @@ export function PriceAlertList({ items, columns = 1 }: { items: PriceAlert[]; co
                 "h-1.5 origin-left animate-grow-x rounded-[3px]",
                 item.direcao === "venda" ? "bg-urucum" : "bg-folha",
               )}
-              style={{ width: `${item.progresso}%` }}
+              style={{ width: barWidth(item.progresso) }}
             />
           </div>
           <span className="text-12 text-caption">{item.faltam}</span>

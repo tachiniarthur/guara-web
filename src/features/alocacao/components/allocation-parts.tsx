@@ -17,6 +17,7 @@ import {
   type ProfileId,
 } from "../data";
 import { usePortfolioAllocation } from "../context";
+import { barWidth } from "@/lib/bar-width";
 
 type DonutSize = { size: number; radius: number; stroke: number; value: number };
 
@@ -207,7 +208,7 @@ export function TargetBar({
           "origin-left animate-grow-x",
           lg ? "h-2.5 rounded-[5px]" : "h-2 rounded-[4px]",
         )}
-        style={{ width: `${((atual / scale) * 100).toFixed(1)}%`, background: color }}
+        style={{ width: barWidth((atual / scale) * 100), background: color }}
       />
       <span
         className={cn("absolute -top-1 w-0.5 rounded-[1px] bg-sand", lg ? "h-4.5" : "h-4")}

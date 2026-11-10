@@ -5,6 +5,7 @@ import { Panel, PanelHeader } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
 
 import type { CategoryLedger } from "../lancamentos";
+import { barWidth } from "@/lib/bar-width";
 
 /** Total da categoria no mês, comparação com o mês anterior e o teto (quando há). */
 export function CategorySummary({ ledger }: { ledger: CategoryLedger }) {
@@ -35,7 +36,7 @@ export function CategorySummary({ ledger }: { ledger: CategoryLedger }) {
           <div aria-hidden="true" className="relative h-2.5 rounded-[5px] bg-shade">
             <div
               className="h-2.5 origin-left animate-grow-x rounded-[5px] bg-tucano"
-              style={{ width: `${teto.percentual}%` }}
+              style={{ width: barWidth(teto.percentual) }}
             />
             {teto.marcos.map((marco) => (
               <span
