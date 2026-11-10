@@ -9,9 +9,12 @@ import { cashFlow, type CashFlowData } from "../data";
 /** Área do gráfico em unidades do viewBox (iguais ao protótipo, no tamanho natural). */
 const X0 = 52;
 const Y_TOP = 14;
-/** Tamanho natural do viewBox: largo (rótulos à direita) e compacto (celular). */
+/**
+ * Tamanho natural do viewBox: largo (rótulos à direita) e compacto (legenda fora). Os dois se
+ * desenham na largura de verdade (1 unidade = 1 px), com o texto sempre no tamanho de leitura.
+ */
 const WIDE = { width: 660, height: 170 } as const;
-const COMPACT = { width: 538, height: 180 } as const;
+const COMPACT = { width: 320, height: 170 } as const;
 /** Espaço à direita da área para os rótulos (largo) e a borda (compacto). */
 const WIDE_LABELS = 150;
 /** Distância mínima entre os rótulos de entradas e saídas (uma linha de texto). */
@@ -60,7 +63,7 @@ function stepPath(values: number[], x: (d: number) => number, y: (v: number) => 
 
 /**
  * Entradas e saídas acumuladas no mês, com previsão tracejada até o fim.
- * "wide": rótulos à direita (desktop e tablet) · "compact": letras maiores e legenda fora (mobile).
+ * "wide": rótulos à direita (bloco largo) · "compact": legenda fora (celular e bloco estreito).
  * Ocupa a largura e a altura do bloco (o largo alarga sem aumentar o texto).
  */
 export function CashFlowChart({
@@ -75,9 +78,9 @@ export function CashFlowChart({
     <ChartBox
       width={natural.width}
       height={natural.height}
-      stretchX={variant === "wide"}
+      stretchX
       // O largo aparece a partir de 480 px (ChartFit): daí para cima, texto em tamanho real.
-      minWidth={variant === "wide" ? 480 : natural.width}
+      minWidth={variant === "wide" ? 480 : 260}
     >
       {(size) => <CashFlowSvg variant={variant} data={data} size={size} />}
     </ChartBox>
@@ -96,16 +99,14 @@ function CashFlowSvg({
   const { diasNoMes, hoje, entradas, saidas, eixo, maximo, sobrou, descricao } = data;
   const compact = variant === "compact";
   const extra = size.height - (compact ? COMPACT.height : WIDE.height);
-  const X1 = compact ? 510 : size.width - WIDE_LABELS;
+  const X1 = compact ? size.width - 16 : size.width - WIDE_LABELS;
   const Y0 = 140 + extra;
   const { x, y } = scale(diasNoMes, maximo, X1, Y0);
-  const fontSize = compact ? 19 : 12;
+  const fontSize = 12;
   const xHoje = x(hoje);
   // Pílula "Sobrou" à esquerda de hoje; no começo do mês, encosta no início do gráfico.
   const pillLeft = (width: number) => Math.max(4, xHoje - width - 10);
-  const PILL = compact
-    ? { width: 200, height: 40, font: 19, rx: 20 }
-    : { width: 140, height: 30, font: 13, rx: 15 };
+  const PILL = { width: 140, height: 30, font: 13, rx: 15 };
   const ultimaEntrada = entradas[entradas.length - 1] ?? 0;
   const ultimaSaida = saidas[saidas.length - 1] ?? 0;
   // Sem previsão (sem teto total), a linha de saídas segue reta até o fim do mês.
@@ -151,7 +152,7 @@ function CashFlowSvg({
 
   // Dia que encostaria no "hoje" sai (o "hoje" fica).
   const ticks = [...new Set([1, 10, 20, hoje, diasNoMes])].filter(
-    (dia) => dia === hoje || Math.abs(x(dia) - xHoje) >= (compact ? 34 : 24),
+    (dia) => dia === hoje || Math.abs(x(dia) - xHoje) >= 24,
   );
   // Leitura dia a dia (até hoje): entradas e saídas acumuladas.
   const points: InspectPoint[] = entradas.map((entrada, i) => {
@@ -175,7 +176,7 @@ function CashFlowSvg({
       <svg
         width="100%"
         height="100%"
-        viewBox={compact ? `-8 0 ${size.width} ${size.height}` : `0 0 ${size.width} ${size.height}`}
+        viewBox={`0 0 ${size.width} ${size.height}`}
         role="img"
         aria-label={descricao}
         className="block animate-reveal-x"
@@ -191,13 +192,7 @@ function CashFlowSvg({
               stroke="#25322B"
               strokeDasharray="3 5"
             />
-            <text
-              x={compact ? 44 : 42}
-              y={y(tick.valor) + 4}
-              textAnchor="end"
-              fontSize={fontSize}
-              fill="#93A198"
-            >
+            <text x={42} y={y(tick.valor) + 4} textAnchor="end" fontSize={fontSize} fill="#93A198">
               {tick.rotulo}
             </text>
           </g>
@@ -269,7 +264,7 @@ function CashFlowSvg({
           <text
             key={dia}
             x={x(dia)}
-            y={(compact ? 174 : 164) + extra}
+            y={164 + extra}
             textAnchor="middle"
             fontSize={fontSize}
             fill={dia === hoje ? "#F2EFE6" : "#93A198"}
