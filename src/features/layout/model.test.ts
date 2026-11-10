@@ -3,15 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   type BlockDef,
   defaultLayout,
+  heightForDrag,
   isDefaultLayout,
   mergeLayout,
   moveBlock,
   shiftBlock,
-  sizeForColumns,
-  heightForDrag,
-  snapColumns,
   snapHeight,
-  stepColumns,
   stepHeight,
   tabletHalf,
   toStored,
@@ -19,19 +16,19 @@ import {
 } from "./model";
 
 const defs: BlockDef[] = [
-  { id: "resumo", label: "Resumo", defaultSize: "l", sizes: ["m", "l", "xl"], group: "a" },
-  { id: "pendencias", label: "Pendências", defaultSize: "s", sizes: ["s", "m", "l"], group: "a" },
-  { id: "metas", label: "Metas", defaultSize: "xs", sizes: ["xs", "s", "m"], group: "b" },
-  { id: "alertas", label: "Alertas", defaultSize: "xs", sizes: ["xs", "s", "m"], group: "b" },
+  { id: "resumo", label: "Resumo", defaultSize: "l", group: "a" },
+  { id: "pendencias", label: "Pendências", defaultSize: "s", group: "a", tablet: "full" },
+  { id: "metas", label: "Metas", defaultSize: "xs", group: "b" },
+  { id: "alertas", label: "Alertas", defaultSize: "xs", group: "b" },
 ];
 
 describe("layout editável", () => {
-  it("padrão: na ordem da tela, nada oculto", () => {
-    expect(defaultLayout(defs).map((b) => [b.id, b.columns, b.minHeight, b.hidden])).toEqual([
-      ["resumo", 8, null, false],
-      ["pendencias", 4, null, false],
-      ["metas", 3, null, false],
-      ["alertas", 3, null, false],
+  it("padrão: na ordem da tela, nada oculto, altura automática", () => {
+    expect(defaultLayout(defs).map((b) => [b.id, b.minHeight, b.hidden])).toEqual([
+      ["resumo", null, false],
+      ["pendencias", null, false],
+      ["metas", null, false],
+      ["alertas", null, false],
     ]);
   });
 
@@ -39,19 +36,45 @@ describe("layout editável", () => {
     const merged = mergeLayout(defs, [
       { id: "metas", size: "m", hidden: true, compact: false },
       { id: "grafico-antigo", size: "xl", hidden: false, compact: false },
-      { id: "resumo", size: "xs", hidden: false, compact: true },
+      { id: "resumo", size: "xs", hidden: false, compact: true, height: "short" },
     ]);
     // Novos entram logo depois do vizinho que vinha antes deles no padrão.
     expect(merged.map((b) => b.id)).toEqual(["metas", "alertas", "resumo", "pendencias"]);
-    // Oculto continua oculto (volta idêntico ao reexibir); tamanho que o bloco não aceita volta ao padrão.
+    // Oculto continua oculto; "baixo" antigo (que cortava) vira automático.
     expect(merged.find((b) => b.id === "metas")).toEqual({
       id: "metas",
       hidden: true,
-      columns: 6,
       minHeight: null,
     });
-    // "xs" não é aceito pelo resumo: volta ao padrão (8 colunas); "baixo" vira automático.
-    expect(merged.find((b) => b.id === "resumo")).toMatchObject({ columns: 8, minHeight: null });
+    expect(merged.find((b) => b.id === "resumo")).toEqual({
+      id: "resumo",
+      hidden: false,
+      minHeight: null,
+    });
+  });
+
+  it("largura é sempre a do design: a salva antes (size e columns) é ignorada", () => {
+    const merged = mergeLayout(defs, [
+      { id: "resumo", size: "xl", hidden: false, compact: false, columns: 12, minHeight: 400 },
+    ]);
+    expect(merged.find((b) => b.id === "resumo")).toEqual({
+      id: "resumo",
+      hidden: false,
+      minHeight: 400,
+    });
+    // Salva a largura do design, sem a largura livre.
+    const [resumo] = toStored(defs, merged);
+    expect(resumo).toEqual({
+      id: "resumo",
+      size: "l",
+      hidden: false,
+      compact: false,
+      height: "tall",
+      minHeight: 400,
+    });
+    expect(tabletHalf(defs[0]!)).toBe(false);
+    expect(tabletHalf(defs[1]!)).toBe(false);
+    expect(tabletHalf(defs[2]!)).toBe(true);
   });
 
   it("sem layout salvo: o padrão", () => {
@@ -75,42 +98,6 @@ describe("layout editável", () => {
       "alertas",
       "metas",
     ]);
-  });
-
-  it("largura entre as pré-definidas que o bloco aceita; no tablet, metade ⇄ tudo", () => {
-    const resumo = defs[0]!;
-    expect(stepColumns(resumo, 8, 1, "desk")).toBe(9);
-    expect(stepColumns(resumo, 9, 1, "desk")).toBe(12);
-    expect(stepColumns(resumo, 12, 1, "desk")).toBe(12);
-    expect(stepColumns(resumo, 8, -1, "desk")).toBe(6);
-    expect(stepColumns(resumo, 6, -1, "desk")).toBe(6);
-    // Arrastar encaixa na mais perto; layouts com a largura livre de antes também.
-    expect(snapColumns(resumo, 7.2)).toBe(8);
-    expect(snapColumns(resumo, 10.4)).toBe(9);
-    expect(snapColumns(resumo, 2)).toBe(6);
-    expect(stepColumns(resumo, 8, -1, "tablet")).toBe(6);
-    expect(stepColumns(resumo, 6, 1, "tablet")).toBe(12);
-    // Metas só aceita até a metade: no tablet não vira largura toda.
-    expect(stepColumns(defs[2]!, 3, 1, "tablet")).toBe(3);
-    expect(tabletHalf(resumo, 7)).toBe(false);
-    expect(sizeForColumns(resumo, 9)).toBe("l");
-    expect(sizeForColumns(resumo, 2)).toBe("m");
-  });
-
-  it("formato salvo: campos novos e os antigos preenchidos para quem só lê esses", () => {
-    const layout = updateBlock(defaultLayout(defs), "resumo", { columns: 9, minHeight: 400 });
-    const [resumo, pendencias] = toStored(defs, layout);
-    expect(resumo).toEqual({
-      id: "resumo",
-      size: "l",
-      hidden: false,
-      compact: false,
-      height: "tall",
-      columns: 9,
-      minHeight: 400,
-    });
-    expect(pendencias).not.toHaveProperty("minHeight");
-    expect(mergeLayout(defs, toStored(defs, layout))).toEqual(layout);
   });
 
   it("ocultar e reexibir não mexe no resto", () => {

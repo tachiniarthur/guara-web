@@ -75,8 +75,6 @@ const paths = {
   minus: "M5 12h14",
   minimize: "M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7",
   more: "M5 12h.01M12 12h.01M19 12h.01",
-  "move-horizontal": "M18 8l4 4-4 4M6 8l-4 4 4 4M2 12h20",
-  "move-diagonal": "M19 13v6h-6M5 11V5h6M19 19 5 5",
   "move-vertical": "M8 6l4-4 4 4M8 18l4 4 4-4M12 2v20",
   "panel-right": "M4 4h16v16H4zM15 4v16",
   paperclip: "M21 11l-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 7",

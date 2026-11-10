@@ -50,24 +50,12 @@ describe("Editar layout (Início)", () => {
     expect(screen.getByText("Investimentos")).toBeInTheDocument();
   });
 
-  it("largura pelos botões − e +, entre as larguras pré-definidas que o bloco aceita", () => {
+  it("só a altura muda: não há controles de largura", () => {
     render(<InicioScreen />);
     startEditing();
-    const grow = () => screen.getByRole("button", { name: "Aumentar a largura de Metas" });
-    const width = () => screen.getByRole("button", { name: /^Largura de Metas:/ });
-    expect(width()).toHaveAccessibleName(
-      "Largura de Metas: 1/4 da largura. Setas para os lados mudam.",
-    );
-    fireEvent.click(grow());
-    expect(width()).toHaveAccessibleName(
-      "Largura de Metas: 1/3 da largura. Setas para os lados mudam.",
-    );
-    fireEvent.click(grow());
-    // Metas aceita até a metade: o + desliga no limite.
-    expect(grow()).toBeDisabled();
-    expect(width()).toHaveAccessibleName("Largura de Metas: Metade. Setas para os lados mudam.");
-    fireEvent.keyDown(width(), { key: "ArrowLeft" });
-    expect(width()).toHaveAccessibleName(/1\/3 da largura/);
+    expect(screen.queryByRole("button", { name: /largura/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Aumentar|^Diminuir/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Altura de Metas:/ })).toBeInTheDocument();
   });
 
   it("restaurar padrão desfaz tudo (e fica desligado quando já é o padrão)", () => {
@@ -136,8 +124,5 @@ describe("Editar layout (Início)", () => {
     expect(
       screen.getByRole("button", { name: /^Altura de Alertas de preço:/ }),
     ).toHaveAccessibleName(/Altura G/);
-    expect(screen.getByRole("button", { name: /^Largura de Metas:/ })).toHaveAccessibleName(
-      /1\/3 da largura/,
-    );
   });
 });

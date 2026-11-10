@@ -82,8 +82,8 @@ export function LayoutEditBar({
               </p>
               <p className="m-0 text-13 text-mist">
                 <span className="@max-tab:hidden">
-                  Arraste os blocos para trocar de lugar. As alças do lado, de baixo e do canto
-                  mudam a largura e a altura; dois cliques na de baixo voltam à altura automática.
+                  Arraste os blocos para trocar de lugar. A alça de baixo muda a altura; dois
+                  cliques nela voltam à altura automática.
                 </span>
                 <span className="@tab:hidden">
                   Segure um bloco para arrastar. A alça de baixo muda a altura.
