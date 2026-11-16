@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { OFFLINE_NOTE, parseScreenState, type ScreenState } from "@/components/states/screen-state";
 import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import {
@@ -200,11 +200,7 @@ function LancamentosBody({ state }: StateProps) {
               replacement={failed ? <ErrorBlock compact /> : empty && <NoDataBlock compact />}
               overlayClassName="rounded-bubble bg-shade p-4"
             >
-              {data.foraDoPadrao && (
-                <AgentTip agent="quero_quero" named>
-                  {data.foraDoPadrao}
-                </AgentTip>
-              )}
+              {data.foraDoPadrao && <GuaraTip named>{data.foraDoPadrao}</GuaraTip>}
             </StateSwap>
             <Panel className="gap-3.5 p-5.5">
               <PanelHeader

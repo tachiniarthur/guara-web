@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { AgentAvatar } from "@/components/ui/agent-avatar";
+import { GuaraAvatar } from "@/components/ui/guara-avatar";
 import { CountBadge } from "@/components/ui/count-badge";
 import { Icon } from "@/components/ui/icon";
-import { agentOrder, agents } from "@/features/assistentes/data";
 import { OpenChat } from "@/features/conversas/components/open-chat";
 import { useSession } from "@/features/acesso/session";
+import { guara } from "@/features/guara/identity";
 import { useUser } from "@/features/usuario/live";
 import { isActive, mainNav } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
@@ -18,13 +18,7 @@ import { BrandLockup } from "./brand";
 import { UserInitials } from "./user-chip";
 import { MataArt } from "@/components/ui/mata-art";
 
-/** Assistentes com algo novo para mostrar (bolinha urucum no menu). */
-const agentsWithNews = new Set(["quero_quero"]);
-
-/** A turma no menu fica curta; os demais assistentes estão em "Ver todos os assistentes". */
-const sidebarAgents = agentOrder.filter((id) => id !== "caramelo" && id !== "onca");
-
-/** Menu lateral completo (janelas grandes): marca, destinos, a turma e o card do usuário. */
+/** Menu lateral completo (janelas grandes): marca, destinos, o Guará e o card do usuário. */
 export function Sidebar({ className }: { className?: string }) {
   const user = useUser();
   const { live } = useSession();
@@ -68,46 +62,17 @@ export function Sidebar({ className }: { className?: string }) {
         })}
       </ul>
 
-      <div className="flex flex-col gap-1.5">
-        <div className="flex flex-col gap-0.5 px-3">
-          <span className="text-12 font-extrabold tracking-[.14em] text-caption uppercase">
-            Assistentes
-          </span>
-          <span className="text-13 text-caption">Cada um cuida de uma parte do dinheiro</span>
-        </div>
-        <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
-          {sidebarAgents.map((id) => {
-            const agent = agents[id];
-            return (
-              <li key={id}>
-                <OpenChat
-                  agent={id}
-                  className="flex min-h-[4.5rem] w-full items-center gap-3 rounded-[1.125rem] border-none bg-transparent px-2.5 py-1.5 text-left text-sand hover:bg-shade"
-                >
-                  <AgentAvatar agent={id} size={48} />
-                  <span className="flex min-w-0 flex-col leading-[1.3]">
-                    <strong className="text-15">{agent.nome}</strong>
-                    <span className="text-13 text-caption">{agent.papel}</span>
-                  </span>
-                  {agentsWithNews.has(id) && (
-                    <span
-                      aria-label="1 alerta novo"
-                      className="mr-1.5 ml-auto size-2.5 shrink-0 rounded-full bg-urucum"
-                    />
-                  )}
-                </OpenChat>
-              </li>
-            );
-          })}
-        </ul>
-        <Link
-          href="/assistentes"
-          className="mx-3 mt-1 flex min-h-8 items-center gap-1 self-start text-14 font-bold text-sand underline underline-offset-3 hover:text-tucano"
-        >
-          Ver todos os assistentes
-          <Icon name="chevron-right" size={16} />
-        </Link>
-      </div>
+      {/* O Guará é o único assistente: o atalho abre uma conversa nova com ele. */}
+      <OpenChat
+        fresh
+        className="flex min-h-[4.5rem] w-full items-center gap-3 rounded-[1.125rem] border-none bg-transparent px-2.5 py-1.5 text-left text-sand hover:bg-shade"
+      >
+        <GuaraAvatar size={48} />
+        <span className="flex min-w-0 flex-col leading-[1.3]">
+          <strong className="text-15">{guara.nome}</strong>
+          <span className="text-13 text-caption">Pergunte sobre o seu dinheiro</span>
+        </span>
+      </OpenChat>
 
       {/* Espaço flexível: o card do usuário fica sempre no rodapé, sem rolagem no menu. */}
       <div className="min-h-0 grow" />

@@ -29,7 +29,7 @@ export default function PerfilPage() {
         </header>
         <SectionRow
           title="Seus dados"
-          description="Como os assistentes chamam você e como falamos com você."
+          description="Como o Guará chama você e como falamos com você."
         >
           <ProfileDataForm />
         </SectionRow>

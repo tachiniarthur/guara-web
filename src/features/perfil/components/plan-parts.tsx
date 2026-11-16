@@ -74,7 +74,7 @@ export function PlanCard({ plan, compact }: { plan: Plan; compact?: boolean }) {
   );
 }
 
-/** Uso do plano atual: bancos conectados e perguntas aos assistentes no mês. */
+/** Uso do plano atual: bancos conectados e perguntas ao Guará no mês. */
 export function UsagePanel({ className }: { className?: string }) {
   const { bancos, perguntas } = planUsage;
   const contracted = useContractedPeriod();
@@ -103,9 +103,7 @@ export function UsagePanel({ className }: { className?: string }) {
           ))}
         </div>
         <div className="flex items-center gap-2.5">
-          <span className="grow text-14 text-mist">
-            Perguntas aos assistentes em {perguntas.mes}
-          </span>
+          <span className="grow text-14 text-mist">Perguntas ao Guará em {perguntas.mes}</span>
           <strong>{`${perguntas.usadas} de ${perguntas.total}`}</strong>
         </div>
         <div aria-hidden="true" className="relative h-2 rounded-[4px] bg-shade">

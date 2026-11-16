@@ -1,5 +1,3 @@
-import type { AgentId } from "@/features/assistentes/data";
-
 export interface CashFlowData {
   diasNoMes: number;
   /** Último dia com dado (hoje no mês atual). */
@@ -53,7 +51,6 @@ export const summary = {
 
 export type PendingItem = {
   id: string;
-  agent: AgentId;
   titulo: string;
   detalhe: string;
   origem: string;
@@ -62,33 +59,30 @@ export type PendingItem = {
   urgente?: boolean;
 };
 
-/** "Precisa de você": o que a turma separou para o usuário decidir. */
+/** "Precisa de você": o que o Guará separou para o usuário decidir. */
 export const pendingItems: PendingItem[] = [
   {
     id: "compra-0214",
-    agent: "quero_quero",
     titulo: "Compra de R$ 1.249,90 às 02:14",
     detalhe: "Loja de eletrônicos · 3,8x sua média",
-    origem: "Quero-quero · Fora do padrão",
+    origem: "Lobo Guará · Fora do padrão",
     acao: "Revisar",
     href: "/alertas",
     urgente: true,
   },
   {
     id: "transporte-86",
-    agent: "tamandua",
     titulo: "Transporte chegou a 86% do teto",
     detalhe: "Faltam R$ 63,60 até o limite do mês",
-    origem: "Tamanduá · Gastos",
+    origem: "Lobo Guará · Gastos",
     acao: "Ver",
     href: "/gastos",
   },
   {
     id: "netflix",
-    agent: "tamandua",
     titulo: "Netflix subiu R$ 5,00",
     detalhe: "Próxima cobrança de R$ 44,90 em 8 de outubro",
-    origem: "Tamanduá · Gastos",
+    origem: "Lobo Guará · Gastos",
     acao: "Ver",
     href: "/assinaturas",
   },

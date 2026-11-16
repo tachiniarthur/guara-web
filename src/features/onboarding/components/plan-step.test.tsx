@@ -28,7 +28,9 @@ describe("Onboarding · Plano (protótipo)", () => {
       expect(screen.getByRole("heading", { level: 2, name })).toBeInTheDocument();
     }
     expect(screen.getByText("Mais popular")).toBeInTheDocument();
-    expect(screen.queryByText(/além da Capivara/)).not.toBeInTheDocument();
+    // Sem a turma de assistentes, o número de assistentes não diferencia mais os planos.
+    expect(screen.queryByText(/assistentes de IA/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/à sua escolha/)).not.toBeInTheDocument();
     // O Básico não exporta: aparece como "não inclui".
     expect(screen.getAllByText("Exportar relatórios").length).toBe(1);
     // Clicar no card escolhe o plano (a borda e o botão em destaque vão para ele).

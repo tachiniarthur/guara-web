@@ -80,7 +80,7 @@ export function LancamentoScreen({ id, estado }: { id: string; estado?: string }
   const state = live ? null : parseScreenState(estado);
   const failed = state === "erro";
   const empty = state === "vazio";
-  /** Tiles sem título (valor, pergunta do Quero-quero, aviso sem teto). */
+  /** Tiles sem título (valor, pergunta do Guará, aviso sem teto). */
   const tile = (onTablet: "tile" | "compact" = "tile") =>
     failed ? <ErrorBlocks mobile="tile" tablet={onTablet} /> : empty && <TileEmptyBlock />;
 

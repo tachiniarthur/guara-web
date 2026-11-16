@@ -102,7 +102,7 @@ export function MataBanner({ variant }: { variant: "tablet" | "mobile" }) {
 }
 
 /**
- * Largura e ampliação comuns às 4 etapas do onboarding (plano, bancos, perfil e assistentes):
+ * Largura e ampliação comuns às 4 etapas do onboarding (plano, bancos, perfil e avisos):
  * as mesmas do resultado do perfil, para a tela não mudar de largura de uma etapa para outra.
  */
 export const stepFrame = {
@@ -165,7 +165,7 @@ export function OnboardingShell({
   );
 }
 
-/** Etapas do onboarding (1. Plano, 2. Bancos, 3. Perfil, 4. Assistentes). */
+/** Etapas do onboarding (1. Plano, 2. Bancos, 3. Perfil, 4. Avisos). */
 export function OnboardingSteps({ current, steps }: { current: number; steps: readonly string[] }) {
   return (
     <div className="flex flex-col gap-2.5">

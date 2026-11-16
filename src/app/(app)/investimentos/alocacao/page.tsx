@@ -2,7 +2,7 @@
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { IconButtonLink } from "@/components/ui/icon-button";
@@ -84,22 +84,21 @@ function GapPanel({ layout, className }: { layout: "stacked" | "side"; className
   );
 }
 
-function PacuTip({ className, chatHref }: { className?: string; chatHref: string }) {
+function GuaraAllocationTip({ className, chatHref }: { className?: string; chatHref: string }) {
   return (
-    <AgentTip
-      agent="pacu"
+    <GuaraTip
       named
       className={className}
       action={
         <ButtonLink href={chatHref} variant="secondary" size="sm">
-          <span>Conversar com o Pacu</span>
+          <span>Conversar com o Guará</span>
         </ButtonLink>
       }
     >
       Dá para chegar mais perto do alvo sem vender nada: se os próximos aportes forem para renda
       fixa internacional e renda variável internacional, a parte de renda variável Brasil vai
       diminuindo. Quer que eu simule com R$ 1.500 por mês?
-    </AgentTip>
+    </GuaraTip>
   );
 }
 
@@ -186,7 +185,7 @@ function AlocacaoContent() {
         <VersusPanel compact />
         <GroupsPanel layout="compact" openGroup="rv-br" compact />
         <GapPanel layout="stacked" />
-        <PacuTip chatHref="/conversas" />
+        <GuaraAllocationTip chatHref="/conversas" />
         <ButtonLink href="/investimentos/alocacao/perfis" variant="secondary" size="lg" block>
           <span>Comparar os 4 perfis</span>
         </ButtonLink>
@@ -199,7 +198,7 @@ function AlocacaoContent() {
         <div className="grid grid-cols-2 items-stretch gap-4">
           <div className="flex min-w-0 flex-col gap-5">
             <VersusPanel />
-            <PacuTip className="grow" chatHref="/conversas" />
+            <GuaraAllocationTip className="grow" chatHref="/conversas" />
           </div>
           <GapPanel layout="stacked" />
         </div>
@@ -213,7 +212,7 @@ function AlocacaoContent() {
           <GroupsPanel layout="wide" openGroup="all" />
           <div className="flex min-w-0 flex-col gap-5">
             <VersusPanel />
-            <PacuTip chatHref="/conversas" />
+            <GuaraAllocationTip chatHref="/conversas" />
             <GapPanel layout="side" className="grow" />
           </div>
         </div>

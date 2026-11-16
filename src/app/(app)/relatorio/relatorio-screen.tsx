@@ -42,8 +42,8 @@ export function RelatorioScreen({ estado }: { estado?: string }) {
                   variant="ghost"
                 />
                 <OpenChat
-                  agent="tamandua"
-                  aria-label="Perguntar ao Tamanduá sobre o relatório"
+                  fresh
+                  aria-label="Perguntar ao Guará sobre o relatório"
                   className={iconButtonVariants({ variant: "ghost" })}
                 >
                   <Icon name="chat" />

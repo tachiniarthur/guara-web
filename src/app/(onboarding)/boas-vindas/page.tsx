@@ -12,8 +12,7 @@ export default function BoasVindasPage() {
   return (
     <OnboardingShell mobileTop={<MataBanner variant="mobile" />}>
       <OnboardingIntro title="Bem-vindo ao Guará" titleClassName="text-28 md:text-30 lg:text-34">
-        Gastos, investimentos e alertas em um só lugar, com seis assistentes acompanhando tudo para
-        você.
+        Gastos, investimentos e alertas em um só lugar, com o Guará acompanhando tudo para você.
       </OnboardingIntro>
       <WelcomeOptions />
       <div className="flex items-start gap-2.5 rounded-tile bg-shade p-3.5 text-14 leading-normal text-mist lg:hidden">

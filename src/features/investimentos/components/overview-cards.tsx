@@ -267,12 +267,8 @@ export function AllocationCard({ variant }: { variant: Variant }) {
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-1.5">
             {!desktop && fullLink}
-            <OpenChat
-              agent="pacu"
-              question="Como rebalancear minha carteira?"
-              className={linkClass}
-            >
-              Rebalancear com o Pacu
+            <OpenChat question="Como rebalancear minha carteira?" className={linkClass}>
+              Rebalancear com o Guará
               <Icon name="chevron-right" size={16} />
             </OpenChat>
           </div>

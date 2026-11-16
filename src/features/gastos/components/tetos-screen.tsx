@@ -2,7 +2,7 @@
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyStateLayout } from "@/components/ui/empty-state";
@@ -74,8 +74,7 @@ function EmptyTetos() {
       action={<NewTetoButton label="Criar teto" />}
       side={
         <>
-          <AgentTip
-            agent="tamandua"
+          <GuaraTip
             named
             action={
               <ButtonLink href="/alertas/novo-teto" variant="secondary" size="sm">
@@ -85,7 +84,7 @@ function EmptyTetos() {
           >
             Alimentação teve média de R$ 910 nos últimos 3 meses. Um teto de R$ 1.000 deixaria folga
             e avisaria em julho, quando passou disso.
-          </AgentTip>
+          </GuaraTip>
           <GuidePanel title="Como funcionam os tetos" items={howItWorks} />
         </>
       }
@@ -112,7 +111,7 @@ export function TetosScreen({ vazio }: { vazio: boolean }) {
   const items = view ? view.items : tetoDetails;
   const summary = view ? view.summary : tetosSummary;
   const months = view ? view.previousMonths : previousMonths;
-  // Dica do Tamanduá: o teto mais apertado (só no protótipo vem escrita).
+  // Dica do Guará: o teto mais apertado (só no protótipo vem escrita).
   const tightest = view
     ? [...view.items]
         .filter((t) => t.status !== "no-ritmo")
@@ -153,8 +152,7 @@ export function TetosScreen({ vazio }: { vazio: boolean }) {
               <TetosSummaryCard summary={summary} />
               {view ? (
                 tightest && (
-                  <AgentTip
-                    agent="tamandua"
+                  <GuaraTip
                     named
                     action={
                       <ButtonLink
@@ -167,11 +165,10 @@ export function TetosScreen({ vazio }: { vazio: boolean }) {
                     }
                   >
                     {tightest.categoria} já está em {tightest.destaque.percentual} do teto.
-                  </AgentTip>
+                  </GuaraTip>
                 )
               ) : (
-                <AgentTip
-                  agent="tamandua"
+                <GuaraTip
                   named
                   action={
                     <ButtonLink href="/gastos/categorias/transporte" variant="secondary" size="sm">
@@ -181,7 +178,7 @@ export function TetosScreen({ vazio }: { vazio: boolean }) {
                 >
                   Transporte já está em 86% e ainda faltam 7 dias. Se seguir assim, passa do teto.
                   Quer ver de onde vieram as corridas?
-                </AgentTip>
+                </GuaraTip>
               )}
               <PreviousMonthsPanel className="grow" months={months} />
             </div>

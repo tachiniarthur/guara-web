@@ -1,6 +1,6 @@
 import { priceAlerts, type PriceAlert } from "./data";
 
-/** Detalhe de um alerta de preço vigiado pelo Caramelo. */
+/** Detalhe de um alerta de preço vigiado pelo Guará. */
 export type PriceAlertDetail = PriceAlert & {
   simbolo: string;
   ticker: string;

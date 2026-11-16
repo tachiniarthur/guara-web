@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ValueBars } from "@/components/charts/value-bars";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -185,8 +185,7 @@ function CancelPanel({ detail, className }: { detail: SubscriptionDetail; classN
 
 function Tip() {
   return (
-    <AgentTip
-      agent="tamandua"
+    <GuaraTip
       named
       action={
         <ButtonLink href="/simulador/corte" variant="secondary" size="sm">
@@ -196,7 +195,7 @@ function Tip() {
     >
       Com o aumento, as 4 assinaturas passam a somar R$ 101,60 por mês. Quer ver quanto sobraria
       cortando uma delas?
-    </AgentTip>
+    </GuaraTip>
   );
 }
 

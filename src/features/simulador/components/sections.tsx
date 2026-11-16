@@ -1,7 +1,8 @@
 import type { ComponentProps } from "react";
 
 import { ChartFit } from "@/components/charts/chart-fit";
-import { AgentAvatar } from "@/components/ui/agent-avatar";
+import { GuaraAvatar } from "@/components/ui/guara-avatar";
+import { guara } from "@/features/guara/identity";
 import { Button, ButtonLink, buttonVariants } from "@/components/ui/button";
 import { Field, FieldHint, FieldLabel, TextInput } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
@@ -194,7 +195,7 @@ export function ResultCard({
   simulation: Simulation;
   className?: string;
 }) {
-  const { result, agent } = simulation;
+  const { result } = simulation;
   return (
     <SimPanel className={className}>
       <SimHeader title={result.title} subtitle={result.subtitle} large />
@@ -229,11 +230,11 @@ export function ResultCard({
         )}
         <SaveSimulationButton simulation={simulation} />
         <OpenChat
-          agent={agent.id}
+          fresh
           className={cn(buttonVariants({ variant: "ghost", size: "md" }), "hover:bg-transparent")}
         >
           <Icon name="chat" size={18} />
-          <span>Conversar com {agent.name}</span>
+          <span>Conversar com o {guara.curto}</span>
         </OpenChat>
       </div>
       <p className="m-0 text-12 text-caption">{result.disclaimer}</p>
@@ -362,26 +363,25 @@ export function DetailCard({ section, className }: { section: DetailSection; cla
   );
 }
 
-/** Perguntas prontas para o bicho responsável pela simulação. */
-export function AskAgentCard({
-  agent,
+/** Perguntas prontas para o Guará sobre a simulação. */
+export function AskGuaraCard({
+  questions,
   className,
 }: {
-  agent: Simulation["agent"];
+  questions: Simulation["questions"];
   className?: string;
 }) {
   return (
     <SimPanel className={className}>
       <div className="flex items-center gap-2.5">
-        <AgentAvatar agent={agent.id} size={28} variant="ring" />
-        <h2 className="m-0 text-16 font-bold">Pergunte ao {agent.name}</h2>
+        <GuaraAvatar size={28} variant="ring" />
+        <h2 className="m-0 text-16 font-bold">Pergunte ao {guara.curto}</h2>
         <span className="text-13 text-caption">sobre esta simulação</span>
       </div>
       <div>
-        {agent.questions.map((question) => (
+        {questions.map((question) => (
           <OpenChat
             key={question}
-            agent={agent.id}
             question={question}
             className="flex w-full items-center justify-between gap-3 border-0 border-b border-line bg-transparent px-0 py-3 text-left text-15 font-semibold text-sand hover:text-tucano"
           >
@@ -395,7 +395,7 @@ export function AskAgentCard({
       <div className="mt-auto flex min-h-[3.625rem] items-center gap-2 rounded-full border border-line-strong bg-field p-1 pl-4">
         <span className="grow text-15 text-caption">Pergunte o que quiser…</span>
         <OpenChat
-          agent={agent.id}
+          fresh
           aria-label="Enviar pergunta"
           className="flex size-10 items-center justify-center rounded-full border-none bg-tucano text-canvas"
         >

@@ -1,6 +1,6 @@
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { Field, FieldLabel, Legend, MobileActionBar, TextInput } from "@/components/ui/form";
@@ -117,10 +117,10 @@ export function NewInvestmentPrototype() {
 
         <div className="flex min-w-0 flex-col gap-4 @tab:gap-5 @desk:gap-4">
           <PositionPreview className="@desk:grow" />
-          <AgentTip agent="pacu" className="@desk:order-last">
+          <GuaraTip className="@desk:order-last">
             Também dá para cadastrar pelo chat. Por exemplo:{" "}
             <em>“comprei 42 cotas de HGLG11 a R$ 158”</em>.
-          </AgentTip>
+          </GuaraTip>
           <Note icon="copy" iconStrokeWidth={1.8}>
             Se este ativo também chegar pelo Open Finance, vamos perguntar se você prefere somar,
             manter separado ou excluir um deles.

@@ -287,7 +287,7 @@ function ChangeTerm({
             </p>
             <ul className="m-0 flex flex-col gap-2 pl-5">
               <li>
-                As sugestões do Pacu passam a seguir a carteira-alvo {toName}:{" "}
+                As sugestões do Guará passam a seguir a carteira-alvo {toName}:{" "}
                 <strong className="text-sand">{riskShare(to)}%</strong> em renda variável e cripto
                 (no {fromName}, {riskShare(from)}%).
               </li>
@@ -506,7 +506,7 @@ export function ProfileResult() {
           <span>Refazer</span>
         </PendingLinkButton>
         <div className="grow" />
-        <PendingLinkButton href="/onboarding/assistentes" variant="light" size="xl">
+        <PendingLinkButton href="/onboarding/avisos" variant="light" size="xl">
           <span>Continuar</span>
         </PendingLinkButton>
       </OnboardingActions>

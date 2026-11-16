@@ -104,7 +104,7 @@ function DataForm({
         <LabeledField
           id="perfil-nome"
           label="Nome"
-          hint={nameProblem ?? "Como os assistentes vão chamar você"}
+          hint={nameProblem ?? "Como o Guará vai chamar você"}
         >
           <TextInput
             id="perfil-nome"

@@ -1,7 +1,7 @@
 "use client";
 
 import { DetailHeader, Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { ListRow, RowList } from "@/components/ui/list-row";
@@ -89,8 +89,8 @@ function FirstSteps({ className }: { className?: string }) {
           />
         ))}
         <ListRow
-          href="/assistentes"
-          title="Conhecer os assistentes"
+          href="/perfil/planos"
+          title="Escolher seu plano"
           meta="Feito"
           leading={
             <span
@@ -107,8 +107,7 @@ function FirstSteps({ className }: { className?: string }) {
 }
 
 const tip = (
-  <AgentTip
-    agent="capivara"
+  <GuaraTip
     named
     action={
       <ButtonLink href="/investimentos/novo" variant="secondary" size="sm">
@@ -118,7 +117,7 @@ const tip = (
   >
     Oi, <UserFirstName />! Enquanto você não conecta um banco, dá para cadastrar investimentos à mão
     ou testar o simulador com números seus.
-  </AgentTip>
+  </GuaraTip>
 );
 
 const later = [

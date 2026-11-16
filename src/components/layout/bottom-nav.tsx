@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { CountBadge } from "@/components/ui/count-badge";
 import { Icon } from "@/components/ui/icon";
+import { useSession } from "@/features/acesso/session";
+import { useUser } from "@/features/usuario/live";
 import { OpenChat } from "@/features/conversas/components/open-chat";
 import { bottomNav, isActive } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
@@ -11,6 +14,11 @@ import { cn } from "@/lib/utils";
 /** Barra inferior das telas compactas: 5 destinos com "Conversar" em destaque no centro. */
 export function BottomNav({ className }: { className?: string }) {
   const pathname = usePathname();
+  const user = useUser();
+  const { live } = useSession();
+  // Alertas: as notificações não lidas (com login); no protótipo, o número do design.
+  const badgeOf = (item: { href: string; badge?: number }) =>
+    live && item.href === "/alertas" ? user.notificacoesNovas : item.badge;
 
   return (
     <nav
@@ -44,11 +52,19 @@ export function BottomNav({ className }: { className?: string }) {
                 >
                   <span
                     className={cn(
-                      "mt-1 flex h-8 w-13 items-center justify-center rounded-3xl transition-[background-color,color,scale] duration-200",
+                      "relative mt-1 flex h-8 w-13 items-center justify-center rounded-3xl transition-[background-color,color,scale] duration-200",
                       active ? "scale-105 bg-shade text-sand" : "text-mist",
                     )}
                   >
                     <Icon name={item.icon} size={22} />
+                    {badgeOf(item) ? (
+                      <CountBadge
+                        count={badgeOf(item)!}
+                        size="sm"
+                        label={`${badgeOf(item)} novos`}
+                        className="absolute -top-1 right-1"
+                      />
+                    ) : null}
                   </span>
                   <span
                     className={cn(

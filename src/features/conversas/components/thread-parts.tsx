@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-import { AgentAvatar } from "@/components/ui/agent-avatar";
+import { GuaraAvatar } from "@/components/ui/guara-avatar";
 import { chipClass } from "@/components/ui/chip";
-import { agents, type AgentId } from "@/features/assistentes/data";
+import { guara } from "@/features/guara/identity";
 import { cn } from "@/lib/utils";
 
 import { UserBubble } from "./messages";
@@ -16,27 +16,23 @@ export function UserQuestion({ children, className }: { children: ReactNode; cla
   );
 }
 
-/** Resposta de um bicho sem bolha: retrato pequeno, nome e área, e o conteúdo logo abaixo. */
-export function AgentReply({
-  agent,
+/** Resposta do Guará sem bolha: retrato pequeno, nome e assunto, e o conteúdo logo abaixo. */
+export function GuaraReply({
   role,
   children,
   className,
 }: {
-  agent: AgentId;
-  /** Área ao lado do nome, quando difere do cadastro (ex.: "Coordena a turma"). */
+  /** Assunto ao lado do nome (ex.: "Gastos"). */
   role?: string;
   children: ReactNode;
   className?: string;
 }) {
-  const { nome } = agents[agent];
-  const papel = role ?? agents[agent].papel;
   return (
     <article className={cn("flex animate-fade-up flex-col gap-2.5", className)}>
       <div className="flex items-center gap-2">
-        <AgentAvatar agent={agent} size={28} variant="ring" />
-        <span className="text-14 font-bold">{nome}</span>
-        <span className="text-12 text-caption">{`· ${papel}`}</span>
+        <GuaraAvatar size={28} variant="ring" />
+        <span className="text-14 font-bold">{guara.nome}</span>
+        {role && <span className="text-12 text-caption">{`· ${role}`}</span>}
       </div>
       {children}
     </article>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { CardAction, CardBody } from "@/components/states/screen-state-context";
-import { AgentAvatar } from "@/components/ui/agent-avatar";
+import { GuaraAvatar } from "@/components/ui/guara-avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { CountBadge } from "@/components/ui/count-badge";
@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 import { pendingItems as prototypeItems, type PendingItem } from "../data";
 
-/** "Precisa de você": decisões pendentes que a turma separou. */
+/** "Precisa de você": decisões pendentes que o Guará separou. */
 export function PendingCard({
   className,
   pendingItems = prototypeItems,
@@ -44,7 +44,7 @@ export function PendingCard({
                 item.urgente ? "bg-urucum-bg" : "bg-shade",
               )}
             >
-              <AgentAvatar agent={item.agent} size={44} />
+              <GuaraAvatar size={44} />
               <span className="flex min-w-0 grow flex-col leading-[1.3]">
                 <strong className="text-15 @tab:truncate">{item.titulo}</strong>
                 <span className="text-13 text-mist @tab:truncate">{item.detalhe}</span>

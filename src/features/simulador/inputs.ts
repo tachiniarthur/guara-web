@@ -50,7 +50,7 @@ export const GOAL_PLACES = [
   { label: "Caixinha do banco", monthlyRate: 0.0082 },
 ] as const;
 
-/** Depósito mensal da reserva de emergência (Onça), para somar com a viagem. */
+/** Depósito mensal da reserva de emergência, para somar com a viagem. */
 export const RESERVE = {
   saved: 15892,
   target: 30000,

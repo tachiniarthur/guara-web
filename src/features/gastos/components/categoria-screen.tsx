@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -13,7 +13,7 @@ import { SearchField } from "@/components/ui/search-field";
 import {
   CategorySummary,
   CategoryWhere,
-  ChatWithTamandua,
+  ChatWithGuara,
   SeeAllButton,
 } from "@/features/gastos/components/category-ledger";
 import { TransactionDays } from "@/features/gastos/components/transaction-days";
@@ -52,11 +52,7 @@ export function CategoriaScreen({
     ? `${ledger.mes ? ledger.mes.charAt(0).toUpperCase() + ledger.mes.slice(1) : ""} ${new Date().getFullYear()}`
     : "Setembro 2026 · Nubank e Itaú";
   const search = <SearchField label={`Buscar em ${ledger.nome}`} size="list" />;
-  const tip = ledger.dica && (
-    <AgentTip agent="tamandua" named>
-      {ledger.dica}
-    </AgentTip>
-  );
+  const tip = ledger.dica && <GuaraTip named>{ledger.dica}</GuaraTip>;
 
   return (
     <Page
@@ -118,9 +114,9 @@ export function CategoriaScreen({
           <CategorySummary ledger={ledger} />
           <CategoryWhere ledger={ledger} />
           {ledger.dica && (
-            <AgentTip agent="tamandua" named action={<ChatWithTamandua />}>
+            <GuaraTip named action={<ChatWithGuara />}>
               {ledger.dica}
-            </AgentTip>
+            </GuaraTip>
           )}
         </div>
         <Panel className="gap-4 p-6">

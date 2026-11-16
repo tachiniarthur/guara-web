@@ -2,30 +2,13 @@
 
 import type { ReactNode } from "react";
 
-import { AgentAvatar } from "@/components/ui/agent-avatar";
+import { GuaraAvatar } from "@/components/ui/guara-avatar";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Tag } from "@/components/ui/tag";
-import { agentOrder, agents, type AgentId } from "@/features/assistentes/data";
+import { guara } from "@/features/guara/identity";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
-import { BrandLogo } from "@/components/layout/brand";
-
-const article = (agent: AgentId) => (agent === "capivara" || agent === "onca" ? "a" : "o");
-
-/** "Encaminhado para o Pacu · Investimentos" (quando o chat passa a pergunta a um assistente). */
-export function CalledBy({ agent }: { agent: AgentId }) {
-  return (
-    <div className="flex animate-fade-in items-center gap-2 text-12 text-caption">
-      <BrandLogo size={20} />
-      <span>
-        {`Encaminhado para ${article(agent)} `}
-        <strong className="text-mist">{agents[agent].nome}</strong>
-        {` · ${agents[agent].papel}`}
-      </span>
-    </div>
-  );
-}
 
 /** Cursor piscando no fim da resposta que ainda está sendo escrita. */
 export function TypingCursor() {
@@ -37,30 +20,28 @@ export function TypingCursor() {
   );
 }
 
-/** "O Pacu está escrevendo…" com três pontos. */
-export function TypingIndicator({ agent }: { agent: AgentId }) {
+/** "O Lobo Guará está escrevendo…" com três pontos. */
+export function TypingIndicator() {
   return (
     <div role="status" className="flex items-center gap-2 text-12 text-caption">
       <span aria-hidden="true" className="size-1.5 rounded-full bg-mist" />
       <span aria-hidden="true" className="size-1.5 rounded-full bg-caption" />
       <span aria-hidden="true" className="size-1.5 rounded-full bg-line-strong" />
-      {`${article(agent) === "a" ? "A" : "O"} ${agents[agent].nome} está escrevendo…`}
+      {`O ${guara.nome} está escrevendo…`}
     </div>
   );
 }
 
-/** O bicho chamado não respondeu: a pergunta fica guardada e dá para tentar de novo. */
-export function UnavailableAlert({ agent }: { agent: AgentId }) {
+/** O Guará não respondeu: a pergunta fica guardada e dá para tentar de novo. */
+export function UnavailableAlert() {
   return (
     <div
       role="alert"
       className="flex flex-col gap-2.5 rounded-[1.125rem] border border-urucum-line bg-urucum-bg px-4 py-3.5"
     >
       <div className="flex items-center gap-2.5">
-        <AgentAvatar agent={agent} size={28} variant="ring" />
-        <strong className="grow text-14">
-          {`${article(agent) === "a" ? "A" : "O"} ${agents[agent].nome} não está respondendo agora`}
-        </strong>
+        <GuaraAvatar size={28} variant="ring" />
+        <strong className="grow text-14">{`O ${guara.nome} não está respondendo agora`}</strong>
         <Tag tone="urucum" status>
           Indisponível
         </Tag>
@@ -121,15 +102,15 @@ export function UnsentMessage({ children }: { children: ReactNode }) {
   );
 }
 
-const starters: { agent: AgentId; pergunta: string }[] = [
-  { agent: "tamandua", pergunta: "Quanto gastei com comida em setembro?" },
-  { agent: "pacu", pergunta: "Minha carteira está no meu perfil?" },
-  { agent: "caramelo", pergunta: "Me avisa se o Bitcoin passar de R$ 650.000" },
-  { agent: "onca", pergunta: "Quanto falta para a reserva de emergência?" },
-  { agent: "quero_quero", pergunta: "Teve alguma compra fora do padrão?" },
+const starters: { assunto: string; pergunta: string }[] = [
+  { assunto: "Gastos", pergunta: "Quanto gastei com comida em setembro?" },
+  { assunto: "Investimentos", pergunta: "Minha carteira está no meu perfil?" },
+  { assunto: "Alertas de preço", pergunta: "Me avisa se o Bitcoin passar de R$ 650.000" },
+  { assunto: "Metas", pergunta: "Quanto falta para a reserva de emergência?" },
+  { assunto: "Fora do padrão", pergunta: "Teve alguma compra fora do padrão?" },
 ];
 
-/** Conversa nova: a equipe pronta, a apresentação do chat e perguntas para começar. */
+/** Conversa nova: a apresentação do Guará e perguntas para começar. */
 export function NewConversationStart({
   compact,
   onAsk,
@@ -140,32 +121,18 @@ export function NewConversationStart({
   onAsk?: (text: string) => void;
   className?: string;
 }) {
-  const team = agentOrder;
   const ask = useChatPanel((state) => state.ask);
   return (
     <div className={cn("mt-auto flex flex-col gap-4", className)}>
-      <div className="flex items-center gap-1.5">
-        {team.map((agent) => (
-          <span key={agent} className="contents">
-            <span className="@tab:hidden">
-              <AgentAvatar agent={agent} size={30} variant="ring" />
-            </span>
-            <span className="hidden @tab:block">
-              <AgentAvatar agent={agent} size={36} variant="ring" />
-            </span>
-          </span>
-        ))}
-        <span className="ml-1 text-12 text-caption">Sua equipe está pronta</span>
-      </div>
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <BrandLogo size={28} />
-          <span className="text-14 font-bold">Guará</span>
+          <GuaraAvatar size={28} variant="ring" />
+          <span className="text-14 font-bold">{guara.nome}</span>
           <span className="text-12 text-caption">· Chat</span>
         </div>
         <p className="m-0 text-15 leading-[1.6] max-lg:@chat:text-16">
-          Oi, Arthur! Pergunte qualquer coisa sobre seu dinheiro: o assistente certo da sua equipe
-          responde. Se preferir, digite <strong>@</strong> e escolha um bicho.
+          Oi, Arthur! Eu sou o {guara.nome}. Pergunte qualquer coisa sobre seu dinheiro: gastos,
+          investimentos, metas, alertas ou simulações.
         </p>
       </div>
       <span className="text-13 font-bold text-mist">Comece por aqui</span>
@@ -179,16 +146,16 @@ export function NewConversationStart({
             onClick={() => (onAsk ?? ask)(item.pergunta)}
             className="flex min-h-13 items-center gap-2.5 rounded-tile border border-line-strong bg-card px-3.5 py-3 text-left text-14 leading-[1.4] text-sand hover:bg-shade data-extra:hidden data-third:hidden @chat:data-third:flex @tab:data-extra:flex"
           >
-            <AgentAvatar agent={item.agent} size={28} variant="ring" />
+            <GuaraAvatar size={28} variant="ring" />
             <span className="flex min-w-0 flex-col">
-              <span className="text-12 text-caption">{agents[item.agent].nome}</span>
+              <span className="text-12 text-caption">{item.assunto}</span>
               <span className="font-semibold">{item.pergunta}</span>
             </span>
           </button>
         ))}
       </div>
       <p className={cn("m-0 text-12 leading-[1.55] text-caption", compact && "hidden @chat:block")}>
-        Eles consultam seus dados do Guará para responder e nunca inventam números.
+        Eu consulto seus dados do Guará para responder e nunca invento números.
       </p>
     </div>
   );

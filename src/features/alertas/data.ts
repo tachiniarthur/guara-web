@@ -1,5 +1,3 @@
-import type { AgentId } from "@/features/assistentes/data";
-
 export type PriceAlert = {
   id: string;
   ativo: string;
@@ -9,7 +7,7 @@ export type PriceAlert = {
   faltam: string;
 };
 
-/** Alertas de preço vigiados pelo Caramelo. */
+/** Alertas de preço vigiados pelo Guará. */
 export const priceAlerts: PriceAlert[] = [
   {
     id: "btc",
@@ -39,7 +37,6 @@ export const priceAlerts: PriceAlert[] = [
 
 export type AlertHistoryItem = {
   id: string;
-  agent: AgentId;
   texto: string;
   quando: string;
   pendente?: string;
@@ -49,26 +46,22 @@ export type AlertHistoryItem = {
 export const alertHistory: AlertHistoryItem[] = [
   {
     id: "h1",
-    agent: "quero_quero",
     texto: "Compra fora do padrão: R$ 1.249,90 em eletrônicos",
     quando: "Hoje, 02:15 · celular e e-mail",
     pendente: "Aguardando sua resposta",
   },
   {
     id: "h2",
-    agent: "tamandua",
     texto: "Alimentação chegou a R$ 700 (2º de 3 avisos)",
     quando: "21 set, 19:02 · celular",
   },
   {
     id: "h3",
-    agent: "tamandua",
     texto: "Transporte chegou a R$ 300 (1º de 2 avisos)",
     quando: "17 set, 08:41 · celular",
   },
   {
     id: "h4",
-    agent: "tamandua",
     texto: "Alimentação chegou a R$ 500 (1º de 3 avisos)",
     quando: "12 set, 13:48 · celular",
   },

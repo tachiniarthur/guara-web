@@ -15,7 +15,7 @@ import {
   GoalCard,
   GoalsHero,
   NewGoalButton,
-  OncaTip,
+  GuaraGoalTip,
 } from "@/features/metas/components/goal-parts";
 import { goals as prototypeGoals, goalsSummary as prototypeSummary } from "@/features/metas/data";
 import { useMetasView } from "@/features/metas/live";
@@ -99,7 +99,7 @@ export function MetasScreen({ estado }: { estado?: string }) {
       {state === "carregando" && <LoadingStatus />}
       <DetailHeader
         title="Suas metas"
-        subtitle={`Acompanhadas pela Onça · ${goals.length === 1 ? "1 meta" : `${goals.length} metas`}`}
+        subtitle={`Acompanhadas pelo Guará · ${goals.length === 1 ? "1 meta" : `${goals.length} metas`}`}
         actions={<NewGoalButton />}
       />
       {state === "vazio" ? (
@@ -110,8 +110,8 @@ export function MetasScreen({ estado }: { estado?: string }) {
       ) : (
         <Skeleton active={state === "carregando"}>
           {/*
-           * Desktop: as metas em cards largos à esquerda; o resumo, a Onça e os atalhos numa coluna
-           * à direita. Celular e tablet: resumo e Onça primeiro, depois as metas.
+           * Desktop: as metas em cards largos à esquerda; o resumo, a dica do Guará e os atalhos numa coluna
+           * à direita. Celular e tablet: resumo e a dica do Guará primeiro, depois as metas.
            */}
           <div className="flex flex-col gap-4 @desk:grid @desk:grid-cols-[minmax(0,1fr)_minmax(0,23rem)] @desk:items-start @desk:gap-5">
             <div className="flex min-w-0 flex-col gap-4 @tab:grid @tab:grid-cols-2 @tab:items-stretch @desk:order-2 @desk:flex @desk:flex-col">
@@ -123,7 +123,7 @@ export function MetasScreen({ estado }: { estado?: string }) {
                 replacement={failed && <ErrorBlocks mobile="big" desktop="compact" />}
                 overlayClassName="rounded-bubble bg-shade p-4"
               >
-                <OncaTip action={chatWithOnca}>{goalsSummary.dica}</OncaTip>
+                <GuaraGoalTip action={chatWithOnca}>{goalsSummary.dica}</GuaraGoalTip>
               </StateSwap>
               <div className="hidden flex-col gap-1 @desk:flex">
                 {savedLink}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { ActionList } from "@/components/ui/action-list";
 import { Button } from "@/components/ui/button";
 import { filterChipClass } from "@/components/ui/chip";
@@ -53,12 +53,11 @@ export function TransactionHero({ item, details, desktop }: Props & { desktop?: 
   );
 }
 
-/** Pergunta do Quero-quero quando a compra está fora do padrão. */
+/** Pergunta do Guará quando a compra está fora do padrão. */
 export function OffPatternCheck() {
   const [answer, setAnswer] = useState<"sim" | "nao" | null>(null);
   return (
-    <AgentTip
-      agent="quero_quero"
+    <GuaraTip
       named
       action={
         answer ? undefined : (
@@ -79,7 +78,7 @@ export function OffPatternCheck() {
         : answer === "nao"
           ? "Vou te ajudar a contestar no Nubank. Bloqueie o cartão pelo app do banco agora."
           : "Compra às 02:14, bem acima do seu costume em eletrônicos. Foi você?"}
-    </AgentTip>
+    </GuaraTip>
   );
 }
 

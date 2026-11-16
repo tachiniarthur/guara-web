@@ -1,5 +1,3 @@
-import type { AgentId } from "@/features/assistentes/data";
-
 export type ConversationSummary = {
   id: string;
   titulo: string;
@@ -9,7 +7,7 @@ export type ConversationSummary = {
 
 export type ConversationGroup = { titulo: string; itens: ConversationSummary[] };
 
-/** Histórico de conversas com a turma, agrupado por período. */
+/** Histórico de conversas com o Guará, agrupado por período. */
 export const conversationHistory: ConversationGroup[] = [
   {
     titulo: "Hoje",
@@ -94,13 +92,3 @@ export const conversationCount = conversationHistory.reduce(
   (total, group) => total + group.itens.length,
   0,
 );
-
-/** Como cada bicho aparece ao ser chamado com @. */
-export const agentMentions: { id: AgentId; handle: string; descricao: string }[] = [
-  { id: "capivara", handle: "@capivara", descricao: "Dúvidas gerais" },
-  { id: "pacu", handle: "@pacu", descricao: "Investimentos e simulações" },
-  { id: "caramelo", handle: "@caramelo", descricao: "Alertas de preço" },
-  { id: "tamandua", handle: "@tamandua", descricao: "Organização de gastos" },
-  { id: "quero_quero", handle: "@queroquero", descricao: "Compras fora do padrão" },
-  { id: "onca", handle: "@onca", descricao: "Metas e objetivos" },
-];

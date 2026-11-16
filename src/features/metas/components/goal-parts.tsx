@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { StateSwap } from "@/components/states/state-block";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -157,11 +157,11 @@ export function GoalsHero({
   );
 }
 
-export function OncaTip({ children, action }: { children: string; action: ReactNode }) {
+export function GuaraGoalTip({ children, action }: { children: string; action: ReactNode }) {
   return (
-    <AgentTip agent="onca" named action={action}>
+    <GuaraTip named action={action}>
       {children}
-    </AgentTip>
+    </GuaraTip>
   );
 }
 
@@ -184,6 +184,6 @@ export function NewGoalButton({ block }: { block?: boolean }) {
 export const chatWithOnca = (
   <ButtonLink href="/conversas" variant="secondary" size="sm">
     <Icon name="chat" size={18} />
-    <span>Conversar com a Onça</span>
+    <span>Conversar com o Guará</span>
   </ButtonLink>
 );

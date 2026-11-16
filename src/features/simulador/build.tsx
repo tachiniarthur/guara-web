@@ -296,15 +296,11 @@ export function buildRetirement(s: RetirementState, set?: Setter<RetirementState
       },
       action: { label: "Ver onde cortar", icon: "scissors", href: "/simulador/corte" },
     },
-    agent: {
-      id: "pacu",
-      name: "Pacu",
-      questions: [
-        "Como chegar lá sem apertar tanto o mês?",
-        "Vale incluir previdência privada?",
-        "Qual carteira combina com essa meta?",
-      ],
-    },
+    questions: [
+      "Como chegar lá sem apertar tanto o mês?",
+      "Vale incluir previdência privada?",
+      "Qual carteira combina com essa meta?",
+    ],
   };
 }
 
@@ -424,7 +420,7 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
       detail: (
         <>
           Equivale a <strong className="text-sand">{Math.round(r.surplusShare)}%</strong> do que
-          sobrou em setembro · acompanhado pela Onça
+          sobrou em setembro · acompanhado pelo Guará
         </>
       ),
       chart: {
@@ -471,7 +467,7 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
               ? isTrip
                 ? "hora de reservar as passagens"
                 : "meta alcançada"
-              : "a Onça avisa quando chegar",
+              : "o Guará avisa quando chegar",
         })),
       },
       {
@@ -531,7 +527,7 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
     closing: {
       kind: "rows",
       title: "Suas metas",
-      subtitle: "Acompanhadas pela Onça",
+      subtitle: "Acompanhadas pelo Guará",
       rows: [
         {
           title: "Reserva de emergência",
@@ -564,15 +560,11 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
         ),
       },
     },
-    agent: {
-      id: "onca",
-      name: "Onça",
-      questions: [
-        "Consigo viajar antes de 2028?",
-        "Onde é melhor guardar esse dinheiro?",
-        "Dá para juntar a reserva e a viagem ao mesmo tempo?",
-      ],
-    },
+    questions: [
+      "Consigo viajar antes de 2028?",
+      "Onde é melhor guardar esse dinheiro?",
+      "Dá para juntar a reserva e a viagem ao mesmo tempo?",
+    ],
   };
 }
 
@@ -678,7 +670,7 @@ export function buildCut(s: CutState, set?: Setter<CutState>): Simulation {
     result: {
       empty: r
         ? undefined
-        : "Sem histórico desse gasto. Quando tivermos 3 meses de lançamentos, o Tamanduá mostra quanto esse corte vira.",
+        : "Sem histórico desse gasto. Quando tivermos 3 meses de lançamentos, o Guará mostra quanto esse corte vira.",
       title: "O que esse corte vira",
       subtitle: "Economia investida todo mês, em valores de hoje",
       metricLabel: "Economia por mês",
@@ -765,7 +757,7 @@ export function buildCut(s: CutState, set?: Setter<CutState>): Simulation {
       {
         kind: "rows",
         title: "Outros cortes possíveis",
-        subtitle: "O Tamanduá encontrou nos seus gastos",
+        subtitle: "O Guará encontrou nos seus gastos",
         rows: OTHER_CUTS.map((item) => ({ ...item, tone: "folha" })),
         tip: {
           icon: "scissors",
@@ -797,17 +789,13 @@ export function buildCut(s: CutState, set?: Setter<CutState>): Simulation {
           title: `${reais(savings)} separados no dia 5`,
           note: "junto com o salário",
         },
-        { when: "Se passar", title: "O Quero-quero confirma com você", note: "nada é bloqueado" },
+        { when: "Se passar", title: "O Guará confirma com você", note: "nada é bloqueado" },
       ],
     },
-    agent: {
-      id: "tamandua",
-      name: "Tamanduá",
-      questions: [
-        "Quais gastos mais cresceram este ano?",
-        "O que acontece se eu passar do teto?",
-        "Quanto gasto com delivery por mês?",
-      ],
-    },
+    questions: [
+      "Quais gastos mais cresceram este ano?",
+      "O que acontece se eu passar do teto?",
+      "Quanto gasto com delivery por mês?",
+    ],
   };
 }

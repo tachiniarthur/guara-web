@@ -1,6 +1,6 @@
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb, type Crumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { chipClass } from "@/components/ui/chip";
@@ -130,10 +130,10 @@ function MarketCard({ variant }: { variant: "desktop" | "tablet" | "mobile" }) {
           />
         ))}
       </dl>
-      <AgentTip agent="caramelo" className={desktop ? "[&_p]:text-16" : undefined}>
+      <GuaraTip className={desktop ? "[&_p]:text-16" : undefined}>
         Acompanhamos o preço a cada atualização e avisamos uma única vez quando o valor for
         atingido. Depois você decide se renova o alerta.
-      </AgentTip>
+      </GuaraTip>
     </section>
   );
 }

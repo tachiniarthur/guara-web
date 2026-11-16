@@ -54,10 +54,10 @@ describe("Onboarding · resultado do perfil", () => {
     expect(screen.queryByLabelText("Comparação: Moderado e Arrojado")).not.toBeInTheDocument();
   });
 
-  it("Continuar leva às assistentes", () => {
+  it("Continuar leva aos avisos", () => {
     render(<ProfileResult />);
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
-    expect(push).toHaveBeenCalledWith("/onboarding/assistentes");
+    expect(push).toHaveBeenCalledWith("/onboarding/avisos");
   });
 
   it("o perfil sai das respostas: as mais ousadas, com experiência, dão Sofisticado", () => {

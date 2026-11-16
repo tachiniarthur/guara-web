@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { AgentAvatar } from "@/components/ui/agent-avatar";
-import { agents, type AgentId } from "@/features/assistentes/data";
+import { GuaraAvatar } from "@/components/ui/guara-avatar";
+import { guara } from "@/features/guara/identity";
 import { cn } from "@/lib/utils";
 
 /** Marcador de data/assunto no meio da conversa. */
@@ -44,8 +44,7 @@ export function UserBubble({ children, className }: { children: ReactNode; class
   );
 }
 
-type AgentMessageProps = {
-  agent: AgentId;
+type GuaraMessageProps = {
   /** Texto ao lado do nome (ex.: "gastos"). */
   tag?: string;
   /** Destaca a etiqueta em urucum (ex.: "entrou na conversa"). */
@@ -55,21 +54,20 @@ type AgentMessageProps = {
   className?: string;
 };
 
-/** Mensagem de um bicho da turma: retrato, nome e bolha. */
-export function AgentMessage({
-  agent,
+/** Mensagem do Guará: retrato, nome e bolha. */
+export function GuaraMessage({
   tag,
   tagTone = "caption",
   avatarSize = 48,
   children,
   className,
-}: AgentMessageProps) {
+}: GuaraMessageProps) {
   return (
     <article className={cn("flex animate-fade-up items-start gap-3", className)}>
-      <AgentAvatar agent={agent} size={avatarSize} />
+      <GuaraAvatar size={avatarSize} />
       <div className="flex min-w-0 grow flex-col gap-2">
         <div className="flex items-baseline gap-2">
-          <strong className="text-15">{agents[agent].nome}</strong>
+          <strong className="text-15">{guara.nome}</strong>
           {tag && (
             <span
               className={
@@ -88,7 +86,7 @@ export function AgentMessage({
   );
 }
 
-/** Parágrafo dentro da bolha de um bicho. */
+/** Parágrafo dentro da bolha do Guará. */
 export function MessageText({ children }: { children: ReactNode }) {
   return <p className="m-0 text-16 leading-[1.55]">{children}</p>;
 }

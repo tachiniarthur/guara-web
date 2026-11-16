@@ -51,7 +51,7 @@ export const bottomNav: (NavItem & { featured?: boolean })[] = [
     match: ["/simulador"],
     exclude: ["/simulador/salvas"],
   },
-  { href: "/assistentes", label: "Assistentes", shortLabel: "Assistentes", icon: "users" },
+  { href: "/alertas", label: "Alertas", shortLabel: "Alertas", icon: "bell", badge: 2 },
 ];
 
 /** Itens do menu da conta no mobile (destinos que não cabem na barra inferior). */
@@ -60,7 +60,6 @@ export const accountMenu: { href: string; label: string; icon: IconName; badge?:
   { href: "/simulador", label: "Simulador", icon: "simulator" },
   { href: "/metas", label: "Metas", icon: "target" },
   { href: "/relatorio", label: "Relatórios", icon: "bar-chart" },
-  { href: "/alertas", label: "Alertas", icon: "bell", badge: 2 },
 ];
 
 /** A conta: menu do cartão do usuário (menu lateral e trilho) e o fim do menu do celular. */
@@ -101,7 +100,6 @@ function hasHistoryAside(pathname: string) {
   if (["/gastos", "/assinaturas", "/alertas", "/investimentos", "/relatorio"].includes(pathname)) {
     return true;
   }
-  if (pathname.startsWith("/assistentes")) return true;
   if (pathname.startsWith("/simulador")) return pathname !== "/simulador/salvas";
   // Metas e o detalhe de uma meta (a "Nova meta" é formulário e não chega aqui).
   if (pathname === "/metas" || pathname.startsWith("/metas/")) return true;

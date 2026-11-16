@@ -17,12 +17,7 @@ export default function ResultadoPerfilPage() {
           <PendingLinkButton href="/onboarding/perfil/1" variant="secondary" size="xl">
             <span>Refazer</span>
           </PendingLinkButton>
-          <PendingLinkButton
-            href="/onboarding/assistentes"
-            variant="light"
-            size="xl"
-            className="grow"
-          >
+          <PendingLinkButton href="/onboarding/avisos" variant="light" size="xl" className="grow">
             <span>Continuar</span>
           </PendingLinkButton>
         </MobileActionBar>

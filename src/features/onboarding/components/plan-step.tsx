@@ -213,8 +213,8 @@ export function PlanStep() {
       <LeaveOnboardingLink className="max-md:hidden" />
       <OnboardingSteps current={1} steps={onboardingSteps} />
       <OnboardingIntro title="Escolha seu plano">
-        Todos têm os assistentes de IA. No anual, 10% de desconto. Troque ou cancele quando quiser,
-        em Meu perfil.
+        Todos têm o Guará, seu assistente de IA. No anual, 10% de desconto. Troque ou cancele quando
+        quiser, em Meu perfil.
       </OnboardingIntro>
       <BillingToggle value={period} onChange={setPeriod} />
       {activate.error && (

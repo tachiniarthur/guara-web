@@ -1,12 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { CheckboxRow, Legend, MobileActionBar } from "@/components/ui/form";
-import { WarningBlock } from "@/features/acesso/components/auth-parts";
+import { GuaraTip } from "@/components/ui/guara-tip";
 
 import { onboardingSteps } from "../data";
-import { AgentsCarousel, useAgentChoice, useFinishOnboarding } from "./agents-step";
 import {
   OnboardingActions,
   OnboardingIntro,
@@ -16,12 +17,10 @@ import {
 } from "./onboarding-shell";
 import { NotificationPermissionAlert } from "./permission-alert";
 
-/** Onboarding 4 · Assistentes e avisos: escolher a equipe (carrossel) e como ser avisado. */
-export function AgentsScreen({ blocked }: { blocked: boolean }) {
-  const { chosen, setChosen } = useAgentChoice();
-  const { finish, busy, error } = useFinishOnboarding(chosen);
-  const label = busy ? "Salvando…" : "Ir para o painel";
-  const disabled = busy || chosen.length === 0;
+/** Onboarding 4 · Avisos: como o Guará avisa (celular e e-mail) e, depois, o painel. */
+export function NoticesScreen({ blocked }: { blocked: boolean }) {
+  const router = useRouter();
+  const finish = () => router.push("/");
 
   return (
     <OnboardingShell
@@ -30,20 +29,23 @@ export function AgentsScreen({ blocked }: { blocked: boolean }) {
       mobileTop={<MobileHeader back="/onboarding/perfil/resultado" />}
       mobileActions={
         <MobileActionBar>
-          <Button variant="primary" size="xl" block disabled={disabled} onClick={finish}>
-            <span>{label}</span>
+          <Button variant="primary" size="xl" block onClick={finish}>
+            <span>Ir para o painel</span>
           </Button>
         </MobileActionBar>
       }
     >
       <OnboardingSteps current={4} steps={onboardingSteps} />
-      <OnboardingIntro title="Monte sua equipe">
-        Escolha os assistentes de IA que vão cuidar do seu dinheiro. No chat, o assistente certo
-        responde; para falar com um específico, digite @.
+      <OnboardingIntro title="Como quer ser avisado?">
+        O Guará acompanha seus tetos, alertas de preço e compras fora do padrão, e avisa você assim
+        que algo precisar da sua atenção.
       </OnboardingIntro>
-      <AgentsCarousel chosen={chosen} setChosen={setChosen} />
+      <GuaraTip named>
+        Pode me perguntar qualquer coisa sobre o seu dinheiro no chat: gastos, investimentos, metas
+        ou simulações.
+      </GuaraTip>
       <fieldset className="m-0 flex flex-col border-none p-0">
-        <Legend className="mb-1.5 text-16">Como quer ser avisado?</Legend>
+        <Legend className="mb-1.5 text-16">Canais de aviso</Legend>
         {blocked && <NotificationPermissionAlert />}
         <CheckboxRow
           id="aviso-celular"
@@ -59,14 +61,13 @@ export function AgentsScreen({ blocked }: { blocked: boolean }) {
           defaultChecked
         />
       </fieldset>
-      {error && <WarningBlock icon="alert-triangle">{error.message}</WarningBlock>}
       <OnboardingActions>
         <ButtonLink href="/onboarding/perfil/resultado" variant="secondary" size="xl">
           <span>Voltar</span>
         </ButtonLink>
         <div className="grow" />
-        <Button variant="primary" size="xl" disabled={disabled} onClick={finish}>
-          <span>{label}</span>
+        <Button variant="primary" size="xl" onClick={finish}>
+          <span>Ir para o painel</span>
         </Button>
       </OnboardingActions>
     </OnboardingShell>

@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 import type { ConversationSummary } from "@/features/conversas/data";
 
-export type ChatMessage = { id: string; role: "user" | "agent"; text: string };
+export type ChatMessage = { id: string; role: "user" | "guara"; text: string };
 
 type ChatPanelState = {
   /**
@@ -21,7 +21,7 @@ type ChatPanelState = {
    * só um atalho na borda direita. Qualquer abertura do chat traz o painel de volta.
    */
   historyHidden: boolean;
-  /** Texto inicial do campo (ex.: "@pacu " ao chamar um bicho específico). */
+  /** Texto inicial do campo (ex.: uma pergunta sugerida). */
   draft: string;
   /** Mensagens enviadas nesta sessão, por conversa (ainda não há API). */
   messages: Record<string, ChatMessage[]>;
@@ -44,7 +44,7 @@ type ChatPanelState = {
 };
 
 const PENDING_REPLY =
-  "Anotei sua pergunta. Assim que a conexão com a turma estiver ligada, eu chamo o bicho certo para responder por aqui.";
+  "Anotei sua pergunta. Assim que a conexão com o Guará estiver ligada, eu respondo por aqui.";
 
 let sequence = 0;
 const nextId = (prefix: string) =>
@@ -111,7 +111,7 @@ export const useChatPanel = create<ChatPanelState>((set, get) => ({
         [id]: [
           ...thread,
           { id: nextId("msg"), role: "user", text },
-          { id: nextId("msg"), role: "agent", text: PENDING_REPLY },
+          { id: nextId("msg"), role: "guara", text: PENDING_REPLY },
         ],
       },
     });

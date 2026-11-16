@@ -332,10 +332,9 @@ function buildPending(
     const time = tx.occurredAt ? ` às ${formatDate(tx.occurredAt, "HH:mm")}` : "";
     items.push({
       id: `anomalia-${anomaly.id}`,
-      agent: "quero_quero",
       titulo: `Compra de ${formatCurrency(tx.amountCents)}${time}`,
       detalhe: `${tx.merchantName ?? tx.description} · ${anomaly.reasons.map((r) => REASON_LABELS[r] ?? r).join(", ")}`,
-      origem: "Quero-quero · Fora do padrão",
+      origem: "Lobo Guará · Fora do padrão",
       acao: "Revisar",
       href: "/alertas",
       urgente: true,
@@ -346,7 +345,6 @@ function buildPending(
     const name = item.categoryName ?? "Gasto do mês";
     items.push({
       id: `teto-${item.budget.id}`,
-      agent: "tamandua",
       titulo:
         item.status === "exceeded"
           ? `${name} passou do teto`
@@ -357,7 +355,7 @@ function buildPending(
           : item.remainingCents >= 0
             ? `Faltam ${formatCurrency(item.remainingCents)} até o limite do mês`
             : `${formatCurrency(-item.remainingCents)} acima do limite do mês`,
-      origem: "Tamanduá · Gastos",
+      origem: "Lobo Guará · Gastos",
       acao: "Ver",
       href: "/gastos",
     });
@@ -367,12 +365,11 @@ function buildPending(
     const diff = sub.amountCents - sub.priceIncrease.previousAmountCents;
     items.push({
       id: `assinatura-${sub.id}`,
-      agent: "tamandua",
       titulo: `${sub.name} subiu ${formatCurrency(diff)}`,
       detalhe: sub.nextChargeOn
         ? `Próxima cobrança de ${formatCurrency(sub.amountCents)} em ${chargeDay(sub.nextChargeOn)}`
         : `Cobrança de ${formatCurrency(sub.amountCents)}`,
-      origem: "Tamanduá · Gastos",
+      origem: "Lobo Guará · Gastos",
       acao: "Ver",
       href: "/assinaturas",
     });

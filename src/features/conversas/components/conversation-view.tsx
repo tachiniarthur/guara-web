@@ -2,7 +2,6 @@ import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { IconButton, IconButtonLink } from "@/components/ui/icon-button";
-import { agents, type AgentId } from "@/features/assistentes/data";
 
 import type { Thread } from "../threads";
 import { ConversationMenu, ExitFullscreenButton } from "./conversation-actions";
@@ -24,8 +23,7 @@ export type ConversationState =
   | "transcrevendo"
   | "limite"
   | "menu"
-  | "apagar"
-  | "mencionar";
+  | "apagar";
 
 const composerStates: Partial<Record<ConversationState, ComposerState>> = {
   anexar: "anexar",
@@ -62,17 +60,9 @@ function ConversationsColumn({ currentId }: { currentId: string | null }) {
   );
 }
 
-/** Quem responde a conversa (para o texto de "Apagar esta conversa?"). */
+/** O que não é apagado junto com a conversa (texto de "Apagar esta conversa?"). */
 const keepNotes: Record<string, string> = {
   "aposentadoria-55": "Suas simulações salvas e seus dados não são apagados.",
-};
-
-const replyAgent: Record<string, AgentId> = {
-  "gastos-setembro": "tamandua",
-  "aposentadoria-55": "pacu",
-  "rendimento-setembro": "pacu",
-  "petr4-hoje": "pacu",
-  "extrato-itau": "capivara",
 };
 
 /** Conversa aberta em tela cheia (ou uma conversa nova, com `thread` nulo). */
@@ -94,7 +84,6 @@ export function ConversationView({
   const menu = (
     <ConversationMenu
       title={title}
-      agentName={agents[(id && replyAgent[id]) || "capivara"].nome}
       keepNote={(id && keepNotes[id]) || "Seus dados de gastos não são apagados."}
       initial={estado === "menu" || estado === "apagar" ? estado : undefined}
     />
@@ -171,7 +160,6 @@ export function ConversationView({
             placeholder="Pergunte qualquer coisa sobre seu dinheiro"
             compactPlaceholder="Pergunte qualquer coisa"
             initialState={estado ? composerStates[estado] : undefined}
-            defaultMentionOpen={estado === "mencionar"}
             typing={thread?.typing}
             attachmentFailed={thread?.attachmentFailed}
             className="w-full @desk:max-w-[42.5rem]"
@@ -196,7 +184,7 @@ export function ConversationView({
                   A IA pode errar. Nada aqui é recomendação de investimento.
                 </span>
                 <span className="hidden @desk:inline">
-                  {" · Enter envia · Shift+Enter quebra linha · @ chama alguém da turma"}
+                  {" · Enter envia · Shift+Enter quebra linha"}
                 </span>
               </p>
             }

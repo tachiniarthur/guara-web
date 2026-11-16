@@ -4,29 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentProps } from "react";
 
-import type { AgentId } from "@/features/assistentes/data";
 import { useChatPanel } from "@/stores/chat-panel";
 
-import { agentMentions } from "../data";
-
 type OpenChatProps = Omit<ComponentProps<"button">, "type" | "onClick"> & {
-  /** Começa uma conversa nova chamando este bicho (o campo já vem com "@bicho "). */
-  agent?: AgentId;
   /** Pergunta que já vem escrita no campo. */
   question?: string;
-  /** Começa uma conversa nova (sem bicho nem pergunta). */
+  /** Começa uma conversa nova (sem pergunta). */
   fresh?: boolean;
 };
 
-export function mentionFor(agent: AgentId) {
-  return agentMentions.find((mention) => mention.id === agent)?.handle ?? "";
-}
-
 /**
- * Abre o painel de conversa de qualquer tela, sem sair dela. Sem `agent`, `question` ou `fresh`,
+ * Abre o painel de conversa com o Guará de qualquer tela, sem sair dela. Sem `question` ou `fresh`,
  * abre a conversa atual. Nas páginas de conversa (que já são o chat em tela cheia), leva a elas.
  */
-export function OpenChat({ agent, question, fresh, children, ...props }: OpenChatProps) {
+export function OpenChat({ question, fresh, children, ...props }: OpenChatProps) {
   const pathname = usePathname();
   const openCurrent = useChatPanel((state) => state.openCurrent);
   const newConversation = useChatPanel((state) => state.newConversation);
@@ -49,9 +40,8 @@ export function OpenChat({ agent, question, fresh, children, ...props }: OpenCha
   }
 
   function open() {
-    if (agent || question || fresh) {
-      const draft = [agent ? mentionFor(agent) : "", question ?? ""].filter(Boolean).join(" ");
-      newConversation(draft ? `${draft}${question ? "" : " "}` : "");
+    if (question || fresh) {
+      newConversation(question ?? "");
     } else {
       openCurrent();
     }

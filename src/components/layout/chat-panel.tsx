@@ -1,5 +1,7 @@
 "use client";
 
+import { GuaraAvatar } from "@/components/ui/guara-avatar";
+import { guara } from "@/features/guara/identity";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -52,9 +54,10 @@ function ChatPanelBody({ mode }: { mode: Mode }) {
           size={buttonSize}
           onClick={close}
         />
+        <GuaraAvatar size={40} variant="ring" />
         <div className="flex min-w-0 grow flex-col leading-[1.25]">
-          <strong className="font-display text-22">Chat do Guará</strong>
-          <span className="truncate text-13 text-caption">Sua equipe de assistentes de IA</span>
+          <strong className="font-display text-22">{guara.nome}</strong>
+          <span className="truncate text-13 text-caption">Seu assistente de IA</span>
         </div>
         {/* Começa uma conversa nova ali mesmo (o histórico volta pelo X ou pelo atalho da borda). */}
         <IconButton

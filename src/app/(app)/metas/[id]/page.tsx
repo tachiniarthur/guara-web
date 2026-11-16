@@ -24,7 +24,7 @@ import { ListRow, RowList } from "@/components/ui/list-row";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { Tag } from "@/components/ui/tag";
 import { MataCard } from "@/features/gastos/components/teto-cards";
-import { OncaTip } from "@/features/metas/components/goal-parts";
+import { GuaraGoalTip } from "@/features/metas/components/goal-parts";
 import { goalDetail as detail, goals } from "@/features/metas/data";
 import { cn } from "@/lib/utils";
 import { barWidth } from "@/lib/bar-width";
@@ -183,7 +183,7 @@ function Milestones({
   return (
     <Section
       title="Marcos"
-      subtitle="A Onça avisa a cada etapa"
+      subtitle="O Guará avisa a cada etapa"
       wide={wide}
       state={state}
       replacement={sectionState(state, main && noDeposits)}
@@ -326,11 +326,11 @@ const simulate = (
   </ButtonLink>
 );
 
-/** Dica da Onça; no erro e no vazio vira um tile de estado com o mesmo tamanho. */
+/** Dica do Guará; no erro e no vazio vira um tile de estado com o mesmo tamanho. */
 function Tip({ replacement }: { replacement?: ReactNode }) {
   return (
     <StateSwap replacement={replacement} overlayClassName="rounded-bubble bg-shade p-4">
-      <OncaTip action={simulate}>{detail.dica}</OncaTip>
+      <GuaraGoalTip action={simulate}>{detail.dica}</GuaraGoalTip>
     </StateSwap>
   );
 }

@@ -3,7 +3,6 @@
 import { useQueries } from "@tanstack/react-query";
 import { z } from "zod";
 
-import type { AgentId } from "@/features/assistentes/data";
 import { BudgetSummarySchema, buildTetos, type BudgetSummary } from "@/features/gastos/live";
 import type { TetoProgress } from "@/features/gastos/data";
 import { apiRequest } from "@/lib/api";
@@ -85,20 +84,20 @@ export function toPriceAlert(alert: ApiPriceAlert): PriceAlert {
   };
 }
 
-const AGENT_BY_TYPE: Record<string, AgentId> = {
-  price_alert_triggered: "caramelo",
-  budget_threshold_reached: "tamandua",
-  budget_exceeded: "tamandua",
-  unusual_transaction: "quero_quero",
-};
+/** Tipos de notificação que entram no histórico de avisos (todos dados pelo Guará). */
+const ALERT_TYPES = new Set([
+  "price_alert_triggered",
+  "budget_threshold_reached",
+  "budget_exceeded",
+  "unusual_transaction",
+]);
 
 /** Avisos já enviados: as notificações de teto, preço e compra fora do padrão. */
 export function toAlertHistory(notifications: Notifications, now: Date): AlertHistoryItem[] {
   return notifications.data
-    .filter((item) => item.type in AGENT_BY_TYPE)
+    .filter((item) => ALERT_TYPES.has(item.type))
     .map((item) => ({
       id: item.id,
-      agent: AGENT_BY_TYPE[item.type]!,
       texto: item.title,
       quando: `${relativeDay(formatDate(item.createdAt, "yyyy-MM-dd"), now)}, ${formatDate(item.createdAt, "HH:mm")}`,
     }));

@@ -1,4 +1,4 @@
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { DetailGrid, DetailList } from "@/components/ui/detail-list";
 import { Icon } from "@/components/ui/icon";
@@ -187,12 +187,12 @@ export function NextStepPanel() {
   );
 }
 
-export function CarameloTip({ alert, fired }: Props) {
+export function GuaraPriceTip({ alert, fired }: Props) {
   return (
-    <AgentTip agent="caramelo" named>
+    <GuaraTip named>
       {fired
-        ? `Au! O ${alert.ativo} passou de ${alert.alvo} às 15:12. Avisei no celular e no e-mail. Pausei o alerta: quer renovar com outro alvo ou encerrar?`
+        ? `O ${alert.ativo} passou de ${alert.alvo} às 15:12. Avisei no celular e no e-mail. Pausei o alerta: quer renovar com outro alvo ou encerrar?`
         : `Estou de olho: confiro o ${alert.ativo} a cada cotação e aviso uma vez quando chegar a ${alert.alvo}.`}
-    </AgentTip>
+    </GuaraTip>
   );
 }

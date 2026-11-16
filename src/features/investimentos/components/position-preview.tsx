@@ -108,7 +108,7 @@ export function PositionPreview({ className }: { className?: string }) {
       <Note icon="alert-triangle" tone="warning">
         Com esta compra, Renda variável Brasil fica <strong>25,8 p.p. acima</strong> do alvo do seu
         perfil. Na subclasse Ações large cap, passa de 22,1% para <strong>32,7%</strong> (alvo 10%).
-        Você pode salvar mesmo assim ou pedir ao Pacu uma sugestão de rebalanceamento.{" "}
+        Você pode salvar mesmo assim ou pedir ao Guará uma sugestão de rebalanceamento.{" "}
         <Link href="/investimentos/alocacao" className="font-bold text-sand underline">
           Ver alocação
         </Link>

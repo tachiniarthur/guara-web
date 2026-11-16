@@ -1,7 +1,7 @@
 import type { IconName } from "@/components/ui/icon";
 import { positionGroups } from "@/features/investimentos/data";
 
-/** Metas acompanhadas pela Onça (reserva, viagem e aposentadoria). */
+/** Metas acompanhadas pelo Guará (reserva, viagem e aposentadoria). */
 
 export type GoalTone = "folha" | "arara" | "tucano";
 
@@ -79,7 +79,7 @@ export const goalsSummary = {
 /** Detalhe da Reserva de emergência. */
 export const goalDetail = {
   id: "reserva",
-  criada: "Acompanhada pela Onça · criada em mar/2025",
+  criada: "Acompanhada pelo Guará · criada em mar/2025",
   faltam: "R$ 14.108",
   completa: "set/2027",
   dica: "Se você mandar os R$ 312 do corte no transporte por app para cá, a reserva fica pronta em jul/2027, 2 meses antes.",

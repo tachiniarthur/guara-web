@@ -22,7 +22,7 @@ const erased: { icon: IconName; titulo: string; texto: string }[] = [
   },
   {
     icon: "chat",
-    titulo: "Conversas com os assistentes",
+    titulo: "Conversas com o Guará",
     texto: "Inclusive arquivos enviados no chat",
   },
   {

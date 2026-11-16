@@ -1,30 +1,28 @@
 import type { ReactNode } from "react";
 
-import { agents, type AgentId } from "@/features/assistentes/data";
+import { guara } from "@/features/guara/identity";
 import { cn } from "@/lib/utils";
 
-import { AgentAvatar } from "./agent-avatar";
+import { GuaraAvatar } from "./guara-avatar";
 
-/** Dica de um bicho da turma em bloco rebaixado: retrato pequeno, texto e ação opcional. */
-export function AgentTip({
-  agent,
+/** Dica do Guará em bloco rebaixado: retrato pequeno, texto e ação opcional. */
+export function GuaraTip({
   children,
   action,
   named,
   className,
 }: {
-  agent: AgentId;
   children: ReactNode;
   action?: ReactNode;
-  /** Mostra o nome do bicho acima do texto. */
+  /** Mostra "Lobo Guará" acima do texto. */
   named?: boolean;
   className?: string;
 }) {
   return (
     <div className={cn("flex gap-3 rounded-bubble bg-shade p-4", className)}>
-      <AgentAvatar agent={agent} size={32} variant="ring" />
+      <GuaraAvatar size={32} variant="ring" />
       <div className="flex min-w-0 flex-col gap-2">
-        {named && <span className="text-12 font-bold text-caption">{agents[agent].nome}</span>}
+        {named && <span className="text-12 font-bold text-caption">{guara.nome}</span>}
         <p className="m-0 text-14 leading-[1.55]">{children}</p>
         {action && <div className="flex">{action}</div>}
       </div>

@@ -20,7 +20,7 @@ import {
   type RetirementState,
 } from "../build";
 import type { Simulation, SimulatorId } from "../data";
-import { AskAgentCard, DetailCard, PremisesCard, ResultCard } from "./sections";
+import { AskGuaraCard, DetailCard, PremisesCard, ResultCard } from "./sections";
 import { SimulatorNav } from "./simulator-nav";
 import { Breadcrumb, type Crumb } from "@/components/ui/breadcrumb";
 
@@ -98,7 +98,7 @@ export function SimulatorPage({ id }: { id: SimulatorId }) {
 
       <div className="grid grid-cols-1 gap-4 @tab:gap-5 @desk:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <DetailCard section={simulation.closing} />
-        <AskAgentCard agent={simulation.agent} />
+        <AskGuaraCard questions={simulation.questions} />
       </div>
     </Page>
   );

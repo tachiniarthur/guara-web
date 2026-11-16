@@ -38,11 +38,10 @@ export const plans: Plan[] = [
     anual: 19332,
     bancos: "1 banco",
     limiteBancos: 1,
-    perguntas: "20 perguntas por mês aos assistentes",
+    perguntas: "20 perguntas por mês ao Guará",
     recursos: [
       "Conta do banco pelo Open Finance, só leitura",
       "Lançamentos à mão ou pela IA, além do banco",
-      "2 assistentes de IA à sua escolha",
       "Até 2 tetos de gasto e 2 alertas de preço",
       "Histórico de 3 meses",
       "Relatório do mês atual, sem exportação",
@@ -61,10 +60,9 @@ export const plans: Plan[] = [
     anual: 47412,
     bancos: "4 bancos",
     limiteBancos: 4,
-    perguntas: "40 perguntas por mês aos assistentes",
+    perguntas: "40 perguntas por mês ao Guará",
     recursos: [
       "Tudo do Básico",
-      "5 assistentes de IA à sua escolha",
       "Até 6 tetos de gasto e 6 alertas de preço",
       "Histórico de 12 meses",
       "Relatórios com exportação em PDF, Excel e CSV",
@@ -80,10 +78,9 @@ export const plans: Plan[] = [
     anual: 83052,
     bancos: "6 bancos",
     limiteBancos: 6,
-    perguntas: "70 perguntas por mês aos assistentes",
+    perguntas: "70 perguntas por mês ao Guará",
     recursos: [
       "Tudo do Plus",
-      "Todos os assistentes de IA",
       "Tetos de gasto e alertas de preço sem limite",
       "Histórico completo",
       "Suporte por e-mail e WhatsApp",
@@ -168,15 +165,6 @@ export const planFeatureRows: {
     ],
   },
   {
-    off: "Assistentes de IA",
-    values: [
-      "2 assistentes de IA à sua escolha",
-      "5 assistentes de IA à sua escolha",
-      "Todos os assistentes de IA",
-      "Todos os assistentes de IA",
-    ],
-  },
-  {
     off: "Tetos de gasto e alertas de preço",
     values: [
       "Até 2 tetos e 2 alertas de preço",
@@ -256,8 +244,7 @@ export const planUsage = {
 export const planComparison: { recurso: string; valores: [string, string, string] }[] = [
   { recurso: "Bancos pelo Open Finance", valores: ["1", "4", "6"] },
   { recurso: "Lançar à mão ou pela IA", valores: ["Sim", "Sim", "Sim"] },
-  { recurso: "Perguntas aos assistentes", valores: ["20/mês", "40/mês", "70/mês"] },
-  { recurso: "Assistentes de IA", valores: ["2 à escolha", "5 à escolha", "Todos"] },
+  { recurso: "Perguntas ao Guará", valores: ["20/mês", "40/mês", "70/mês"] },
   { recurso: "Tetos de gasto", valores: ["Até 2", "Até 6", "Sem limite"] },
   { recurso: "Alertas de preço", valores: ["Até 2", "Até 6", "Sem limite"] },
   { recurso: "Histórico", valores: ["3 meses", "12 meses", "Completo"] },

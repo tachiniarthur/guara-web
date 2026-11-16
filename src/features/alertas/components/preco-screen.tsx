@@ -14,7 +14,7 @@ import {
   AlertChart,
   AlertFirings,
   AlertSummary,
-  CarameloTip,
+  GuaraPriceTip,
   NextStepPanel,
 } from "@/features/alertas/components/alert-detail";
 import { findPriceAlert } from "@/features/alertas/price-alerts";
@@ -76,30 +76,30 @@ export function AlertaPrecoScreen({ id, estado }: { id: string; estado?: string 
 
         {/* Celular */}
         <div className="contents @tab:hidden">
-          {fired && <CarameloTip {...props} />}
+          {fired && <GuaraPriceTip {...props} />}
           <AlertSummary {...props} />
           <AlertActions {...props} />
           <AlertChart {...props} />
           <AlertAbout {...props} />
           <AlertFirings {...props} />
-          {!fired && <CarameloTip {...props} />}
+          {!fired && <GuaraPriceTip {...props} />}
         </div>
 
         {/* Tablet */}
         <div className="hidden flex-col gap-5 @tab:flex @desk:hidden">
-          {fired && <CarameloTip {...props} />}
+          {fired && <GuaraPriceTip {...props} />}
           <AlertSummary {...props} />
           <AlertChart {...props} />
           <div className="grid grid-cols-2 items-stretch gap-4">
             <AlertAbout {...props} />
             <AlertFirings {...props} />
           </div>
-          {!fired && <CarameloTip {...props} />}
+          {!fired && <GuaraPriceTip {...props} />}
         </div>
 
         {/* Desktop */}
         <div className="hidden flex-col gap-6 @desk:flex">
-          {fired && <CarameloTip {...props} />}
+          {fired && <GuaraPriceTip {...props} />}
           <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-stretch gap-5">
             <div className="flex min-w-0 flex-col gap-4">
               <AlertSummary {...props} />
@@ -107,7 +107,7 @@ export function AlertaPrecoScreen({ id, estado }: { id: string; estado?: string 
             </div>
             <div className="flex min-w-0 flex-col gap-4">
               <AlertAbout {...props} />
-              {!fired && <CarameloTip {...props} />}
+              {!fired && <GuaraPriceTip {...props} />}
               <AlertFirings {...props} className={fired ? undefined : "grow"} />
               {fired && <NextStepPanel />}
             </div>

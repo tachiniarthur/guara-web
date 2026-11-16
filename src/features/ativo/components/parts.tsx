@@ -495,7 +495,7 @@ export function DataSource({ children }: { children: ReactNode }) {
   return <p className="m-0 text-12 text-caption">{children}</p>;
 }
 
-/** Botões de ação do topo (criar alerta, editar posição, perguntar ao Pacu). */
+/** Botões de ação do topo (criar alerta, editar posição, perguntar ao Guará). */
 export function AssetActions({
   alert,
   alertIcon = "bell-plus",
@@ -531,12 +531,9 @@ export function AssetActions({
         <Icon name="pencil" size={18} />
         <span>Editar posição</span>
       </Link>
-      <OpenChat
-        agent="pacu"
-        className={cn(base, "border-line-strong bg-card text-sand", itemClassName)}
-      >
+      <OpenChat fresh className={cn(base, "border-line-strong bg-card text-sand", itemClassName)}>
         <Icon name="chat" size={18} />
-        <span>Perguntar ao Pacu</span>
+        <span>Perguntar ao Guará</span>
       </OpenChat>
     </div>
   );

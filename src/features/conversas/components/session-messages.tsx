@@ -2,8 +2,8 @@
 
 import { useChatPanel } from "@/stores/chat-panel";
 
-import { AgentMessage, MessageText, UserBubble } from "./messages";
-import { AgentReply, ReplyText, UserQuestion } from "./thread-parts";
+import { GuaraMessage, MessageText, UserBubble } from "./messages";
+import { GuaraReply, ReplyText, UserQuestion } from "./thread-parts";
 
 /** Mensagens enviadas nesta sessão, no estilo do painel (bolhas) ou da página de conversa. */
 export function SessionMessages({
@@ -26,13 +26,13 @@ export function SessionMessages({
             <UserQuestion key={message.id}>{message.text}</UserQuestion>
           )
         ) : variant === "panel" ? (
-          <AgentMessage key={message.id} agent="capivara" tag="dúvidas gerais">
+          <GuaraMessage key={message.id}>
             <MessageText>{message.text}</MessageText>
-          </AgentMessage>
+          </GuaraMessage>
         ) : (
-          <AgentReply key={message.id} agent="capivara">
+          <GuaraReply key={message.id}>
             <ReplyText>{message.text}</ReplyText>
-          </AgentReply>
+          </GuaraReply>
         ),
       )}
     </>

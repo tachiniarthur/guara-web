@@ -21,7 +21,7 @@ export interface LancamentosData {
   mes: string;
   categorias: CategorySpending[];
   outros: string;
-  /** Aviso da compra fora do padrão (Quero-quero); `null` sem nenhuma. */
+  /** Aviso da compra fora do padrão (Guará); `null` sem nenhuma. */
   foraDoPadrao: string | null;
   /** Carregar dias anteriores; `null` quando não há mais. */
   loadMore: { onClick: () => void; pending: boolean } | null;

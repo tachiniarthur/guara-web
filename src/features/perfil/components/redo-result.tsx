@@ -97,7 +97,7 @@ function SplitPanel({
       />
       <OffTargetNote
         profile={profile}
-        after="O Pacu pode sugerir como ajustar, mas nada muda sem você."
+        after="O Guará pode sugerir como ajustar, mas nada muda sem você."
       />
       <div className="flex justify-end">
         <Link

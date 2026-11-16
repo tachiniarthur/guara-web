@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button, ButtonLink } from "@/components/ui/button";
 import {
@@ -344,10 +344,10 @@ export function NewInvestmentLiveForm() {
               )}
             </dl>
           </section>
-          <AgentTip agent="pacu" className="@desk:order-last">
+          <GuaraTip className="@desk:order-last">
             Também dá para cadastrar pelo chat. Por exemplo:{" "}
             <em>“comprei 42 cotas de HGLG11 a R$ 158”</em>.
-          </AgentTip>
+          </GuaraTip>
           <div className="hidden justify-end gap-2.5 @tab:flex @desk:hidden">{actions("md")}</div>
         </div>
       </div>

@@ -14,7 +14,7 @@ import {
   TileErrorBlock,
 } from "@/components/states/state-block";
 import { inlineLinkClass } from "@/components/ui/text-link";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -76,19 +76,18 @@ function PrimeTip({ state, className }: Props & { className?: string }) {
 
 function PrimeTipBubble({ className }: { className?: string }) {
   return (
-    <AgentTip
-      agent="tamandua"
+    <GuaraTip
       className={className}
       action={
         <Button size="sm">
           <Icon name="chat" size={18} />
-          <span>Perguntar ao Tamanduá</span>
+          <span>Perguntar ao Guará</span>
         </Button>
       }
     >
       Você não comprou na Amazon nos últimos 60 dias. Se cancelar o Prime, economiza{" "}
       <strong>R$ 238,80 por ano</strong>.
-    </AgentTip>
+    </GuaraTip>
   );
 }
 

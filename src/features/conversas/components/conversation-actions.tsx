@@ -1,5 +1,6 @@
 "use client";
 
+import { guara } from "@/features/guara/identity";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -46,12 +47,10 @@ function MenuList({ items, onPick }: { items: MenuItem[]; onPick: (item: MenuIte
  */
 export function ConversationMenu({
   title,
-  agentName,
   keepNote,
   initial,
 }: {
   title: string;
-  agentName: string;
   /** O que não é apagado junto com a conversa. */
   keepNote: string;
   initial?: "menu" | "apagar";
@@ -140,7 +139,7 @@ export function ConversationMenu({
             }
           >
             <DialogText>
-              {`A conversa “${title}” e as respostas d${agentName === "Capivara" ? "a" : "o"} ${agentName} somem do histórico. ${keepNote}`}
+              {`A conversa “${title}” e as respostas do ${guara.nome} somem do histórico. ${keepNote}`}
             </DialogText>
           </ConfirmDialog>
         )}

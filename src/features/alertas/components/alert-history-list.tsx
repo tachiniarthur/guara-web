@@ -1,4 +1,4 @@
-import { AgentAvatar } from "@/components/ui/agent-avatar";
+import { GuaraAvatar } from "@/components/ui/guara-avatar";
 import { Tag } from "@/components/ui/tag";
 
 import type { AlertHistoryItem } from "../data";
@@ -15,7 +15,7 @@ export function AlertHistoryList({
     <ul className="m-0 list-none p-0">
       {items.map((item) => (
         <li key={item.id} className="flex items-start gap-3 border-b border-line py-3">
-          <AgentAvatar agent={item.agent} size={32} variant="ring" />
+          <GuaraAvatar size={32} variant="ring" />
           <span className="flex min-w-0 grow flex-col leading-[1.4]">
             <span className="font-medium">{item.texto}</span>
             <span className="text-12 text-caption">{item.quando}</span>

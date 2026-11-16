@@ -39,14 +39,6 @@
   /* Borda das ações de excluir e desconectar */
   --guara-urucum-line: #5a2a22;
 
-  /* Anéis de bioma da turma */
-  --guara-bioma-capivara: #5c4a2e;
-  --guara-bioma-pacu: #23513c;
-  --guara-bioma-caramelo: #1f4a4e;
-  --guara-bioma-tamandua: #6a4428;
-  --guara-bioma-quero-quero: #44502a;
-  --guara-bioma-onca: #7a3b1e;
-
   /* shadcn/ui */
   --background: var(--guara-canvas);
   --foreground: var(--guara-sand);

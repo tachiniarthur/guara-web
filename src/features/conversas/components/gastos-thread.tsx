@@ -1,16 +1,16 @@
 import { ProgressBar } from "@/components/ui/progress-bar";
 
-import { AgentMessage, ChatDateChip, MessageText, UserBubble } from "./messages";
+import { GuaraMessage, ChatDateChip, MessageText, UserBubble } from "./messages";
 
-/** Conversa de exemplo: gastos de setembro com o Tamanduá (e o Quero-quero entrando). */
+/** Conversa de exemplo: gastos de setembro com o Guará (e o aviso de uma compra fora do padrão). */
 export function GastosThread() {
   return (
     <>
       <ChatDateChip>Hoje, 14:02 · Gastos de setembro</ChatDateChip>
       <UserBubble>quanto gastei com comida esse mês?</UserBubble>
-      <AgentMessage agent="tamandua" tag="gastos">
+      <GuaraMessage tag="gastos">
         <MessageText>
-          Farejei tudo: <strong>R$ 742,18</strong> em Alimentação.
+          Você gastou <strong>R$ 742,18</strong> em Alimentação.
         </MessageText>
         <div className="flex flex-col gap-2 rounded-[0.875rem] bg-canvas p-3">
           <div className="flex justify-between">
@@ -22,20 +22,19 @@ export function GastosThread() {
             74% do teto
           </span>
         </div>
-        <MessageText>O formigueiro mais cheio foi o delivery: 6 pedidos, R$ 218,40.</MessageText>
-      </AgentMessage>
+        <MessageText>O que mais pesou foi o delivery: 6 pedidos, R$ 218,40.</MessageText>
+      </GuaraMessage>
       <UserBubble>e se eu cortar o delivery pela metade?</UserBubble>
-      <AgentMessage agent="tamandua" tag="gastos">
+      <GuaraMessage tag="gastos">
         <MessageText>
-          Sobram uns <strong>R$ 110 por mês</strong>. O Pacu já avisou que sabe onde deixar isso
-          rendendo.
+          Sobram uns <strong>R$ 110 por mês</strong>. Se quiser, mostro onde deixar isso rendendo.
         </MessageText>
-      </AgentMessage>
-      <AgentMessage agent="quero_quero" tag="entrou na conversa" tagTone="urucum">
+      </GuaraMessage>
+      <GuaraMessage tag="fora do padrão" tagTone="urucum">
         <MessageText>
-          Quero-quero! Antes disso: a compra das 02:14 ainda tá sem resposta.
+          Antes disso: a compra das 02:14 ainda está sem resposta. Foi você?
         </MessageText>
-      </AgentMessage>
+      </GuaraMessage>
     </>
   );
 }

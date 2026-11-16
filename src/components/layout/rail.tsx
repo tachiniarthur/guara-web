@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { AgentAvatar } from "@/components/ui/agent-avatar";
+import { GuaraAvatar } from "@/components/ui/guara-avatar";
 import { Icon } from "@/components/ui/icon";
-import { agentOrder, agents } from "@/features/assistentes/data";
+import { guara } from "@/features/guara/identity";
 import { OpenChat } from "@/features/conversas/components/open-chat";
 import { useUser } from "@/features/usuario/live";
 import { isActive, mainNav } from "@/lib/navigation";
@@ -61,46 +61,18 @@ export function Rail({ className }: { className?: string }) {
         })}
       </ul>
 
-      <div className="flex w-[4.5rem] flex-col items-center gap-2 border-t border-line pt-3.5">
-        <span className="text-9 font-extrabold tracking-[.04em] text-caption uppercase">
-          Assistentes
-        </span>
-        <ul
-          aria-label="Assistentes"
-          className="m-0 flex list-none flex-col items-center gap-2.5 p-0 landscape:grid landscape:grid-cols-[repeat(2,2rem)] landscape:justify-center landscape:gap-x-2 landscape:gap-y-1.5"
+      <div className="flex w-[4.5rem] flex-col items-center border-t border-line pt-3.5">
+        <OpenChat
+          fresh
+          aria-label={`Conversar com o ${guara.nome}`}
+          title={guara.nome}
+          className="flex min-h-11 w-[4.5rem] flex-col items-center gap-1 border-none bg-transparent p-0"
         >
-          {agentOrder.map((id) => {
-            const agent = agents[id];
-            return (
-              <li key={id}>
-                <OpenChat
-                  agent={id}
-                  aria-label={`Conversar com ${agent.nome}, ${agent.papel}${id === "quero_quero" ? ", 1 alerta novo" : ""}`}
-                  title={`${agent.nome} · ${agent.papel}`}
-                  className="flex min-h-11 w-[4.5rem] flex-col items-center gap-1 border-none bg-transparent p-0 landscape:min-h-8 landscape:w-8"
-                >
-                  <span className="relative">
-                    <AgentAvatar
-                      agent={id}
-                      size={40}
-                      variant="ring"
-                      className="landscape:size-8!"
-                    />
-                    {id === "quero_quero" && (
-                      <span
-                        aria-hidden="true"
-                        className="absolute -top-px -right-px size-[0.6875rem] rounded-full bg-urucum shadow-[0_0_0_2px_var(--guara-canvas)]"
-                      />
-                    )}
-                  </span>
-                  <span className="text-11 font-semibold whitespace-nowrap text-mist landscape:hidden">
-                    {agent.nome}
-                  </span>
-                </OpenChat>
-              </li>
-            );
-          })}
-        </ul>
+          <GuaraAvatar size={40} variant="ring" className="landscape:size-8!" />
+          <span className="text-11 font-semibold whitespace-nowrap text-mist landscape:hidden">
+            {guara.curto}
+          </span>
+        </OpenChat>
       </div>
 
       <div className="grow" />

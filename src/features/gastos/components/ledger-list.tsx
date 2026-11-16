@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 import type { LedgerEntry } from "../data";
 
-/** Selo "Fora do padrão" (compra que o Quero-quero quer confirmar). */
+/** Selo "Fora do padrão" (compra que o Guará quer confirmar). */
 export function OffPatternBadge() {
   return (
     <span className="inline-flex h-6 items-center gap-1 rounded-full bg-urucum-bg px-2 text-12 font-bold tracking-[.04em] whitespace-nowrap text-urucum">

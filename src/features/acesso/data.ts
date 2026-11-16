@@ -28,9 +28,9 @@ export const termsOfUse: LegalDoc = {
         "A conexão é feita por uma instituição autorizada pelo Banco Central, dentro do Open Finance Brasil. Cada autorização vale por até 12 meses e pode ser revogada no Guará ou no app do banco.",
     },
     {
-      titulo: "4. Assistentes de IA",
+      titulo: "4. Assistente de IA",
       texto:
-        "Os assistentes respondem com base nos seus dados e podem errar. As respostas são informativas e não são recomendação de investimento, consultoria financeira ou jurídica.",
+        "O Guará, assistente de IA do app, responde com base nos seus dados e pode errar. As respostas são informativas e não são recomendação de investimento, consultoria financeira ou jurídica.",
     },
     {
       titulo: "5. Planos e pagamento",
@@ -60,7 +60,7 @@ export const privacyPolicy: LegalDoc = {
     {
       titulo: "O que coletamos",
       texto:
-        "Dados de cadastro (nome e e-mail), dados financeiros que você autoriza pelo Open Finance (saldos, lançamentos, cartões e investimentos), o que você cadastra à mão e as conversas com os assistentes.",
+        "Dados de cadastro (nome e e-mail), dados financeiros que você autoriza pelo Open Finance (saldos, lançamentos, cartões e investimentos), o que você cadastra à mão e as conversas com o Guará.",
     },
     {
       titulo: "Para que usamos",

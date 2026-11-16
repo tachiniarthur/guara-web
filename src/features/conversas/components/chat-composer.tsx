@@ -23,9 +23,9 @@ type ChatComposerProps = {
   className?: string;
 };
 
-/** Sugestões rápidas + campo de mensagem em pílula (@, microfone e enviar). */
+/** Sugestões rápidas + campo de mensagem em pílula (microfone e enviar). */
 export function ChatComposer({
-  placeholder = "Pergunte pra turma",
+  placeholder = "Pergunte ao Guará",
   prompts = quickPrompts,
   disclaimer = true,
   defaultValue = "",
@@ -71,7 +71,6 @@ export function ChatComposer({
           Mensagem
         </label>
         <div className="flex min-h-16 items-center gap-1 rounded-full border border-line-strong bg-shade p-2">
-          <IconButton icon="at" label="Chamar um agente específico" variant="ghost" size="lg" />
           <input
             id={inputId}
             type="text"

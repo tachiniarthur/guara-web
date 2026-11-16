@@ -92,11 +92,11 @@ export function SeeAllButton({ count }: { count: number }) {
   );
 }
 
-export function ChatWithTamandua() {
+export function ChatWithGuara() {
   return (
     <ButtonLink href="/conversas" variant="secondary" size="sm">
       <Icon name="chat" size={18} />
-      <span>Conversar com o Tamanduá</span>
+      <span>Conversar com o Guará</span>
     </ButtonLink>
   );
 }

@@ -1,4 +1,4 @@
-import { agents, type AgentId } from "@/features/assistentes/data";
+import { guara } from "@/features/guara/identity";
 import { rem } from "@/lib/rem";
 import { cn } from "@/lib/utils";
 
@@ -16,21 +16,20 @@ function wavyRing(phase: 1 | -1) {
 const RING_A = wavyRing(1);
 const RING_B = wavyRing(-1);
 
-type AgentAvatarProps = {
-  agent: AgentId;
+type GuaraAvatarProps = {
   /** Lado em px. */
   size: number;
   /**
    * "brush": retrato com anel de pincelada (menus, chat, pendências).
-   * "ring": retrato com anel liso na cor do bioma (listas e cards compactos).
+   * "ring": retrato com anel liso verde-mata (listas e cards compactos).
    */
   variant?: "brush" | "ring";
   className?: string;
 };
 
-/** Retrato do bicho com anel na cor do bioma. Decorativo: o nome vem sempre escrito ao lado. */
-export function AgentAvatar({ agent, size, variant = "brush", className }: AgentAvatarProps) {
-  const { anel, retrato } = agents[agent];
+/** Retrato do Lobo Guará (a logo). Decorativo: o nome vem sempre escrito ao lado. */
+export function GuaraAvatar({ size, variant = "brush", className }: GuaraAvatarProps) {
+  const { anel, retrato } = guara;
 
   if (variant === "ring") {
     return (

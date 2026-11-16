@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { DetailGrid } from "@/components/ui/detail-list";
 import { AmountInput, SelectInput, TextInput } from "@/components/ui/form";
@@ -66,14 +66,14 @@ function Tracking({ className }: { className?: string }) {
     <Panel className={cn("gap-1 p-4 @tab:gap-1.5 @tab:p-5.5 @desk:p-6", className)}>
       <PanelHeader title="Acompanhamento" titleClassName="text-17 tracking-normal @tab:text-20" />
       <SwitchRow
-        id="meta-onca"
-        title="A Onça acompanha esta meta"
+        id="meta-guara"
+        title="O Guará acompanha esta meta"
         description="Avisa se o ritmo cair e comemora cada marco"
         defaultChecked
       />
-      <AgentTip agent="onca" named className="hidden @tab:flex">
+      <GuaraTip named className="hidden @tab:flex">
         Combinado: guardo o ritmo da viagem com você e aviso em jan/27 quando chegar a 25%.
-      </AgentTip>
+      </GuaraTip>
     </Panel>
   );
 }

@@ -2,7 +2,7 @@
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyStateLayout } from "@/components/ui/empty-state";
@@ -41,10 +41,10 @@ function NewAlertButton({ label = "Novo alerta" }: { label?: string }) {
 }
 
 const tip = (
-  <AgentTip agent="caramelo" named>
+  <GuaraTip named>
     É só dizer o ativo e o preço que eu fico de guarda. Funciona até para ativos que você ainda não
     tem.
-  </AgentTip>
+  </GuaraTip>
 );
 
 /** Todos os alertas de preço (e o estado vazio, em /alertas/precos?vazio). */
@@ -103,7 +103,7 @@ export function AlertasPrecoScreen({ vazio }: { vazio: boolean }) {
         <div className="flex flex-col gap-4 @desk:grid @desk:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] @desk:items-stretch @desk:gap-5">
           <Panel className="gap-1 p-5.5">
             <PanelHeader
-              title="Vigiados pelo Caramelo"
+              title="Vigiados pelo Guará"
               subtitle="Aviso por notificação e e-mail"
               titleClassName="text-19 tracking-normal"
             />

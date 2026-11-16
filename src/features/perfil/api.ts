@@ -22,7 +22,6 @@ export const MyPlanSchema = z.object({
         .object({
           bankConnections: z.number().int(),
           aiQuestionsPerMonth: z.number().int(),
-          specialists: z.number().int().nullable(),
         })
         .loose(),
     })
@@ -37,9 +36,6 @@ export const MyPlanSchema = z.object({
     .loose()
     .nullable(),
   usage: z.object({ month: z.string(), aiQuestions: counter, simulationRuns: counter }).nullable(),
-  assistants: z
-    .object({ chosen: z.array(z.string()), active: z.array(z.string()), limit })
-    .nullable(),
 });
 export type MyPlan = z.infer<typeof MyPlanSchema>;
 
@@ -49,7 +45,7 @@ export function fetchMyPlan(signal?: AbortSignal): Promise<MyPlan> {
   return apiRequest("/v1/me/plan", MyPlanSchema, { signal });
 }
 
-/** Plano do usuário, uso do mês e assistentes. */
+/** Plano do usuário e uso do mês. */
 export function useMyPlan({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: planKeys.mine,
@@ -139,18 +135,5 @@ export function useSetPhone() {
   return useMutation({
     mutationFn: savePhone,
     onSuccess: (me) => queryClient.setQueryData(meKeys.me, me),
-  });
-}
-
-/** Troca os assistentes escolhidos (`PUT /v1/me/plan/assistants`), na ordem de preferência. */
-export function useChooseAssistants() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (assistants: string[]) =>
-      apiRequest("/v1/me/plan/assistants", MyPlanSchema, {
-        method: "PUT",
-        body: { assistants },
-      }),
-    onSuccess: (plan) => queryClient.setQueryData(planKeys.mine, plan),
   });
 }

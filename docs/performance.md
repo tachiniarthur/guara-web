@@ -12,7 +12,7 @@ latência, o tempo que as funções da Vercel levavam para responder (elas rodav
    Metas, Relatórios, Alertas, Conversas, Posições e o detalhe do ativo liam `searchParams` (para
    os estados do protótipo, `?estado=erro` etc.). Isso as tornava dinâmicas (ƒ): o Next não as
    pré-carrega, e cada clique esperava uma ida ao servidor (nos EUA) para o conteúdo e outra para
-   o JavaScript da página, sem nada na tela até a resposta. Simulador e Assistentes, que não liam
+   o JavaScript da página, sem nada na tela até a resposta. Simulador e Assistentes (tela removida em 16/11/2026), que não liam
    a URL, já eram geradas no build e abriam em ~40–70 ms.
 2. **Investimentos era a maior**: 470 KB de HTML e ~2.800 nós no DOM (as outras: 120–280 KB e
    600–1.200 nós), por isso a mais lenta das dinâmicas.

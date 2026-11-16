@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { DetailHeader, Page } from "@/components/layout/page";
-import { AgentTip } from "@/components/ui/agent-tip";
+import { GuaraTip } from "@/components/ui/guara-tip";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Icon, type IconName } from "@/components/ui/icon";
@@ -88,9 +88,9 @@ export function NewUserSpending() {
         ),
       }}
       side={[
-        <AgentTip key="tip" agent="tamandua" named>
-          Assim que os dados chegarem, eu farejo para onde foi cada real e conto sem julgar.
-        </AgentTip>,
+        <GuaraTip key="tip" named>
+          Assim que os dados chegarem, eu mostro para onde foi cada real, sem julgar.
+        </GuaraTip>,
         <PreviewListPanel
           key="exemplo"
           title="Exemplo do que você vai ver"
@@ -170,7 +170,7 @@ export function NewUserInvestments() {
           key="perfil"
           title="Perfil de investidor"
           subtitle="Ainda não respondido"
-          text="Com o perfil, o Guará compara sua carteira com uma divisão-alvo e o Pacu sugere ajustes."
+          text="Com o perfil, o Guará compara sua carteira com uma divisão-alvo e sugere ajustes."
           action={
             <ButtonLink href="/perfil/investidor" variant="secondary" block className="text-15">
               <span>Responder agora · 2 minutos</span>
@@ -181,7 +181,7 @@ export function NewUserInvestments() {
           key="alertas"
           title="Alertas de preço"
           subtitle="Funcionam mesmo sem carteira"
-          text="Escolha qualquer ação, FII ou cripto e o Caramelo avisa quando chegar no preço."
+          text="Escolha qualquer ação, FII ou cripto e o Guará avisa quando chegar no preço."
           action={
             <ButtonLink href="/alertas/novo-preco" variant="secondary" block className="text-15">
               <Icon name="plus" size={18} />

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { AgentAvatar } from "@/components/ui/agent-avatar";
+import { GuaraAvatar } from "@/components/ui/guara-avatar";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Icon } from "@/components/ui/icon";
 import { Panel } from "@/components/ui/panel";
@@ -367,19 +367,18 @@ function PositionCard({ asset }: { asset: ComparedAsset }) {
   );
 }
 
-function AskPacuCard({ asset }: { asset: ComparedAsset }) {
+function AskGuaraCard({ asset }: { asset: ComparedAsset }) {
   return (
     <Panel className="gap-4">
       <div className="-mx-5 flex items-center gap-2.5 border-b border-line px-5 pb-3.5">
-        <AgentAvatar agent="pacu" size={28} variant="ring" />
-        <h2 className="m-0 text-16 font-bold">Pergunte ao Pacu</h2>
+        <GuaraAvatar size={28} variant="ring" />
+        <h2 className="m-0 text-16 font-bold">Pergunte ao Guará</h2>
         <span className="text-13 text-caption">sobre este ativo</span>
       </div>
       <div className="-mt-2">
         {asset.perguntas.map((q) => (
           <OpenChat
             key={q}
-            agent="pacu"
             question={q}
             className="flex w-full items-center justify-between gap-3 border-0 border-b border-line bg-transparent px-0 py-3 text-left text-15 font-semibold text-sand hover:text-tucano"
           >
@@ -393,7 +392,7 @@ function AskPacuCard({ asset }: { asset: ComparedAsset }) {
       <div className="mt-1 flex min-h-[3.625rem] items-center gap-2 rounded-full border border-line-strong bg-field py-1 pr-1 pl-4">
         <span className="grow text-15 text-caption">Pergunte o que quiser…</span>
         <OpenChat
-          agent="pacu"
+          fresh
           aria-label="Enviar pergunta"
           className="flex size-10 items-center justify-center rounded-full border-none bg-tucano text-canvas"
         >
@@ -419,7 +418,7 @@ export function ComparedDetail({ asset, variant }: { asset: ComparedAsset; varia
         <FeesCard asset={asset} single />
         <IndicatorsCard asset={asset} variant="mobile" />
         <EventsCard events={asset.eventos} allHref={eventsHref(asset)} variant="mobile" />
-        <AskPacuCard asset={asset} />
+        <AskGuaraCard asset={asset} />
         <DataSource>{footer}</DataSource>
       </div>
     );
@@ -445,7 +444,7 @@ export function ComparedDetail({ asset, variant }: { asset: ComparedAsset; varia
           variant="tablet"
           className="p-5"
         />
-        <AskPacuCard asset={asset} />
+        <AskGuaraCard asset={asset} />
         <DataSource>{footer}</DataSource>
       </div>
     );
@@ -465,7 +464,7 @@ export function ComparedDetail({ asset, variant }: { asset: ComparedAsset; varia
         <div className="flex min-w-0 flex-col gap-5">
           <DetailsCard asset={asset} />
           <PositionCard asset={asset} />
-          <AskPacuCard asset={asset} />
+          <AskGuaraCard asset={asset} />
         </div>
       </div>
       <IndicatorsCard asset={asset} variant="desktop" />

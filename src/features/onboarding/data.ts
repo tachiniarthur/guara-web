@@ -1,7 +1,6 @@
-import type { AgentId } from "@/features/assistentes/data";
 import type { IconName } from "@/components/ui/icon";
 
-export const onboardingSteps = ["Plano", "Bancos", "Perfil", "Assistentes"] as const;
+export const onboardingSteps = ["Plano", "Bancos", "Perfil", "Avisos"] as const;
 
 export const onboardingHighlights: { icon: IconName; text: string }[] = [
   {
@@ -9,7 +8,7 @@ export const onboardingHighlights: { icon: IconName; text: string }[] = [
     text: "Open Finance Brasil: você autoriza no app do banco e pode revogar quando quiser.",
   },
   { icon: "eye", text: "Nunca pedimos a senha do seu banco e nunca movimentamos seu dinheiro." },
-  { icon: "chat", text: "Pergunte do seu jeito. O assistente certo responde." },
+  { icon: "chat", text: "Pergunte do seu jeito. O Guará responde." },
 ];
 
 export const banks = [
@@ -141,21 +140,6 @@ export const profileQuestions: ProfileQuestion[] = [
   },
 ];
 
-export const agentIntros: { id: AgentId; texto: string }[] = [
-  {
-    id: "capivara",
-    texto: "Responde as dúvidas gerais sobre dinheiro e o dia a dia das suas finanças.",
-  },
-  { id: "pacu", texto: "Tira dúvidas, monta simulações e analisa sua carteira." },
-  { id: "caramelo", texto: "Vigia os preços que você escolher e avisa na hora." },
-  { id: "tamandua", texto: "Organiza seus gastos e responde quanto foi para onde." },
-  { id: "quero_quero", texto: "Percebe compras fora do seu padrão e confirma com você." },
-  {
-    id: "onca",
-    texto: "Acompanha suas metas, como viagem e reserva, e avisa se o ritmo está bom.",
-  },
-];
-
 /** Resumo das respostas no resultado do questionário. */
 export const profileAnswers = [
   { pergunta: "Objetivo", resposta: "Juntar para um objetivo" },
@@ -170,7 +154,7 @@ export const profileEffects: { icon: IconName; titulo: string; texto: string }[]
   {
     icon: "target",
     titulo: "Sugestões seguem a carteira-alvo",
-    texto: "O Pacu usa os 5 grupos do perfil Moderado para sugerir onde colocar novos aportes.",
+    texto: "O Guará usa os 5 grupos do perfil Moderado para sugerir onde colocar novos aportes.",
   },
   {
     icon: "alert-triangle",

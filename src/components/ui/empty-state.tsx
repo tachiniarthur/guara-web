@@ -68,7 +68,7 @@ export function EmptyState({
 }
 
 /**
- * Tela vazia com guia: o estado vazio e, ao lado (desktop) ou embaixo, a dica do bicho e o
+ * Tela vazia com guia: o estado vazio e, ao lado (desktop) ou embaixo, a dica do Guará e o
  * "como funciona". No desktop ocupa a altura toda (use com `Page fill`).
  */
 export function EmptyStateLayout({

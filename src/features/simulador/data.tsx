@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
 import type { IconName } from "@/components/ui/icon";
-import type { AgentId } from "@/features/assistentes/data";
 
 import {
   buildCut,
@@ -125,7 +124,8 @@ export type Simulation = {
   details: [DetailSection, DetailSection, DetailSection];
   /** Card ao lado da conversa, no fim da página. */
   closing: DetailSection;
-  agent: { id: AgentId; name: string; questions: string[] };
+  /** Perguntas prontas para o Guará sobre a simulação. */
+  questions: string[];
 };
 
 /** As três simulações com as premissas do design (cards fora do simulador, como o do chat). */
