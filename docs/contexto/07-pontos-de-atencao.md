@@ -1,0 +1,43 @@
+# 7. Pontos de atenção
+
+## Inconsistências e particularidades (confirmadas no código)
+
+1. **App híbrido**: protótipo e real convivem. Logado (`isLive`) ainda há telas 100% com dados de exemplo (assinaturas,
+   relatório, bens, página do ativo, metas/[id] e nova, notificações, chat, simulador). Antes de mexer, confirme se a tela
+   usa `live`/context ou `data.ts`.
+2. **Dependências instaladas e não usadas** (0 imports em `src/`): `react-hook-form`, `@hookform/resolvers`, `recharts`,
+   `lucide-react`, `shadcn` (só o CSS `shadcn/tailwind.css` é importado); `d3-geo`/`topojson-client`/`world-atlas` só servem ao
+   script `scripts/generate-globe-dots.mjs`. `tw-animate-css` é importado só no CSS. `components.json` (shadcn, `base-nova`) existe,
+   mas `components/ui` é **todo próprio**; o README ainda diz "reservada para o shadcn". Não presumir essas libs.
+3. **Duas formas de usar o mesmo dado**: `data.ts` × `live.ts` com Context. Telas de edição/criação costumam ser protótipo mesmo
+   quando a listagem é real (ex.: tetos, metas, alertas editar).
+4. **Assistente único (16/11/2026)**: Web e API têm só o Lobo Guará. Na API saíram o catálogo de assistentes, o
+   encaminhamento (`call_assistant`), a `@menção`, `GET /v1/chat/assistants`, `PUT /v1/me/plan/assistants`, `assistants` e
+   `limits.specialists` do plano e `assistant`/`calledBy` das mensagens (migração `0040_single_assistant`). O SSE não tem mais
+   o evento `assistant`; `tool` vem como `{ name }`. A etapa de onboarding `assistants_and_channels` virou `notification_channels`.
+5. **Chat é falso**: `stores/chat-panel` responde texto fixo ("Anotei sua pergunta…"). API de chat (SSE) existe e não é usada.
+6. **Configurações** só em `localStorage` (a API tem `/me/notification-settings` e `/me/devices`, não usados). Idem simulações salvas.
+7. **Badge de Alertas = 2 fixo** em `lib/navigation.ts`; `OFFLINE_NOTE` ("dados de hoje, 14:30") é texto fixo do protótipo.
+8. **`apiRequest` não lê 204** (por isso o Web nunca chama `DELETE` de layout) e **`schema.parse` lança** se a API mudar o formato;
+   as telas isolam isso com `buildView`. Percentuais vêm como string (`apiPercent`).
+9. **Layout editor**: largura não editável (decisão); campo novo no bloco salvo → publicar API antes (`strictObject`, 422).
+10. **Rotas estáticas**: ler `searchParams` em `page.tsx` torna a rota dinâmica e piora a navegação (ver `docs/performance.md`);
+    estados do protótipo passam pelo `proxy.ts` + `/previa`. `generateStaticParams` usa ids do protótipo; ids reais caem em render sob demanda
+    (exceto `conversas/[id]`, `dynamicParams=false`).
+11. **API de teste dorme**: login espera até 60 s; plano tem 6 retries; primeiro load pode demorar.
+12. **Plano**: `POST /me/plan` só funciona onde `ALLOW_PLAN_SELF_SERVICE=true`; em produção a API recusa (cobrança ainda inexistente).
+13. **Nomes**: README do Web cita `api/` e `mobile/` ao lado; hoje a pasta é `guara-api/`. `CLAUDE.md` cita `apps/mobile`, que não existe aqui.
+14. **Migração 0040 no banco remoto**: o `pnpm db:migrate` contra o `GuaraDados` é manual (não roda no deploy do Render).
+    Sem ela, o chat da API de teste falha ao gravar o uso (a coluna `ai_usage.assistant` ainda é `NOT NULL`).
+15. `.env` e `tsconfig.tsbuildinfo` existem na pasta do Web, mas estão no `.gitignore` (não li o `.env`).
+
+## Não confirmado / não explorado
+
+- Comportamento em tempo de execução: **não subi o app** nem a API; classificação real×protótipo é por leitura de imports/chamadas.
+- Schemas de resposta completos de cada endpoint: estão nos `live*.ts` (parciais, `.loose()`) e em `guara-api/src/shared/schemas`; não
+  transcrevi todos.
+- Se `perfil/planos`, `notificacoes` e `excluir-conta` fazem alguma chamada além das listadas (grep mostra só `/me/plan` e `/me`).
+- Regras de negócio profundas da API (detectores de anomalia/assinatura, cálculo de metas, alocação): só os nomes dos módulos.
+- Fluxo de Open Finance (Malvo) no Web: telas existem, sem integração.
+- `docs/ux/README.md` tem inventário de telas e revisão de UX com pendências próprias; não reproduzido aqui.
+- Testes da API não foram executados; e2e exige Supabase/Redis locais.

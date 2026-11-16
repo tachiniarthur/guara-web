@@ -1,5 +1,14 @@
 @AGENTS.md
 
+## Contexto do projeto (ler primeiro)
+
+Web = Next.js 16 / React 19 / Tailwind 4 / TanStack Query / zod; **único escopo de implementação**.
+`../guara-api` (NestJS 11) é só consulta. App **híbrido**: sem as 3 variáveis `NEXT_PUBLIC_*` é protótipo
+(`features/*/data.ts`); com elas, só parte das telas lê a API (`features/*/live.ts` + `context.tsx`).
+Toda chamada HTTP passa por `lib/api.ts` (`apiRequest` + schema zod); Supabase só para login.
+Mapa completo em `docs/contexto/README.md` (visão geral, rotas, componentes, integração com a API,
+fluxos, padrões, pontos de atenção). Confira sempre o código atual antes de alterar.
+
 ## Movimento, interação e consistência visual
 
 Antes de animar algo ou criar um componente interativo, leia `docs/ux/README.md` (padrão global de
