@@ -27,9 +27,13 @@
 11. **API de teste dorme**: login espera até 60 s; plano tem 6 retries; primeiro load pode demorar.
 12. **Plano**: `POST /me/plan` só funciona onde `ALLOW_PLAN_SELF_SERVICE=true`; em produção a API recusa (cobrança ainda inexistente).
 13. **Nomes**: README do Web cita `api/` e `mobile/` ao lado; hoje a pasta é `guara-api/`. `CLAUDE.md` cita `apps/mobile`, que não existe aqui.
-14. **Migração 0040 no banco remoto**: o `pnpm db:migrate` contra o `GuaraDados` é manual (não roda no deploy do Render).
-    Sem ela, o chat da API de teste falha ao gravar o uso (a coluna `ai_usage.assistant` ainda é `NOT NULL`).
-15. `.env` e `tsconfig.tsbuildinfo` existem na pasta do Web, mas estão no `.gitignore` (não li o `.env`).
+14. **Banco de teste (`GuaraDados`, Supabase)**: migrações até a `0040` aplicadas em 16/11/2026 (o `pnpm db:migrate` é manual,
+    não roda no deploy do Render). O plano gratuito **pausa o projeto por inatividade**: o Render cai com
+    `tenant/user postgres.<ref> not found` até alguém restaurar o projeto no painel do Supabase.
+15. **Usuários do banco de teste**: desde 16/11/2026 são só as 9 personas fictícias (`@guara.test`, senha `guara-dev-123`; veja
+    "Contas de teste" em `04-integracao-api.md`). As contas reais anteriores foram apagadas; cópia dos dados antigos só na máquina
+    de quem rodou o seed. O CPF das personas fica vazio no remoto (`cpfMasked: null`).
+16. `.env` e `tsconfig.tsbuildinfo existem na pasta do Web, mas estão no `.gitignore`(não li o`.env`).
 
 ## Não confirmado / não explorado
 

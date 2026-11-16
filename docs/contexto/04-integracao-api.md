@@ -83,6 +83,23 @@ subscription_required, rate_limited, invalid_credentials, cpf_*, internal, unava
 `belongings` escrita, `price-alerts` PATCH/DELETE, `investments` movimentações/preview/exposure, `notifications` read/devices/settings,
 `DELETE /v1/me` (exclusão), `GET /v1/plans`. (`GET /v1/chat/assistants` e `PUT /v1/me/plan/assistants` foram removidos da API em 16/11/2026.)
 
+## Contas de teste (personas)
+
+O banco da API de teste e o Supabase local têm 9 usuários **fictícios** (`pnpm db:seed:personas`, no `guara-api`; detalhes em
+`guara-api/docs/personas.md`). E-mail `@guara.test`, senha **`guara-dev-123`** para todos. Úteis para ver cada visão:
+
+| E-mail (`@guara.test`) | Plano  | Histórico | Para ver                                                                 |
+| ---------------------- | ------ | --------- | ------------------------------------------------------------------------ |
+| `marina.duarte`        | Pro    | 24 meses  | usuário típico, tudo preenchido                                          |
+| `rafael.nogueira`      | Pro    | 24 meses  | renda alta, carteira grande e arrojada, 3 bens                           |
+| `camila.bastos`        | Plus   | 12 meses  | freelancer, renda irregular, carteira pequena                            |
+| `antonio.ferraz`       | Plus   | 24 meses  | aposentado, conservador; só 12 meses liberados; consentimento vence logo |
+| `lucas.pereira`        | Básico | 12 meses  | só 3 meses liberados, 2 tetos, sem metas (403 em `/v1/goals`)            |
+| `juliana.almeida`      | Pro    | 24 meses  | duas rendas, financiamento, escola, mercado pesado                       |
+| `beatriz.campos`       | Plus   | 12 meses  | MEI, recebimentos muito variáveis                                        |
+| `helena.quintana`      | Básico | 3 meses   | pouco histórico                                                          |
+| `tiago.ramos`          | Básico | nenhum    | conta nova: sem bancos, carteira nem onboarding (telas de usuário novo)  |
+
 ## Como consultar a API numa tarefa
 
 1. Achar o controller: `guara-api/src/modules/<dominio>/*.controller.ts` (rota + decorators `@Public/@WithoutPlan/@RequiresFeature`).
