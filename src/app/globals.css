@@ -3,6 +3,8 @@
 @import "shadcn/tailwind.css";
 /* O app é somente tema escuro: a classe .dark fica fixa no <html>. */
 @custom-variant dark (&:is(.dark *));
+/* Janela alta (o menu lateral cresce sem cortar o card do usuário em notebooks baixos). */
+@custom-variant tall (@media (min-height: 50rem));
 
 /*
  * Tokens de design (fonte única da verdade), extraídos dos protótipos do app.

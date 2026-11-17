@@ -32,13 +32,13 @@ export function Sidebar({ className }: { className?: string }) {
     <nav
       aria-label="Principal"
       className={cn(
-        "sticky top-0 h-dvh w-[22rem] shrink-0 flex-col gap-6 overflow-hidden border-r border-line bg-canvas px-5 pt-8 pb-6",
+        "sticky top-0 h-dvh w-[22rem] shrink-0 flex-col gap-6 overflow-hidden border-r border-line bg-canvas px-5 pt-8 pb-6 tall:gap-10 tall:pt-10",
         className,
       )}
     >
       <BrandLockup className="px-2" />
 
-      <ul className="m-0 flex list-none flex-col gap-1 p-0">
+      <ul className="m-0 flex list-none flex-col gap-1 p-0 tall:gap-2">
         {mainNav.map((item) => {
           const active = isActive(pathname, item);
           return (
@@ -47,13 +47,13 @@ export function Sidebar({ className }: { className?: string }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex h-12 items-center gap-3.5 rounded-full px-4 text-16 no-underline transition-[color,background-color,translate] duration-200 active:scale-[0.98]",
+                  "flex h-12 items-center gap-3.5 rounded-full px-4 text-16 no-underline transition-[color,background-color,translate] duration-200 active:scale-[0.98] tall:h-14 tall:gap-4 tall:px-5 tall:text-17",
                   active
                     ? "bg-sand font-bold text-canvas"
                     : "font-medium text-mist hover:translate-x-0.5 hover:bg-shade hover:text-sand",
                 )}
               >
-                <Icon name={item.icon} />
+                <Icon name={item.icon} className="tall:size-5.5" />
                 <span>{item.label}</span>
                 {badgeOf(item) ? <CountBadge count={badgeOf(item)!} className="ml-auto" /> : null}
               </Link>
