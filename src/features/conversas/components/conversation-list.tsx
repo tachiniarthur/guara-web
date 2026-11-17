@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { useSession } from "@/features/acesso/session";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
 
@@ -37,9 +38,16 @@ export function ConversationList({
   const openConversation = useChatPanel((state) => state.openConversation);
   const startedIds = new Set(started.map((item) => item.id));
 
-  const groups: ConversationGroup[] = conversationHistory.map((group, i) =>
-    i === 0 ? { ...group, itens: [...started, ...group.itens] } : group,
-  );
+  const { live } = useSession();
+  // O histórico de exemplo é só do protótipo: com login, nunca aparece como se fosse da pessoa
+  // (o chat ainda não fala com a API; ficam só as conversas abertas nesta sessão).
+  const groups: ConversationGroup[] = live
+    ? started.length > 0
+      ? [{ titulo: "Hoje", itens: started }]
+      : []
+    : conversationHistory.map((group, i) =>
+        i === 0 ? { ...group, itens: [...started, ...group.itens] } : group,
+      );
 
   function itemContent(item: ConversationSummary, current: boolean): ReactNode {
     return (
@@ -62,6 +70,20 @@ export function ConversationList({
           {item.resumo}
         </span>
       </>
+    );
+  }
+
+  if (groups.length === 0) {
+    return (
+      <p
+        className={cn(
+          "m-0 px-2.5 py-2 text-caption",
+          size === "lg" ? "text-14" : "text-13",
+          groupClassName,
+        )}
+      >
+        Suas conversas com o Guará vão aparecer aqui.
+      </p>
     );
   }
 

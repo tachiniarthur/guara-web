@@ -48,6 +48,7 @@ const LocalSchema = z.object({
 });
 type Local = z.infer<typeof LocalSchema>;
 
+/** Da conta: some ao sair (`clearPersistedQueries`, em `lib/query-persist.ts`). */
 const storageKey = (screen: LayoutScreen) => `guara:layout:${screen}`;
 
 /** Quem lê a cópia local é avisado quando ela muda (nesta aba ou em outra). */

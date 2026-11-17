@@ -16,6 +16,7 @@ import { type Suggestion, usePlannedMutations } from "../api";
 import { monthsSentence } from "../data";
 import { currentMonthKey } from "./planned-expense-form";
 
+/** Da conta: some ao sair (`clearPersistedQueries`, em `lib/query-persist.ts`). */
 const SEEN_KEY = "guara:sugestoes-vistas";
 
 /** Sugestões adiadas nesta sessão do navegador ("Agora não" não volta até reabrir). */

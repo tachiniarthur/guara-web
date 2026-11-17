@@ -18,6 +18,7 @@
    `limits.specialists` do plano e `assistant`/`calledBy` das mensagens (migração `0040_single_assistant`). O SSE não tem mais
    o evento `assistant`; `tool` vem como `{ name }`. A etapa de onboarding `assistants_and_channels` virou `notification_channels`.
 5. **Chat é falso**: `stores/chat-panel` responde texto fixo ("Anotei sua pergunta…"). API de chat (SSE) existe e não é usada.
+   Com login, a lista de conversas mostra só as abertas na sessão (o histórico de exemplo é só do protótipo).
 6. **Configurações** só em `localStorage` (a API tem `/me/notification-settings` e `/me/devices`, não usados). A
    simulação de aposentadoria salva também fica no navegador (a API pede idade atual e de aposentadoria).
 7. **Badge de Alertas**: `2` em `lib/navigation.ts` é do protótipo; com login, barra lateral, inferior e menu da conta

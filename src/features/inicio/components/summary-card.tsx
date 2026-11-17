@@ -8,7 +8,7 @@ import { Icon } from "@/components/ui/icon";
 import { PrivacyToggle } from "@/components/layout/privacy-toggle";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { CardBody, WhenNoData } from "@/components/states/screen-state-context";
-import { StateBlock } from "@/components/states/state-block";
+import { NoDataBlock, StateBlock } from "@/components/states/state-block";
 import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -71,9 +71,10 @@ export function SummaryCard({
 }: {
   className?: string;
   summary?: SummaryData;
-  cashFlow?: CashFlowData;
+  /** `undefined` = exemplo do protótipo; `null` = conta sem lançamentos no período (aviso). */
+  cashFlow?: CashFlowData | null;
   /** Acumulado do ano, mês a mês (aba "Ano"). */
-  cashFlowYear?: CashFlowData;
+  cashFlowYear?: CashFlowData | null;
 }) {
   const [periodo, setPeriodo] = useState<"mes" | "ano">("mes");
   const chart = periodo === "ano" ? cashFlowYear : cashFlow;
@@ -145,16 +146,20 @@ export function SummaryCard({
                 />
               }
             />
-            <ChartFit
-              className="grow"
-              narrow={
-                <div className="flex grow flex-col gap-3">
-                  <CashFlowChart key={periodo} variant="compact" data={chart} />
-                  <CashFlowLegend data={chart} />
-                </div>
-              }
-              wide={<CashFlowChart key={periodo} variant="wide" data={chart} />}
-            />
+            {chart === null ? (
+              <NoDataBlock className="grow" />
+            ) : (
+              <ChartFit
+                className="grow"
+                narrow={
+                  <div className="flex grow flex-col gap-3">
+                    <CashFlowChart key={periodo} variant="compact" data={chart} />
+                    <CashFlowLegend data={chart} />
+                  </div>
+                }
+                wide={<CashFlowChart key={periodo} variant="wide" data={chart} />}
+              />
+            )}
           </div>
         </div>
       </CardBody>

@@ -87,4 +87,16 @@ describe("cópia do cache no navegador", () => {
     clearPersistedQueries();
     expect(restorePersistedQueries(new QueryClient())).toBe(false);
   });
+
+  it("ao sair, apaga também o layout e as sugestões adiadas da conta", () => {
+    localStorage.setItem("guara:layout:home", '{"version":1,"blocks":[],"pending":true}');
+    localStorage.setItem("guara:layout:spending", "{}");
+    sessionStorage.setItem("guara:sugestoes-vistas", '["imobiliaria"]');
+    localStorage.setItem("outra-coisa", "fica");
+    clearPersistedQueries();
+    expect(localStorage.getItem("guara:layout:home")).toBeNull();
+    expect(localStorage.getItem("guara:layout:spending")).toBeNull();
+    expect(sessionStorage.getItem("guara:sugestoes-vistas")).toBeNull();
+    expect(localStorage.getItem("outra-coisa")).toBe("fica");
+  });
 });

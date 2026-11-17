@@ -79,8 +79,9 @@ export function InicioScreen({ estado }: { estado?: string }) {
           <SummaryCard
             className="@desk:min-h-[18.75rem]"
             summary={view?.summary}
-            cashFlow={view?.cashFlow ?? undefined}
-            cashFlowYear={view?.cashFlowYear ?? undefined}
+            // Com login, `null` (sem lançamentos) vira aviso; nunca o exemplo do protótipo.
+            cashFlow={view ? view.cashFlow : undefined}
+            cashFlowYear={view ? view.cashFlowYear : undefined}
           />
         );
       case "pendencias":

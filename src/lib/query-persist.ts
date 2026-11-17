@@ -112,8 +112,32 @@ function removeStoredCopy() {
   }
 }
 
-/** Apaga a cópia e esquece o dono (ao sair da conta, junto com `queryClient.clear()`). */
+/**
+ * Outras chaves do navegador que são da conta e não podem passar para a próxima pessoa que entrar:
+ * o layout das telas (`features/layout`, inclusive uma mudança ainda não enviada) e as sugestões de
+ * gasto fixo adiadas (`features/projecao`, com nomes de estabelecimentos).
+ */
+const ACCOUNT_KEY_PREFIXES = ["guara:layout:", "guara:sugestoes-vistas"];
+
+function removeAccountKeys(storage: Storage) {
+  const keys = Array.from({ length: storage.length }, (_, i) => storage.key(i)).filter(
+    (key): key is string =>
+      key !== null && ACCOUNT_KEY_PREFIXES.some((prefix) => key.startsWith(prefix)),
+  );
+  for (const key of keys) storage.removeItem(key);
+}
+
+/**
+ * Apaga a cópia, os dados da conta guardados no navegador e esquece o dono (ao sair da conta ou
+ * quando outra conta entra, junto com `queryClient.clear()`).
+ */
 export function clearPersistedQueries() {
   owner = null;
   removeStoredCopy();
+  try {
+    removeAccountKeys(localStorage);
+    removeAccountKeys(sessionStorage);
+  } catch {
+    // Sem acesso ao armazenamento: nada a apagar.
+  }
 }
