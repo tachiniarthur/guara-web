@@ -51,7 +51,7 @@ export function restorePersistedQueries(client: QueryClient): boolean {
     const userId = storedUserId();
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as Saved | null;
     if (!saved || !userId || saved.userId !== userId || Date.now() - saved.savedAt > MAX_AGE) {
-      if (saved) localStorage.removeItem(STORAGE_KEY);
+      if (saved) removeStoredCopy();
       return false;
     }
     hydrate(client, saved.state);
@@ -74,8 +74,11 @@ export function persistQueries(client: QueryClient): () => void {
       if (!userId) return;
       owner ??= userId;
       if (userId !== owner) {
-        // A sessão do navegador é de outra conta: o cache em memória não é dela.
-        clearPersistedQueries();
+        // A sessão do navegador é de outra conta: o cache em memória não é dela. Apaga a memória e
+        // a cópia, e só então o cache passa a ser da conta nova (nada da anterior é gravado).
+        client.clear();
+        removeStoredCopy();
+        owner = userId;
         return;
       }
       const state = dehydrate(client, {
@@ -101,12 +104,16 @@ export function persistQueries(client: QueryClient): () => void {
   };
 }
 
-/** Apaga a cópia (ao sair da conta ou trocar de conta). */
-export function clearPersistedQueries() {
-  owner = null;
+function removeStoredCopy() {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch {
     // Nada a apagar.
   }
+}
+
+/** Apaga a cópia e esquece o dono (ao sair da conta, junto com `queryClient.clear()`). */
+export function clearPersistedQueries() {
+  owner = null;
+  removeStoredCopy();
 }

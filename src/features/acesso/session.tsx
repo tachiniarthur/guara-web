@@ -99,6 +99,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // ainda lê a tela (assinar o plano e conectar banco ficam rápidos).
     void fetch(`${(env.apiUrl ?? "").replace(/\/+$/, "")}/v1/health`).catch(() => undefined);
     let active = true;
+    // O cache ao abrir é só o restaurado, que já é desta sessão (ou nada).
+    if (cacheOwner() === null) setCacheOwner(storedUserId());
     // Plano desta conta já guardado (visita anterior): abre o app na hora, com as telas do cache,
     // e confirma com a API por trás. Se a API não responder, continua no app com o que tem.
     const cached = queryClient.getQueryData<MyPlan>(planKeys.mine);
@@ -120,9 +122,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       }
       if (event === "SIGNED_IN") {
         // Outra conta entrou sem sair da anterior (outra aba): os dados em memória não são dela.
+        // Sem dono conhecido, qualquer dado na memória é tratado como de outra conta.
         const userId = session?.user.id ?? null;
         const previous = cacheOwner();
-        if (userId && previous && previous !== userId) forget();
+        const hasData = queryClient.getQueryCache().getAll().length > 0;
+        if (userId && previous !== userId && (previous !== null || hasData)) forget();
         if (userId) setCacheOwner(userId);
         setTimeout(update, 0);
       }

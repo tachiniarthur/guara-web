@@ -61,9 +61,19 @@ describe("cópia do cache no navegador", () => {
     login("u2");
     client.setQueryData(["api", "/v1/goals"], { data: ["da u1"] });
     vi.advanceTimersByTime(1_100);
-    stop();
-    expect(restorePersistedQueries(new QueryClient())).toBe(false);
+    // A memória da u1 foi apagada e nada dela ficou gravado.
+    expect(client.getQueryData(["api", "/v1/goals"])).toBeUndefined();
     expect(localStorage.getItem("guara:consultas:v1")).toBeNull();
+    expect(cacheOwner()).toBe("u2");
+
+    // Mais mudanças depois disso (agora da u2) continuam sem nada da u1.
+    client.setQueryData(["api", "/v1/me"], { displayName: "Outra" });
+    vi.advanceTimersByTime(1_100);
+    stop();
+    const restored = new QueryClient();
+    expect(restorePersistedQueries(restored)).toBe(true);
+    expect(restored.getQueryData(["api", "/v1/me"])).toEqual({ displayName: "Outra" });
+    expect(restored.getQueryData(["api", "/v1/goals"])).toBeUndefined();
   });
 
   it("some ao sair da conta", () => {
