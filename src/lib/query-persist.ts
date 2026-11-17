@@ -17,6 +17,17 @@ const PERSISTED_SCOPES = new Set(["api", "plano", "perfil", "usuario"]);
 
 type Saved = { userId: string; savedAt: number; state: ReturnType<typeof dehydrate> };
 
+/**
+ * De quem são os dados no cache em memória. A cópia só é gravada em nome dessa pessoa: se outra
+ * conta entrar sem sair da primeira (outra aba, sessão trocada), nada é gravado em nome dela.
+ */
+let owner: string | null = null;
+
+export const cacheOwner = () => owner;
+export const setCacheOwner = (userId: string | null) => {
+  owner = userId;
+};
+
 /** Id de quem está logado, lido da sessão que o Supabase guarda (sem esperar a rede). */
 export function storedUserId(): string | null {
   try {
@@ -44,6 +55,7 @@ export function restorePersistedQueries(client: QueryClient): boolean {
       return false;
     }
     hydrate(client, saved.state);
+    owner = saved.userId;
     // A cópia aparece na hora, mas pode estar velha (salvou e fechou antes de gravar): toda tela
     // que usar uma consulta restaurada busca de novo por trás.
     void client.invalidateQueries({ refetchType: "none" });
@@ -60,6 +72,12 @@ export function persistQueries(client: QueryClient): () => void {
     try {
       const userId = storedUserId();
       if (!userId) return;
+      owner ??= userId;
+      if (userId !== owner) {
+        // A sessão do navegador é de outra conta: o cache em memória não é dela.
+        clearPersistedQueries();
+        return;
+      }
       const state = dehydrate(client, {
         shouldDehydrateQuery: (query) =>
           query.state.status === "success" &&
@@ -83,8 +101,9 @@ export function persistQueries(client: QueryClient): () => void {
   };
 }
 
-/** Apaga a cópia (ao sair da conta). */
+/** Apaga a cópia (ao sair da conta ou trocar de conta). */
 export function clearPersistedQueries() {
+  owner = null;
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch {

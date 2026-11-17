@@ -7,7 +7,12 @@ import { env, isLive } from "@/lib/env";
 import { getSupabase } from "@/lib/supabase";
 import { fetchMyPlan, planKeys, type MyPlan } from "@/features/perfil/api";
 import { ApiError } from "@/lib/api";
-import { clearPersistedQueries, storedUserId } from "@/lib/query-persist";
+import {
+  cacheOwner,
+  clearPersistedQueries,
+  setCacheOwner,
+  storedUserId,
+} from "@/lib/query-persist";
 
 /**
  * `onboarding`: tem conta, mas ainda não tem plano (todo plano é pago). `unavailable`: tem
@@ -108,12 +113,19 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       });
     update();
     // Fora do callback: o Supabase pede para não chamar o client dentro do onAuthStateChange.
-    const { data } = getSupabase().auth.onAuthStateChange((event) => {
+    const { data } = getSupabase().auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT") {
         forget();
         setStatus("signedOut");
       }
-      if (event === "SIGNED_IN") setTimeout(update, 0);
+      if (event === "SIGNED_IN") {
+        // Outra conta entrou sem sair da anterior (outra aba): os dados em memória não são dela.
+        const userId = session?.user.id ?? null;
+        const previous = cacheOwner();
+        if (userId && previous && previous !== userId) forget();
+        if (userId) setCacheOwner(userId);
+        setTimeout(update, 0);
+      }
     });
     return () => {
       active = false;

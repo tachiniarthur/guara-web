@@ -2,6 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  cacheOwner,
   clearPersistedQueries,
   persistQueries,
   restorePersistedQueries,
@@ -13,6 +14,7 @@ const login = (id: string) =>
 
 describe("cópia do cache no navegador", () => {
   afterEach(() => {
+    clearPersistedQueries();
     localStorage.clear();
     vi.useRealTimers();
   });
@@ -44,6 +46,24 @@ describe("cópia do cache no navegador", () => {
     const other = new QueryClient();
     expect(restorePersistedQueries(other)).toBe(false);
     expect(other.getQueryData(["api", "/v1/goals"])).toBeUndefined();
+  });
+
+  it("não grava o cache de uma conta em nome de outra que entrou depois", () => {
+    vi.useFakeTimers();
+    login("u1");
+    const client = new QueryClient();
+    const stop = persistQueries(client);
+    client.setQueryData(["api", "/v1/me"], { displayName: "Marina" });
+    vi.advanceTimersByTime(1_100);
+    expect(cacheOwner()).toBe("u1");
+
+    // Outra aba troca a sessão do navegador sem sair; o cache em memória ainda é da u1.
+    login("u2");
+    client.setQueryData(["api", "/v1/goals"], { data: ["da u1"] });
+    vi.advanceTimersByTime(1_100);
+    stop();
+    expect(restorePersistedQueries(new QueryClient())).toBe(false);
+    expect(localStorage.getItem("guara:consultas:v1")).toBeNull();
   });
 
   it("some ao sair da conta", () => {
