@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Icon } from "@/components/ui/icon";
 import { Presence } from "@/components/ui/presence";
 import { cn } from "@/lib/utils";
 
-export type MonthOption = { value: string; long: string };
+export type MonthOption = {
+  value: string;
+  long: string;
+  /** Título do grupo (ex.: "Previsão"). */ section?: string;
+};
 
 /**
  * Botão do mês (calendário + nome) que abre a lista dos meses para escolher. O menu fecha ao
@@ -83,28 +87,41 @@ export function MonthPicker({
             data-motion="menu"
             className="absolute top-[calc(100%+0.5rem)] right-0 z-20 flex max-h-[min(24rem,70vh)] w-[13.5rem] origin-top-right flex-col gap-0.5 overflow-y-auto rounded-bubble border border-line-strong bg-field p-2 shadow-[0_1px_2px_rgba(0,0,0,.4),0_8px_24px_rgba(0,0,0,.25)]"
           >
-            {options.map((option) => {
+            {options.map((option, index) => {
               const checked = option.value === value;
+              const heading =
+                option.section && option.section !== options[index - 1]?.section
+                  ? option.section
+                  : null;
               return (
-                <button
-                  key={option.value}
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={checked}
-                  autoFocus={checked}
-                  onClick={() => {
-                    setOpen(false);
-                    triggerRef.current?.focus();
-                    if (!checked) onChange(option.value);
-                  }}
-                  className={cn(
-                    "flex min-h-11 w-full items-center justify-between gap-3 rounded-full border-none bg-transparent px-3.5 text-left text-14 text-sand hover:bg-shade focus-visible:bg-shade",
-                    checked && "font-bold",
+                <Fragment key={option.value}>
+                  {heading && (
+                    <span
+                      role="presentation"
+                      className="px-3.5 pt-2 pb-1 text-12 font-bold tracking-[0.04em] text-caption uppercase first:pt-1"
+                    >
+                      {heading}
+                    </span>
                   )}
-                >
-                  {option.long}
-                  {checked && <Icon name="check" size={16} />}
-                </button>
+                  <button
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={checked}
+                    autoFocus={checked}
+                    onClick={() => {
+                      setOpen(false);
+                      triggerRef.current?.focus();
+                      if (!checked) onChange(option.value);
+                    }}
+                    className={cn(
+                      "flex min-h-11 w-full items-center justify-between gap-3 rounded-full border-none bg-transparent px-3.5 text-left text-14 text-sand hover:bg-shade focus-visible:bg-shade",
+                      checked && "font-bold",
+                    )}
+                  >
+                    {option.long}
+                    {checked && <Icon name="check" size={16} />}
+                  </button>
+                </Fragment>
               );
             })}
           </div>

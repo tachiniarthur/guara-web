@@ -31,7 +31,17 @@ import { type FooterPart, gastosMonthOptions, useGastosView } from "@/features/g
 import { MonthPicker } from "@/features/gastos/components/month-picker";
 import { useSession } from "@/features/acesso/session";
 import { formatDate } from "@/lib/format";
-import { labelsOfMonth, pastMonthOrNull } from "@/lib/live-format";
+import { futureMonthOrNull, labelsOfMonth, pastMonthOrNull, shiftMonth } from "@/lib/live-format";
+import {
+  PROJECTION_MONTHS,
+  usePlannedExpenses,
+  useProjection,
+  useSuggestions,
+} from "@/features/projecao/api";
+import { prototypePlanned, prototypeProjection } from "@/features/projecao/data";
+import { NextMonthsBlock } from "@/features/projecao/components/next-months-block";
+import { ProjectionView } from "@/features/projecao/components/projection-view";
+import { SuggestionPrompt } from "@/features/projecao/components/suggestion-prompt";
 import { useGastosMonth } from "@/stores/gastos-month";
 import { NewUserSpending } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
@@ -72,6 +82,7 @@ const anchors = [
   { href: "#g-cat", label: "Categorias" },
   { href: "#g-tetos", label: "Tetos" },
   { href: "#g-previsao", label: "Previsão" },
+  { href: "#g-proximos", label: "Próximos" },
   { href: "#g-lanc", label: "Lançamentos" },
 ];
 
@@ -103,8 +114,17 @@ export function GastosScreen({ estado }: { estado?: string }) {
   const chosen = useGastosMonth((state) => state.month);
   const setChosen = useGastosMonth((state) => state.setMonth);
   const month = pastMonthOrNull(chosen, now) ?? currentMonth;
+  // Mês depois do atual: a tela mostra a previsão dos gastos fixos dele (com login).
+  const futureMonth = live ? futureMonthOrNull(chosen, now, PROJECTION_MONTHS) : null;
   const gastos = useGastosView({ enabled: live, month });
   const layout = useScreenLayout("spending", SPENDING_BLOCKS);
+  const projection = useProjection({ enabled: live });
+  const planned = usePlannedExpenses({ enabled: live });
+  // O pop-up de gasto recorrente aparece só no mês atual.
+  const onCurrentMonth = !futureMonth && month === currentMonth;
+  const suggestions = useSuggestions({ enabled: live && onCurrentMonth });
+  const projectionData = live ? projection.data : prototypeProjection();
+  const plannedCount = live ? (planned.data?.data.length ?? 0) : prototypePlanned.length;
   if (estado === "novo" || (live && gastos.data?.semDados)) return <NewUserSpending />;
   // Modo real: carregando até a API responder, erro se alguma rota falhar. Protótipo: `?estado=`.
   const state = live
@@ -117,19 +137,31 @@ export function GastosScreen({ estado }: { estado?: string }) {
   const view = gastos.data;
   const data = view ?? prototypeGastos;
   const { ledger, tetos } = data;
-  const mes =
-    view?.mes ??
-    (live ? labelsOfMonth(month) : { name: "setembro", short: "Set 2026", long: "Setembro 2026" });
+  const mes = futureMonth
+    ? labelsOfMonth(futureMonth)
+    : (view?.mes ??
+      (live
+        ? labelsOfMonth(month)
+        : { name: "setembro", short: "Set 2026", long: "Setembro 2026" }));
+  const shownMonth = futureMonth ?? month;
   const fechado = view?.mesFechado ?? false;
   // No celular, só o mês ("Out"); de outro ano, com o ano ("Out/25").
   const mesCurto =
-    month.slice(0, 4) === currentMonth.slice(0, 4)
+    shownMonth.slice(0, 4) === currentMonth.slice(0, 4)
       ? mes.short.slice(0, 3)
-      : `${mes.short.slice(0, 3)}/${month.slice(2, 4)}`;
+      : `${mes.short.slice(0, 3)}/${shownMonth.slice(2, 4)}`;
+  // Os 12 meses seguintes (previsão) acima do atual e dos anteriores, do mais novo ao mais velho.
+  const monthOptions = [
+    ...Array.from({ length: PROJECTION_MONTHS }, (_, index) => {
+      const value = shiftMonth(currentMonth, PROJECTION_MONTHS - index);
+      return { value, ...labelsOfMonth(value), section: "Previsão" };
+    }),
+    ...gastosMonthOptions(now).map((option) => ({ ...option, section: "Gasto real" })),
+  ];
   const monthPicker = (variant: "mobile" | "desktop") => (
     <MonthPicker
-      options={gastosMonthOptions(now)}
-      value={month}
+      options={monthOptions}
+      value={shownMonth}
       onChange={(value) => setChosen(value === currentMonth ? null : value)}
       className="h-11 text-14"
     >
@@ -395,6 +427,15 @@ export function GastosScreen({ estado }: { estado?: string }) {
             </StateSwap>
           </Panel>
         );
+      case "proximos":
+        return (
+          <NextMonthsBlock
+            projection={projectionData}
+            error={live && Boolean(projection.error)}
+            plannedCount={plannedCount}
+            onSelect={live ? (value) => setChosen(value) : undefined}
+          />
+        );
       default:
         return null;
     }
@@ -441,7 +482,9 @@ export function GastosScreen({ estado }: { estado?: string }) {
               Gastos
             </h1>
             <p className="m-0 text-15 text-mist">
-              {view ? (
+              {futureMonth ? (
+                <>{mes.long.split(" ")[0]} · previsão dos gastos fixos</>
+              ) : view ? (
                 <>
                   {mes.long.split(" ")[0]} · {view.gastosNoMes}{" "}
                   {view.gastosNoMes === 1 ? "gasto" : "gastos"}
@@ -486,53 +529,69 @@ export function GastosScreen({ estado }: { estado?: string }) {
           </div>
         </header>
 
-        <Skeleton active={state === "carregando"}>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <FilterChips
-              label="Filtrar por banco"
-              options={bankOptions}
-              wrap
-              className="@max-tab:flex-nowrap @max-tab:overflow-hidden"
-              trailing={<AddChip>Conectar</AddChip>}
-            />
-            {/* "Por banco" ainda é só do protótipo. */}
-            {!live && (
-              <div className="hidden @tab:block">
-                <ViewModeToggle appearance="card" />
-              </div>
-            )}
-          </div>
-
-          {!live && (
-            <div className="flex flex-col gap-4 @tab:hidden">
-              <ViewModeToggle appearance="pill" />
-            </div>
-          )}
-        </Skeleton>
-        <div className="flex flex-col gap-4 @tab:hidden">
-          <nav aria-label="Ir para" className="-mr-4 flex gap-1.5 overflow-hidden">
-            {anchors.map((anchor) => (
-              <a
-                key={anchor.href}
-                href={anchor.href}
-                className="flex h-9 shrink-0 items-center rounded-full border border-line-strong px-3 text-13 font-bold whitespace-nowrap text-mist no-underline"
-              >
-                {anchor.label}
-              </a>
-            ))}
-          </nav>
-        </div>
-
-        <Skeleton active={state === "carregando"}>
-          <LayoutEditBar layout={layout} defs={SPENDING_BLOCKS} className="mb-4" />
-          <EditableGrid
-            layout={layout}
-            defs={SPENDING_BLOCKS}
-            renderBlock={renderBlock}
-            className="@tab:gap-x-4 @tab:gap-y-5 @desk:gap-x-5 @desk:gap-y-6"
-            emptyLabel="Todos os blocos estão ocultos. Reexiba algum pela barra acima."
+        {futureMonth ? (
+          <ProjectionView
+            month={futureMonth}
+            projection={projection.data}
+            error={Boolean(projection.error)}
+            plannedCount={plannedCount}
+            onSelect={(value) => setChosen(value)}
+            onBackToCurrent={() => setChosen(null)}
           />
-        </Skeleton>
+        ) : (
+          <>
+            <Skeleton active={state === "carregando"}>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <FilterChips
+                  label="Filtrar por banco"
+                  options={bankOptions}
+                  wrap
+                  className="@max-tab:flex-nowrap @max-tab:overflow-hidden"
+                  trailing={<AddChip>Conectar</AddChip>}
+                />
+                {/* "Por banco" ainda é só do protótipo. */}
+                {!live && (
+                  <div className="hidden @tab:block">
+                    <ViewModeToggle appearance="card" />
+                  </div>
+                )}
+              </div>
+
+              {!live && (
+                <div className="flex flex-col gap-4 @tab:hidden">
+                  <ViewModeToggle appearance="pill" />
+                </div>
+              )}
+            </Skeleton>
+            <div className="flex flex-col gap-4 @tab:hidden">
+              <nav aria-label="Ir para" className="-mr-4 flex gap-1.5 overflow-hidden">
+                {anchors.map((anchor) => (
+                  <a
+                    key={anchor.href}
+                    href={anchor.href}
+                    className="flex h-9 shrink-0 items-center rounded-full border border-line-strong px-3 text-13 font-bold whitespace-nowrap text-mist no-underline"
+                  >
+                    {anchor.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+
+            <Skeleton active={state === "carregando"}>
+              <LayoutEditBar layout={layout} defs={SPENDING_BLOCKS} className="mb-4" />
+              <EditableGrid
+                layout={layout}
+                defs={SPENDING_BLOCKS}
+                renderBlock={renderBlock}
+                className="@tab:gap-x-4 @tab:gap-y-5 @desk:gap-x-5 @desk:gap-y-6"
+                emptyLabel="Todos os blocos estão ocultos. Reexiba algum pela barra acima."
+              />
+            </Skeleton>
+          </>
+        )}
+        {live && onCurrentMonth && suggestions.data && suggestions.data.data.length > 0 && (
+          <SuggestionPrompt suggestions={suggestions.data.data} />
+        )}
       </Page>
     </GastosDataProvider>
   );

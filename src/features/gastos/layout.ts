@@ -27,4 +27,10 @@ export const SPENDING_BLOCKS: readonly BlockDef[] = [
   },
   { id: "tetos", label: "Tetos do mês", defaultSize: "m", sizes: ["s", "m", "l", "xl"] },
   { id: "previsao", label: "Previsão do mês", defaultSize: "m", sizes: ["s", "m", "l", "xl"] },
+  {
+    id: "proximos",
+    label: "Próximos meses",
+    defaultSize: "xl",
+    sizes: ["m", "l", "xl"],
+  },
 ];

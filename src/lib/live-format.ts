@@ -79,6 +79,16 @@ export function pastMonthOrNull(value: string | null | undefined, now: Date, old
   return back >= 0 && back <= oldest ? value : null;
 }
 
+/**
+ * Mês `yyyy-MM` depois do atual (São Paulo), até `ahead` meses à frente; fora disso, `null`. Para
+ * o mês da projeção escolhido em Gastos.
+ */
+export function futureMonthOrNull(value: string | null | undefined, now: Date, ahead = 12) {
+  if (!value || !isMonth(value)) return null;
+  const forward = monthsBetween(formatDate(now, "yyyy-MM"), value);
+  return forward >= 1 && forward <= ahead ? value : null;
+}
+
 export function greeting(now: Date) {
   const hour = Number(formatDate(now, "H"));
   if (hour < 12) return "Bom dia";
