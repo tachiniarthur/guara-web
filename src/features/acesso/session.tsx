@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 import { env, isLive } from "@/lib/env";
 import { getSupabase } from "@/lib/supabase";
+import { resetAccountStores } from "@/stores/reset-account";
 import { fetchMyPlan, planKeys, type MyPlan } from "@/features/perfil/api";
 import { ApiError } from "@/lib/api";
 import {
@@ -86,6 +87,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const forget = () => {
     queryClient.clear();
     clearPersistedQueries();
+    resetAccountStores();
   };
 
   const refresh = async ({ showLoading = false }: { showLoading?: boolean } = {}) => {

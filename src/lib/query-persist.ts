@@ -114,10 +114,17 @@ function removeStoredCopy() {
 
 /**
  * Outras chaves do navegador que são da conta e não podem passar para a próxima pessoa que entrar:
- * o layout das telas (`features/layout`, inclusive uma mudança ainda não enviada) e as sugestões de
- * gasto fixo adiadas (`features/projecao`, com nomes de estabelecimentos).
+ * o layout das telas (`features/layout`, inclusive uma mudança ainda não enviada), as sugestões de
+ * gasto fixo adiadas (`features/projecao`, com nomes de estabelecimentos) e as stores da conta
+ * (`stores/reset-account.ts` zera também a memória delas). Chave nova da conta entra aqui.
  */
-const ACCOUNT_KEY_PREFIXES = ["guara:layout:", "guara:sugestoes-vistas"];
+const ACCOUNT_KEY_PREFIXES = [
+  "guara:layout:",
+  "guara:sugestoes-vistas",
+  "guara-saved-simulations",
+  "guara-profile-answers",
+  "guara-onboarding-banks",
+];
 
 function removeAccountKeys(storage: Storage) {
   const keys = Array.from({ length: storage.length }, (_, i) => storage.key(i)).filter(

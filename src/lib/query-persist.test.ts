@@ -88,12 +88,19 @@ describe("cópia do cache no navegador", () => {
     expect(restorePersistedQueries(new QueryClient())).toBe(false);
   });
 
-  it("ao sair, apaga também o layout e as sugestões adiadas da conta", () => {
+  it("ao sair, apaga também o layout, as sugestões adiadas e as stores da conta", () => {
     localStorage.setItem("guara:layout:home", '{"version":1,"blocks":[],"pending":true}');
     localStorage.setItem("guara:layout:spending", "{}");
     sessionStorage.setItem("guara:sugestoes-vistas", '["imobiliaria"]');
+    localStorage.setItem("guara-saved-simulations", '{"state":{"items":[{"id":"s1"}]}}');
+    sessionStorage.setItem("guara-profile-answers", "{}");
+    localStorage.setItem("guara-settings", "{}");
     localStorage.setItem("outra-coisa", "fica");
     clearPersistedQueries();
+    expect(localStorage.getItem("guara-saved-simulations")).toBeNull();
+    expect(sessionStorage.getItem("guara-profile-answers")).toBeNull();
+    // Preferência do aparelho (tamanho do texto), não da conta.
+    expect(localStorage.getItem("guara-settings")).toBe("{}");
     expect(localStorage.getItem("guara:layout:home")).toBeNull();
     expect(localStorage.getItem("guara:layout:spending")).toBeNull();
     expect(sessionStorage.getItem("guara:sugestoes-vistas")).toBeNull();
