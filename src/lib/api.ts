@@ -129,5 +129,26 @@ export async function apiRequest<T>(
     throw new ApiError("network");
   }
   if (!response.ok) throw await errorFrom(response);
+  // 204 (excluir): sem corpo para ler.
+  if (response.status === 204) return schema.parse(undefined);
   return schema.parse(await response.json());
+}
+
+/** Baixa um arquivo da API (com o token da sessão) e devolve o conteúdo e o nome dele. */
+export async function apiDownload(
+  path: `/v1/${string}`,
+): Promise<{ blob: Blob; fileName: string | null }> {
+  if (!env.apiUrl) throw new ApiError("unavailable", "A API não está configurada.");
+  let response: Response;
+  try {
+    response = await fetch(`${env.apiUrl.replace(/\/+$/, "")}${path}`, {
+      headers: await authHeader(),
+    });
+  } catch {
+    throw new ApiError("network");
+  }
+  if (!response.ok) throw await errorFrom(response);
+  const disposition = response.headers.get("Content-Disposition") ?? "";
+  const fileName = /filename="?([^";]+)"?/.exec(disposition)?.[1] ?? null;
+  return { blob: await response.blob(), fileName };
 }

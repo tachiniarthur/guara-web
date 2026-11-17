@@ -29,8 +29,24 @@ const depositFor = ({ years, income, rate, withdrawal, start }: RetirementInput)
     requiredDeposit(wealthForIncome(income, withdrawal), start, monthlyRate(rate), years * 12),
   );
 
+/** Who the simulation is for: start year, monthly income and monthly surplus (today's money). */
+export interface RetirementHousehold {
+  startYear: number;
+  income: number;
+  surplus: number;
+}
+
+const PROTOTYPE_HOUSEHOLD: RetirementHousehold = {
+  startYear: START.year,
+  income: HOUSEHOLD.income,
+  surplus: HOUSEHOLD.surplus,
+};
+
 /** Everything the retirement tab shows, from the premises. */
-export function simulateRetirement(input: RetirementInput) {
+export function simulateRetirement(
+  input: RetirementInput,
+  household: RetirementHousehold = PROTOTYPE_HOUSEHOLD,
+) {
   const { years, income, rate, withdrawal, start } = input;
   const months = years * 12;
   const monthly = monthlyRate(rate);
@@ -39,11 +55,11 @@ export function simulateRetirement(input: RetirementInput) {
   const points = projection(start, deposit, monthly, months, 12);
   const final = futureValue(start, deposit, monthly, months);
   const contributed = start + deposit * months;
-  const retireYear = START.year + years;
+  const retireYear = household.startYear + years;
 
   const yearOf = (value: number) => {
     const month = monthsToGoal(value, start, deposit, monthly, months);
-    return month === null ? null : START.year + Math.ceil(month / 12);
+    return month === null ? null : household.startYear + Math.ceil(month / 12);
   };
 
   const alternative = (title: string, other: number, detail: string) => ({
@@ -74,13 +90,13 @@ export function simulateRetirement(input: RetirementInput) {
     ),
   ];
 
-  const surplusFinal = futureValue(start, HOUSEHOLD.surplus, monthly, months);
+  const surplusFinal = futureValue(start, household.surplus, monthly, months);
 
   return {
     goal,
     deposit,
     retireYear,
-    incomeShare: (deposit / HOUSEHOLD.income) * 100,
+    incomeShare: household.income > 0 ? (deposit / household.income) * 100 : 0,
     points,
     final,
     contributed,
@@ -98,8 +114,8 @@ export function simulateRetirement(input: RetirementInput) {
     ],
     alternatives,
     budget: {
-      surplus: HOUSEHOLD.surplus,
-      gap: deposit - HOUSEHOLD.surplus,
+      surplus: household.surplus,
+      gap: deposit - household.surplus,
       surplusFinal,
       surplusIncome: incomeFromWealth(surplusFinal, withdrawal),
     },

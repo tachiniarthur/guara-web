@@ -11,8 +11,14 @@ export interface CutInput {
   rate: number;
 }
 
-/** Everything the cut tab shows, from the premises (`null` without spending history). */
-export function simulateCut({ average, percent, rate }: CutInput) {
+/**
+ * Everything the cut tab shows, from the premises (`null` without spending history).
+ * `reserveGap`: what is missing in the emergency reserve (`null` without one).
+ */
+export function simulateCut(
+  { average, percent, rate }: CutInput,
+  reserveGap: number | null = RESERVE.target - RESERVE.saved,
+) {
   if (average === null) return null;
   const savings = Math.round((average * percent) / 100);
   const cap = average - savings;
@@ -40,7 +46,8 @@ export function simulateCut({ average, percent, rate }: CutInput) {
     })),
     /** Cap alerts at half and three quarters of the cap. */
     alerts: [roundToTens(cap / 2), roundToTens(cap * 0.75)],
-    reserveMonths: savings > 0 ? Math.round((RESERVE.target - RESERVE.saved) / savings) : null,
+    reserveMonths:
+      savings > 0 && reserveGap !== null ? Math.round(Math.max(0, reserveGap) / savings) : null,
   };
 }
 

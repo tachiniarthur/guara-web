@@ -116,7 +116,7 @@ export type Simulation = {
     legend: { label: string; swatch: "line" | "dashed"; color: string }[];
     scenarios: { name: string; detail: string; value: string; current?: boolean }[];
     /** Como a simulação aparece em Simulações salvas (nome e resumo em texto). */
-    save: { nome: string; resumo: string };
+    save: { nome: string; resumo: string; request?: SimulationRequest };
     primary: { label: string; href?: string };
     disclaimer: string;
   };
@@ -127,6 +127,25 @@ export type Simulation = {
   /** Perguntas prontas para o Guará sobre a simulação. */
   questions: string[];
 };
+
+/**
+ * Como a simulação vai para a conta (`POST /v1/simulations`). A aposentadoria não vai: a API pede
+ * a idade de hoje e a da aposentadoria, que o simulador do site não pergunta.
+ */
+export type SimulationRequest =
+  | {
+      kind: "goal";
+      input: {
+        targetCents: number;
+        months: number;
+        initialCents: number;
+        monthlyContributionCents: number;
+      };
+    }
+  | {
+      kind: "spending_cut";
+      input: { monthlyAmountCents: number; months: number; description: string };
+    };
 
 /** As três simulações com as premissas do design (cards fora do simulador, como o do chat). */
 export const simulations: Record<SimulatorId, Simulation> = {

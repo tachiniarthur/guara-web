@@ -73,3 +73,70 @@ export const CUT_DEFAULTS = {
 } as const;
 
 export const CUT_DESTINATIONS = ["Aposentadoria", "Viagem para o Japão", "Reserva"] as const;
+
+/**
+ * Tudo o que o simulador sabe da pessoa: com login, vem da API (`useSimulatorContext`); no
+ * protótipo, os números do design acima (`PROTOTYPE_CONTEXT`).
+ */
+export type SimulatorContext = {
+  /** Mês do primeiro depósito ({ year, month 0–11 }): o mês que vem. */
+  start: { year: number; month: number };
+  /** Mês fechado mais recente, de onde saem as entradas e a sobra ("setembro"). */
+  lastMonthName: string;
+  /** Quando começam os depósitos ("outubro") e o primeiro depósito, por extenso. */
+  startLabel: string;
+  firstDepositLabel: string;
+  household: {
+    income: number;
+    surplus: number;
+    profile: string;
+    invested: number;
+    properties: number;
+  };
+  /** Reserva de emergência (a meta com "reserva" no nome); `null` sem ela. */
+  reserve: { saved: number; target: number; monthly: number; place: string } | null;
+  /** Rentabilidade real padrão da aposentadoria, pelo perfil (% ao ano). */
+  retirementRate: number;
+  cutCategories: readonly { label: string; name: string; average: number | null }[];
+  cutDestinations: readonly string[];
+  goalDefaults: { name: string; cost: number; months: number; saved: number; place: string };
+  /** "Outros cortes possíveis" e quanto eles somam por mês (`null`: sem soma). */
+  otherCuts: readonly { title: string; detail: string; value: string }[];
+  otherCutsTotal: number | null;
+  /** Metas da pessoa, para a seção "Suas metas" do objetivo. */
+  goalRows: readonly { title: string; detail: string; value: string }[];
+};
+
+export const PROTOTYPE_CONTEXT: SimulatorContext = {
+  start: START,
+  lastMonthName: "setembro",
+  startLabel: "outubro",
+  firstDepositLabel: "5 de outubro, com o salário",
+  household: HOUSEHOLD,
+  reserve: RESERVE,
+  retirementRate: RETIREMENT_DEFAULTS.rate,
+  cutCategories: CUT_CATEGORIES,
+  cutDestinations: CUT_DESTINATIONS,
+  goalDefaults: GOAL_DEFAULTS,
+  otherCuts: [
+    {
+      title: "Amazon Prime",
+      detail: "sem compras ligadas nos últimos 60 dias",
+      value: "R$ 19,90",
+    },
+    {
+      title: "Delivery no fim de semana",
+      detail: "sexta e sábado somam 36% dos gastos",
+      value: "≈ R$ 260",
+    },
+    { title: "Gastos pequenos", detail: "24 compras abaixo de R$ 30 em setembro", value: "R$ 612" },
+  ],
+  otherCutsTotal: 1200,
+  goalRows: [
+    {
+      title: "Reserva de emergência",
+      detail: `R$ 15.892 de R$ 30.000 · ${RESERVE.place}`,
+      value: "53%",
+    },
+  ],
+};

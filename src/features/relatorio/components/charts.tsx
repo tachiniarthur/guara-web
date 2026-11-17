@@ -2,7 +2,7 @@ import { ChartInspector, InspectorLayer, type InspectPoint } from "@/components/
 import { ChartSvg, chartColors } from "@/components/charts/primitives";
 import { formatReais } from "@/lib/format";
 
-import { dailyBalance, weeklyFlow } from "../data";
+import type { BalanceSeries, FlowSeries } from "../view";
 
 export type ReportChartVariant = "desktop" | "tablet" | "mobile";
 
@@ -52,64 +52,93 @@ function GridLine({
   );
 }
 
-/** Saldo dia a dia, com projeção tracejada até o fim do mês e os movimentos que mais pesaram. */
-export function BalanceChart({ variant }: { variant: ReportChartVariant }) {
+/** Passo "redondo" (1, 2 ou 5 vezes uma potência de 10) para cerca de `count` faixas. */
+function niceStep(span: number, count: number) {
+  const raw = Math.max(span, 1) / count;
+  const power = 10 ** Math.floor(Math.log10(raw));
+  const unit = raw / power;
+  return (unit <= 1 ? 1 : unit <= 2 ? 2 : unit <= 5 ? 5 : 10) * power;
+}
+
+/** Escala que cobre os valores com folga e as linhas de grade nela (regra pura, testada). */
+export function niceScale(input: number[], count = 3, fromZero = false) {
+  const values = input.length > 0 ? input : [0];
+  const lo = fromZero ? 0 : Math.min(...values);
+  const hi = Math.max(...values, lo + 1);
+  const step = niceStep(hi - lo, count);
+  const min = fromZero ? 0 : Math.floor(lo / step) * step;
+  const max = Math.max(Math.ceil(hi / step) * step, min + step);
+  const ticks: number[] = [];
+  for (let tick = min; tick <= max + step / 2; tick += step) ticks.push(tick);
+  return { min, max, ticks };
+}
+
+/** "16 mil", "1,2 mi", "800", "−2 mil" (`compact`: "16", "1,2 mi"). */
+export function axisMoney(value: number, compact = false) {
+  const sign = value < 0 ? "−" : "";
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000)
+    return `${sign}${(abs / 1_000_000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mi`;
+  if (abs >= 1000) {
+    const k = (abs / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+    return compact ? `${sign}${k}` : `${sign}${k} mil`;
+  }
+  return `${sign}${Math.round(abs)}`;
+}
+
+/** Saldo ponto a ponto, com projeção tracejada e os movimentos que mais pesaram. */
+export function BalanceChart({
+  variant,
+  series,
+}: {
+  variant: ReportChartVariant;
+  series: BalanceSeries;
+}) {
   const { width, height, font, x1, bottom } = frame(variant);
-  const { daysInMonth, today, values, projection, events, axisDays, label } = dailyBalance;
-  const min = 8000;
-  const max = 17000;
-  const x = (day: number) => X0 + ((day - 1) * (x1 - X0)) / (daysInMonth - 1);
+  const { values, projection, titles, projectionTitles, events, axis, label } = series;
+  const last = values.length - 1;
+  const slots = Math.max(2, values.length + Math.max(0, projection.length - 1));
+  const { min, max, ticks } = niceScale([...values, ...projection]);
+  const x = (i: number) => X0 + (i * (x1 - X0)) / (slots - 1);
   const y = (v: number) => bottom - ((v - min) / (max - min)) * (bottom - TOP);
-  const points = (list: number[], firstDay: number) =>
+  const points = (list: number[], first: number) =>
     list
-      .map((v, i) => `${i === 0 ? "M" : "L"}${x(firstDay + i).toFixed(1)},${y(v).toFixed(1)}`)
+      .map((v, i) => `${i === 0 ? "M" : "L"}${x(first + i).toFixed(1)},${y(v).toFixed(1)}`)
       .join(" ");
-  const line = points(values, 1);
+  const line = points(values, 0);
   const eventColor = { arara: chartColors.arara, urucum: chartColors.urucum };
-  // Leitura: o saldo de cada dia até hoje; dali em diante, a previsão.
+  // Leitura: o saldo de cada ponto real; dali em diante, a previsão.
   const inspect: InspectPoint[] = [
     ...values.map((v, i) => ({
-      x: x(i + 1),
-      title: i + 1 === today ? `Hoje, dia ${today}` : `Dia ${i + 1}`,
+      x: x(i),
+      title: titles[i] ?? "",
       rows: [
-        {
-          label: "Saldo",
-          value: formatReais(v),
-          color: chartColors.arara,
-          y: y(v),
-        },
+        { label: "Saldo", value: formatReais(v), color: chartColors.arara, y: y(v) },
         ...events
-          .filter((event) => event.day === i + 1)
+          .filter((event) => event.index === i)
           .map((event) => ({
             label: "pesou no saldo",
             value: event.label,
-            color: eventColor[event.tone as keyof typeof eventColor],
+            color: eventColor[event.tone],
           })),
       ],
     })),
     ...projection.slice(1).map((v, i) => ({
-      x: x(today + i + 1),
-      title: `Dia ${today + i + 1} (previsão)`,
-      rows: [
-        {
-          label: "Saldo previsto",
-          value: formatReais(v),
-          color: chartColors.arara,
-          y: y(v),
-        },
-      ],
+      x: x(last + i + 1),
+      title: projectionTitles[i] ?? "",
+      rows: [{ label: "Saldo previsto", value: formatReais(v), color: chartColors.arara, y: y(v) }],
     })),
   ];
 
   return (
-    <ChartInspector points={inspect} label="Saldo dia a dia">
+    <ChartInspector points={inspect} label="Saldo">
       <ChartSvg reveal="none" width={width} height={height} label={label}>
-        {[8000, 12000, 16000].map((tick) => (
-          <GridLine key={tick} y={y(tick)} x1={x1} label={`${tick / 1000} mil`} font={font} />
+        {ticks.map((tick) => (
+          <GridLine key={tick} y={y(tick)} x1={x1} label={axisMoney(tick)} font={font} />
         ))}
         {/* Construído desde o zero: a linha se desenha, depois vêm a área, a previsão e os eventos. */}
         <path
-          d={`${line} L${x(today).toFixed(1)},${bottom} L${X0}.0,${bottom} Z`}
+          d={`${line} L${x(last).toFixed(1)},${bottom} L${X0}.0,${bottom} Z`}
           fill={AREA_FILL}
           className="build-after"
         />
@@ -122,21 +151,25 @@ export function BalanceChart({ variant }: { variant: ReportChartVariant }) {
           strokeLinejoin="round"
           className="build-line"
         />
-        <path
-          d={points(projection, today)}
-          fill="none"
-          stroke={chartColors.arara}
-          strokeWidth="2"
-          strokeDasharray="5 5"
-          className="build-after"
-        />
+        {projection.length > 1 && (
+          <path
+            d={points(projection, last)}
+            fill="none"
+            stroke={chartColors.arara}
+            strokeWidth="2"
+            strokeDasharray="5 5"
+            className="build-after"
+          />
+        )}
         <line x1={X0} x2={x1} y1={bottom} y2={bottom} stroke={chartColors.axis} />
         {events.map((event) => {
-          const cx = x(event.day);
-          const cy = y(values[event.day - 1]!);
+          const cx = x(event.index);
+          const cy = y(values[event.index] ?? 0);
           const labelY = event.labelRow === 0 ? 26 : 46;
+          // Perto das bordas o texto cresce para dentro, para não sair do gráfico.
+          const anchor = cx < X0 + 70 ? "start" : cx > x1 - 70 ? "end" : "middle";
           return (
-            <g key={event.day} className="build-after">
+            <g key={`${event.index}-${event.tone}`} className="build-after">
               <line
                 x1={cx.toFixed(1)}
                 x2={cx.toFixed(1)}
@@ -157,7 +190,7 @@ export function BalanceChart({ variant }: { variant: ReportChartVariant }) {
               <text
                 x={cx.toFixed(1)}
                 y={labelY.toFixed(1)}
-                textAnchor="middle"
+                textAnchor={anchor}
                 fontSize={font}
                 fontWeight="700"
                 fill={event.tone === "urucum" ? chartColors.urucum : chartColors.sand}
@@ -167,21 +200,17 @@ export function BalanceChart({ variant }: { variant: ReportChartVariant }) {
             </g>
           );
         })}
-        {[
-          ...axisDays.filter((day) => day < today),
-          today,
-          ...axisDays.filter((day) => day > today),
-        ].map((day) => (
+        {axis.map((tick) => (
           <text
-            key={day}
-            x={x(day).toFixed(1)}
+            key={tick.index}
+            x={x(tick.index).toFixed(1)}
             y={height - 10}
             textAnchor="middle"
             fontSize={font}
-            fill={day === today ? chartColors.sand : chartColors.label}
-            fontWeight={day === today ? "700" : "400"}
+            fill={tick.strong ? chartColors.sand : chartColors.label}
+            fontWeight={tick.strong ? "700" : "400"}
           >
-            {day === today ? "hoje" : day}
+            {tick.label}
           </text>
         ))}
         <InspectorLayer x0={X0 - 6} x1={x1 + 6} top={TOP - 10} bottom={bottom} />
@@ -190,91 +219,116 @@ export function BalanceChart({ variant }: { variant: ReportChartVariant }) {
   );
 }
 
-const brl = (value: number) => value.toLocaleString("pt-BR");
-const thousands = (value: number) => (value / 1000).toFixed(1).replace(".", ",");
-
-/** Entradas e saídas por semana, em pares de barras. */
-export function WeeklyFlowChart({ variant }: { variant: ReportChartVariant }) {
+/** Entradas e saídas por grupo (dia, semana ou mês), em pares de barras. */
+export function FlowChart({
+  variant,
+  series,
+}: {
+  variant: ReportChartVariant;
+  series: FlowSeries;
+}) {
   const { width, height, font, x1, bottom } = frame(variant);
   const compact = variant === "mobile";
-  const max = 8000;
-  const y = (v: number) => bottom - (v / max) * (bottom - TOP);
-  const group = (x1 - X0) / weeklyFlow.weeks.length;
+  const { groups } = series;
+  const { max, ticks } = niceScale(
+    groups.flatMap((group) => [group.entrou, group.saiu]),
+    2,
+    true,
+  );
+  const y = (v: number) => bottom - (Math.max(0, v) / max) * (bottom - TOP);
+  const group = (x1 - X0) / Math.max(1, groups.length);
   const bar = Math.min(46, group * 0.28);
-  const format = compact ? thousands : brl;
-  const inspect = weeklyFlow.weeks.map((week, i) => ({
+  // Com muitos grupos o valor fica só na leitura do gráfico (os textos se encostariam).
+  const showValues = group >= (compact ? 60 : 70);
+  // Rótulos do eixo: todos se couberem, senão um sim, um não (o último sempre).
+  const every = group >= (compact ? 34 : 56) ? 1 : 2;
+  const inspect = groups.map((item, i) => ({
     x: X0 + (i + 0.5) * group,
-    title: week.label.replace("*", " (até hoje)"),
+    title: item.label.replace("*", " (até hoje)"),
     rows: [
-      { label: "Entrou", value: formatReais(week.entrou), color: chartColors.arara },
-      { label: "Saiu", value: formatReais(week.saiu), color: chartColors.urucum },
+      { label: "Entrou", value: formatReais(item.entrou), color: chartColors.arara },
+      { label: "Saiu", value: formatReais(item.saiu), color: chartColors.urucum },
     ],
   }));
 
   return (
-    <ChartInspector points={inspect} label="Entradas e saídas por semana">
-      <ChartSvg reveal="none" width={width} height={height} label={weeklyFlow.label}>
-        <GridLine y={y(0)} x1={x1} label="0" font={font} solid />
-        <GridLine y={y(4000)} x1={x1} label={compact ? "4" : "4 mil"} font={font} />
-        <GridLine y={y(8000)} x1={x1} label={compact ? "8" : "8 mil"} font={font} />
-        {weeklyFlow.weeks.map((week, i) => {
+    <ChartInspector points={inspect} label="Entradas e saídas">
+      <ChartSvg reveal="none" width={width} height={height} label={series.label}>
+        {ticks.map((tick) => (
+          <GridLine
+            key={tick}
+            y={y(tick)}
+            x1={x1}
+            label={axisMoney(tick, compact)}
+            font={font}
+            solid={tick === 0}
+          />
+        ))}
+        {groups.map((item, i) => {
           const center = X0 + (i + 0.5) * group;
           const bars = [
-            { key: "entrou", value: week.entrou, x: center - 2 - bar, color: chartColors.arara },
-            { key: "saiu", value: week.saiu, x: center + 2, color: chartColors.urucum },
+            { key: "entrou", value: item.entrou, x: center - 2 - bar, color: chartColors.arara },
+            { key: "saiu", value: item.saiu, x: center + 2, color: chartColors.urucum },
           ];
+          const labelled = (groups.length - 1 - i) % every === 0;
           return (
-            <g key={week.label}>
-              {bars.map((item) =>
-                item.value > 0 ? (
-                  <g key={item.key}>
+            <g key={`${item.label}-${i}`}>
+              {bars.map((entry) =>
+                entry.value > 0 ? (
+                  <g key={entry.key}>
                     {/* Cada barra cresce da base, uma depois da outra; o valor aparece depois. */}
                     <rect
-                      x={item.x.toFixed(1)}
-                      y={y(item.value).toFixed(1)}
+                      x={entry.x.toFixed(1)}
+                      y={y(entry.value).toFixed(1)}
                       width={bar.toFixed(1)}
-                      height={(bottom - y(item.value)).toFixed(1)}
-                      rx="5"
-                      fill={item.color}
+                      height={(bottom - y(entry.value)).toFixed(1)}
+                      rx={Math.min(5, bar / 2).toFixed(1)}
+                      fill={entry.color}
                       className="build-bar"
                       style={{
-                        animationDelay: `${(i * 2 + (item.key === "saiu" ? 1 : 0)) * 90}ms`,
+                        animationDelay: `${(i * 2 + (entry.key === "saiu" ? 1 : 0)) * Math.min(90, 720 / groups.length)}ms`,
                       }}
                     />
-                    <text
-                      className="build-after"
-                      x={(item.x + bar / 2).toFixed(1)}
-                      y={(y(item.value) - 8).toFixed(1)}
-                      textAnchor="middle"
-                      fontSize={font}
-                      fontWeight="700"
-                      fill={item.color}
-                    >
-                      {format(item.value)}
-                    </text>
+                    {showValues && (
+                      <text
+                        className="build-after"
+                        x={(entry.x + bar / 2).toFixed(1)}
+                        y={(y(entry.value) - 8).toFixed(1)}
+                        textAnchor="middle"
+                        fontSize={font}
+                        fontWeight="700"
+                        fill={entry.color}
+                      >
+                        {compact ? thousands(entry.value) : brl(entry.value)}
+                      </text>
+                    )}
                   </g>
                 ) : (
-                  <text
-                    key={item.key}
-                    x={(item.x + bar / 2).toFixed(1)}
-                    y={(bottom - 8).toFixed(1)}
-                    textAnchor="middle"
-                    fontSize={font}
-                    fill={chartColors.label}
-                  >
-                    0
-                  </text>
+                  showValues && (
+                    <text
+                      key={entry.key}
+                      x={(entry.x + bar / 2).toFixed(1)}
+                      y={(bottom - 8).toFixed(1)}
+                      textAnchor="middle"
+                      fontSize={font}
+                      fill={chartColors.label}
+                    >
+                      0
+                    </text>
+                  )
                 ),
               )}
-              <text
-                x={center.toFixed(1)}
-                y={height - 10}
-                textAnchor="middle"
-                fontSize={font}
-                fill={chartColors.label}
-              >
-                {compact ? week.short : week.label}
-              </text>
+              {labelled && (
+                <text
+                  x={center.toFixed(1)}
+                  y={height - 10}
+                  textAnchor="middle"
+                  fontSize={font}
+                  fill={chartColors.label}
+                >
+                  {compact || groups.length > 4 ? item.short : item.label}
+                </text>
+              )}
             </g>
           );
         })}
@@ -290,3 +344,6 @@ export function WeeklyFlowChart({ variant }: { variant: ReportChartVariant }) {
     </ChartInspector>
   );
 }
+
+const brl = (value: number) => Math.round(value).toLocaleString("pt-BR");
+const thousands = (value: number) => (value / 1000).toFixed(1).replace(".", ",");

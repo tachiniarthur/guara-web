@@ -29,6 +29,7 @@ import { ViewModeToggle } from "@/features/gastos/components/view-mode-toggle";
 import { GastosDataProvider, prototypeGastos } from "@/features/gastos/context";
 import { type FooterPart, useGastosView } from "@/features/gastos/live";
 import { useSession } from "@/features/acesso/session";
+import { monthLabels } from "@/lib/live-format";
 import { NewUserSpending } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
@@ -106,7 +107,11 @@ export function GastosScreen({ estado }: { estado?: string }) {
   const view = gastos.data;
   const data = view ?? prototypeGastos;
   const { ledger, tetos } = data;
-  const mes = view?.mes ?? { name: "setembro", short: "Set 2026", long: "Setembro 2026" };
+  const mes =
+    view?.mes ??
+    (live
+      ? monthLabels(new Date())
+      : { name: "setembro", short: "Set 2026", long: "Setembro 2026" });
   const bankOptions = view
     ? [
         { value: "todos", label: "Todos os bancos", icon: "grid" as const },
@@ -435,14 +440,19 @@ export function GastosScreen({ estado }: { estado?: string }) {
               className="@max-tab:flex-nowrap @max-tab:overflow-hidden"
               trailing={<AddChip>Conectar</AddChip>}
             />
-            <div className="hidden @tab:block">
-              <ViewModeToggle appearance="card" />
-            </div>
+            {/* "Por banco" ainda é só do protótipo. */}
+            {!live && (
+              <div className="hidden @tab:block">
+                <ViewModeToggle appearance="card" />
+              </div>
+            )}
           </div>
 
-          <div className="flex flex-col gap-4 @tab:hidden">
-            <ViewModeToggle appearance="pill" />
-          </div>
+          {!live && (
+            <div className="flex flex-col gap-4 @tab:hidden">
+              <ViewModeToggle appearance="pill" />
+            </div>
+          )}
         </Skeleton>
         <div className="flex flex-col gap-4 @tab:hidden">
           <nav aria-label="Ir para" className="-mr-4 flex gap-1.5 overflow-hidden">

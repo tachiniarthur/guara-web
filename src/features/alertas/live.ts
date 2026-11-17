@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { BudgetSummarySchema, buildTetos, type BudgetSummary } from "@/features/gastos/live";
 import type { TetoProgress } from "@/features/gastos/data";
-import { apiRequest } from "@/lib/api";
+import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatDate, formatMoney } from "@/lib/format";
 import { percent, relativeDay, apiPercent, buildView } from "@/lib/live-format";
 
@@ -124,19 +124,24 @@ export function toAlertasView(
   };
 }
 
+/** Endereços que a tela Alertas lê (os mesmos que o pré-carregamento busca). */
+export const ALERTAS_PATHS = {
+  budgets: "/v1/budgets/summary",
+  alerts: "/v1/price-alerts",
+  notifications: "/v1/notifications?limit=20",
+} as const satisfies Record<string, ApiPath>;
+
 /** Busca o que a tela Alertas mostra. `data` fica `undefined` enquanto carrega. */
 export function useAlertasView({ enabled }: { enabled: boolean }) {
-  const get = <T>(path: `/v1/${string}`, schema: z.ZodType<T>) => ({
-    queryKey: ["alertas", path],
-    queryFn: ({ signal }: { signal: AbortSignal }) => apiRequest(path, schema, { signal }),
-    enabled,
-    staleTime: 60_000,
+  const paths = ALERTAS_PATHS;
+  const get = <T>(path: ApiPath, schema: z.ZodType<T>, staleTime?: number) => ({
+    ...apiQuery(path, schema, { enabled, staleTime }),
   });
   const results = useQueries({
     queries: [
-      get("/v1/budgets/summary", BudgetSummarySchema),
-      get("/v1/price-alerts", PriceAlertListSchema),
-      get("/v1/notifications?limit=20", NotificationsSchema),
+      get(paths.budgets, BudgetSummarySchema),
+      get(paths.alerts, PriceAlertListSchema),
+      get(paths.notifications, NotificationsSchema),
     ] as const,
   });
   const error = results.find((result) => result.error)?.error ?? null;
@@ -215,11 +220,7 @@ export function usePriceAlertDetail(id: string, { enabled }: { enabled: boolean 
   const results = useQueries({
     queries: [
       {
-        queryKey: ["alertas", "preco", id],
-        queryFn: ({ signal }: { signal: AbortSignal }) =>
-          apiRequest(`/v1/price-alerts/${encodeURIComponent(id)}`, ApiPriceAlertSchema, { signal }),
-        enabled,
-        staleTime: 60_000,
+        ...apiQuery(`/v1/price-alerts/${encodeURIComponent(id)}`, ApiPriceAlertSchema, { enabled }),
         retry: false,
       },
     ],
@@ -228,16 +229,12 @@ export function usePriceAlertDetail(id: string, { enabled }: { enabled: boolean 
   const history = useQueries({
     queries: [
       {
-        queryKey: ["alertas", "historico", alert?.symbol],
-        queryFn: ({ signal }: { signal: AbortSignal }) =>
-          apiRequest(
-            `/v1/market/assets/${encodeURIComponent(alert!.symbol)}/history?range=1mo`,
-            HistorySchema,
-            { signal },
-          ),
-        // O histórico diário é só da B3 por enquanto: ativo dos EUA fica com o preço atual.
-        enabled: enabled && Boolean(alert) && !alert?.micCode,
-        staleTime: 30 * 60_000,
+        ...apiQuery(
+          `/v1/market/assets/${encodeURIComponent(alert?.symbol ?? "")}/history?range=1mo`,
+          HistorySchema,
+          // O histórico diário é só da B3 por enquanto: ativo dos EUA fica com o preço atual.
+          { enabled: enabled && Boolean(alert) && !alert?.micCode, staleTime: 30 * 60_000 },
+        ),
         retry: false,
       },
     ],
@@ -265,15 +262,7 @@ export function usePriceAlertDetail(id: string, { enabled }: { enabled: boolean 
 /** Todos os alertas de preço ativos. */
 export function usePriceAlerts({ enabled }: { enabled: boolean }) {
   const result = useQueries({
-    queries: [
-      {
-        queryKey: ["alertas", "/v1/price-alerts"],
-        queryFn: ({ signal }: { signal: AbortSignal }) =>
-          apiRequest("/v1/price-alerts", PriceAlertListSchema, { signal }),
-        enabled,
-        staleTime: 60_000,
-      },
-    ],
+    queries: [apiQuery("/v1/price-alerts", PriceAlertListSchema, { enabled })],
   })[0];
   return {
     data: result.data?.data.filter((a) => a.status === "active").map(toPriceAlert),

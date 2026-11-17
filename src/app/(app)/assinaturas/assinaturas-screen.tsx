@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
@@ -23,8 +25,15 @@ import { BillingCalendar } from "@/features/assinaturas/components/billing-calen
 import { SubscriptionDetailList } from "@/features/assinaturas/components/subscription-detail-list";
 import { SubscriptionStats } from "@/features/assinaturas/components/subscription-stats";
 import { subscriptions } from "@/features/assinaturas/data";
+import {
+  calendarNote,
+  useAssinaturasView,
+  type AssinaturasView,
+} from "@/features/assinaturas/live";
+import { useSession } from "@/features/acesso/session";
 
-type Props = { state: ScreenState | null };
+/** Com login, o que veio da API; no protótipo, `undefined` (os dados de exemplo). */
+type Props = { state: ScreenState | null; view?: AssinaturasView };
 
 /**
  * Tiles sem título (total e dica) no erro e no vazio: no celular e no tablet, o aviso curto
@@ -51,25 +60,40 @@ function tileState(state: ScreenState | null) {
 }
 
 /** Resumo do topo (ativas, mensal, anual e média), com os estados de erro e vazio. */
-function StatsStrip({ state }: Props) {
+function StatsStrip({ state, view }: Props) {
   return (
     <StateSwap
       replacement={tileState(state)}
       overlayClassName="rounded-card border border-line bg-card p-5"
     >
-      <SubscriptionStats />
+      <SubscriptionStats stats={view?.stats} />
     </StateSwap>
   );
 }
 
-function PrimeTip({ state, className }: Props & { className?: string }) {
+function PrimeTip({ state, view, className }: Props & { className?: string }) {
+  // Com login, a dica vem dos dados (maior aumento ou o peso no ano); sem assinatura, não há dica.
+  if (view && !view.dica) return null;
   return (
     <StateSwap
       replacement={tileState(state)}
       overlayClassName="rounded-bubble bg-shade p-4"
       className={className}
     >
-      <PrimeTipBubble className={className} />
+      {view?.dica ? (
+        <GuaraTip
+          className={className}
+          action={
+            <ButtonLink href={view.dica.acao.href} size="sm">
+              <span>{view.dica.acao.label}</span>
+            </ButtonLink>
+          }
+        >
+          {view.dica.texto}
+        </GuaraTip>
+      ) : (
+        <PrimeTipBubble className={className} />
+      )}
     </StateSwap>
   );
 }
@@ -91,13 +115,14 @@ function PrimeTipBubble({ className }: { className?: string }) {
   );
 }
 
-function CalendarCard({ state }: Props) {
+function CalendarCard({ state, view }: Props) {
+  const month = view?.calendario;
   return (
     <Panel className="gap-3">
       <PanelHeader
         title={
           <Link href="/assinaturas/calendario" className={inlineLinkClass}>
-            Cobranças de outubro
+            Cobranças de {month ? month.nome : "outubro"}
           </Link>
         }
         titleClassName="text-18 tracking-normal"
@@ -106,16 +131,30 @@ function CalendarCard({ state }: Props) {
         replacement={state === "erro" ? <ErrorBlock /> : state === "vazio" ? <NoDataBlock /> : null}
         className="grow gap-3"
       >
-        <BillingCalendar items={subscriptions} />
-        <span className="text-13 text-mist">
-          Todas as cobranças vencem até o dia 15. Nenhuma na segunda quinzena.
-        </span>
+        {month ? (
+          <>
+            <BillingCalendar
+              items={month.cobrancas.map((c) => ({ dia: c.dia, nome: c.item.nome }))}
+              days={month.dias}
+              month={month.nome}
+            />
+            <span className="text-13 text-mist">{calendarNote(month)}</span>
+          </>
+        ) : (
+          <>
+            <BillingCalendar items={subscriptions} />
+            <span className="text-13 text-mist">
+              Todas as cobranças vencem até o dia 15. Nenhuma na segunda quinzena.
+            </span>
+          </>
+        )}
       </StateSwap>
     </Panel>
   );
 }
 
-function ActiveCard({ state }: Props) {
+function ActiveCard({ state, view }: Props) {
+  const items = view?.items ?? subscriptions;
   return (
     <Panel className="gap-1.5">
       <PanelHeader
@@ -154,10 +193,10 @@ function ActiveCard({ state }: Props) {
         }
       >
         <div className="@tab:hidden">
-          <SubscriptionDetailList items={subscriptions} compact />
+          <SubscriptionDetailList items={items} compact />
         </div>
         <div className="hidden @tab:block">
-          <SubscriptionDetailList items={subscriptions} />
+          <SubscriptionDetailList items={items} />
         </div>
       </StateSwap>
     </Panel>
@@ -166,7 +205,19 @@ function ActiveCard({ state }: Props) {
 
 /** `estado`: estados do protótipo (`?estado=`), abertos pela prévia (ver `src/proxy.ts`). */
 export function AssinaturasScreen({ estado }: { estado?: string }) {
-  const state = parseScreenState(estado);
+  const { live } = useSession();
+  const assinaturas = useAssinaturasView({ enabled: live });
+  const view = live ? assinaturas.data : undefined;
+  // Com login: carregando até a API responder, erro se falhar, vazio sem assinatura ativa.
+  const state: ScreenState | null = live
+    ? assinaturas.error
+      ? "erro"
+      : !view
+        ? "carregando"
+        : view.items.length === 0
+          ? "vazio"
+          : null
+    : parseScreenState(estado);
   const loading = state === "carregando";
   return (
     <Page
@@ -189,22 +240,22 @@ export function AssinaturasScreen({ estado }: { estado?: string }) {
 
       <Skeleton active={loading}>
         {/* O resumo em faixa no topo, em todos os tamanhos. */}
-        <StatsStrip state={state} />
+        <StatsStrip state={state} view={view} />
 
         {/* Mobile e tablet: dica, depois a lista e o calendário. */}
         <div className="flex flex-col gap-4 @tab:gap-5 @desk:hidden">
-          <PrimeTip state={state} />
-          <ActiveCard state={state} />
-          <CalendarCard state={state} />
+          <PrimeTip state={state} view={view} />
+          <ActiveCard state={state} view={view} />
+          <CalendarCard state={state} view={view} />
         </div>
 
         {/* Desktop: lista à esquerda (3/5), calendário e dica à direita. */}
         <div className="hidden grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-5 @desk:grid">
-          <ActiveCard state={state} />
+          <ActiveCard state={state} view={view} />
           <div className="flex min-w-0 flex-col gap-5">
-            <CalendarCard state={state} />
+            <CalendarCard state={state} view={view} />
             {/* Do tamanho do texto: esticada, a dica sobrava vazia embaixo. */}
-            <PrimeTip state={state} />
+            <PrimeTip state={state} view={view} />
           </div>
         </div>
       </Skeleton>

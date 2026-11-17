@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { useSession } from "@/features/acesso/session";
 import { useMe, useMyPlan } from "@/features/perfil/api";
-import { apiRequest } from "@/lib/api";
+import { apiQuery } from "@/lib/api-query";
 import { EMPTY_VALUE } from "@/lib/format";
 import { getSupabase } from "@/lib/supabase";
 
@@ -45,18 +45,10 @@ export function useUser(): CurrentUser {
     enabled: live,
     staleTime: Infinity,
   });
-  const accounts = useQuery({
-    queryKey: ["usuario", "contas"],
-    queryFn: ({ signal }) => apiRequest("/v1/accounts", AccountsSchema, { signal }),
-    enabled: live,
-    staleTime: 5 * 60_000,
-  });
-  const unread = useQuery({
-    queryKey: ["usuario", "nao-lidas"],
-    queryFn: ({ signal }) => apiRequest("/v1/notifications/unread-count", UnreadSchema, { signal }),
-    enabled: live,
-    staleTime: 60_000,
-  });
+  const accounts = useQuery(apiQuery("/v1/accounts", AccountsSchema, { enabled: live }));
+  const unread = useQuery(
+    apiQuery("/v1/notifications/unread-count", UnreadSchema, { enabled: live, staleTime: 60_000 }),
+  );
   if (!live) {
     return {
       ...prototypeUser,

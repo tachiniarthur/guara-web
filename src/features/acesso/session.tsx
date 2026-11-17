@@ -1,11 +1,13 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 import { env, isLive } from "@/lib/env";
 import { getSupabase } from "@/lib/supabase";
-import { fetchMyPlan } from "@/features/perfil/api";
+import { fetchMyPlan, planKeys, type MyPlan } from "@/features/perfil/api";
 import { ApiError } from "@/lib/api";
+import { clearPersistedQueries, storedUserId } from "@/lib/query-persist";
 
 /**
  * `onboarding`: tem conta, mas ainda não tem plano (todo plano é pago). `unavailable`: tem
@@ -53,11 +55,15 @@ async function fetchPlanPatiently() {
  * Área da sessão salva: sem sessão, entrada; sem plano, onboarding; com plano, o app. Se a API
  * não responder, nunca abre o app no escuro (uma conta nova cairia direto nele, sem plano).
  */
-async function resolveStatus(): Promise<Exclude<SessionStatus, "loading">> {
+async function resolveStatus(
+  onPlan: (plan: MyPlan) => void,
+): Promise<Exclude<SessionStatus, "loading">> {
   const { data } = await getSupabase().auth.getSession();
   if (!data.session) return "signedOut";
   try {
-    return (await fetchPlanPatiently()).plan ? "signedIn" : "onboarding";
+    const plan = await fetchPlanPatiently();
+    onPlan(plan);
+    return plan.plan ? "signedIn" : "onboarding";
   } catch (error) {
     if (error instanceof ApiError && error.code === "unauthorized") {
       await getSupabase().auth.signOut();
@@ -68,11 +74,18 @@ async function resolveStatus(): Promise<Exclude<SessionStatus, "loading">> {
 }
 
 export function SessionProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<SessionStatus>(isLive ? "loading" : "signedIn");
+  const keepPlan = (plan: MyPlan) => queryClient.setQueryData(planKeys.mine, plan);
+  /** Sair: o cache e a cópia dele no navegador são desta conta e não podem passar para outra. */
+  const forget = () => {
+    queryClient.clear();
+    clearPersistedQueries();
+  };
 
   const refresh = async ({ showLoading = false }: { showLoading?: boolean } = {}) => {
     if (showLoading) setStatus("loading");
-    setStatus(await resolveStatus());
+    setStatus(await resolveStatus(keepPlan));
   };
 
   useEffect(() => {
@@ -81,20 +94,33 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // ainda lê a tela (assinar o plano e conectar banco ficam rápidos).
     void fetch(`${(env.apiUrl ?? "").replace(/\/+$/, "")}/v1/health`).catch(() => undefined);
     let active = true;
+    // Plano desta conta já guardado (visita anterior): abre o app na hora, com as telas do cache,
+    // e confirma com a API por trás. Se a API não responder, continua no app com o que tem.
+    const cached = queryClient.getQueryData<MyPlan>(planKeys.mine);
+    let optimistic = Boolean(cached?.plan && storedUserId());
+    // Logo depois da hidratação (o servidor desenha "carregando": o primeiro desenho tem de bater).
+    if (optimistic) void Promise.resolve().then(() => active && setStatus("signedIn"));
     const update = () =>
-      void resolveStatus().then((next) => {
-        if (active) setStatus(next);
+      void resolveStatus(keepPlan).then((next) => {
+        if (!active || (optimistic && next === "unavailable")) return;
+        optimistic = false;
+        setStatus(next);
       });
     update();
     // Fora do callback: o Supabase pede para não chamar o client dentro do onAuthStateChange.
     const { data } = getSupabase().auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") setStatus("signedOut");
+      if (event === "SIGNED_OUT") {
+        forget();
+        setStatus("signedOut");
+      }
       if (event === "SIGNED_IN") setTimeout(update, 0);
     });
     return () => {
       active = false;
       data.subscription.unsubscribe();
     };
+    // Uma vez só, ao abrir o site (o client de consultas não muda).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const value: SessionValue = {
@@ -103,6 +129,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     refresh,
     signOut: async () => {
       if (isLive) await getSupabase().auth.signOut();
+      forget();
       setStatus("signedOut");
     },
   };

@@ -98,6 +98,11 @@ export function WorldCard({ variant }: { variant: Variant }) {
   const { places, orbit, globeLabel } = globeData(countryExposure);
   const desktop = variant === "desktop";
   const mobile = variant === "mobile";
+  // Fora do Brasil: tudo o que não está no Brasil (outros países e cripto, sem país).
+  const outsideBrazil =
+    countryExposure.length === 0
+      ? 0
+      : Math.max(0, 100 - (countryExposure.find((c) => c.id === "br")?.percentual ?? 0));
   const [selected, setSelected] = useState<string | null>(null);
   const [focus, setFocus] = useState<{ id: string; key: number } | null>(null);
 
@@ -192,8 +197,14 @@ export function WorldCard({ variant }: { variant: Variant }) {
         ))}
       </ul>
       <p className={cn("m-0 leading-normal text-mist", desktop ? "text-14" : "text-13")}>
-        <strong className="text-sand">18%</strong> do que você investiu não depende só da economia
-        brasileira. Isso ajuda a diversificar o risco.
+        {outsideBrazil > 0 ? (
+          <>
+            <strong className="text-sand">{outsideBrazil}%</strong> do que você investiu não depende
+            só da economia brasileira. Isso ajuda a diversificar o risco.
+          </>
+        ) : (
+          "Tudo o que você investiu depende da economia brasileira. Ativos de fora ajudam a diversificar o risco."
+        )}
       </p>
     </>
   );

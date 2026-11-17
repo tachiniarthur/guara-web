@@ -34,6 +34,7 @@ import {
   type UsMic,
 } from "@/features/mercado/live";
 import { ApiError, apiRequest } from "@/lib/api";
+import { invalidateApi } from "@/lib/api-query";
 import { formatDate, formatMoney } from "@/lib/format";
 import { decimalToCents, parseMoneyInput } from "@/lib/money-input";
 import { cn } from "@/lib/utils";
@@ -127,8 +128,7 @@ export function PriceAlertLiveForm() {
         },
       }),
     onSuccess: async (alert) => {
-      await queryClient.invalidateQueries({ queryKey: ["alertas"] });
-      await queryClient.invalidateQueries({ queryKey: ["investimentos"] });
+      await invalidateApi(queryClient, "/v1/price-alerts", "/v1/dashboard");
       router.push(`/alertas/precos/${alert.id}`);
     },
     onError: (error) =>

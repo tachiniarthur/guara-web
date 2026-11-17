@@ -3,7 +3,7 @@
 import { useQueries } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { apiRequest } from "@/lib/api";
+import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { MONTHS, formatWhole, percent, apiPercent, buildView } from "@/lib/live-format";
 
@@ -249,11 +249,8 @@ export function toCategoryLedger(
 export function useCategoryLedger(categoryId: string, { enabled }: { enabled: boolean }) {
   const now = new Date();
   const month = formatDate(now, "yyyy-MM");
-  const get = <T>(path: `/v1/${string}`, schema: z.ZodType<T>, staleTime = 60_000) => ({
-    queryKey: ["gastos", path],
-    queryFn: ({ signal }: { signal: AbortSignal }) => apiRequest(path, schema, { signal }),
-    enabled,
-    staleTime,
+  const get = <T>(path: ApiPath, schema: z.ZodType<T>, staleTime?: number) => ({
+    ...apiQuery(path, schema, { enabled, staleTime }),
   });
   const results = useQueries({
     queries: [
@@ -361,11 +358,8 @@ export function toTransactionDetail(
 /** Busca um lançamento. `data` fica `undefined` enquanto carrega; `missing` quando não existe. */
 export function useTransactionDetail(id: string, { enabled }: { enabled: boolean }) {
   const now = new Date();
-  const get = <T>(path: `/v1/${string}`, schema: z.ZodType<T>, staleTime = 60_000) => ({
-    queryKey: ["gastos", path],
-    queryFn: ({ signal }: { signal: AbortSignal }) => apiRequest(path, schema, { signal }),
-    enabled,
-    staleTime,
+  const get = <T>(path: ApiPath, schema: z.ZodType<T>, staleTime?: number) => ({
+    ...apiQuery(path, schema, { enabled, staleTime }),
     retry: false,
   });
   const results = useQueries({

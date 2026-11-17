@@ -13,7 +13,7 @@ import {
   type ProfileId,
 } from "@/features/alocacao/data";
 import { exchangeLabel } from "@/features/mercado/live";
-import { apiRequest } from "@/lib/api";
+import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate, formatUsd } from "@/lib/format";
 import { MONTHS, apiPercent, buildView, formatWhole, percent, signed } from "@/lib/live-format";
 
@@ -477,23 +477,32 @@ export function toInvestimentosView(r: InvestimentosResponses, now: Date) {
 
 export type InvestimentosView = ReturnType<typeof toInvestimentosView>;
 
+/** Endereços que a tela Investimentos lê (os mesmos que o pré-carregamento busca). */
+export const INVESTIMENTOS_PATHS = {
+  summary: "/v1/investments/summary",
+  evolution: "/v1/investments/evolution?period=12m",
+  positions: "/v1/investments/positions?groupBy=class",
+  belongings: "/v1/belongings",
+  alerts: "/v1/price-alerts",
+  profile: "/v1/investor-profile",
+  dashboard: "/v1/dashboard",
+} as const satisfies Record<string, ApiPath>;
+
 /** Busca o que a tela Investimentos mostra. `data` fica `undefined` enquanto carrega. */
 export function useInvestimentosView({ enabled }: { enabled: boolean }) {
-  const get = <T>(path: `/v1/${string}`, schema: z.ZodType<T>) => ({
-    queryKey: ["investimentos", path],
-    queryFn: ({ signal }: { signal: AbortSignal }) => apiRequest(path, schema, { signal }),
-    enabled,
-    staleTime: 60_000,
+  const paths = INVESTIMENTOS_PATHS;
+  const get = <T>(path: ApiPath, schema: z.ZodType<T>, staleTime?: number) => ({
+    ...apiQuery(path, schema, { enabled, staleTime }),
   });
   const results = useQueries({
     queries: [
-      get("/v1/investments/summary", SummarySchema),
-      get("/v1/investments/evolution?period=12m", EvolutionSchema),
-      get("/v1/investments/positions?groupBy=class", PositionsSchema),
-      get("/v1/belongings", BelongingsSchema),
-      get("/v1/price-alerts", AlertsSchema),
-      get("/v1/investor-profile", ProfileSchema),
-      get("/v1/dashboard", DashboardSchema),
+      get(paths.summary, SummarySchema),
+      get(paths.evolution, EvolutionSchema),
+      get(paths.positions, PositionsSchema),
+      get(paths.belongings, BelongingsSchema),
+      get(paths.alerts, AlertsSchema),
+      get(paths.profile, ProfileSchema),
+      get(paths.dashboard, DashboardSchema),
     ] as const,
   });
   const error = results.find((result) => result.error)?.error ?? null;

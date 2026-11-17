@@ -1,40 +1,63 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { z } from "zod";
 
 import type { ScreenState } from "@/components/states/screen-state";
-import { ErrorBlocks, StateBlock, StateSwap } from "@/components/states/state-block";
+import { LoadingStatus } from "@/components/states/skeleton";
+import { ErrorBlock, ErrorBlocks, StateBlock, StateSwap } from "@/components/states/state-block";
 import { StatusToast } from "@/components/states/status-toast";
 import { ButtonLink } from "@/components/ui/button";
 import { filterChipClass } from "@/components/ui/chip";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
+import { useSession } from "@/features/acesso/session";
+import { apiRequest } from "@/lib/api";
+import { invalidateApi } from "@/lib/api-query";
 import { cn } from "@/lib/utils";
 
 import { useSavedSimulations } from "@/stores/saved-simulations";
 
+import { SIMULATIONS_PATH, useApiSavedSimulations } from "../live";
 import { savedSimulations, type SavedSimulation } from "../saved";
 
 const subscribeNothing = () => () => {};
 
-/** As salvas pelo "Salvar" do Simulador (neste navegador) e, depois, as de exemplo. */
-function useAllSaved(): SavedSimulation[] {
+/**
+ * As salvas pelo "Salvar" do Simulador neste navegador e, depois, as da conta (com login) ou as
+ * de exemplo (protótipo).
+ */
+function useAllSaved() {
+  const { live } = useSession();
   const mine = useSavedSimulations((state) => state.items);
-  // O salvo vive no navegador: no servidor (e na hidratação) só os exemplos.
+  const api = useApiSavedSimulations({ enabled: live });
+  // O salvo vive no navegador: no servidor (e na hidratação) só os da conta ou os exemplos.
   const mounted = useSyncExternalStore(
     subscribeNothing,
     () => true,
     () => false,
   );
-  return mounted ? [...mine, ...savedSimulations] : savedSimulations;
+  const others = live ? (api.data ?? []) : savedSimulations;
+  return {
+    live,
+    items: mounted ? [...mine, ...others] : others,
+    pending: api.pending,
+    error: live && !api.data ? api.error : null,
+  };
 }
 
 /** Quantas simulações salvas aparecem na lista. */
 export function SavedCount({ excluded = 0 }: { excluded?: number }) {
-  const count = useAllSaved().length - excluded;
+  const { items, pending } = useAllSaved();
+  if (pending) return <>Carregando…</>;
+  const count = items.length - excluded;
   return <>{`${count} ${count === 1 ? "simulação" : "simulações"}`}</>;
 }
+
+/** Tempo do "Desfazer": a exclusão na conta só vai depois dele. */
+const UNDO_MS = 10_000;
 
 const filters = ["Todas", "Aposentadoria", "Objetivo", "Corte de gasto"] as const;
 
@@ -52,23 +75,58 @@ export function SavedSimulationList({ state }: { state?: ScreenState | null }) {
   );
   const [removed, setRemoved] = useState<string[]>(deleted ? [deleted.id] : []);
   const all = useAllSaved();
+  const queryClient = useQueryClient();
   const removeMine = useSavedSimulations((s) => s.remove);
   const addMine = useSavedSimulations((s) => s.add);
-  const isMine = (item: SavedSimulation) => !savedSimulations.some((s) => s.id === item.id);
-  const items =
-    state === "vazio"
-      ? []
-      : all.filter((s) => !removed.includes(s.id) && (filter === "Todas" || s.tipo === filter));
+  const isMine = (item: SavedSimulation) =>
+    !item.apiId && !savedSimulations.some((s) => s.id === item.id);
+  // Exclusões na conta esperando o fim do "Desfazer" (saindo da tela, vão na hora).
+  const pendingDeletes = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const deleteFromApi = async (apiId: string) => {
+    pendingDeletes.current.delete(apiId);
+    await apiRequest(`${SIMULATIONS_PATH}/${apiId}`, z.unknown(), { method: "DELETE" }).catch(
+      () => undefined,
+    );
+    await invalidateApi(queryClient, SIMULATIONS_PATH);
+  };
+  useEffect(() => {
+    const timers = pendingDeletes.current;
+    return () => {
+      for (const [apiId, timer] of timers) {
+        clearTimeout(timer);
+        void deleteFromApi(apiId);
+      }
+      timers.clear();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só ao sair da tela
+  }, []);
+  const empty = state === "vazio" || (all.live && !all.pending && all.items.length === 0);
+  const items = empty
+    ? []
+    : all.items.filter((s) => !removed.includes(s.id) && (filter === "Todas" || s.tipo === filter));
   const remove = (item: SavedSimulation) => {
     if (isMine(item)) removeMine(item.id);
     else setRemoved((ids) => [...ids, item.id]);
+    const { apiId } = item;
+    if (apiId) {
+      pendingDeletes.current.set(
+        apiId,
+        setTimeout(() => void deleteFromApi(apiId), UNDO_MS),
+      );
+    }
     setDeleted(item);
   };
   const undo = () => {
+    if (deleted?.apiId) {
+      clearTimeout(pendingDeletes.current.get(deleted.apiId));
+      pendingDeletes.current.delete(deleted.apiId);
+    }
     if (deleted && isMine(deleted)) addMine(deleted);
     else if (deleted) setRemoved((ids) => ids.filter((id) => id !== deleted.id));
     setDeleted(null);
   };
+  if (all.error) return <ErrorBlock />;
+  if (all.pending) return <LoadingStatus />;
   return (
     <>
       <div className="flex items-center gap-2.5">
@@ -90,7 +148,7 @@ export function SavedSimulationList({ state }: { state?: ScreenState | null }) {
           ))}
         </div>
       </div>
-      {state === "vazio" ? (
+      {empty ? (
         <div className="flex min-h-62 flex-col rounded-bubble border border-line bg-card px-4 py-3.5 @desk:min-h-75">
           <StateBlock
             icon="sliders"

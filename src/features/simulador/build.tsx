@@ -5,16 +5,12 @@
  */
 import type { PremiseField, Simulation } from "./data";
 import {
-  CUT_CATEGORIES,
   CUT_DEFAULTS,
-  CUT_DESTINATIONS,
-  GOAL_DEFAULTS,
   GOAL_PLACES,
-  HOUSEHOLD,
-  RESERVE,
+  PROTOTYPE_CONTEXT,
   RETIREMENT_DEFAULTS,
   RETIREMENT_INCLUDES,
-  START,
+  type SimulatorContext,
 } from "./inputs";
 import { simulateCut } from "./lib/cut";
 import type { ProjectionPoint } from "./lib/finance";
@@ -65,20 +61,36 @@ export type RetirementState = {
   includes: string[];
 };
 
-export const RETIREMENT_START: RetirementState = {
-  ...RETIREMENT_DEFAULTS,
-  invested: reaisWithCents(HOUSEHOLD.invested),
-  includes: [],
-};
+/** Premissas iniciais: o investido e a rentabilidade do perfil de quem simula. */
+export function retirementStart(ctx: SimulatorContext): RetirementState {
+  return {
+    ...RETIREMENT_DEFAULTS,
+    rate: ctx.retirementRate,
+    invested: reaisWithCents(ctx.household.invested),
+    includes: [],
+  };
+}
 
-export function buildRetirement(s: RetirementState, set?: Setter<RetirementState>): Simulation {
+export const RETIREMENT_START: RetirementState = retirementStart(PROTOTYPE_CONTEXT);
+
+const householdOf = (ctx: SimulatorContext) => ({
+  startYear: ctx.start.year,
+  income: ctx.household.income,
+  surplus: ctx.household.surplus,
+});
+
+export function buildRetirement(
+  s: RetirementState,
+  set?: Setter<RetirementState>,
+  ctx: SimulatorContext = PROTOTYPE_CONTEXT,
+): Simulation {
   const start =
-    parseMoney(s.invested) + (s.includes.includes("Imóveis") ? HOUSEHOLD.properties : 0);
-  const r = simulateRetirement({ ...s, start });
+    parseMoney(s.invested) + (s.includes.includes("Imóveis") ? ctx.household.properties : 0);
+  const r = simulateRetirement({ ...s, start }, householdOf(ctx));
   const tickEvery = Math.max(1, Math.ceil(s.years / 5));
   const ticks = Array.from({ length: Math.floor(s.years / tickEvery) + 1 }, (_, i) => ({
     index: i * tickEvery,
-    label: String(START.year + i * tickEvery),
+    label: String(ctx.start.year + i * tickEvery),
   }));
   const asksConnection = s.includes.some((item) => item !== "Imóveis");
   const interest = Math.max(0, r.interest);
@@ -126,7 +138,7 @@ export function buildRetirement(s: RetirementState, set?: Setter<RetirementState
       min: 1,
       max: 7.5,
       step: 0.1,
-      hint: `Acima da inflação · perfil ${HOUSEHOLD.profile}`,
+      hint: `Acima da inflação · perfil ${ctx.household.profile}`,
       onChange: set && ((rate) => set({ rate })),
     },
     {
@@ -163,8 +175,8 @@ export function buildRetirement(s: RetirementState, set?: Setter<RetirementState
     premises: {
       fields,
       summary: [
-        ["Suas entradas hoje", `${reais(HOUSEHOLD.income)}/mês`],
-        ["Perfil de investidor", HOUSEHOLD.profile],
+        ["Suas entradas hoje", `${reais(ctx.household.income)}/mês`],
+        ["Perfil de investidor", ctx.household.profile],
         ["Valores", "corrigidos pela inflação"],
       ],
     },
@@ -176,7 +188,7 @@ export function buildRetirement(s: RetirementState, set?: Setter<RetirementState
       detail: (
         <>
           Patrimônio necessário: <strong className="text-sand">{longAmount(r.goal)}</strong> ·
-          equivale a {Math.round(r.incomeShare)}% das suas entradas de setembro
+          equivale a {Math.round(r.incomeShare)}% das suas entradas de {ctx.lastMonthName}
         </>
       ),
       chart: {
@@ -184,8 +196,8 @@ export function buildRetirement(s: RetirementState, set?: Setter<RetirementState
         color: "arara",
         goal: { value: r.goal, label: `Meta ${millions(r.goal, 1)}` },
         ticks,
-        pointLabels: r.points.map((_, i) => String(START.year + i)),
-        label: `Patrimônio projetado de ${START.year} a ${r.retireYear}, chegando a ${longAmount(r.final)}. A área cinza mostra quanto vem dos seus aportes.`,
+        pointLabels: r.points.map((_, i) => String(ctx.start.year + i)),
+        label: `Patrimônio projetado de ${ctx.start.year} a ${r.retireYear}, chegando a ${longAmount(r.final)}. A área cinza mostra quanto vem dos seus aportes.`,
       },
       legend: [
         { label: "Patrimônio projetado", swatch: "line", color: "var(--guara-arara)" },
@@ -260,7 +272,7 @@ export function buildRetirement(s: RetirementState, set?: Setter<RetirementState
     closing: {
       kind: "rows",
       title: "Cabe no seu orçamento?",
-      subtitle: "Comparado com o que sobrou em setembro",
+      subtitle: `Comparado com o que sobrou em ${ctx.lastMonthName}`,
       rows: [
         { title: "Aporte necessário", value: `${reais(r.deposit)}/mês`, tone: "sand" },
         {
@@ -315,37 +327,50 @@ export type GoalState = {
   place: string;
 };
 
-export const GOAL_START: GoalState = {
-  ...GOAL_DEFAULTS,
-  saved: reaisWithCents(GOAL_DEFAULTS.saved),
-};
+export function goalStart(ctx: SimulatorContext): GoalState {
+  return { ...ctx.goalDefaults, saved: reaisWithCents(ctx.goalDefaults.saved) };
+}
 
-/** Economia padrão do corte de app e aporte padrão da aposentadoria (cards das outras abas). */
-const DEFAULT_CUT_SAVINGS =
-  simulateCut({
-    average: CUT_CATEGORIES[0].average,
-    percent: CUT_DEFAULTS.percent,
-    rate: CUT_DEFAULTS.rate,
-  })?.savings ?? 0;
-const DEFAULT_RETIREMENT = simulateRetirement({
-  ...RETIREMENT_DEFAULTS,
-  start: HOUSEHOLD.invested,
-});
+export const GOAL_START: GoalState = goalStart(PROTOTYPE_CONTEXT);
 
-export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
+const reserveGap = (ctx: SimulatorContext) =>
+  ctx.reserve ? ctx.reserve.target - ctx.reserve.saved : null;
+
+/** Economia padrão do primeiro corte e aporte padrão da aposentadoria (cards das outras abas). */
+const defaultCutSavings = (ctx: SimulatorContext) =>
+  simulateCut(
+    {
+      average: ctx.cutCategories[0]?.average ?? null,
+      percent: CUT_DEFAULTS.percent,
+      rate: CUT_DEFAULTS.rate,
+    },
+    reserveGap(ctx),
+  )?.savings ?? 0;
+const defaultRetirement = (ctx: SimulatorContext) =>
+  simulateRetirement(
+    { ...RETIREMENT_DEFAULTS, rate: ctx.retirementRate, start: ctx.household.invested },
+    householdOf(ctx),
+  );
+
+export function buildGoal(
+  s: GoalState,
+  set?: Setter<GoalState>,
+  ctx: SimulatorContext = PROTOTYPE_CONTEXT,
+): Simulation {
   const place = GOAL_PLACES.find((item) => item.label === s.place) ?? GOAL_PLACES[0];
   const saved = parseMoney(s.saved);
   const r = simulateGoal(
     { cost: s.cost, months: s.months, saved, rate: place.monthlyRate },
-    HOUSEHOLD.surplus,
-    DEFAULT_CUT_SAVINGS,
+    ctx.household.surplus,
+    defaultCutSavings(ctx),
+    ctx.reserve?.monthly ?? 0,
   );
   const goalName = s.name.trim() || "Seu objetivo";
   // O design fala de "a viagem"; outros objetivos ficam "o objetivo".
   const isTrip = goalName.toLowerCase().startsWith("viagem");
   const total = r.composition.saved + r.composition.deposits + Math.max(0, r.composition.yield);
   const ticks = [0, Math.round(s.months / 3), Math.round((2 * s.months) / 3), s.months].map(
-    (index) => ({ index, label: shortMonth(START, index) }),
+    (index) => ({ index, label: shortMonth(ctx.start, index) }),
   );
 
   const fields: PremiseField[] = [
@@ -377,7 +402,7 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
       min: 6,
       max: 40,
       step: 1,
-      hint: `${isTrip ? "Viajar" : "Pronto"} em ${longMonth(START, s.months)}`,
+      hint: `${isTrip ? "Viajar" : "Pronto"} em ${longMonth(ctx.start, s.months)}`,
       onChange: set && ((months) => set({ months })),
     },
     {
@@ -409,7 +434,7 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
       summary: [
         ["Falta juntar", reais(Math.max(0, s.cost - saved))],
         ["Depósitos", `${s.months} de ${reais(r.deposit)}`],
-        ["Primeiro depósito", "5 de outubro, com o salário"],
+        ["Primeiro depósito", ctx.firstDepositLabel],
       ],
     },
     result: {
@@ -420,7 +445,7 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
       detail: (
         <>
           Equivale a <strong className="text-sand">{Math.round(r.surplusShare)}%</strong> do que
-          sobrou em setembro · acompanhado pelo Guará
+          sobrou em {ctx.lastMonthName} · acompanhado pelo Guará
         </>
       ),
       chart: {
@@ -428,8 +453,8 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
         color: "folha",
         goal: { value: s.cost, label: `Meta ${reais(s.cost)}` },
         ticks,
-        pointLabels: r.points.map((_, i) => shortMonth(START, i)),
-        label: `Dinheiro guardado mês a mês até ${longMonth(START, s.months)}, chegando a ${reais(r.final)}.`,
+        pointLabels: r.points.map((_, i) => shortMonth(ctx.start, i)),
+        label: `Dinheiro guardado mês a mês até ${longMonth(ctx.start, s.months)}, chegando a ${reais(r.final)}.`,
       },
       legend: [
         { label: "Guardado com rendimento", swatch: "line", color: "var(--guara-folha)" },
@@ -438,7 +463,19 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
       ],
       save: {
         nome: s.name || "Juntar para um objetivo",
-        resumo: `${reais(s.cost)} em ${longMonth(START, s.months)}`,
+        resumo: `${reais(s.cost)} em ${longMonth(ctx.start, s.months)}`,
+        request:
+          s.cost > 0 && s.months > 0
+            ? {
+                kind: "goal",
+                input: {
+                  targetCents: Math.round(s.cost * 100),
+                  months: s.months,
+                  initialCents: Math.max(0, Math.round(saved * 100)),
+                  monthlyContributionCents: Math.max(0, Math.round(r.deposit * 100)),
+                },
+              }
+            : undefined,
       },
       scenarios: r.scenarios.map((scenario) => ({
         name: scenario.label,
@@ -457,7 +494,7 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
         labelWidth: "narrow",
         color: "folha",
         items: r.milestones.map((step) => ({
-          when: step.month === null ? "—" : shortMonth(START, step.month),
+          when: step.month === null ? "—" : shortMonth(ctx.start, step.month),
           title:
             step.percent === 100
               ? `Meta · ${reais(step.value)}`
@@ -473,7 +510,7 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
       {
         kind: "composition",
         title: "De onde vem o dinheiro",
-        subtitle: `Em ${longMonth(START, s.months)}`,
+        subtitle: `Em ${longMonth(ctx.start, s.months)}`,
         slices: [
           {
             label: "Já guardado",
@@ -518,7 +555,7 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
           detail:
             item.months === null
               ? "não chega à meta"
-              : `${isTrip ? "viagem" : "pronto"} em ${shortMonth(START, item.months)}${item.note ? ` · ${item.note}` : ""}`,
+              : `${isTrip ? "viagem" : "pronto"} em ${shortMonth(ctx.start, item.months)}${item.note ? ` · ${item.note}` : ""}`,
           value: item.months === null ? "—" : `${item.months} meses`,
           tone: item.months === null ? "caption" : item.months > s.months ? "urucum" : "folha",
         })),
@@ -529,21 +566,16 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
       title: "Suas metas",
       subtitle: "Acompanhadas pelo Guará",
       rows: [
-        {
-          title: "Reserva de emergência",
-          detail: `${reais(RESERVE.saved)} de ${reais(RESERVE.target)} · ${RESERVE.place}`,
-          value: percentText(RESERVE.saved, RESERVE.target),
-          tone: "arara",
-        },
+        ...ctx.goalRows.map((row) => ({ ...row, tone: "arara" as const })),
         {
           title: goalName,
-          detail: "esta simulação · começa em outubro",
+          detail: `esta simulação · começa em ${ctx.startLabel}`,
           value: "novo",
           tone: "tucano",
         },
         {
           title: "Aposentadoria",
-          detail: `em simulação · aporte de ${reais(DEFAULT_RETIREMENT.deposit)}/mês`,
+          detail: `em simulação · aporte de ${reais(defaultRetirement(ctx).deposit)}/mês`,
           value: "—",
           tone: "caption",
         },
@@ -551,17 +583,24 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
       tip: {
         icon: "target",
         color: "var(--guara-tucano)",
-        content: (
+        content: ctx.reserve ? (
           <>
             Com a reserva e {isTrip ? "a viagem juntas" : "o objetivo juntos"}, você guardaria{" "}
             <strong>{reais(r.withReserve)}/mês</strong>
-            {r.withReserve >= HOUSEHOLD.surplus * 0.9 ? ", perto de tudo o que sobra hoje." : "."}
+            {r.withReserve >= ctx.household.surplus * 0.9
+              ? ", perto de tudo o que sobra hoje."
+              : "."}
+          </>
+        ) : (
+          <>
+            {isTrip ? "A viagem pede" : "O objetivo pede"} <strong>{reais(r.deposit)}/mês</strong>
+            {r.deposit >= ctx.household.surplus * 0.9 ? ", perto de tudo o que sobra hoje." : "."}
           </>
         ),
       },
     },
     questions: [
-      "Consigo viajar antes de 2028?",
+      `Consigo ${isTrip ? "viajar" : "chegar lá"} antes de ${ctx.start.year + Math.floor((ctx.start.month + s.months) / 12)}?`,
       "Onde é melhor guardar esse dinheiro?",
       "Dá para juntar a reserva e a viagem ao mesmo tempo?",
     ],
@@ -572,28 +611,37 @@ export function buildGoal(s: GoalState, set?: Setter<GoalState>): Simulation {
 
 export type CutState = { category: string; percent: number; rate: number; destination: string };
 
-export const CUT_START: CutState = { ...CUT_DEFAULTS };
+/** O primeiro gasto e o primeiro destino da pessoa já marcados. */
+export function cutStart(ctx: SimulatorContext): CutState {
+  return {
+    ...CUT_DEFAULTS,
+    category: ctx.cutCategories[0]?.label ?? CUT_DEFAULTS.category,
+    destination: ctx.cutDestinations[0] ?? CUT_DEFAULTS.destination,
+  };
+}
 
-const OTHER_CUTS = [
-  { title: "Amazon Prime", detail: "sem compras ligadas nos últimos 60 dias", value: "R$ 19,90" },
-  {
-    title: "Delivery no fim de semana",
-    detail: "sexta e sábado somam 36% dos gastos",
-    value: "≈ R$ 260",
-  },
-  { title: "Gastos pequenos", detail: "24 compras abaixo de R$ 30 em setembro", value: "R$ 612" },
-];
+export const CUT_START: CutState = cutStart(PROTOTYPE_CONTEXT);
 
-export function buildCut(s: CutState, set?: Setter<CutState>): Simulation {
-  const category = CUT_CATEGORIES.find((item) => item.label === s.category) ?? CUT_CATEGORIES[0];
-  const r = simulateCut({ average: category.average, percent: s.percent, rate: s.rate });
+export function buildCut(
+  s: CutState,
+  set?: Setter<CutState>,
+  ctx: SimulatorContext = PROTOTYPE_CONTEXT,
+): Simulation {
+  // Sem gasto com histórico (conta nova), a aba mostra o vazio.
+  const category = ctx.cutCategories.find((item) => item.label === s.category) ??
+    ctx.cutCategories[0] ?? { label: "—", name: "esse gasto", average: null };
+  const r = simulateCut(
+    { average: category.average, percent: s.percent, rate: s.rate },
+    reserveGap(ctx),
+  );
   const trip = simulateGoal(
-    { ...GOAL_DEFAULTS, rate: GOAL_PLACES[0].monthlyRate },
-    HOUSEHOLD.surplus,
+    { ...ctx.goalDefaults, rate: GOAL_PLACES[0].monthlyRate },
+    ctx.household.surplus,
     r?.savings ?? 0,
+    ctx.reserve?.monthly ?? 0,
   );
   const tripWithCut = trip.alternatives[1];
-  const gap = Math.max(0, DEFAULT_RETIREMENT.budget.gap);
+  const gap = Math.max(0, defaultRetirement(ctx).budget.gap);
   const savings = r?.savings ?? 0;
   const cap = r?.cap ?? 0;
 
@@ -601,7 +649,7 @@ export function buildCut(s: CutState, set?: Setter<CutState>): Simulation {
     {
       kind: "chips",
       label: "Gasto para cortar",
-      options: CUT_CATEGORIES.map((item) => item.label),
+      options: ctx.cutCategories.map((item) => item.label),
       pressed: [category.label],
       onToggle: set && ((option) => set({ category: option })),
     },
@@ -644,13 +692,13 @@ export function buildCut(s: CutState, set?: Setter<CutState>): Simulation {
       min: 1,
       max: 7.5,
       step: 0.1,
-      hint: `Acima da inflação · perfil ${HOUSEHOLD.profile}`,
+      hint: `Acima da inflação · perfil ${ctx.household.profile}`,
       onChange: set && ((rate) => set({ rate })),
     },
     {
       kind: "chips",
       label: "Para onde vai a economia",
-      options: CUT_DESTINATIONS,
+      options: ctx.cutDestinations,
       pressed: [s.destination],
       onToggle: set && ((option) => set({ destination: option })),
     },
@@ -664,7 +712,7 @@ export function buildCut(s: CutState, set?: Setter<CutState>): Simulation {
       summary: [
         ["Teto novo", r ? `${reais(cap)}/mês` : "—"],
         ["Economia", r ? `${reais(savings)}/mês` : "—"],
-        ["Começa em", "outubro"],
+        ["Começa em", ctx.startLabel],
       ],
     },
     result: {
@@ -704,6 +752,18 @@ export function buildCut(s: CutState, set?: Setter<CutState>): Simulation {
       save: {
         nome: `Cortar ${s.percent}% de ${s.category.toLowerCase()}`,
         resumo: r ? `${thousands(r.tenYears)} em 10 anos` : "sem histórico desse gasto",
+        // A projeção do corte é de 10 anos.
+        request:
+          Math.round(savings * 100) > 0
+            ? {
+                kind: "spending_cut",
+                input: {
+                  monthlyAmountCents: Math.round(savings * 100),
+                  months: 120,
+                  description: category.label.slice(0, 80),
+                },
+              }
+            : undefined,
       },
       scenarios: (r?.scenarios ?? []).map((scenario) => ({
         name: scenario.label,
@@ -741,34 +801,44 @@ export function buildCut(s: CutState, set?: Setter<CutState>): Simulation {
             tone: "folha",
           },
           {
-            title: GOAL_DEFAULTS.name,
+            title: ctx.goalDefaults.name,
             detail: `somando ${reais(savings)} ao plano de ${reais(trip.deposit)}`,
             value: tripWithCut?.months == null ? "—" : `${tripWithCut.months} meses`,
             tone: "folha",
           },
-          {
-            title: "Reserva de emergência",
-            detail: `faltam ${reais(RESERVE.target - RESERVE.saved)} para completar`,
-            value: r?.reserveMonths == null ? "—" : `${r.reserveMonths} meses`,
-            tone: "arara",
-          },
+          ...(ctx.reserve
+            ? [
+                {
+                  title: "Reserva de emergência",
+                  detail: `faltam ${reais(Math.max(0, ctx.reserve.target - ctx.reserve.saved))} para completar`,
+                  value: r?.reserveMonths == null ? "—" : `${r.reserveMonths} meses`,
+                  tone: "arara" as const,
+                },
+              ]
+            : []),
         ],
       },
       {
         kind: "rows",
         title: "Outros cortes possíveis",
         subtitle: "O Guará encontrou nos seus gastos",
-        rows: OTHER_CUTS.map((item) => ({ ...item, tone: "folha" })),
-        tip: {
-          icon: "scissors",
-          color: "var(--guara-folha)",
-          content: (
-            <>
-              Somando tudo, dá para liberar até <strong>R$ 1.200 por mês</strong> sem mexer em
-              moradia e mercado.
-            </>
-          ),
-        },
+        rows: ctx.otherCuts
+          .filter((item) => item.title !== category.label)
+          .map((item) => ({ ...item, tone: "folha" as const })),
+        tip:
+          ctx.otherCutsTotal === null
+            ? undefined
+            : {
+                icon: "scissors",
+                color: "var(--guara-folha)",
+                content: (
+                  <>
+                    Somando tudo, dá para liberar até{" "}
+                    <strong>{reais(ctx.otherCutsTotal)} por mês</strong> sem mexer em moradia e
+                    mercado.
+                  </>
+                ),
+              },
       },
     ],
     closing: {

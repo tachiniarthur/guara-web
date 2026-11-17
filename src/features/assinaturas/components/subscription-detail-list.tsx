@@ -1,21 +1,50 @@
+"use client";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useState } from "react";
+import { z } from "zod";
 
 import { inlineLinkClass } from "@/components/ui/text-link";
 import { Tag } from "@/components/ui/tag";
+import { useSession } from "@/features/acesso/session";
+import { apiRequest } from "@/lib/api";
+import { invalidateApi } from "@/lib/api-query";
 
 import type { Subscription } from "../data";
 
-function NotSubscriptionButton({ compact }: { compact?: boolean }) {
+/**
+ * "Não é assinatura?": marca como ignorada (`PATCH /v1/subscriptions/:id`, a API não volta a
+ * detectá-la) e atualiza as telas que mostram assinaturas. No protótipo, não faz nada.
+ */
+function NotSubscriptionButton({ id, compact }: { id: string; compact?: boolean }) {
+  const { live } = useSession();
+  const queryClient = useQueryClient();
+  const [failed, setFailed] = useState(false);
+  const ignore = useMutation({
+    mutationFn: () =>
+      apiRequest(`/v1/subscriptions/${encodeURIComponent(id)}`, z.unknown(), {
+        method: "PATCH",
+        body: { status: "ignored" },
+      }),
+    onSuccess: () => invalidateApi(queryClient, "/v1/subscriptions", "/v1/dashboard"),
+    onError: () => setFailed(true),
+  });
   return (
     <button
       type="button"
+      disabled={ignore.isPending}
+      onClick={() => {
+        setFailed(false);
+        if (live) ignore.mutate();
+      }}
       className={
         compact
           ? "h-8 self-start border-none bg-transparent p-0 text-13 whitespace-nowrap text-mist underline underline-offset-3"
           : "h-9 border-none bg-transparent px-2.5 text-13 whitespace-nowrap text-mist underline underline-offset-3"
       }
     >
-      Não é assinatura?
+      {ignore.isPending ? "Tirando…" : failed ? "Não deu. Tentar de novo?" : "Não é assinatura?"}
     </button>
   );
 }
@@ -53,12 +82,12 @@ export function SubscriptionDetailList({
                 <Tag tone={item.alerta.tom}>{item.alerta.texto}</Tag>
               </span>
             )}
-            {compact && <NotSubscriptionButton compact />}
+            {compact && <NotSubscriptionButton id={item.id} compact />}
           </span>
           <span className="flex flex-col items-end gap-0.5">
             <strong className="text-16 whitespace-nowrap tabular-nums">{item.valor}</strong>
-            <span className="text-12 text-caption">por mês</span>
-            {!compact && <NotSubscriptionButton />}
+            <span className="text-12 text-caption">{item.periodo ?? "por mês"}</span>
+            {!compact && <NotSubscriptionButton id={item.id} />}
           </span>
         </li>
       ))}

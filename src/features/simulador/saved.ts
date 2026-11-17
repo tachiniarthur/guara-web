@@ -12,6 +12,8 @@ export type SavedSimulation = {
   valor: string;
   resumo: string;
   salva: string;
+  /** Salva na conta (API): o id para excluir. Sem ele, fica só neste navegador. */
+  apiId?: string;
 };
 
 export const savedSimulations: SavedSimulation[] = [

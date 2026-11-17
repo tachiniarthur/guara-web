@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import type * as OriginalAuth from "../auth";
@@ -65,9 +66,11 @@ const submit = () => fireEvent.click(screen.getByRole("button", { name: "Criar c
 describe("Criar conta", () => {
   it("boas-vindas: Criar conta e Entrar em destaque, e Google e Apple, sem pedir dados ali", () => {
     render(
-      <SessionProvider>
-        <WelcomeOptions />
-      </SessionProvider>,
+      <QueryClientProvider client={new QueryClient()}>
+        <SessionProvider>
+          <WelcomeOptions />
+        </SessionProvider>
+      </QueryClientProvider>,
     );
     expect(screen.getByRole("link", { name: "Criar conta" })).toHaveAttribute(
       "href",

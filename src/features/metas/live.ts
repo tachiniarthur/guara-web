@@ -3,7 +3,7 @@
 import { useQueries } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { apiRequest } from "@/lib/api";
+import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatDate } from "@/lib/format";
 import { MONTHS, apiPercent, buildView, formatWhole } from "@/lib/live-format";
 
@@ -124,19 +124,25 @@ export function toMetasView(
   };
 }
 
+/** Endereços que a tela Metas lê (os mesmos que o pré-carregamento busca). */
+export const METAS_PATHS = {
+  goals: "/v1/goals",
+  positions: "/v1/investments/positions",
+  // Os 12 meses que o Início também pede (uma chamada só); aqui vale o último.
+  monthly: "/v1/insights/spending/monthly?months=12",
+} as const satisfies Record<string, ApiPath>;
+
 /** Busca as metas. `data` fica `undefined` enquanto carrega. */
 export function useMetasView({ enabled }: { enabled: boolean }) {
-  const get = <T>(path: `/v1/${string}`, schema: z.ZodType<T>) => ({
-    queryKey: ["metas", path],
-    queryFn: ({ signal }: { signal: AbortSignal }) => apiRequest(path, schema, { signal }),
-    enabled,
-    staleTime: 60_000,
+  const paths = METAS_PATHS;
+  const get = <T>(path: ApiPath, schema: z.ZodType<T>, staleTime?: number) => ({
+    ...apiQuery(path, schema, { enabled, staleTime }),
   });
   const results = useQueries({
     queries: [
-      get("/v1/goals", GoalsSchema),
-      get("/v1/investments/positions", PositionsSchema),
-      get("/v1/insights/spending/monthly?months=1", MonthlySchema),
+      get(paths.goals, GoalsSchema),
+      get(paths.positions, PositionsSchema),
+      get(paths.monthly, MonthlySchema),
     ] as const,
   });
   const error = results.find((result) => result.error)?.error ?? null;

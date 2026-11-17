@@ -6,6 +6,8 @@ export type Subscription = {
   dia: number;
   proxima: string;
   valor: string;
+  /** "por mês" (padrão) ou "por ano" (cobrança anual). */
+  periodo?: "por mês" | "por ano";
   alerta?: { tom: "tucano" | "urucum"; texto: string };
 };
 

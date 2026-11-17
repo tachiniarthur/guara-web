@@ -4,6 +4,7 @@ import { useInfiniteQuery, useQueries } from "@tanstack/react-query";
 import { z } from "zod";
 
 import { apiRequest } from "@/lib/api";
+import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { MONTHS, capitalize, formatWhole, apiPercent, buildView } from "@/lib/live-format";
 
@@ -133,11 +134,8 @@ export function useLancamentos({ enabled }: { enabled: boolean }) {
     enabled,
     staleTime: 60_000,
   });
-  const get = <T>(path: `/v1/${string}`, schema: z.ZodType<T>, staleTime = 60_000) => ({
-    queryKey: ["gastos", path],
-    queryFn: ({ signal }: { signal: AbortSignal }) => apiRequest(path, schema, { signal }),
-    enabled,
-    staleTime,
+  const get = <T>(path: ApiPath, schema: z.ZodType<T>, staleTime?: number) => ({
+    ...apiQuery(path, schema, { enabled, staleTime }),
   });
   const results = useQueries({
     queries: [

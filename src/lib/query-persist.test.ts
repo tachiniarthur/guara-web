@@ -1,0 +1,60 @@
+import { QueryClient } from "@tanstack/react-query";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import {
+  clearPersistedQueries,
+  persistQueries,
+  restorePersistedQueries,
+  storedUserId,
+} from "./query-persist";
+
+const login = (id: string) =>
+  localStorage.setItem("sb-projeto-auth-token", JSON.stringify({ user: { id } }));
+
+describe("cópia do cache no navegador", () => {
+  afterEach(() => {
+    localStorage.clear();
+    vi.useRealTimers();
+  });
+
+  it("lê o id de quem entrou na sessão do Supabase", () => {
+    expect(storedUserId()).toBeNull();
+    login("u1");
+    expect(storedUserId()).toBe("u1");
+  });
+
+  it("salva só as respostas da API e devolve só para a mesma conta", () => {
+    vi.useFakeTimers();
+    login("u1");
+    const client = new QueryClient();
+    const stop = persistQueries(client);
+    client.setQueryData(["api", "/v1/goals"], { data: [] });
+    client.setQueryData(["outra", "coisa"], 1);
+    vi.advanceTimersByTime(1_100);
+    stop();
+
+    const same = new QueryClient();
+    expect(restorePersistedQueries(same)).toBe(true);
+    expect(same.getQueryData(["api", "/v1/goals"])).toEqual({ data: [] });
+    expect(same.getQueryData(["outra", "coisa"])).toBeUndefined();
+    // Aparece na hora, mas busca de novo quando a tela usar.
+    expect(same.getQueryState(["api", "/v1/goals"])?.isInvalidated).toBe(true);
+
+    login("u2");
+    const other = new QueryClient();
+    expect(restorePersistedQueries(other)).toBe(false);
+    expect(other.getQueryData(["api", "/v1/goals"])).toBeUndefined();
+  });
+
+  it("some ao sair da conta", () => {
+    vi.useFakeTimers();
+    login("u1");
+    const client = new QueryClient();
+    const stop = persistQueries(client);
+    client.setQueryData(["api", "/v1/me"], { displayName: "Marina" });
+    vi.advanceTimersByTime(1_100);
+    stop();
+    clearPersistedQueries();
+    expect(restorePersistedQueries(new QueryClient())).toBe(false);
+  });
+});

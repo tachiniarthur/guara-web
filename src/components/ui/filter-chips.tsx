@@ -20,6 +20,9 @@ type FilterChipsProps = {
   options: FilterChipOption[];
   label: string;
   defaultValue?: string;
+  /** Opção marcada, quando quem usa controla o filtro. */
+  value?: string;
+  onChange?: (value: string) => void;
   /** Botão extra ao fim (ex.: "+ Conectar"). */
   trailing?: ReactNode;
   wrap?: boolean;
@@ -33,12 +36,19 @@ export function FilterChips({
   options,
   label,
   defaultValue,
+  value: controlled,
+  onChange,
   trailing,
   wrap = true,
   size = "sm",
   className,
 }: FilterChipsProps) {
-  const [value, setValue] = useState(defaultValue ?? options[0]?.value);
+  const [own, setOwn] = useState(defaultValue ?? options[0]?.value);
+  const value = controlled ?? own;
+  const setValue = (next: string) => {
+    setOwn(next);
+    onChange?.(next);
+  };
 
   return (
     <div

@@ -4,7 +4,7 @@ import { useQueries } from "@tanstack/react-query";
 import { z } from "zod";
 
 import type { CategoryBudget, Transaction } from "@/features/gastos/data";
-import { apiRequest } from "@/lib/api";
+import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate } from "@/lib/format";
 import {
   MONTHS,
@@ -650,31 +650,47 @@ export function toHomeView(
   };
 }
 
+/** Endereços que o Início lê (os mesmos que o pré-carregamento busca antes de abrir a tela). */
+export function homePaths(now: Date) {
+  const month = formatDate(now, "yyyy-MM");
+  return {
+    dashboard: "/v1/dashboard",
+    daily: `/v1/insights/spending/daily?month=${month}`,
+    // 12 meses: o resumo compara os dois últimos e o gráfico do ano usa os de janeiro para cá.
+    monthly: "/v1/insights/spending/monthly?months=12",
+    spending: `/v1/insights/spending?month=${month}`,
+    budgets: "/v1/budgets/summary",
+    transactions: "/v1/transactions?limit=5",
+    anomalies: "/v1/anomalies?status=pending",
+    subscriptions: "/v1/subscriptions?status=active",
+    allocation: "/v1/investments/allocation",
+    goals: "/v1/goals",
+    categories: "/v1/categories",
+    me: "/v1/me",
+  } satisfies Record<string, ApiPath>;
+}
+
 /** Busca tudo o que o Início mostra. `data` fica `undefined` enquanto carrega. */
 export function useHomeView({ enabled }: { enabled: boolean }) {
   const now = new Date();
-  const month = formatDate(now, "yyyy-MM");
-  const get = <T>(path: `/v1/${string}`, schema: z.ZodType<T>, staleTime = 60_000) => ({
-    queryKey: ["inicio", path],
-    queryFn: ({ signal }: { signal: AbortSignal }) => apiRequest(path, schema, { signal }),
-    enabled,
-    staleTime,
+  const paths = homePaths(now);
+  const get = <T>(path: ApiPath, schema: z.ZodType<T>, staleTime?: number) => ({
+    ...apiQuery(path, schema, { enabled, staleTime }),
   });
   const results = useQueries({
     queries: [
-      get("/v1/dashboard", DashboardSchema),
-      get(`/v1/insights/spending/daily?month=${month}`, DailySchema),
-      // 12 meses: o resumo compara os dois últimos e o gráfico do ano usa os de janeiro para cá.
-      get("/v1/insights/spending/monthly?months=12", MonthlySchema),
-      get(`/v1/insights/spending?month=${month}`, SpendingSchema),
-      get("/v1/budgets/summary", BudgetSummarySchema),
-      get("/v1/transactions?limit=5", TransactionsSchema),
-      get("/v1/anomalies?status=pending", AnomaliesSchema),
-      get("/v1/subscriptions?status=active", SubscriptionsSchema),
-      get("/v1/investments/allocation", AllocationSchema),
-      get("/v1/goals", GoalsSchema),
-      get("/v1/categories", CategoriesSchema, 30 * 60_000),
-      get("/v1/me", MeSchema, 30 * 60_000),
+      get(paths.dashboard, DashboardSchema),
+      get(paths.daily, DailySchema),
+      get(paths.monthly, MonthlySchema),
+      get(paths.spending, SpendingSchema),
+      get(paths.budgets, BudgetSummarySchema),
+      get(paths.transactions, TransactionsSchema),
+      get(paths.anomalies, AnomaliesSchema),
+      get(paths.subscriptions, SubscriptionsSchema),
+      get(paths.allocation, AllocationSchema),
+      get(paths.goals, GoalsSchema),
+      get(paths.categories, CategoriesSchema, 30 * 60_000),
+      get(paths.me, MeSchema, 30 * 60_000),
     ] as const,
   });
   const error = results.find((result) => result.error)?.error ?? null;

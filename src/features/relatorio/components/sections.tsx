@@ -17,16 +17,9 @@ import { Panel, PanelHeader, panelLinkClass } from "@/components/ui/panel";
 import { Tag } from "@/components/ui/tag";
 import { cn } from "@/lib/utils";
 
-import {
-  categoryComparison,
-  monthComparison,
-  outflowBreakdown,
-  reportPeriod,
-  timeline,
-  totals,
-  type TimelineEntry,
-} from "../data";
-import { BalanceChart, WeeklyFlowChart, type ReportChartVariant } from "./charts";
+import { prototypeReport } from "../data";
+import type { ReportStat, ReportView, TextPart, TimelineEntry } from "../view";
+import { BalanceChart, FlowChart, type ReportChartVariant } from "./charts";
 import { barWidth } from "@/lib/bar-width";
 
 const toneText = {
@@ -38,7 +31,34 @@ const toneText = {
   caption: "text-caption",
 } as const;
 
-type StateProps = { state?: ScreenState | null };
+type StateProps = { state?: ScreenState | null; view?: ReportView };
+
+/** Texto montado, com os trechos fortes em negrito. */
+function Parts({ parts }: { parts: TextPart[] }) {
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.forte ? (
+          <strong key={i} className="text-sand">
+            {part.texto}
+          </strong>
+        ) : (
+          <span key={i}>{part.texto}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+function Stats({ stats }: { stats: ReportStat[] }) {
+  return (
+    <>
+      {stats.map((stat) => (
+        <Stat key={stat.label} {...stat} />
+      ))}
+    </>
+  );
+}
 
 const offline = (state: ScreenState | null | undefined, text: ReactNode) =>
   state === "sem-internet" ? <span className="text-tucano">{OFFLINE_NOTE}</span> : text;
@@ -48,7 +68,8 @@ const cardState = (state: ScreenState | null | undefined, main?: ReactNode) =>
   state === "erro" ? <ErrorBlock /> : state === "vazio" ? (main ?? <NoDataBlock />) : null;
 
 /** Entrou, saiu e sobrou, com a divisão do que saiu por categoria. */
-export function TotalsCard({ state }: StateProps) {
+export function TotalsCard({ state, view = prototypeReport }: StateProps) {
+  const { totals, breakdown: outflowBreakdown } = view;
   return (
     <Panel className="gap-4">
       <StateSwap
@@ -78,7 +99,7 @@ export function TotalsCard({ state }: StateProps) {
               >
                 {item.value}
               </span>
-              {"note" in item && (
+              {item.note && (
                 <span className="text-13 text-caption @tab:hidden @desk:inline">{item.note}</span>
               )}
             </div>
@@ -181,27 +202,22 @@ const noMovements = (
   </StateBlock>
 );
 
-/** Saldo dia a dia e entradas e saídas por semana. */
-export function BalanceCard({ state }: StateProps) {
+/** Saldo ponto a ponto e entradas e saídas por grupo (dia, semana ou mês). */
+export function BalanceCard({ state, view = prototypeReport }: StateProps) {
+  const { balance, flow, period } = view;
   return (
     <Panel className="gap-4 p-4 @tab:p-5 @desk:p-6">
       <PanelHeader
         title="Como o saldo andou"
-        subtitle={offline(state, `${reportPeriod.range} · ${reportPeriod.scope}`)}
+        subtitle={offline(state, `${period.range} · ${period.scope}`)}
       />
       <StateSwap replacement={cardState(state, noMovements)} className="grow">
         <div className="grid grid-cols-1 items-stretch gap-4 @desk:grid-cols-2">
           <ChartBlock
-            title="Saldo dia a dia"
-            subtitle="Sobe com o que entra e desce com o que sai"
-            stats={
-              <>
-                <Stat label="Começou o mês" value="R$ 10.192,79" tone="sand" />
-                <Stat label="Hoje" value="R$ 12.480,32" tone="sand" />
-                <Stat label="Previsão dia 30" value="≈ R$ 11.900" tone="arara" />
-              </>
-            }
-            chart={(variant) => <BalanceChart variant={variant} />}
+            title={balance.title}
+            subtitle={balance.subtitle}
+            stats={<Stats stats={balance.stats} />}
+            chart={(variant) => <BalanceChart variant={variant} series={balance.series} />}
             legend={
               <>
                 <LegendItem
@@ -211,63 +227,56 @@ export function BalanceCard({ state }: StateProps) {
                 >
                   Saldo
                 </LegendItem>
-                <LegendItem
-                  swatch={
-                    <span
-                      aria-hidden="true"
-                      className="w-4.5 border-t-2 border-dashed border-arara"
-                    />
-                  }
-                >
-                  Projeção até o dia 30
-                </LegendItem>
-                <LegendItem
-                  swatch={
-                    <span
-                      aria-hidden="true"
-                      className="size-3.5 rounded-full border-2 border-arara"
-                    />
-                  }
-                >
-                  Maiores entradas
-                </LegendItem>
-                <LegendItem
-                  swatch={
-                    <span
-                      aria-hidden="true"
-                      className="size-3.5 rounded-full border-2 border-urucum"
-                    />
-                  }
-                >
-                  Maior saída
-                </LegendItem>
+                {balance.projectionLegend && (
+                  <LegendItem
+                    swatch={
+                      <span
+                        aria-hidden="true"
+                        className="w-4.5 border-t-2 border-dashed border-arara"
+                      />
+                    }
+                  >
+                    {balance.projectionLegend}
+                  </LegendItem>
+                )}
+                {balance.series.events.some((event) => event.tone === "arara") && (
+                  <LegendItem
+                    swatch={
+                      <span
+                        aria-hidden="true"
+                        className="size-3.5 rounded-full border-2 border-arara"
+                      />
+                    }
+                  >
+                    Maiores entradas
+                  </LegendItem>
+                )}
+                {balance.series.events.some((event) => event.tone === "urucum") && (
+                  <LegendItem
+                    swatch={
+                      <span
+                        aria-hidden="true"
+                        className="size-3.5 rounded-full border-2 border-urucum"
+                      />
+                    }
+                  >
+                    Maior saída
+                  </LegendItem>
+                )}
               </>
             }
-            footer={
-              <>
-                O saldo deve fechar <strong className="text-sand">R$ 1.707 acima</strong> do começo
-                do mês.
-              </>
-            }
+            footer={<Parts parts={balance.footer} />}
           />
           <ChartBlock
-            title="Entradas e saídas por semana"
+            title={flow.title}
             subtitle={
               <>
-                <span className="@tab:hidden">Em R$ mil, por semana de setembro</span>
-                <span className="hidden @tab:inline">
-                  Quanto entrou e saiu em cada semana de setembro
-                </span>
+                <span className="@tab:hidden">{flow.subtitle.short}</span>
+                <span className="hidden @tab:inline">{flow.subtitle.long}</span>
               </>
             }
-            stats={
-              <>
-                <Stat label="Entrou" value="R$ 8.200,00" tone="arara" />
-                <Stat label="Saiu" value="R$ 5.912,47" tone="urucum" />
-                <Stat label="Semana mais cara" value="22 a 23 set" tone="sand" />
-              </>
-            }
-            chart={(variant) => <WeeklyFlowChart variant={variant} />}
+            stats={<Stats stats={flow.stats} />}
+            chart={(variant) => <FlowChart variant={variant} series={flow.series} />}
             legend={
               <>
                 <LegendItem
@@ -280,15 +289,10 @@ export function BalanceCard({ state }: StateProps) {
                 >
                   Saídas
                 </LegendItem>
-                <span className="text-caption">*semana em andamento</span>
+                {flow.partialNote && <span className="text-caption">{flow.partialNote}</span>}
               </>
             }
-            footer={
-              <>
-                A última semana já soma <strong className="text-sand">R$ 1.772</strong> em dois
-                dias, por causa da compra de eletrônicos.
-              </>
-            }
+            footer={<Parts parts={flow.footer} />}
           />
         </div>
       </StateSwap>
@@ -318,7 +322,8 @@ function OutlierTag({ className }: { className?: string }) {
 }
 
 /** Os movimentos que mais mexeram no saldo, em ordem do mais recente. */
-export function TimelineCard({ state }: StateProps) {
+export function TimelineCard({ state, view = prototypeReport }: StateProps) {
+  const { entries: timeline, more } = view.timeline;
   const replacement =
     state === "vazio-filtro" ? (
       <FilterEmptyBlock>Nenhum movimento do Itaú na categoria Lazer em setembro.</FilterEmptyBlock>
@@ -347,7 +352,7 @@ export function TimelineCard({ state }: StateProps) {
         {!replacement && (
           <Link href="/relatorio/linha-do-tempo" className={panelLinkClass}>
             <span className="@tab:hidden @desk:inline">Todos</span>
-            <span className="hidden @tab:inline @desk:hidden">Ver 118 lançamentos</span>
+            <span className="hidden @tab:inline @desk:hidden">{more}</span>
             <Icon name="chevron-right" size={16} />
           </Link>
         )}
@@ -400,12 +405,13 @@ export function TimelineCard({ state }: StateProps) {
   );
 }
 
-/** Variação por categoria e o acumulado até hoje contra o mesmo dia de agosto. */
-export function ComparisonCard({ state }: StateProps) {
+/** Variação por categoria e o acumulado até hoje contra o mesmo dia do mês passado. */
+export function ComparisonCard({ state, view = prototypeReport }: StateProps) {
+  const { title, categories: categoryComparison, until, groups, footer } = view.comparison;
   return (
     <Panel className="gap-1.5">
       <h2 className="m-0 font-display text-20 leading-[1.25] font-bold tracking-[-0.01em]">
-        Comparado com agosto
+        {title}
       </h2>
       <StateSwap replacement={cardState(state)} className="grow gap-1.5">
         <ul className="m-0 list-none p-0">
@@ -426,8 +432,8 @@ export function ComparisonCard({ state }: StateProps) {
           ))}
         </ul>
         <div className="mt-auto flex flex-col gap-3.5 rounded-tile bg-field p-4">
-          <span className="text-13 text-caption">Até o dia 23, em cada mês</span>
-          {monthComparison.map((group) => (
+          <span className="text-13 text-caption">{until}</span>
+          {groups.map((group) => (
             <div key={group.label} className="flex flex-col gap-1.5">
               <div className="flex justify-between gap-3 text-14">
                 <strong>{group.label}</strong>
@@ -435,13 +441,8 @@ export function ComparisonCard({ state }: StateProps) {
               </div>
               <div className="grid grid-cols-[4rem_minmax(0,1fr)_6rem] items-center gap-2.5 text-13 text-mist">
                 {[
-                  { month: "Setembro", ...group.current, color: group.color, strong: "text-sand" },
-                  {
-                    month: "Agosto",
-                    ...group.previous,
-                    color: "var(--guara-caption)",
-                    strong: "text-mist",
-                  },
+                  { ...group.current, color: group.color, strong: "text-sand" },
+                  { ...group.previous, color: "var(--guara-caption)", strong: "text-mist" },
                 ].map((row) => (
                   <MonthBar key={row.month} {...row} />
                 ))}
@@ -449,8 +450,7 @@ export function ComparisonCard({ state }: StateProps) {
             </div>
           ))}
           <p className="m-0 text-13 leading-normal text-mist">
-            Sem a compra de eletrônicos, as saídas ficariam{" "}
-            <strong className="text-sand">R$ 238 abaixo</strong> de agosto.
+            <Parts parts={footer} />
           </p>
         </div>
       </StateSwap>

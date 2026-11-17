@@ -15,6 +15,9 @@ import { BottomNav } from "./bottom-nav";
 import { ChatOverlay, ChatPanel } from "./chat-panel";
 import { CHAT_WIDTH, HISTORY_WIDTH } from "./chat-sizes";
 import { ConversarFabCompact } from "./conversar-fab";
+import { useSession } from "@/features/acesso/session";
+import { usePrefetchScreens } from "@/features/prefetch/use-prefetch-screens";
+
 import { HistoryHandle, HistoryPanel } from "./history-panel";
 import { Rail } from "./rail";
 import { SettingsEffects } from "./settings-effects";
@@ -33,6 +36,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const handle = useHandleVisibility(pathname);
   useCloseChatOnAccountPages(pathname);
+  // Com a tela aberta pronta, as outras abas do menu já vêm por trás.
+  usePrefetchScreens();
   return (
     <div className="relative flex min-h-dvh">
       <Sidebar className="hidden lg:flex" />
@@ -136,6 +141,8 @@ function ShellChromeFromUrl({ pathname }: { pathname: string }) {
 /** Painel de conversas, chat por cima, botões "Conversar" e barra inferior de cada rota. */
 function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
   const config = shellConfig(pathname, { novo });
+  // A conversa fixa do Relatório no tablet é um exemplo do protótipo; com login, o chat comum.
+  const { live } = useSession();
   const open = useChatPanel((state) => state.open);
   const historyHidden = useChatPanel((state) => state.historyHidden);
   // O X do histórico tira o painel da direita; fica um atalho pequeno na borda para reabrir.
@@ -150,7 +157,7 @@ function ShellChrome({ pathname, novo }: { pathname: string; novo: boolean }) {
 
   return (
     <>
-      {config.tabletChat && !(chatAvailable && open === true) && (
+      {config.tabletChat && !live && !(chatAvailable && open === true) && (
         <ReportChatAside className="hidden min-[68.75rem]:flex lg:hidden" />
       )}
       {/*

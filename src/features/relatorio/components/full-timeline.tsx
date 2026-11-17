@@ -16,16 +16,18 @@ export function TimelineDays({ days }: { days: TimelineDay[] }) {
               className="absolute top-1 -left-[1.4375rem] size-3 rounded-full border-2 border-tucano bg-canvas"
             />
             <h3 className="m-0 text-13 font-extrabold tracking-[.06em] uppercase">{day.dia}</h3>
-            <span className="text-12 whitespace-nowrap text-caption">
-              {"saldo no fim do dia "}
-              <strong className="text-mist tabular-nums">{day.saldo}</strong>
-            </span>
+            {day.saldo && (
+              <span className="text-12 whitespace-nowrap text-caption">
+                {"saldo no fim do dia "}
+                <strong className="text-mist tabular-nums">{day.saldo}</strong>
+              </span>
+            )}
           </div>
           <RowList>
             {day.itens.map((item) => (
               <ListRow
-                key={item.titulo}
-                href="/gastos/lancamentos"
+                key={item.id ?? item.titulo}
+                href={item.href ?? "/gastos/lancamentos"}
                 title={item.titulo}
                 meta={item.meta}
                 extra={

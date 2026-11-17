@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 
 import { subscriptionStats } from "../data";
 
+export type SubscriptionStatsData = typeof subscriptionStats;
+
 function Stat({
   label,
   value,
@@ -40,8 +42,14 @@ function Stat({
  * Faixa do topo de Assinaturas: quantas estão ativas, o gasto do mês, a projeção para o ano e a
  * média por serviço. Duas colunas no celular, quatro a partir do tablet.
  */
-export function SubscriptionStats({ className }: { className?: string }) {
-  const { ativas, mensal, anual, media } = subscriptionStats;
+export function SubscriptionStats({
+  className,
+  stats = subscriptionStats,
+}: {
+  className?: string;
+  stats?: SubscriptionStatsData;
+}) {
+  const { ativas, mensal, anual, media } = stats;
   return (
     <section
       aria-label="Resumo das assinaturas"

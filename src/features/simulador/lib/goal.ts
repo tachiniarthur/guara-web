@@ -15,7 +15,13 @@ const depositFor = ({ cost, months, saved, rate }: GoalInput) =>
   ceilToTens(requiredDeposit(cost, saved, rate, months));
 
 /** Everything the goal tab shows, from the premises. */
-export function simulateGoal(input: GoalInput, surplus: number, cutSavings: number) {
+/** `reserveMonthly`: depósito mensal da reserva de emergência (0 sem reserva). */
+export function simulateGoal(
+  input: GoalInput,
+  surplus: number,
+  cutSavings: number,
+  reserveMonthly: number = RESERVE.monthly,
+) {
   const { cost, months, saved, rate } = input;
   const deposit = depositFor(input);
   const final = futureValue(saved, deposit, rate, months);
@@ -24,7 +30,7 @@ export function simulateGoal(input: GoalInput, surplus: number, cutSavings: numb
 
   return {
     deposit,
-    surplusShare: (deposit / surplus) * 100,
+    surplusShare: surplus > 0 ? (deposit / surplus) * 100 : 0,
     points: projection(saved, deposit, rate, months, 1),
     final,
     composition: { saved, deposits, yield: final - saved - deposits },
@@ -51,12 +57,12 @@ export function simulateGoal(input: GoalInput, surplus: number, cutSavings: numb
         months: monthsWith(saved, deposit + cutSavings),
       },
       {
-        title: "Começar com R$ 8.000",
+        title: `Começar com ${reais(saved + 4000)}`,
         note: "usando parte da reserva",
         months: monthsWith(saved + 4000, deposit),
       },
     ],
-    withReserve: deposit + RESERVE.monthly,
+    withReserve: deposit + reserveMonthly,
   };
 }
 

@@ -3,7 +3,7 @@
 import { useQueries } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { apiRequest } from "@/lib/api";
+import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate } from "@/lib/format";
 import {
   MONTHS,
@@ -454,30 +454,46 @@ const monthOf = (now: Date, back: number) => {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 };
 
+/** Endereços que a tela Gastos lê (os mesmos que o pré-carregamento busca). */
+export function gastosPaths(now: Date) {
+  const daily = (back: number): ApiPath =>
+    `/v1/insights/spending/daily?month=${monthOf(now, back)}`;
+  return {
+    current: daily(0),
+    previous: daily(1),
+    older2: daily(2),
+    older3: daily(3),
+    // Os 12 meses que o Início também pede (uma chamada só); o gráfico usa os últimos 6.
+    monthly: "/v1/insights/spending/monthly?months=12",
+    summary: `/v1/insights/spending?month=${monthOf(now, 0)}`,
+    budgets: "/v1/budgets/summary",
+    transactions: "/v1/transactions?limit=8",
+    anomalies: "/v1/anomalies?status=pending",
+    accounts: "/v1/accounts",
+    categories: "/v1/categories",
+  } satisfies Record<string, ApiPath>;
+}
+
 /** Busca tudo o que a tela Gastos mostra. `data` fica `undefined` enquanto carrega. */
 export function useGastosView({ enabled }: { enabled: boolean }) {
   const now = new Date();
-  const get = <T>(path: `/v1/${string}`, schema: z.ZodType<T>, staleTime = 60_000) => ({
-    queryKey: ["gastos", path],
-    queryFn: ({ signal }: { signal: AbortSignal }) => apiRequest(path, schema, { signal }),
-    enabled,
-    staleTime,
+  const paths = gastosPaths(now);
+  const get = <T>(path: ApiPath, schema: z.ZodType<T>, staleTime?: number) => ({
+    ...apiQuery(path, schema, { enabled, staleTime }),
   });
-  const daily = (back: number) =>
-    get(`/v1/insights/spending/daily?month=${monthOf(now, back)}`, DailySchema);
   const results = useQueries({
     queries: [
-      daily(0),
-      daily(1),
-      daily(2),
-      daily(3),
-      get("/v1/insights/spending/monthly?months=6", MonthlySchema),
-      get(`/v1/insights/spending?month=${monthOf(now, 0)}`, SummarySchema),
-      get("/v1/budgets/summary", BudgetSummarySchema),
-      get("/v1/transactions?limit=8", TransactionsSchema),
-      get("/v1/anomalies?status=pending", AnomaliesSchema),
-      get("/v1/accounts", AccountsSchema),
-      get("/v1/categories", CategoriesSchema, 30 * 60_000),
+      get(paths.current, DailySchema),
+      get(paths.previous, DailySchema),
+      get(paths.older2, DailySchema),
+      get(paths.older3, DailySchema),
+      get(paths.monthly, MonthlySchema),
+      get(paths.summary, SummarySchema),
+      get(paths.budgets, BudgetSummarySchema),
+      get(paths.transactions, TransactionsSchema),
+      get(paths.anomalies, AnomaliesSchema),
+      get(paths.accounts, AccountsSchema),
+      get(paths.categories, CategoriesSchema, 30 * 60_000),
     ] as const,
   });
   const error = results.find((result) => result.error)?.error ?? null;
@@ -516,7 +532,7 @@ export function useGastosView({ enabled }: { enabled: boolean }) {
           current,
           previous,
           older: [older2, older3],
-          monthly,
+          monthly: { ...monthly, months: monthly.months.slice(-6) },
           summary,
           budgets,
           transactions,

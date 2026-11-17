@@ -1,3 +1,7 @@
+import type { ReportView, TimelineEntry } from "./view";
+
+export type { TimelineEntry } from "./view";
+
 /** Relatório de setembro (1 a 23), com todos os bancos. */
 
 export const reportPeriod = {
@@ -75,15 +79,6 @@ export const weeklyFlow = {
   ],
   label:
     "Entradas e saídas por semana: semana 1 entrou R$ 7.200 e saiu R$ 2.350; semana 2 saiu R$ 1.010; semana 3 entrou R$ 1.000 e saiu R$ 780; dias 22 e 23 saiu R$ 1.772.",
-};
-
-export type TimelineEntry = {
-  date: string;
-  title: string;
-  detail: string;
-  amount: string;
-  tone: "urucum" | "arara" | "neutral";
-  outlier?: boolean;
 };
 
 export const timeline: TimelineEntry[] = [
@@ -178,8 +173,16 @@ export const monthComparison = [
 /** Linha do tempo completa: dias com saldo no fim do dia e os lançamentos (alguns agrupados). */
 export type TimelineDay = {
   dia: string;
-  saldo: string;
-  itens: { titulo: string; meta: string; valor: string; foraDoPadrao?: boolean }[];
+  /** Saldo no fim do dia; sem ele (períodos por mês), a linha não mostra saldo. */
+  saldo?: string;
+  itens: {
+    id?: string;
+    titulo: string;
+    meta: string;
+    valor: string;
+    foraDoPadrao?: boolean;
+    href?: string;
+  }[];
 };
 
 export const fullTimeline: TimelineDay[] = [
@@ -291,3 +294,122 @@ export const timelineTotals = [
   { label: "Saiu", value: "−R$ 5.912,47" },
   { label: "Hoje", value: "R$ 12.480,32", tone: "text-tucano" },
 ];
+
+/** O relatório do protótipo no formato da tela (o modo real monta o mesmo com a API). */
+export const prototypeReport: ReportView = {
+  period: reportPeriod,
+  empty: false,
+  totals: totals.map((item) => ({ ...item })),
+  breakdown: outflowBreakdown,
+  balance: {
+    title: "Saldo dia a dia",
+    subtitle: "Sobe com o que entra e desce com o que sai",
+    stats: [
+      { label: "Começou o mês", value: "R$ 10.192,79", tone: "sand" },
+      { label: "Hoje", value: "R$ 12.480,32", tone: "sand" },
+      { label: "Previsão dia 30", value: "≈ R$ 11.900", tone: "arara" },
+    ],
+    series: {
+      values: dailyBalance.values,
+      projection: dailyBalance.projection,
+      titles: dailyBalance.values.map((_, i) =>
+        i + 1 === dailyBalance.today ? `Hoje, dia ${dailyBalance.today}` : `Dia ${i + 1}`,
+      ),
+      projectionTitles: dailyBalance.projection
+        .slice(1)
+        .map((_, i) => `Dia ${dailyBalance.today + i + 1} (previsão)`),
+      events: dailyBalance.events.map(({ day, ...event }) => ({ ...event, index: day - 1 })),
+      axis: [
+        ...dailyBalance.axisDays
+          .filter((day) => day !== dailyBalance.today)
+          .map((day) => ({ index: day - 1, label: String(day) })),
+        { index: dailyBalance.today - 1, label: "hoje", strong: true },
+      ],
+      label: dailyBalance.label,
+    },
+    projectionLegend: "Projeção até o dia 30",
+    footer: [
+      { texto: "O saldo deve fechar " },
+      { texto: "R$ 1.707 acima", forte: true },
+      { texto: " do começo do mês." },
+    ],
+  },
+  flow: {
+    title: "Entradas e saídas por semana",
+    subtitle: {
+      short: "Em R$ mil, por semana de setembro",
+      long: "Quanto entrou e saiu em cada semana de setembro",
+    },
+    stats: [
+      { label: "Entrou", value: "R$ 8.200,00", tone: "arara" },
+      { label: "Saiu", value: "R$ 5.912,47", tone: "urucum" },
+      { label: "Semana mais cara", value: "22 a 23 set", tone: "sand" },
+    ],
+    series: { groups: weeklyFlow.weeks, label: weeklyFlow.label },
+    partialNote: "*semana em andamento",
+    footer: [
+      { texto: "A última semana já soma " },
+      { texto: "R$ 1.772", forte: true },
+      { texto: " em dois dias, por causa da compra de eletrônicos." },
+    ],
+  },
+  timeline: { entries: timeline, more: "Ver 118 lançamentos" },
+  comparison: {
+    title: "Comparado com agosto",
+    categories: categoryComparison.map((item) => ({ ...item })),
+    until: "Até o dia 23, em cada mês",
+    groups: monthComparison.map((group) => ({
+      ...group,
+      current: { month: "Setembro", ...group.current },
+      previous: { month: "Agosto", ...group.previous },
+    })),
+    footer: [
+      { texto: "Sem a compra de eletrônicos, as saídas ficariam " },
+      { texto: "R$ 238 abaixo", forte: true },
+      { texto: " de agosto." },
+    ],
+  },
+};
+
+const dash = "—";
+
+/**
+ * O que o Relatório desenha (por baixo do carregando) enquanto a API não responde: o mesmo molde,
+ * sem nenhum número de exemplo.
+ */
+export const placeholderReport: ReportView = {
+  period: { ...reportPeriod, range: "Carregando…" },
+  empty: false,
+  totals: [
+    { label: "Entrou", value: dash, tone: "arara" },
+    { label: "Saiu", value: dash, tone: "sand" },
+    { label: "Sobrou", value: dash, tone: "folha" },
+  ],
+  breakdown: [],
+  balance: {
+    title: "Saldo",
+    subtitle: dash,
+    stats: [],
+    series: {
+      values: [0, 0],
+      projection: [],
+      titles: [],
+      projectionTitles: [],
+      events: [],
+      axis: [],
+      label: "Carregando o saldo",
+    },
+    projectionLegend: null,
+    footer: [],
+  },
+  flow: {
+    title: "Entradas e saídas",
+    subtitle: { short: dash, long: dash },
+    stats: [],
+    series: { groups: [], label: "Carregando as entradas e saídas" },
+    partialNote: null,
+    footer: [],
+  },
+  timeline: { entries: [], more: "Ver todos" },
+  comparison: { title: "Comparação", categories: [], until: dash, groups: [], footer: [] },
+};

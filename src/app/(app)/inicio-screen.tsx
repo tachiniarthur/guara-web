@@ -26,7 +26,8 @@ import { SummaryCard } from "@/features/inicio/components/summary-card";
 import { useSession } from "@/features/acesso/session";
 import { useHomeView } from "@/features/inicio/live";
 import { useUser, withFirstName } from "@/features/usuario/live";
-import { greeting } from "@/lib/live-format";
+import { formatDate } from "@/lib/format";
+import { capitalize, greeting, monthLabels } from "@/lib/live-format";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { HOME_BLOCKS } from "@/features/inicio/layout";
 import { EditableGrid } from "@/features/layout/components/editable-grid";
@@ -54,8 +55,17 @@ export function InicioScreen({ estado }: { estado?: string }) {
   const loading = state === "carregando";
   const view = home.data;
   const notificacoes = view ? view.notificacoes : user.notificacoesNovas;
-  const pendencias = view ? view.pendencias : 3;
-  const mes = view?.mes ?? { name: "setembro", short: "Set 2026", long: "Setembro 2026" };
+  // Com login, enquanto a API responde: o mês e a data de hoje, sem contar pendências.
+  const now = new Date();
+  const pendencias = view ? view.pendencias : live ? null : 3;
+  const mes =
+    view?.mes ??
+    (live ? monthLabels(now) : { name: "setembro", short: "Set 2026", long: "Setembro 2026" });
+  const hoje = view
+    ? view.data
+    : live
+      ? capitalize(formatDate(now, "EEEE, d 'de' MMMM").replace("-feira", ""))
+      : "Quarta, 23 de setembro";
   /** Seção sem nenhum bloco à vista some fora da edição (na edição, mostra onde ficaria). */
   const sectionShown = (group: string) =>
     layout.editing ||
@@ -92,7 +102,9 @@ export function InicioScreen({ estado }: { estado?: string }) {
               }
             />
             <CardBody className="grow">
-              <CategoryBudgetList items={view ? view.categoryBudgets : categoryBudgets} />
+              <CategoryBudgetList
+                items={view ? view.categoryBudgets : live ? [] : categoryBudgets}
+              />
             </CardBody>
           </Card>
         );
@@ -103,12 +115,12 @@ export function InicioScreen({ estado }: { estado?: string }) {
               title="Últimos lançamentos"
               action={
                 <CardAction>
-                  <TextLink href="/gastos">{view ? "Ver todos" : "Ver os 118"}</TextLink>
+                  <TextLink href="/gastos">{live ? "Ver todos" : "Ver os 118"}</TextLink>
                 </CardAction>
               }
             />
             <CardBody className="grow">
-              <TransactionList items={view ? view.recent : recentTransactions} />
+              <TransactionList items={view ? view.recent : live ? [] : recentTransactions} />
             </CardBody>
           </Card>
         );
@@ -149,11 +161,13 @@ export function InicioScreen({ estado }: { estado?: string }) {
                   `${withFirstName(live ? greeting(new Date()) : "Boa tarde", user.nome)}.`
             }
             subtitle={
-              pendencias === 0 ? (
-                <>{view ? view.data : "Quarta, 23 de setembro"} · nada precisa da sua atenção.</>
+              pendencias === null ? (
+                <>{hoje}</>
+              ) : pendencias === 0 ? (
+                <>{hoje} · nada precisa da sua atenção.</>
               ) : (
                 <>
-                  {view ? view.data : "Quarta, 23 de setembro"} ·{" "}
+                  {hoje} ·{" "}
                   <strong className="text-sand">
                     {pendencias === 1 ? "1 item" : `${pendencias} itens`}
                   </strong>{" "}
@@ -164,25 +178,36 @@ export function InicioScreen({ estado }: { estado?: string }) {
           />
 
           <div className="flex w-full items-center justify-between gap-2.5 @tab:w-auto @tab:justify-start @tab:gap-3">
-            <SegmentedControl
-              label="Como ver os bancos"
-              itemClassName="px-3 @tab:px-4"
-              options={[
-                { value: "junto", label: "Tudo junto" },
-                { value: "banco", label: "Por banco" },
-              ]}
-            />
-            <button
-              type="button"
-              aria-haspopup="dialog"
-              aria-label={`Mês: ${mes.long.toLowerCase().replace(" ", " de ")}`}
-              className="flex h-12 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-15 font-semibold whitespace-nowrap @tab:px-4.5"
-            >
-              <Icon name="calendar" size={18} className="hidden @tab:block" />
-              <span className="@tab:hidden">{mes.short}</span>
-              <span className="hidden @tab:inline">{mes.long}</span>
-              <Icon name="chevron-down" size={16} />
-            </button>
+            {/* "Por banco" e a troca de mês ainda são só do protótipo: com login, o mês atual. */}
+            {!live && (
+              <SegmentedControl
+                label="Como ver os bancos"
+                itemClassName="px-3 @tab:px-4"
+                options={[
+                  { value: "junto", label: "Tudo junto" },
+                  { value: "banco", label: "Por banco" },
+                ]}
+              />
+            )}
+            {live ? (
+              <span className="flex h-12 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-15 font-semibold whitespace-nowrap @tab:px-4.5">
+                <Icon name="calendar" size={18} className="hidden @tab:block" />
+                <span className="@tab:hidden">{mes.short}</span>
+                <span className="hidden @tab:inline">{mes.long}</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                aria-label={`Mês: ${mes.long.toLowerCase().replace(" ", " de ")}`}
+                className="flex h-12 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-15 font-semibold whitespace-nowrap @tab:px-4.5"
+              >
+                <Icon name="calendar" size={18} className="hidden @tab:block" />
+                <span className="@tab:hidden">{mes.short}</span>
+                <span className="hidden @tab:inline">{mes.long}</span>
+                <Icon name="chevron-down" size={16} />
+              </button>
+            )}
             <ShowValuesButton variant="pill" className="hidden @tab:flex" />
             <EditLayoutButton layout={layout} className="hidden h-12 @desk:inline-flex" />
             <EditLayoutButton layout={layout} compact className="h-12 @desk:hidden" />
@@ -205,11 +230,15 @@ export function InicioScreen({ estado }: { estado?: string }) {
               title={`Resumo de ${mes.name}`}
               subtitle="Como está o seu mês"
               aside={
-                view ? (
-                  view.atualizado && <span className="text-13 text-caption">{view.atualizado}</span>
-                ) : (
-                  <span className="text-13 text-caption">Atualizado há 5 min · 2 de 4 bancos</span>
-                )
+                view
+                  ? view.atualizado && (
+                      <span className="text-13 text-caption">{view.atualizado}</span>
+                    )
+                  : !live && (
+                      <span className="text-13 text-caption">
+                        Atualizado há 5 min · 2 de 4 bancos
+                      </span>
+                    )
               }
             />
             <Skeleton active={loading}>
