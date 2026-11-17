@@ -63,6 +63,23 @@ Clique no menu até a tela nova (ms):
   idênticas em texto, status e endereço. A diferença foi um erro de hidratação intermitente em
   `/investimentos/posicoes?estado=erro`, que não se repetiu em 6 tentativas nos dois builds.
 
+## Telas com dados da API (17/11/2026)
+
+Com login, as telas esperam a API. Para que a navegação não dependa disso a cada clique:
+
+- **Cache compartilhado por endereço** (`lib/api-query.ts`): o mesmo endereço é buscado uma vez para todas
+  as telas (ex.: `insights/spending/monthly?months=12` serve Início, Gastos, Metas, Simulador e Relatório).
+- **Pré-carregamento das abas** (`features/prefetch`): depois que a tela aberta carrega, as outras abas do
+  menu são buscadas por trás (3 chamadas por vez).
+- **Cópia do cache no navegador** (`lib/query-persist.ts`) e sessão otimista: ao reabrir o site, as telas
+  aparecem na hora com o que a pessoa viu da última vez e se atualizam por trás.
+
+Medição com Playwright, persona Marina, site local (`next dev`) e API local (a de teste no Render não
+respondia no dia): depois do Início, Gastos, Assinaturas, Investimentos, Simulador, Metas, Relatórios e
+Alertas abriram **sem nenhuma chamada nova à API**. No Relatório, trocar o período levou 100–300 ms (7 dias
+na primeira vez, ~0,5–1 s, por buscar o mês anterior). O que sobra de espera é o tempo da própria API na
+primeira visita (no Render gratuito, de 1 a 5 s por chamada e até ~1 min para acordar).
+
 ## Atenção na medição
 
 O primeiro desenho num canvas leva ~4 ms normalmente, mas ~2.100 ms no Chrome headless com a CPU
@@ -71,6 +88,10 @@ desacelerada pelo DevTools (inicialização gráfica). Com CPU 4× mais lenta, I
 desaceleração de CPU.
 
 ## Pendências
+
+- **Tempo da API de teste:** Render gratuito na Virgínia e banco em São Paulo; cada chamada leva de 1 a 5 s
+  e a primeira depois de parada, até ~1 min. O cache e o pré-carregamento escondem isso depois da primeira
+  tela; para a primeira, só plano pago ou API mais perto do banco.
 
 - **API no plano gratuito do Render:** dorme após 15 min sem uso; a primeira chamada levou 33,6 s
   (as seguintes, ~0,5 s). Com login de verdade, isso aparece como "Preparando sua conta…" ao abrir
