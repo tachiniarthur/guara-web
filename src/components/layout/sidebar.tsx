@@ -3,12 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { GuaraAvatar } from "@/components/ui/guara-avatar";
 import { CountBadge } from "@/components/ui/count-badge";
 import { Icon } from "@/components/ui/icon";
-import { OpenChat } from "@/features/conversas/components/open-chat";
 import { useSession } from "@/features/acesso/session";
-import { guara } from "@/features/guara/identity";
 import { useUser } from "@/features/usuario/live";
 import { isActive, mainNav } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
@@ -18,7 +15,10 @@ import { BrandLockup } from "./brand";
 import { UserInitials } from "./user-chip";
 import { MataArt } from "@/components/ui/mata-art";
 
-/** Menu lateral completo (janelas grandes): marca, destinos, o Guará e o card do usuário. */
+/**
+ * Menu lateral completo (janelas grandes): marca, destinos e o card do usuário. O Guará não fica
+ * aqui: o chat abre pelo atalho da borda direita.
+ */
 export function Sidebar({ className }: { className?: string }) {
   const user = useUser();
   const { live } = useSession();
@@ -61,18 +61,6 @@ export function Sidebar({ className }: { className?: string }) {
           );
         })}
       </ul>
-
-      {/* O Guará é o único assistente: o atalho abre uma conversa nova com ele. */}
-      <OpenChat
-        fresh
-        className="flex min-h-[4.5rem] w-full items-center gap-3 rounded-[1.125rem] border-none bg-transparent px-2.5 py-1.5 text-left text-sand hover:bg-shade"
-      >
-        <GuaraAvatar size={48} />
-        <span className="flex min-w-0 flex-col leading-[1.3]">
-          <strong className="text-15">{guara.nome}</strong>
-          <span className="text-13 text-caption">Pergunte sobre o seu dinheiro</span>
-        </span>
-      </OpenChat>
 
       {/* Espaço flexível: o card do usuário fica sempre no rodapé, sem rolagem no menu. */}
       <div className="min-h-0 grow" />

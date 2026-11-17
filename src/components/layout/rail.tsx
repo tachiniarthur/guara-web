@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { GuaraAvatar } from "@/components/ui/guara-avatar";
 import { Icon } from "@/components/ui/icon";
-import { guara } from "@/features/guara/identity";
-import { OpenChat } from "@/features/conversas/components/open-chat";
 import { useUser } from "@/features/usuario/live";
 import { isActive, mainNav } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
@@ -60,20 +57,6 @@ export function Rail({ className }: { className?: string }) {
           );
         })}
       </ul>
-
-      <div className="flex w-[4.5rem] flex-col items-center border-t border-line pt-3.5">
-        <OpenChat
-          fresh
-          aria-label={`Conversar com o ${guara.nome}`}
-          title={guara.nome}
-          className="flex min-h-11 w-[4.5rem] flex-col items-center gap-1 border-none bg-transparent p-0"
-        >
-          <GuaraAvatar size={40} variant="ring" className="landscape:size-8!" />
-          <span className="text-11 font-semibold whitespace-nowrap text-mist landscape:hidden">
-            {guara.curto}
-          </span>
-        </OpenChat>
-      </div>
 
       <div className="grow" />
 
