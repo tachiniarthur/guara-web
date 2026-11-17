@@ -14,10 +14,11 @@ const retryButtonClass =
   "inline-flex items-center justify-center gap-2 rounded-full border border-line-strong bg-card px-4.5 font-sans font-bold whitespace-nowrap text-sand no-underline hover:bg-shade";
 
 /** "Tentar de novo" dos blocos de erro (40px; 36px na versão compacta). */
-export function RetryButton({ compact }: { compact?: boolean }) {
+export function RetryButton({ compact, onClick }: { compact?: boolean; onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={cn(retryButtonClass, compact ? "h-9 text-13" : "h-10 text-14")}
     >
       <Icon name="retry" size={18} />

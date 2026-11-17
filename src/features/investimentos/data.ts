@@ -1,3 +1,5 @@
+import type { PerformancePeriod } from "./performance";
+
 export type Risk = "Baixo" | "Médio" | "Alto";
 export type Origin =
   | { tipo: "open-finance"; texto: string }
@@ -158,10 +160,10 @@ export interface PortfolioData {
   rentabilidade: {
     carteira: number[];
     cdi: (number | null)[];
-    /** Rótulos do eixo (um a cada dois meses). */
-    meses: string[];
-    /** Nome de cada mês da série ("nov", "dez"…); padrão: os do protótipo. */
+    /** Nome de cada mês da série ("nov", "dez"…; "nov/25" quando passa de um ano). O eixo mostra até 7. */
     rotulos?: string[];
+    /** Período da série; padrão: 12 meses. */
+    periodo?: PerformancePeriod;
   };
   stats: { id: string; rotulo: string; valor: string; detalhe: string; ganho?: boolean }[];
 }
@@ -178,7 +180,6 @@ export const portfolio: PortfolioData = {
   rentabilidade: {
     carteira: [0, 1.2, 0.6, 2.1, 3.4, 2.8, 4.9, 6.1, 5.4, 7.8, 9.2, 11.1],
     cdi: [0, 0.9, 1.8, 2.7, 3.6, 4.5, 5.4, 6.3, 7.2, 8.1, 9.0, 9.9],
-    meses: ["nov", "jan", "mar", "mai", "jul", "set"],
   },
   stats: [
     {

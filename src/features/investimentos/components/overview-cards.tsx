@@ -1,13 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { ChartFit } from "@/components/charts/chart-fit";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { chipClass } from "@/components/ui/chip";
 import { Icon } from "@/components/ui/icon";
 import { CardAction, CardBody, CardNote } from "@/components/states/screen-state-context";
-import { ErrorBlock, NoDataBlock } from "@/components/states/state-block";
+import {
+  CompactStateBlock,
+  ErrorBlock,
+  NoDataBlock,
+  RetryButton,
+} from "@/components/states/state-block";
 import { Panel, PanelHeader, panelLinkClass } from "@/components/ui/panel";
 import {
   donutSizes,
@@ -22,24 +28,64 @@ import { usePortfolioAllocation } from "@/features/alocacao/context";
 import { formatDiff, groups, offTargetGroups } from "@/features/alocacao/data";
 import { cn } from "@/lib/utils";
 
-import { useInvestimentosData } from "../context";
+import { useInvestimentosData, usePerformancePeriod } from "../context";
+import { PERFORMANCE_PERIODS, performanceTitle } from "../performance";
 import { PerformanceChart } from "./charts";
 
 type Variant = "desktop" | "tablet" | "mobile";
 
 function PeriodChips({ size }: { size: "md" | "sm" }) {
+  const { period, setPeriod } = usePerformancePeriod();
   return (
     <div role="group" aria-label="Período do gráfico" className="flex gap-1.5">
-      {["6M", "12M", "Tudo"].map((p) => (
+      {PERFORMANCE_PERIODS.map((p) => (
         <button
-          key={p}
+          key={p.value}
           type="button"
-          aria-pressed={p === "12M"}
-          className={cn(chipClass(p === "12M"), size === "sm" && "h-8 px-3 text-13 font-semibold")}
+          aria-pressed={p.value === period}
+          aria-label={`${p.label}: rentabilidade ${p.texto}`}
+          onClick={() => setPeriod(p.value)}
+          className={cn(
+            chipClass(p.value === period),
+            size === "sm" && "h-8 px-3 text-13 font-semibold",
+          )}
         >
-          {p}
+          {p.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Gráfico de rentabilidade do período escolhido. Enquanto o novo período carrega, a curva anterior
+ * fica esmaecida (sem se redesenhar); se o período não vier, o aviso ocupa o lugar do gráfico.
+ */
+function PerformanceArea({ children }: { children: ReactNode }) {
+  const { loading, error, retry } = usePerformancePeriod();
+  if (error) {
+    return (
+      <div className="flex min-h-36 items-center rounded-tile border border-line px-4 py-3">
+        <CompactStateBlock
+          icon="alert-triangle"
+          tone="error"
+          title="Não deu para carregar o período"
+          action={<RetryButton compact onClick={retry} />}
+        >
+          Tente de novo ou escolha outro período.
+        </CompactStateBlock>
+      </div>
+    );
+  }
+  return (
+    <div
+      aria-busy={loading || undefined}
+      className={cn(
+        "transition-opacity duration-(--duration-hover) ease-out-soft",
+        loading && "opacity-45",
+      )}
+    >
+      {children}
     </div>
   );
 }
@@ -93,7 +139,7 @@ function TotalWithAssets({ compact }: { compact?: boolean }) {
   );
 }
 
-/** Patrimônio investido, rentabilidade em 12 meses e números do ano. */
+/** Patrimônio investido, rentabilidade no período escolhido (6M, 12M, Tudo) e números do ano. */
 export function PortfolioCard({ variant }: { variant: Variant }) {
   const { portfolio } = useInvestimentosData();
   if (variant === "desktop") {
@@ -110,10 +156,12 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
             </div>
             <PeriodChips size="md" />
           </div>
-          <ChartFit
-            narrow={<PerformanceChart variant="mobile" />}
-            wide={<PerformanceChart variant="desktop" />}
-          />
+          <PerformanceArea>
+            <ChartFit
+              narrow={<PerformanceChart variant="mobile" />}
+              wide={<PerformanceChart variant="desktop" />}
+            />
+          </PerformanceArea>
           <div className="mt-auto grid grid-cols-3 gap-3">
             {portfolio.stats.map((stat) => (
               <div
@@ -151,10 +199,12 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
             <span className="text-14 font-bold text-folha">{portfolio.variacaoMes}</span>
           </div>
           <PeriodChips size="sm" />
-          <ChartFit
-            narrow={<PerformanceChart variant="mobile" />}
-            wide={<PerformanceChart variant="desktop" />}
-          />
+          <PerformanceArea>
+            <ChartFit
+              narrow={<PerformanceChart variant="mobile" />}
+              wide={<PerformanceChart variant="desktop" />}
+            />
+          </PerformanceArea>
           <StatsList />
           <TotalWithAssets compact />
         </CardBody>
@@ -183,7 +233,7 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
           <PeriodChips size="sm" />
         </div>
         <div className="mt-2 flex items-center justify-between text-13 text-caption">
-          <span>Rentabilidade em 12 meses</span>
+          <span>{performanceTitle(portfolio.rentabilidade.periodo)}</span>
           <span className="flex items-center gap-3">
             <span className="flex items-center gap-1.5">
               <span aria-hidden="true" className="h-0.5 w-3.5 bg-folha" />
@@ -198,7 +248,9 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
             </span>
           </span>
         </div>
-        <PerformanceChart variant="mobile" />
+        <PerformanceArea>
+          <PerformanceChart variant="mobile" />
+        </PerformanceArea>
         <div className="h-1" />
         <StatsList />
         <TotalWithAssets compact />

@@ -1,17 +1,59 @@
 "use client";
 
 import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
-import { buildBar, ChartSvg, chartColors, halo, roundedBar } from "@/components/charts/primitives";
+import {
+  buildBar,
+  ChartSvg,
+  chartColors,
+  halo,
+  roundedBar,
+  textWidth,
+} from "@/components/charts/primitives";
 import { rem } from "@/lib/rem";
 import { cn } from "@/lib/utils";
 
 import { useInvestimentosData } from "../context";
+import { performanceTitle } from "../performance";
 
 type Variant = "desktop" | "tablet" | "mobile";
 
-/** Meses do gráfico de 12 meses (o rótulo do eixo mostra um sim, um não). */
+/** Meses da série do protótipo (out a set). */
 const MONTHS = ["out", "nov", "dez", "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set"];
 const pct = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1).replace(".", ",")}%`;
+
+/** Até 7 rótulos no eixo, em passo fixo e sempre com o último mês (12 meses: um sim, um não). */
+export function axisIndexes(count: number, max = 7): number[] {
+  const step = Math.max(1, Math.ceil(count / max));
+  const indexes: number[] = [];
+  for (let i = count - 1; i >= 0; i -= step) indexes.unshift(i);
+  return indexes;
+}
+
+/**
+ * Quantos rótulos cabem no eixo (até 7) sem encostar: os das pontas encostam na borda e andam meia
+ * largura para dentro, então a distância entre centros precisa de uma largura e meia mais a folga.
+ */
+export function axisFit(labels: string[], fontSize: number, span: number) {
+  const widest = Math.max(0, ...labels.map((label) => textWidth(label, fontSize)));
+  return Math.min(7, Math.max(2, Math.floor(span / (widest * 1.5 + 8)) + 1));
+}
+
+/** Rótulo do eixo centrado no ponto, ou encostado na borda quando passaria dela ("nov/25"). */
+function axisAnchor(x: number, width: number, chartWidth: number) {
+  if (x - width / 2 < 0) return "start";
+  if (x + width / 2 > chartWidth) return "end";
+  return "middle";
+}
+
+/** Linhas de grade em passo redondo (5, 10, 20…), no máximo 4 dentro da escala. */
+export function gridTicks(lo: number, hi: number): number[] {
+  const step =
+    [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find((s) => (hi - lo) / s <= 4) ?? 1000;
+  const ticks: number[] = [];
+  // `|| 0`: sem "-0" quando a escala começa abaixo do zero.
+  for (let v = Math.ceil(lo / step) * step || 0; v <= hi; v += step) ticks.push(v);
+  return ticks;
+}
 
 const perfLayout: Record<
   Variant,
@@ -82,8 +124,8 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
   const {
     carteira,
     cdi: cdiRaw,
-    meses,
     rotulos = MONTHS,
+    periodo,
   } = useInvestimentosData().portfolio.rentabilidade;
   // Sem CDI (fonte fora do plano), a linha tracejada some.
   const hasCdi = cdiRaw.some((v) => v !== null);
@@ -135,11 +177,11 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
         height={l.fixed ? rem(l.height) : undefined}
         viewBox={`0 0 ${l.width} ${l.height}`}
         role="img"
-        aria-label={`Rentabilidade em 12 meses: carteira ${pct(carteira[last] ?? 0)}${hasCdi ? `, CDI ${pct(cdi[last] ?? 0)}` : ""}`}
+        aria-label={`${performanceTitle(periodo)}: carteira ${pct(carteira[last] ?? 0)}${hasCdi ? `, CDI ${pct(cdi[last] ?? 0)}` : ""}`}
         className={cn(l.fixed ? "block max-w-full" : "block h-auto w-full", "animate-reveal-x")}
         fontFamily="var(--font-figtree), Figtree, system-ui, sans-serif"
       >
-        {[0, 5, 10].map((v) => (
+        {gridTicks(lo, hi).map((v) => (
           <line
             key={v}
             x1="0"
@@ -199,16 +241,16 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
             CDI {pct(cdi[last] ?? 0)}
           </text>
         )}
-        {meses.map((mes, i) => (
+        {axisIndexes(carteira.length, axisFit(rotulos, l.monthFont, l.x1 - 10)).map((i) => (
           <text
-            key={mes}
-            x={f(x(1 + i * 2))}
+            key={i}
+            x={f(x(i))}
             y={l.monthY}
-            textAnchor="middle"
+            textAnchor={axisAnchor(x(i), textWidth(rotulos[i] ?? "", l.monthFont), l.width)}
             fontSize={l.monthFont}
             fill={chartColors.label}
           >
-            {mes}
+            {rotulos[i] ?? ""}
           </text>
         ))}
         <InspectorLayer x0={0} x1={l.width} top={4} bottom={l.zero + 8} />

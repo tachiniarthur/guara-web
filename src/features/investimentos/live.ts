@@ -1,6 +1,6 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
+import { keepPreviousData, useQueries, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
 import { toPriceAlert, ApiPriceAlertSchema } from "@/features/alertas/live";
@@ -18,6 +18,7 @@ import { formatCurrency, formatDate, formatUsd } from "@/lib/format";
 import { MONTHS, apiPercent, buildView, formatWhole, percent, signed } from "@/lib/live-format";
 
 import type { AllocationSlice, CountryExposure, Position, PositionGroup, Risk } from "./data";
+import { performanceTitle, type Performance, type PerformancePeriod } from "./performance";
 
 /*
  * Investimentos com os dados da API (modo real), no mesmo formato dos dados de exemplo. A
@@ -83,7 +84,9 @@ const SummarySchema = z.object({
 });
 type Summary = z.infer<typeof SummarySchema>;
 
-const EvolutionSchema = z.object({
+export const EvolutionSchema = z.object({
+  /** O período da resposta (a tela mostra o rótulo do que chegou, não do que foi pedido). */
+  period: z.enum(["6m", "12m", "all"]).optional(),
   returnPct: apiPercent.nullable(),
   cdiPct: apiPercent.nullable(),
   points: z.array(
@@ -95,7 +98,71 @@ const EvolutionSchema = z.object({
     }),
   ),
 });
-type Evolution = z.infer<typeof EvolutionSchema>;
+export type Evolution = z.infer<typeof EvolutionSchema>;
+
+/** Quantos meses o gráfico mostra em cada período (o último ponto de cada mês). */
+const PERIOD_MONTHS: Record<PerformancePeriod, number> = { "6m": 6, "12m": 12, all: Infinity };
+
+/**
+ * Rentabilidade do período: a curva mês a mês (o último ponto de cada mês) e o card
+ * "Rentabilidade em…". Função pura, testada.
+ */
+export function toPerformance(evolution: Evolution, requested: PerformancePeriod): Performance {
+  const period = evolution.period ?? requested;
+  const lastOfMonth = new Map<string, Evolution["points"][number]>();
+  for (const point of evolution.points) lastOfMonth.set(point.date.slice(0, 7), point);
+  const monthly = [...lastOfMonth.entries()].slice(-PERIOD_MONTHS[period]);
+  // Mais de um ano na tela: o mês leva o ano junto ("nov/25"), senão "nov" se repete.
+  const years = new Set(monthly.map(([month]) => month.slice(0, 4)));
+  const withYear = monthly.length > 12 || (period === "all" && years.size > 1);
+  const rotulos = monthly.map(([month]) => {
+    const name = MONTHS[Number(month.slice(5)) - 1]!.slice(0, 3);
+    return withYear ? `${name}/${month.slice(2, 4)}` : name;
+  });
+  const total = evolution.returnPct;
+  const cdi = evolution.cdiPct;
+  return {
+    rentabilidade: {
+      carteira: monthly.map(([, p]) => p.returnPct),
+      cdi: monthly.map(([, p]) => p.cdiPct),
+      rotulos,
+      periodo: period,
+    },
+    rent: {
+      id: "rent",
+      rotulo: performanceTitle(period),
+      valor: total === null ? "—" : signed(total, `${percent.format(Math.abs(total))}%`),
+      detalhe:
+        cdi === null
+          ? "CDI no período: —"
+          : `CDI no período: ${signed(cdi, `${percent.format(Math.abs(cdi))}%`)}`,
+      ganho: (total ?? 0) >= 0,
+    },
+  };
+}
+
+export const evolutionPath = (period: PerformancePeriod): ApiPath =>
+  `/v1/investments/evolution?period=${period}`;
+
+/**
+ * A rentabilidade do período escolhido. O de 12 meses já vem com a tela (mesmo endereço, mesma
+ * resposta no cache); ao trocar, a curva anterior fica na tela, esmaecida, até a nova chegar.
+ */
+export function usePerformance(period: PerformancePeriod, { enabled }: { enabled: boolean }) {
+  const query = useQuery({
+    ...apiQuery(evolutionPath(period), EvolutionSchema, { enabled }),
+    placeholderData: keepPreviousData,
+  });
+  const performance = query.data ? toPerformance(query.data, period) : undefined;
+  return {
+    performance,
+    loading:
+      enabled &&
+      (query.isPending || query.isPlaceholderData || (query.isError && query.isFetching)),
+    error: query.isError && !query.isFetching ? query.error : null,
+    retry: () => void query.refetch(),
+  };
+}
 
 const BelongingsSchema = z.object({
   data: z.array(
@@ -264,13 +331,8 @@ export function toInvestimentosView(r: InvestimentosResponses, now: Date) {
   const change = r.dashboard.netWorth.data?.investmentsMonthChangeCents ?? null;
   const base = change === null ? 0 : invested - change;
 
-  // Rentabilidade: o último ponto de cada mês dos últimos 12.
-  const lastOfMonth = new Map<string, Evolution["points"][number]>();
-  for (const point of r.evolution.points) lastOfMonth.set(point.date.slice(0, 7), point);
-  const monthly = [...lastOfMonth.entries()].slice(-12);
-  const carteira = monthly.map(([, p]) => p.returnPct);
-  const cdi = monthly.map(([, p]) => p.cdiPct);
-  const rotulos = monthly.map(([month]) => MONTHS[Number(month.slice(5)) - 1]!.slice(0, 3));
+  // Rentabilidade em 12 meses (a tela troca o período pelo `usePerformance`).
+  const performance = toPerformance(r.evolution, "12m");
 
   const groupsOut: PositionGroup[] = (r.positions.groups ?? []).map((g) => ({
     classe: g.label,
@@ -399,8 +461,6 @@ export function toInvestimentosView(r: InvestimentosResponses, now: Date) {
     };
   });
 
-  const yearReturn = r.evolution.returnPct;
-  const yearCdi = r.evolution.cdiPct;
   const months = Math.max(1, Number(formatDate(now, "M")));
   const portfolio = {
     patrimonio: formatCurrency(invested),
@@ -429,21 +489,9 @@ export function toInvestimentosView(r: InvestimentosResponses, now: Date) {
       total: formatCurrency(restCents),
       percentual: `${percent.format(share(restCents))}%`,
     },
-    rentabilidade: { carteira, cdi, meses: rotulos.filter((_, i) => i % 2 === 1), rotulos },
+    rentabilidade: performance.rentabilidade,
     stats: [
-      {
-        id: "rent",
-        rotulo: "Rentabilidade em 12 meses",
-        valor:
-          yearReturn === null
-            ? "—"
-            : `${signed(yearReturn, `${percent.format(Math.abs(yearReturn))}%`)}`,
-        detalhe:
-          yearCdi === null
-            ? "CDI no período: —"
-            : `CDI no período: ${signed(yearCdi, `${percent.format(Math.abs(yearCdi))}%`)}`,
-        ganho: (yearReturn ?? 0) >= 0,
-      },
+      performance.rent,
       {
         id: "aportes",
         rotulo: `Aportes em ${r.summary.year}`,
@@ -480,7 +528,7 @@ export type InvestimentosView = ReturnType<typeof toInvestimentosView>;
 /** Endereços que a tela Investimentos lê (os mesmos que o pré-carregamento busca). */
 export const INVESTIMENTOS_PATHS = {
   summary: "/v1/investments/summary",
-  evolution: "/v1/investments/evolution?period=12m",
+  evolution: evolutionPath("12m"),
   positions: "/v1/investments/positions?groupBy=class",
   belongings: "/v1/belongings",
   alerts: "/v1/price-alerts",
