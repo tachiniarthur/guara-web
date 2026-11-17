@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Tag } from "@/components/ui/tag";
 import { guara } from "@/features/guara/identity";
+import { UserGreeting } from "@/features/usuario/live";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
 
@@ -131,8 +132,8 @@ export function NewConversationStart({
           <span className="text-12 text-caption">· Chat</span>
         </div>
         <p className="m-0 text-15 leading-[1.6] max-lg:@chat:text-16">
-          Oi, Arthur! Eu sou o {guara.nome}. Pergunte qualquer coisa sobre seu dinheiro: gastos,
-          investimentos, metas, alertas ou simulações.
+          <UserGreeting text="Oi" />! Eu sou o {guara.nome}. Pergunte qualquer coisa sobre seu
+          dinheiro: gastos, investimentos, metas, alertas ou simulações.
         </p>
       </div>
       <span className="text-13 font-bold text-mist">Comece por aqui</span>

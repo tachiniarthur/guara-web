@@ -25,7 +25,8 @@ import { PendingCard } from "@/features/inicio/components/pending-card";
 import { SummaryCard } from "@/features/inicio/components/summary-card";
 import { useSession } from "@/features/acesso/session";
 import { useHomeView } from "@/features/inicio/live";
-import { user } from "@/features/usuario/data";
+import { useUser, withFirstName } from "@/features/usuario/live";
+import { greeting } from "@/lib/live-format";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { HOME_BLOCKS } from "@/features/inicio/layout";
 import { EditableGrid } from "@/features/layout/components/editable-grid";
@@ -40,6 +41,7 @@ export function InicioScreen({ estado }: { estado?: string }) {
   const { live } = useSession();
   const home = useHomeView({ enabled: live });
   const layout = useScreenLayout("home", HOME_BLOCKS);
+  const user = useUser();
   if (estado === "novo" || (live && home.data?.semBanco)) return <NewUserHome />;
   // Modo real: carregando até a API responder, erro se alguma rota falhar. Protótipo: `?estado=`.
   const state = live
@@ -68,6 +70,7 @@ export function InicioScreen({ estado }: { estado?: string }) {
             className="@desk:min-h-[18.75rem]"
             summary={view?.summary}
             cashFlow={view?.cashFlow ?? undefined}
+            cashFlowYear={view?.cashFlowYear ?? undefined}
           />
         );
       case "pendencias":
@@ -139,7 +142,12 @@ export function InicioScreen({ estado }: { estado?: string }) {
         {loading && <LoadingStatus />}
         <header className="flex flex-wrap items-end justify-between gap-4 @desk:flex-nowrap @desk:gap-6">
           <PageTitle
-            title={view ? view.titulo : `Boa tarde, ${user.nome}.`}
+            title={
+              view
+                ? view.titulo
+                : // Enquanto a API responde, já com o nome de quem entrou (no protótipo, o do design).
+                  `${withFirstName(live ? greeting(new Date()) : "Boa tarde", user.nome)}.`
+            }
             subtitle={
               pendencias === 0 ? (
                 <>{view ? view.data : "Quarta, 23 de setembro"} · nada precisa da sua atenção.</>

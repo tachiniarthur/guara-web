@@ -79,6 +79,16 @@ export function useUser(): CurrentUser {
   };
 }
 
+/** "Oi, Marina": a saudação com o primeiro nome; sem nome no perfil, só "Oi". */
+export function withFirstName(text: string, firstName: string): string {
+  return firstName && firstName !== EMPTY_VALUE ? `${text}, ${firstName}` : text;
+}
+
+/** Saudação com o primeiro nome de quem está logado (ver `withFirstName`). */
+export function UserGreeting({ text }: { text: string }) {
+  return <>{withFirstName(text, useUser().nome)}</>;
+}
+
 /** Primeiro nome de quem está logado (para páginas renderizadas no servidor). */
 export function UserFirstName() {
   return <>{useUser().nome}</>;

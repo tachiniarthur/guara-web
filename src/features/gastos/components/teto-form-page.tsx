@@ -22,6 +22,7 @@ import {
   CategoryHistoryChart,
   type MonthValue,
 } from "@/features/alertas/components/category-history-chart";
+import { UserEmail } from "@/features/usuario/live";
 
 const marcos: TetoMilestone[] = [
   { percentual: 50, rotulo: "500", atingido: true },
@@ -328,7 +329,7 @@ export function TetoFormPage({
                 <CheckboxRow
                   id="teto-mail-m"
                   label="E-mail"
-                  description="arthur@exemplo.com"
+                  description={<UserEmail />}
                   defaultChecked
                   accent="tucano"
                   labelClassName="font-bold"

@@ -14,7 +14,7 @@ import {
   RowIcon,
 } from "@/features/novo/components";
 import { useSession } from "@/features/acesso/session";
-import { UserFirstName, useUser } from "@/features/usuario/live";
+import { UserGreeting, useUser, withFirstName } from "@/features/usuario/live";
 import { formatDate } from "@/lib/format";
 import { capitalize, greeting } from "@/lib/live-format";
 import { cn } from "@/lib/utils";
@@ -115,8 +115,8 @@ const tip = (
       </ButtonLink>
     }
   >
-    Oi, <UserFirstName />! Enquanto você não conecta um banco, dá para cadastrar investimentos à mão
-    ou testar o simulador com números seus.
+    <UserGreeting text="Oi" />! Enquanto você não conecta um banco, dá para cadastrar investimentos
+    à mão ou testar o simulador com números seus.
   </GuaraTip>
 );
 
@@ -164,9 +164,9 @@ export function NewUserHome() {
     >
       <Breadcrumb className="hidden flex-wrap @tab:flex" items={[]} />
       <h1 className="m-0 font-display text-28 font-extrabold @tab:hidden">
-        {hello}, {user.nome}.
+        {withFirstName(hello, user.nome)}.
       </h1>
-      <DetailHeader title={`${hello}, ${user.nome}.`} subtitle={today} />
+      <DetailHeader title={`${withFirstName(hello, user.nome)}.`} subtitle={today} />
 
       {/* Celular */}
       <div className="flex flex-col gap-4 @tab:hidden">
