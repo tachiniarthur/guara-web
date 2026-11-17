@@ -3,32 +3,39 @@ import { describe, expect, it } from "vitest";
 import {
   type BlockDef,
   defaultLayout,
-  heightForDrag,
   isDefaultLayout,
   mergeLayout,
   moveBlock,
   shiftBlock,
-  snapHeight,
-  stepHeight,
+  sizeForColumns,
+  snapColumns,
+  stepColumns,
   tabletHalf,
   toStored,
   updateBlock,
 } from "./model";
 
 const defs: BlockDef[] = [
-  { id: "resumo", label: "Resumo", defaultSize: "l", group: "a" },
-  { id: "pendencias", label: "Pendências", defaultSize: "s", group: "a", tablet: "full" },
-  { id: "metas", label: "Metas", defaultSize: "xs", group: "b" },
-  { id: "alertas", label: "Alertas", defaultSize: "xs", group: "b" },
+  { id: "resumo", label: "Resumo", defaultSize: "l", sizes: ["m", "l", "xl"], group: "a" },
+  {
+    id: "pendencias",
+    label: "Pendências",
+    defaultSize: "s",
+    sizes: ["s", "m", "l"],
+    group: "a",
+    tablet: "full",
+  },
+  { id: "metas", label: "Metas", defaultSize: "xs", sizes: ["xs", "s", "m"], group: "b" },
+  { id: "alertas", label: "Alertas", defaultSize: "xs", sizes: ["xs", "s", "m"], group: "b" },
 ];
 
 describe("layout editável", () => {
-  it("padrão: na ordem da tela, nada oculto, altura automática", () => {
-    expect(defaultLayout(defs).map((b) => [b.id, b.minHeight, b.hidden])).toEqual([
-      ["resumo", null, false],
-      ["pendencias", null, false],
-      ["metas", null, false],
-      ["alertas", null, false],
+  it("padrão: na ordem da tela, nada oculto, na largura do design", () => {
+    expect(defaultLayout(defs).map((b) => [b.id, b.columns, b.hidden])).toEqual([
+      ["resumo", 8, false],
+      ["pendencias", 4, false],
+      ["metas", 3, false],
+      ["alertas", 3, false],
     ]);
   });
 
@@ -40,41 +47,36 @@ describe("layout editável", () => {
     ]);
     // Novos entram logo depois do vizinho que vinha antes deles no padrão.
     expect(merged.map((b) => b.id)).toEqual(["metas", "alertas", "resumo", "pendencias"]);
-    // Oculto continua oculto; "baixo" antigo (que cortava) vira automático.
+    // Oculto continua oculto (volta idêntico ao reexibir); `size` antigo vira colunas.
     expect(merged.find((b) => b.id === "metas")).toEqual({
       id: "metas",
       hidden: true,
-      minHeight: null,
+      columns: 6,
     });
+    // "xs" não é aceito pelo resumo: volta ao padrão (8 colunas).
     expect(merged.find((b) => b.id === "resumo")).toEqual({
       id: "resumo",
       hidden: false,
-      minHeight: null,
+      columns: 8,
     });
   });
 
-  it("largura é sempre a do design: a salva antes (size e columns) é ignorada", () => {
+  it("altura escolhida antes (ou no app) é ignorada; largura fora do que o bloco aceita encaixa", () => {
     const merged = mergeLayout(defs, [
-      { id: "resumo", size: "xl", hidden: false, compact: false, columns: 12, minHeight: 400 },
+      { id: "resumo", size: "l", hidden: false, compact: false, height: "tall", minHeight: 400 },
+      { id: "metas", size: "xs", hidden: false, compact: false, columns: 12, minHeight: 640 },
     ]);
     expect(merged.find((b) => b.id === "resumo")).toEqual({
       id: "resumo",
       hidden: false,
-      minHeight: 400,
+      columns: 8,
     });
-    // Salva a largura do design, sem a largura livre.
-    const [resumo] = toStored(defs, merged);
-    expect(resumo).toEqual({
-      id: "resumo",
-      size: "l",
+    // Metas aceita até a metade.
+    expect(merged.find((b) => b.id === "metas")).toEqual({
+      id: "metas",
       hidden: false,
-      compact: false,
-      height: "tall",
-      minHeight: 400,
+      columns: 6,
     });
-    expect(tabletHalf(defs[0]!)).toBe(false);
-    expect(tabletHalf(defs[1]!)).toBe(false);
-    expect(tabletHalf(defs[2]!)).toBe(true);
   });
 
   it("sem layout salvo: o padrão", () => {
@@ -100,23 +102,50 @@ describe("layout editável", () => {
     ]);
   });
 
+  it("largura entre as pré-definidas que o bloco aceita; no tablet, metade ⇄ tudo", () => {
+    const resumo = defs[0]!;
+    expect(stepColumns(resumo, 8, 1, "desk")).toBe(9);
+    expect(stepColumns(resumo, 9, 1, "desk")).toBe(12);
+    expect(stepColumns(resumo, 12, 1, "desk")).toBe(12);
+    expect(stepColumns(resumo, 8, -1, "desk")).toBe(6);
+    expect(stepColumns(resumo, 6, -1, "desk")).toBe(6);
+    // Arrastar encaixa na mais perto; layouts com a largura livre de antes também.
+    expect(snapColumns(resumo, 7.2)).toBe(8);
+    expect(snapColumns(resumo, 10.4)).toBe(9);
+    expect(snapColumns(resumo, 2)).toBe(6);
+    expect(stepColumns(resumo, 8, -1, "tablet")).toBe(6);
+    expect(stepColumns(resumo, 6, 1, "tablet")).toBe(12);
+    // Metas só aceita até a metade: no tablet não vira largura toda.
+    expect(stepColumns(defs[2]!, 3, 1, "tablet")).toBe(3);
+    expect(sizeForColumns(resumo, 9)).toBe("l");
+    expect(sizeForColumns(resumo, 2)).toBe("m");
+  });
+
+  it("tablet: na largura padrão vale a do design; depois de mudar, até metade fica metade", () => {
+    expect(tabletHalf(defs[0]!, 8)).toBe(false);
+    expect(tabletHalf(defs[0]!, 6)).toBe(true);
+    // Pendências: design pede a largura toda no tablet, mesmo com 1/3 no desktop.
+    expect(tabletHalf(defs[1]!, 4)).toBe(false);
+    expect(tabletHalf(defs[1]!, 6)).toBe(true);
+    expect(tabletHalf(defs[2]!, 3)).toBe(true);
+  });
+
+  it("formato salvo: colunas e os campos antigos preenchidos, sem altura escolhida", () => {
+    const layout = updateBlock(defaultLayout(defs), "resumo", { columns: 9 });
+    const [resumo] = toStored(defs, layout);
+    expect(resumo).toEqual({
+      id: "resumo",
+      size: "l",
+      hidden: false,
+      compact: false,
+      height: "auto",
+      columns: 9,
+    });
+    expect(mergeLayout(defs, toStored(defs, layout))).toEqual(layout);
+  });
+
   it("ocultar e reexibir não mexe no resto", () => {
     const hidden = updateBlock(defaultLayout(defs), "metas", { hidden: true });
     expect(updateBlock(hidden, "metas", { hidden: false })).toEqual(defaultLayout(defs));
-  });
-
-  it("altura entre a automática e as pré-definidas (P a XG)", () => {
-    expect(snapHeight(333)).toBe(320);
-    expect(snapHeight(10)).toBe(320);
-    expect(snapHeight(99999)).toBe(640);
-    expect(heightForDrag(250)).toBeNull();
-    expect(heightForDrag(450)).toBe(480);
-    // Da automática para cima: a primeira maior que a altura atual do bloco.
-    expect(stepHeight(null, 300, 1)).toBe(320);
-    expect(stepHeight(null, 450, 1)).toBe(480);
-    expect(stepHeight(null, 450, -1)).toBeNull();
-    expect(stepHeight(400, 0, -1)).toBe(320);
-    expect(stepHeight(320, 0, -1)).toBeNull();
-    expect(stepHeight(640, 0, 1)).toBe(640);
   });
 });

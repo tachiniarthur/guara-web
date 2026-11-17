@@ -25,7 +25,8 @@ const BlockSchema = z.object({
   size: z.enum(LAYOUT_SIZES),
   hidden: z.boolean(),
   compact: z.boolean(),
-  // Opcionais: layouts salvos antes da altura e da largura livre.
+  // Opcionais: `columns` falta em layouts antigos; `height`/`minHeight` (altura escolhida de
+  // antes, ou do app) são lidos e ignorados.
   height: z.enum(LAYOUT_HEIGHTS).optional(),
   columns: z.number().int().optional(),
   minHeight: z.number().int().optional(),

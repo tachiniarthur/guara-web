@@ -46,18 +46,21 @@ Código em `src/features/layout`; os blocos de cada tela em `src/features/inicio
 o layout é da conta, e o que se salva num aparece igual no outro.
 
 - **O que a pessoa muda:** a ordem (arrastar com mouse, toque longo de 250 ms ou teclado pela
-  alça), a altura (automática, P, M, G, GG ou XG, pela alça de baixo; dois cliques voltam à
-  automática) e ocultar/reexibir. **A largura é sempre a do design** (`defaultSize`/`tablet`):
-  o redimensionamento horizontal foi removido de propósito, porque causava problemas de layout.
-  Não reintroduza largura editável.
-- **A altura é mínima:** o bloco nunca corta o conteúdo, os gráficos crescem até ela
-  (`components/charts/chart-box.tsx`).
+  alça), a largura (1/4, 1/3, metade, 2/3, 3/4 ou toda, entre o menor e o maior de `sizes` do
+  bloco; alça do lado ou − e +, só no tablet e no desktop) e ocultar/reexibir. **A altura é
+  sempre a do conteúdo:** a escolha de altura foi removida a pedido (17/11/2026). Não
+  reintroduza altura editável.
+- **No tablet:** na largura padrão vale `tablet` do `BlockDef`; depois de mudar, até 6 colunas é
+  metade, acima disso a largura toda. No celular, todo bloco ocupa a largura toda.
 - **Onde fica salvo:** `PUT/GET /v1/me/layouts/:screen` (`home` ou `spending`), com cópia em
   `localStorage` (`guara:layout:<tela>`) que sincroniza depois se estiver sem conta ou internet.
   O site nunca chama o `DELETE` (o `apiRequest` não lê 204): "Restaurar padrão" grava o padrão.
-- **Formato salvo:** `minHeight` (px, só os presets), com `size`/`height`/`compact` preenchidos
-  para leitores antigos. `columns` de layouts antigos e `height: "short"` (que cortava o bloco)
-  são ignorados ao ler (`mergeLayout`).
+- **Formato salvo:** `columns` (colunas de 12, só as pré-definidas), com `size`/`height: "auto"`/
+  `compact` preenchidos para leitores antigos. `minHeight` e `height` salvos antes (ou pelo app)
+  são ignorados ao ler (`mergeLayout`); sem `columns`, `size` vira colunas.
+- **App mobile:** o editor do app ainda muda a altura e não a largura. Como o layout é da conta,
+  salvar no site descarta as alturas do app; se o app não preservar `columns` ao salvar, as
+  larguras do site voltam ao `size` (não confirmado: o código do app não está nesta pasta).
 - **Bloco novo:** `BlockDef` com o mesmo id no app, `case` no `renderBlock` da tela. Layouts
   salvos antes recebem o bloco na posição padrão.
 - **Campo novo no bloco salvo:** a API valida com `strictObject`, então **publique a API antes**

@@ -24,7 +24,7 @@
    usam as não lidas da API. `OFFLINE_NOTE` ("dados de hoje, 14:30") é texto fixo do protótipo.
 8. **`apiRequest` lê 204** (excluir simulação) e **`schema.parse` lança** se a API mudar o formato; as telas isolam isso
    com `buildView`. Percentuais vêm como string (`apiPercent`). O layout continua sem chamar `DELETE` (grava o padrão).
-9. **Layout editor**: largura não editável (decisão); campo novo no bloco salvo → publicar API antes (`strictObject`, 422).
+9. **Layout editor**: largura editável, altura não (decisão de 17/11/2026; o app mobile ainda edita a altura); campo novo no bloco salvo → publicar API antes (`strictObject`, 422).
 10. **Rotas estáticas**: ler `searchParams` em `page.tsx` torna a rota dinâmica e piora a navegação (ver `docs/performance.md`);
     estados do protótipo passam pelo `proxy.ts` + `/previa`. `generateStaticParams` usa ids do protótipo; ids reais caem em render sob demanda
     (exceto `conversas/[id]`, `dynamicParams=false`).

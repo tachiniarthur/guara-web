@@ -82,13 +82,10 @@ export function LayoutEditBar({
               </p>
               <p className="m-0 text-13 text-mist">
                 <span className="@max-tab:hidden">
-                  Arraste os blocos para trocar de lugar. A alça de baixo muda a altura; dois
-                  cliques nela voltam à altura automática.
+                  Arraste os blocos para trocar de lugar. A alça do lado (ou − e +) muda a largura.
                 </span>
-                <span className="@tab:hidden">
-                  Segure um bloco para arrastar. A alça de baixo muda a altura.
-                </span>{" "}
-                Nada é apagado ao ocultar.
+                <span className="@tab:hidden">Segure um bloco para arrastar.</span> Nada é apagado
+                ao ocultar.
               </p>
               {hidden.length > 0 && (
                 <div role="group" aria-label="Blocos ocultos" className="flex flex-wrap gap-2">
