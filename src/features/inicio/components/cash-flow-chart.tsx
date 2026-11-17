@@ -3,6 +3,7 @@
 import { ChartBox } from "@/components/charts/chart-box";
 import { ChartInspector, InspectorLayer, type InspectPoint } from "@/components/charts/inspector";
 import { formatCurrency, formatReais } from "@/lib/format";
+import { capitalize, MONTHS } from "@/lib/live-format";
 
 import { cashFlow, type CashFlowData } from "../data";
 
@@ -61,8 +62,14 @@ function stepPath(values: number[], x: (d: number) => number, y: (v: number) => 
     .join(" ");
 }
 
+/** Marcas do eixo: dias 1, 10 e 20 no mês; jan, abr, jul e out no ano. Sempre o fim e o atual. */
+export function axisTicks(periodo: "mes" | "ano", total: number, atual: number) {
+  const base = periodo === "ano" ? [1, 4, 7, 10] : [1, 10, 20];
+  return [...new Set([...base, atual, total])].sort((a, b) => a - b);
+}
+
 /**
- * Entradas e saídas acumuladas no mês, com previsão tracejada até o fim.
+ * Entradas e saídas acumuladas no mês (dia a dia) ou no ano (mês a mês), com o tracejado até o fim.
  * "wide": rótulos à direita (bloco largo) · "compact": legenda fora (celular e bloco estreito).
  * Ocupa a largura e a altura do bloco (o largo alarga sem aumentar o texto).
  */
@@ -97,6 +104,7 @@ function CashFlowSvg({
   size: { width: number; height: number };
 }) {
   const { diasNoMes, hoje, entradas, saidas, eixo, maximo, sobrou, descricao } = data;
+  const year = data.periodo === "ano";
   const compact = variant === "compact";
   const extra = size.height - (compact ? COMPACT.height : WIDE.height);
   const X1 = compact ? size.width - 16 : size.width - WIDE_LABELS;
@@ -150,16 +158,27 @@ function CashFlowSvg({
     .map(([px, py]) => `${px!.toFixed(1)},${py!.toFixed(1)}`)
     .join(" ");
 
-  // Dia que encostaria no "hoje" sai (o "hoje" fica).
-  const ticks = [...new Set([1, 10, 20, hoje, diasNoMes])].filter(
-    (dia) => dia === hoje || Math.abs(x(dia) - xHoje) >= 24,
+  // Marca que encostaria na de hoje sai (a de hoje fica); no ano, também o mês vizinho ("set out").
+  const ticks = axisTicks(year ? "ano" : "mes", diasNoMes, hoje).filter(
+    (dia) =>
+      dia === hoje || (Math.abs(x(dia) - xHoje) >= 24 && (!year || Math.abs(dia - hoje) >= 2)),
   );
-  // Leitura dia a dia (até hoje): entradas e saídas acumuladas.
+  // No ano, o eixo mostra os meses ("jan"); no mês, os dias e "hoje".
+  const tickLabel = (ponto: number) =>
+    year ? MONTHS[ponto - 1]!.slice(0, 3) : ponto === hoje ? "hoje" : String(ponto);
+  // Leitura ponto a ponto (até hoje): entradas e saídas acumuladas.
   const points: InspectPoint[] = entradas.map((entrada, i) => {
     const saida = saidas[i] ?? 0;
+    const month = capitalize(MONTHS[i] ?? "");
     return {
       x: x(i + 1),
-      title: i + 1 === hoje ? `Hoje, dia ${hoje}` : `Dia ${i + 1}`,
+      title: year
+        ? i + 1 === hoje
+          ? `${month}, até hoje`
+          : `Até ${month.toLowerCase()}`
+        : i + 1 === hoje
+          ? `Hoje, dia ${hoje}`
+          : `Dia ${i + 1}`,
       rows: [
         { label: "Entradas", value: formatReais(entrada), color: ENTRADAS, y: y(entrada) },
         { label: "Saídas", value: formatReais(saida), color: SAIDAS, y: y(saida) },
@@ -171,7 +190,7 @@ function CashFlowSvg({
     <ChartInspector
       className="size-full"
       points={points}
-      label="Entradas e saídas do mês, dia a dia"
+      label={year ? "Entradas e saídas do ano, mês a mês" : "Entradas e saídas do mês, dia a dia"}
     >
       <svg
         width="100%"
@@ -270,7 +289,7 @@ function CashFlowSvg({
             fill={dia === hoje ? "#F2EFE6" : "#93A198"}
             fontWeight={dia === hoje ? 800 : 400}
           >
-            {dia === hoje ? "hoje" : dia}
+            {tickLabel(dia)}
           </text>
         ))}
         <InspectorLayer x0={X0 - 8} x1={X1} top={Y_TOP - 6} bottom={Y0} />

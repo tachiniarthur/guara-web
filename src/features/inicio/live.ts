@@ -266,6 +266,43 @@ function buildCashFlow(daily: Daily, dashboard: Dashboard, monthName: string): C
   };
 }
 
+/**
+ * Entradas e saídas acumuladas no ano, mês a mês, de janeiro até o mês atual. Meses que o plano
+ * não mostra (histórico curto) entram como zero.
+ */
+function buildYearCashFlow(monthly: Monthly, now: Date): CashFlowData | null {
+  if (!monthly.hasAccounts) return null;
+  const [year, month] = formatDate(now, "yyyy-MM").split("-").map(Number) as [number, number];
+  const byMonth = new Map(monthly.months.map((row) => [row.month, row]));
+  let income = 0;
+  let spent = 0;
+  const entradas: number[] = [];
+  const saidas: number[] = [];
+  for (let m = 1; m <= month; m++) {
+    const row = byMonth.get(`${year}-${String(m).padStart(2, "0")}`);
+    income += row?.incomeCents ?? 0;
+    spent += row?.spentCents ?? 0;
+    entradas.push(income / 100);
+    saidas.push(Math.max(spent, 0) / 100);
+  }
+  const { maximo, eixo } = chartScale(Math.max(income, spent) / 100);
+  const left = income - spent;
+  return {
+    periodo: "ano",
+    diasNoMes: 12,
+    hoje: month,
+    entradas,
+    saidas,
+    previsaoSaidas: null,
+    sobrou: formatWhole(left),
+    eixo,
+    maximo,
+    descricao:
+      `Entradas e saídas acumuladas em ${year}. Entrou ${formatWhole(income)} e saiu ` +
+      `${formatWhole(spent)} até hoje; ${left >= 0 ? "sobraram" : "faltaram"} ${formatWhole(Math.abs(left))}.`,
+  };
+}
+
 function versus(current: number | null, previous: number | null, previousName: string) {
   if (current === null || previous === null || previous === 0) return "—";
   const pct = ((current - previous) / Math.abs(previous)) * 100;
@@ -548,6 +585,7 @@ export interface HomeView {
   semBanco: boolean;
   summary: ReturnType<typeof buildSummary>;
   cashFlow: CashFlowData | null;
+  cashFlowYear: CashFlowData | null;
   pending: PendingItem[];
   overview: OverviewData;
   categoryBudgets: CategoryBudget[];
@@ -604,6 +642,7 @@ export function toHomeView(
     semBanco: dashboard.accounts.reason === "not_connected",
     summary: buildSummary(dashboard, monthly),
     cashFlow: buildCashFlow(daily, dashboard, mes.name),
+    cashFlowYear: buildYearCashFlow(monthly, now),
     pending: pendingItems,
     overview: buildOverview(dashboard, allocation, goals, mes.name),
     categoryBudgets: buildCategoryBudgets(spending, budgets),
@@ -625,7 +664,8 @@ export function useHomeView({ enabled }: { enabled: boolean }) {
     queries: [
       get("/v1/dashboard", DashboardSchema),
       get(`/v1/insights/spending/daily?month=${month}`, DailySchema),
-      get("/v1/insights/spending/monthly?months=2", MonthlySchema),
+      // 12 meses: o resumo compara os dois últimos e o gráfico do ano usa os de janeiro para cá.
+      get("/v1/insights/spending/monthly?months=12", MonthlySchema),
       get(`/v1/insights/spending?month=${month}`, SpendingSchema),
       get("/v1/budgets/summary", BudgetSummarySchema),
       get("/v1/transactions?limit=5", TransactionsSchema),

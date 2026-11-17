@@ -169,6 +169,18 @@ describe("Início com os dados da API", () => {
     expect(view.cashFlow?.maximo).toBe(8000);
   });
 
+  it("gráfico do ano acumula de janeiro até o mês atual (meses fora do histórico valem zero)", () => {
+    const year = view.cashFlowYear;
+    expect(year?.periodo).toBe("ano");
+    expect(year?.diasNoMes).toBe(12);
+    expect(year?.hoje).toBe(11);
+    expect(year?.entradas).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0, 8000, 15200]);
+    expect(year?.saidas).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0, 4000, 7000]);
+    expect(year?.previsaoSaidas).toBeNull();
+    expect(year?.sobrou).toBe("R$ 8.200");
+    expect(year?.maximo).toBe(16000);
+  });
+
   it("visão geral, tetos por categoria e lançamentos com o nome da subcategoria", () => {
     expect(view.overview.metas.valor).toBe("R$ 20.000,00");
     expect(view.overview.metas.legenda).toBe("guardados em 2 metas");

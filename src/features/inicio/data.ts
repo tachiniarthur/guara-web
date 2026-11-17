@@ -1,4 +1,9 @@
 export interface CashFlowData {
+  /**
+   * "mes" (padrão): um ponto por dia do mês. "ano": um ponto por mês, de janeiro a dezembro; aí
+   * `diasNoMes` é 12 e `hoje` é o mês atual (1 a 12).
+   */
+  periodo?: "mes" | "ano";
   diasNoMes: number;
   /** Último dia com dado (hoje no mês atual). */
   hoje: number;
@@ -37,6 +42,34 @@ export const cashFlow: CashFlowData = {
   maximo: 9000,
   descricao:
     "Entradas e saídas acumuladas em setembro. Entrou R$ 8.200 e saiu R$ 5.912 até hoje; sobraram R$ 2.287. Previsão de saídas no fim do mês: cerca de R$ 6.050.",
+};
+
+/** Soma acumulada: [1, 2, 3] → [1, 3, 6]. */
+function accumulate(values: number[]) {
+  let total = 0;
+  return values.map((value) => (total += value));
+}
+
+const entradasDoAno = [7200, 7200, 7900, 7200, 7200, 8400, 7200, 7900, 8200];
+const saidasDoAno = [6100, 5400, 6800, 5900, 6200, 7300, 5600, 6300, 5912];
+
+/** Fluxo do ano, em reais acumulados por mês (2026, até setembro). */
+export const cashFlowYear: CashFlowData = {
+  periodo: "ano",
+  diasNoMes: 12,
+  hoje: 9,
+  entradas: accumulate(entradasDoAno),
+  saidas: accumulate(saidasDoAno),
+  previsaoSaidas: null,
+  sobrou: "R$ 12.888",
+  eixo: [
+    { valor: 0, rotulo: "0 mil" },
+    { valor: 35000, rotulo: "35 mil" },
+    { valor: 70000, rotulo: "70 mil" },
+  ],
+  maximo: 70000,
+  descricao:
+    "Entradas e saídas acumuladas em 2026. Entrou R$ 68.400 e saiu R$ 55.512 até hoje; sobraram R$ 12.888.",
 };
 
 export const summary = {

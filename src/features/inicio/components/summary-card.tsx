@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 import { Card, CardHeader } from "@/components/ui/card";
 import { ChartFit } from "@/components/charts/chart-fit";
 import { Icon } from "@/components/ui/icon";
@@ -10,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 import {
   cashFlow as prototypeCashFlow,
+  cashFlowYear as prototypeCashFlowYear,
   summary as prototypeSummary,
   type CashFlowData,
 } from "../data";
@@ -43,7 +48,8 @@ const noBank = (
 );
 
 /**
- * Saldo consolidado, entradas/saídas/sobra e o gráfico do mês, com curvas de nível ao fundo.
+ * Saldo consolidado, entradas/saídas/sobra e o gráfico do mês ou do ano (Mês/Ano), com curvas de
+ * nível ao fundo.
  * Sem dados (erro, vazio), fica só o título do gráfico e o aviso.
  */
 export type SummaryData = {
@@ -61,11 +67,16 @@ export function SummaryCard({
   className,
   summary = prototypeSummary,
   cashFlow = prototypeCashFlow,
+  cashFlowYear = prototypeCashFlowYear,
 }: {
   className?: string;
   summary?: SummaryData;
   cashFlow?: CashFlowData;
+  /** Acumulado do ano, mês a mês (aba "Ano"). */
+  cashFlowYear?: CashFlowData;
 }) {
+  const [periodo, setPeriodo] = useState<"mes" | "ano">("mes");
+  const chart = periodo === "ano" ? cashFlowYear : cashFlow;
   return (
     // O card é o container: lado a lado só quando ELE é largo (o bloco pode estar em metade da
     // largura num desktop); estreito, o gráfico vai para baixo do saldo.
@@ -125,6 +136,8 @@ export function SummaryCard({
                 <SegmentedControl
                   label="Período do gráfico"
                   size="sm"
+                  value={periodo}
+                  onValueChange={setPeriodo}
                   options={[
                     { value: "mes", label: "Mês" },
                     { value: "ano", label: "Ano" },
@@ -136,11 +149,11 @@ export function SummaryCard({
               className="grow"
               narrow={
                 <div className="flex grow flex-col gap-3">
-                  <CashFlowChart variant="compact" data={cashFlow} />
-                  <CashFlowLegend data={cashFlow} />
+                  <CashFlowChart key={periodo} variant="compact" data={chart} />
+                  <CashFlowLegend data={chart} />
                 </div>
               }
-              wide={<CashFlowChart variant="wide" data={cashFlow} />}
+              wide={<CashFlowChart key={periodo} variant="wide" data={chart} />}
             />
           </div>
         </div>
