@@ -5,6 +5,8 @@
 Web = Next.js 16 / React 19 / Tailwind 4 / TanStack Query / zod; **único escopo de implementação**.
 `../guara-api` (NestJS 11) é só consulta. App **híbrido**: sem as 3 variáveis `NEXT_PUBLIC_*` é protótipo
 (`features/*/data.ts`); com elas, só parte das telas lê a API (`features/*/live.ts` + `context.tsx`).
+**Início, Gastos, Assinaturas e o chat (`features/conversas`) são só API**: não reintroduza dados de exemplo
+nelas (carregando = forma vazia com "—"; sem API = estado de erro).
 Toda chamada HTTP passa por `lib/api.ts` (`apiRequest` + schema zod); Supabase só para login.
 Mapa completo em `docs/contexto/README.md` (visão geral, rotas, componentes, integração com a API,
 fluxos, padrões, pontos de atenção). Confira sempre o código atual antes de alterar.
@@ -23,7 +25,7 @@ Detalhes e medições em `docs/performance.md`.
   `searchParams`. Elas são pré-carregadas pelos links e servidas da borda, então o clique não
   espera o servidor. Ler `searchParams` numa `page.tsx` torna a rota dinâmica (ƒ) e devolve o
   atraso de uma ida e volta ao servidor a cada clique.
-- **Estados do protótipo (`?estado=`)**: a tela fica em `<rota>-screen.tsx` com a prop `estado`;
+- **Estados do protótipo (`?estado=`, só Investimentos, Metas, Relatório e Alertas)**: a tela fica em `<rota>-screen.tsx` com a prop `estado`;
   a `page.tsx` só renderiza a tela sem estado. Com `?estado=`, o `src/proxy.ts` reescreve para
   `/previa/<estado>/<rota>`, que desenha a mesma tela no estado pedido (o endereço não muda).
   Tela nova com estados: registre em `app/(app)/previa/[estado]/[[...rota]]/page.tsx` e no

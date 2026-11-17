@@ -1,7 +1,7 @@
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
-import type { LedgerEntry } from "../data";
+import type { LedgerEntry } from "../types";
 
 /** Selo "Fora do padrão" (compra que o Guará quer confirmar). */
 export function OffPatternBadge() {

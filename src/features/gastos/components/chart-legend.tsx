@@ -6,8 +6,9 @@ export type LegendItem = { label: string; color: string; dashed?: boolean };
 export function ChartLegend({ items, className }: { items: LegendItem[]; className?: string }) {
   return (
     <div className={cn("flex flex-wrap gap-x-4 gap-y-1.5 text-12 text-mist", className)}>
-      {items.map((item) => (
-        <span key={item.label} className="inline-flex items-center gap-1.5">
+      {items.map((item, index) => (
+        // Enquanto carrega, os nomes dos meses ainda estão vazios (iguais): a posição desempata.
+        <span key={`${index}-${item.label}`} className="inline-flex items-center gap-1.5">
           <span
             aria-hidden="true"
             className={cn("w-4", item.dashed ? "border-t-2 border-dashed" : "h-[3px] rounded-xs")}

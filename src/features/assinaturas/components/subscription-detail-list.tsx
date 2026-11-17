@@ -7,18 +7,16 @@ import { z } from "zod";
 
 import { inlineLinkClass } from "@/components/ui/text-link";
 import { Tag } from "@/components/ui/tag";
-import { useSession } from "@/features/acesso/session";
 import { apiRequest } from "@/lib/api";
 import { invalidateApi } from "@/lib/api-query";
 
-import type { Subscription } from "../data";
+import type { Subscription } from "../types";
 
 /**
  * "Não é assinatura?": marca como ignorada (`PATCH /v1/subscriptions/:id`, a API não volta a
- * detectá-la) e atualiza as telas que mostram assinaturas. No protótipo, não faz nada.
+ * detectá-la) e atualiza as telas que mostram assinaturas.
  */
 function NotSubscriptionButton({ id, compact }: { id: string; compact?: boolean }) {
-  const { live } = useSession();
   const queryClient = useQueryClient();
   const [failed, setFailed] = useState(false);
   const ignore = useMutation({
@@ -36,7 +34,7 @@ function NotSubscriptionButton({ id, compact }: { id: string; compact?: boolean 
       disabled={ignore.isPending}
       onClick={() => {
         setFailed(false);
-        if (live) ignore.mutate();
+        ignore.mutate();
       }}
       className={
         compact

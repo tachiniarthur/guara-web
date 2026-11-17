@@ -61,28 +61,20 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
   const x1 = width - right;
   const extra = height - HEIGHT;
   const base = BASE + extra;
-  const {
-    atual: setembro,
-    anterior: agosto,
-    hoje,
-    descricao,
-    maximo,
-    nomeAtual,
-    nomeAnterior,
-    fechado,
-  } = useGastosData().spendingPace;
-  const step = (x1 - x0) / (agosto.length - 1);
+  const { atual, anterior, hoje, descricao, maximo, nomeAtual, nomeAnterior, fechado } =
+    useGastosData().spendingPace;
+  const step = (x1 - x0) / (anterior.length - 1);
   const x = (day: number) => x0 + (day - 1) * step;
   const y = (value: number) => base - (value / maximo) * (147.4 + extra);
   const line = (values: number[]) =>
     values.map((v, i) => `${i ? "L" : "M"}${x(i + 1).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   const xHoje = x(hoje);
-  const setHoje = setembro[hoje - 1] ?? 0;
+  const atualHoje = atual[hoje - 1] ?? 0;
   // O mês anterior pode ter menos dias (dia 31 contra um mês de 30): vale o acumulado do último.
-  const prevAt = (day: number) => agosto[Math.min(day, agosto.length) - 1] ?? 0;
+  const prevAt = (day: number) => anterior[Math.min(day, anterior.length) - 1] ?? 0;
   const agoHoje = prevAt(hoje);
-  const agoFim = agosto[agosto.length - 1] ?? 0;
-  const currentText = `${nomeAtual} ${fmt(setHoje)}`;
+  const agoFim = anterior[anterior.length - 1] ?? 0;
+  const currentText = `${nomeAtual} ${fmt(atualHoje)}`;
   const previousText = `${nomeAnterior} ${fmt(agoHoje)}`;
   // No fim do mês (ou num mês fechado) o "hoje" encosta na borda: o rótulo que não couber à
   // direita vai para a esquerda, se couber antes do eixo.
@@ -93,7 +85,7 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
   // Os dois à esquerda, empilhados como à direita (um acima do outro, sem encostar).
   const bothLeft = !fitsRight(previousText, 12) && fitsLeft(previousText, 12);
   const labels = paceLabels({
-    current: y(setHoje),
+    current: y(atualHoje),
     previous: y(agoHoje),
     left:
       !bothLeft &&
@@ -104,7 +96,7 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
   });
   const currentLeft = labels.left || bothLeft;
 
-  const points = setembro.map((v, i) => ({
+  const points = atual.map((v, i) => ({
     x: x(i + 1),
     title: i + 1 === hoje && !fechado ? `Hoje, dia ${hoje}` : `Dia ${i + 1}`,
     rows: [
@@ -123,20 +115,22 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
       <ChartSvg width={width} height={height} fill label={descricao}>
         <GridLines ticks={moneyTicks(maximo)} x0={x0} x1={x1} y={y} labelX={x0 - 8} />
         <path
-          d={line(agosto)}
+          d={line(anterior)}
           fill="none"
           stroke={chartColors.label}
           strokeWidth="2"
           strokeDasharray="6 5"
           strokeLinejoin="round"
         />
+        {atual.length > 0 && (
+          <path
+            d={`${line(atual)} L${xHoje.toFixed(1)},${base} L${x0.toFixed(1)},${base} Z`}
+            fill={chartColors.saidas}
+            fillOpacity=".12"
+          />
+        )}
         <path
-          d={`${line(setembro)} L${xHoje.toFixed(1)},${base} L${x0.toFixed(1)},${base} Z`}
-          fill={chartColors.saidas}
-          fillOpacity=".12"
-        />
-        <path
-          d={line(setembro)}
+          d={line(atual)}
           fill="none"
           stroke={chartColors.saidas}
           strokeWidth="2.5"
@@ -151,7 +145,7 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
         />
         <circle
           cx={xHoje.toFixed(1)}
-          cy={y(setHoje).toFixed(1)}
+          cy={y(atualHoje).toFixed(1)}
           r="5"
           fill={chartColors.saidas}
           stroke={chartColors.card}
@@ -187,13 +181,13 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
           strokeWidth="2"
         />
         {/* O fechamento do mês anterior, quando o "hoje" ainda não chegou ao fim dele. */}
-        {showClose && hoje < agosto.length && (
+        {showClose && hoje < anterior.length && (
           <text x={x1 + 6} y={(y(agoFim) + 4).toFixed(1)} fontSize="12" fill={chartColors.label}>
             {fmt(agoFim)}
           </text>
         )}
         <line x1={x0} x2={x1} y1={base} y2={base} stroke={chartColors.axis} />
-        {[...new Set([1, 10, 20, hoje, agosto.length])]
+        {[...new Set([1, 10, 20, hoje, anterior.length])]
           // Dia que encostaria no "hoje" sai (o "hoje" fica).
           .filter((day) => day === hoje || Math.abs(x(day) - xHoje) >= 24)
           .map((day) => (

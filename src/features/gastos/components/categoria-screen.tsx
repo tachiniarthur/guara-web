@@ -1,6 +1,6 @@
 "use client";
 
-import { notFound, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
@@ -19,7 +19,6 @@ import {
 } from "@/features/gastos/components/category-ledger";
 import { TransactionDays } from "@/features/gastos/components/transaction-days";
 import { useSession } from "@/features/acesso/session";
-import type { CategoryLedger } from "@/features/gastos/lancamentos";
 import { useCategoryLedger } from "@/features/gastos/live-ledger";
 import { LoadingStatus } from "@/components/states/skeleton";
 import { ErrorBlock } from "@/components/states/state-block";
@@ -38,19 +37,8 @@ function MonthFromUrl({ onMonth }: { onMonth: (month: string | null) => void }) 
   return null;
 }
 
-/**
- * Uma categoria no mês: com login, os dados da API; no protótipo, os de exemplo (`prototype`,
- * `null` quando a categoria não existe no protótipo).
- */
-export function CategoriaScreen({
-  categoria,
-  prototype,
-  prototypeHasCeiling,
-}: {
-  categoria: string;
-  prototype: CategoryLedger | null;
-  prototypeHasCeiling: boolean;
-}) {
+/** Uma categoria no mês (o mês vem de `?mes=`), com os dados da API. */
+export function CategoriaScreen({ categoria }: { categoria: string }) {
   const { live } = useSession();
   // `undefined` até ler o endereço: a busca espera para não pedir o mês errado antes.
   const [month, setMonth] = useState<string | null | undefined>(undefined);
@@ -63,21 +51,18 @@ export function CategoriaScreen({
       <MonthFromUrl onMonth={setMonth} />
     </Suspense>
   );
-  if (!live && !prototype) notFound();
-  if (live && !real.data) {
+  if (!real.data) {
     return (
       <Page padding="detail" header={<MobileHeader title="Gastos" back="/gastos" balanced />}>
         {fromUrl}
-        {real.error ? <ErrorBlock /> : <LoadingStatus />}
+        {real.error || !live ? <ErrorBlock /> : <LoadingStatus />}
       </Page>
     );
   }
-  const ledger = live ? real.data! : prototype!;
-  const hasCeiling = live ? Boolean(ledger.teto) : prototypeHasCeiling;
+  const ledger = real.data;
+  const hasCeiling = Boolean(ledger.teto);
   const year = (month ?? formatDate(new Date(), "yyyy-MM")).slice(0, 4);
-  const subtitle = live
-    ? `${ledger.mes ? ledger.mes.charAt(0).toUpperCase() + ledger.mes.slice(1) : ""} ${year}`
-    : "Setembro 2026 · Nubank e Itaú";
+  const subtitle = `${ledger.mes ? ledger.mes.charAt(0).toUpperCase() + ledger.mes.slice(1) : ""} ${year}`;
   const search = <SearchField label={`Buscar em ${ledger.nome}`} size="list" />;
   const tip = ledger.dica && <GuaraTip named>{ledger.dica}</GuaraTip>;
 
@@ -98,11 +83,7 @@ export function CategoriaScreen({
         subtitle={subtitle}
         actions={
           hasCeiling && (
-            <ButtonLink
-              href={live ? "/alertas/tetos" : `/alertas/tetos/${categoria}/editar`}
-              variant="secondary"
-              size="sm"
-            >
+            <ButtonLink href="/alertas/tetos" variant="secondary" size="sm">
               <Icon name="edit" size={18} />
               <span>Editar teto</span>
             </ButtonLink>

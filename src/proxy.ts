@@ -9,7 +9,7 @@ export function proxy(request: NextRequest) {
   const estado = request.nextUrl.searchParams.get("estado");
   if (!estado) return NextResponse.next();
   const url = request.nextUrl.clone();
-  const path = request.nextUrl.pathname === "/" ? "" : request.nextUrl.pathname;
+  const path = request.nextUrl.pathname;
   url.pathname = `/previa/${encodeURIComponent(estado)}${path}`;
   return NextResponse.rewrite(url);
 }
@@ -18,11 +18,10 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      source: "/:tab(|gastos|assinaturas|investimentos|metas|relatorio|alertas|conversas)",
+      source: "/:tab(investimentos|metas|relatorio|alertas)",
       has: [{ type: "query", key: "estado" }],
     },
-    // Só as rotas com parâmetro; as telas fixas vizinhas (histórico, adicionar…) ficam de fora.
-    { source: "/conversas/:id((?!historico$)[^/]+)", has: [{ type: "query", key: "estado" }] },
+    // Só as rotas com parâmetro; as telas fixas vizinhas (adicionar, alocação…) ficam de fora.
     {
       source: "/investimentos/:ativo((?!novo$|alocacao$|duplicidade$|bens$)[^/]+)",
       has: [{ type: "query", key: "estado" }],

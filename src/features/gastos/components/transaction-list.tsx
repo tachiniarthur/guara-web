@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-import type { Transaction } from "../data";
+import type { Transaction } from "../types";
 
 /** Lançamentos com inicial em círculo; compras fora do padrão em urucum, entradas em verde. */
 export function TransactionList({ items }: { items: Transaction[] }) {

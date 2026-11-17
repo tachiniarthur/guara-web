@@ -77,9 +77,14 @@ subscription_required, rate_limited, invalid_credentials, cpf_*, internal, unava
 | `GET/PUT /v1/me/layouts/:screen`                                                                                         | `layout/use-screen-layout`         | layout de `home`/`spending`                                       |
 | `GET /v1/health`                                                                                                         | session                            | acordar a API                                                     |
 
-**Existem na API e o Web não chama** (futuras integrações): `chat/*` (conversas, SSE com o Lobo Guará, busca, uso), `onboarding`,
+**Chat** (`features/conversas/api.ts`, `stream.ts`): `GET/POST /v1/chat/conversations`, `GET/PATCH/DELETE /conversations/:id`,
+`GET /conversations/:id/messages`, `POST /conversations/:id/messages` (SSE: `message`, `delta`, `tool`, `reply`, `done`, `error`;
+via `apiStream` em `lib/api.ts`) e `GET /v1/chat/search`. Lançamento: `PATCH /v1/transactions/:id` (categoria) e
+`PATCH /v1/anomalies/:id` (compra fora do padrão).
+
+**Existem na API e o Web não chama** (futuras integrações): `chat/usage`, `onboarding`,
 `connections` (Open Finance), `investor-profile` POST/questionnaire, `budgets` POST/PATCH/DELETE, `goals` POST/PATCH,
-`subscriptions` escrita, `transactions` PATCH (categoria), `category-rules`, `reports/exports`, `simulations/*`,
+`subscriptions` escrita, `category-rules`, `reports/exports`, `simulations/*`,
 `belongings` escrita, `price-alerts` PATCH/DELETE, `investments` movimentações/preview/exposure, `notifications` read/devices/settings,
 `DELETE /v1/me` (exclusão), `GET /v1/plans`. (`GET /v1/chat/assistants` e `PUT /v1/me/plan/assistants` foram removidos da API em 16/11/2026.)
 

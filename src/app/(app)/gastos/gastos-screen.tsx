@@ -5,9 +5,8 @@ import type { ReactNode } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
-import { OFFLINE_NOTE, parseScreenState } from "@/components/states/screen-state";
 import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
-import { ErrorBlock, NoDataBlock, StateBlock, StateSwap } from "@/components/states/state-block";
+import { ErrorBlock, StateSwap } from "@/components/states/state-block";
 import { inlineLinkClass } from "@/components/ui/text-link";
 import { ButtonLink } from "@/components/ui/button";
 import { AddChip, FilterChips } from "@/components/ui/filter-chips";
@@ -25,8 +24,7 @@ import {
 } from "@/features/gastos/components/spending-charts";
 import { MonthForecast } from "@/features/gastos/components/month-forecast";
 import { TetoMeter } from "@/features/gastos/components/teto-meter";
-import { ViewModeToggle } from "@/features/gastos/components/view-mode-toggle";
-import { GastosDataProvider, prototypeGastos } from "@/features/gastos/context";
+import { EMPTY_GASTOS, GastosDataProvider } from "@/features/gastos/context";
 import { type FooterPart, gastosMonthOptions, useGastosView } from "@/features/gastos/live";
 import { MonthPicker } from "@/features/gastos/components/month-picker";
 import { useSession } from "@/features/acesso/session";
@@ -38,7 +36,6 @@ import {
   useProjection,
   useSuggestions,
 } from "@/features/projecao/api";
-import { prototypePlanned, prototypeProjection } from "@/features/projecao/data";
 import { NextMonthsBlock } from "@/features/projecao/components/next-months-block";
 import { ProjectionView } from "@/features/projecao/components/projection-view";
 import { SuggestionPrompt } from "@/features/projecao/components/suggestion-prompt";
@@ -53,11 +50,7 @@ import { useScreenLayout } from "@/features/layout/use-screen-layout";
 
 const SAIDAS = "#E0935A";
 
-const prototypeBanks = [
-  { value: "todos", label: "Todos os bancos", icon: "grid" as const },
-  { value: "nubank", label: "Nubank", bank: "nubank" },
-  { value: "itau", label: "Itaú", bank: "itau" },
-];
+const ALL_BANKS = { value: "todos", label: "Todos os bancos", icon: "grid" as const };
 
 /** Rodapé dos gráficos montado com os números da API (`forte` em negrito). */
 function Footer({ parts }: { parts: FooterPart[] }) {
@@ -90,32 +83,21 @@ function ChartFooter({ children }: { children: ReactNode }) {
   return <p className="m-0 text-13 leading-normal text-mist">{children}</p>;
 }
 
-const noSpending = (
-  <StateBlock
-    icon="wallet"
-    title="Ainda sem gastos"
-    action={
-      <ButtonLink href="/onboarding/bancos" variant="forest" size="md" className="text-15">
-        <span>Conectar banco</span>
-      </ButtonLink>
-    }
-  >
-    Conecte um banco para ver seus gastos por categoria, por dia da semana e mês a mês.
-  </StateBlock>
-);
-
-/** `estado`: estados do protótipo (`?estado=`), abertos pela prévia (ver `src/proxy.ts`). */
-export function GastosScreen({ estado }: { estado?: string }) {
+/**
+ * Gastos do mês (ou de um mês anterior, pelo seletor) e a previsão dos gastos fixos dos meses
+ * seguintes, com os dados da API. Os blocos seguem o layout salvo da conta.
+ */
+export function GastosScreen() {
   const { live } = useSession();
-  // Mês escolhido no seletor (com login); `null` = o atual. Um mês guardado que já saiu da lista
-  // (virou o ano) volta ao atual.
+  // Mês escolhido no seletor; `null` = o atual. Um mês guardado que já saiu da lista (virou o ano)
+  // volta ao atual.
   const now = new Date();
   const currentMonth = formatDate(now, "yyyy-MM");
   const chosen = useGastosMonth((state) => state.month);
   const setChosen = useGastosMonth((state) => state.setMonth);
   const month = pastMonthOrNull(chosen, now) ?? currentMonth;
-  // Mês depois do atual: a tela mostra a previsão dos gastos fixos dele (com login).
-  const futureMonth = live ? futureMonthOrNull(chosen, now, PROJECTION_MONTHS) : null;
+  // Mês depois do atual: a tela mostra a previsão dos gastos fixos dele.
+  const futureMonth = futureMonthOrNull(chosen, now, PROJECTION_MONTHS);
   const gastos = useGastosView({ enabled: live, month });
   const layout = useScreenLayout("spending", SPENDING_BLOCKS);
   const projection = useProjection({ enabled: live });
@@ -123,26 +105,15 @@ export function GastosScreen({ estado }: { estado?: string }) {
   // O pop-up de gasto recorrente aparece só no mês atual.
   const onCurrentMonth = !futureMonth && month === currentMonth;
   const suggestions = useSuggestions({ enabled: live && onCurrentMonth });
-  const projectionData = live ? projection.data : prototypeProjection();
-  const plannedCount = live ? (planned.data?.data.length ?? 0) : prototypePlanned.length;
-  if (estado === "novo" || (live && gastos.data?.semDados)) return <NewUserSpending />;
-  // Modo real: carregando até a API responder, erro se alguma rota falhar. Protótipo: `?estado=`.
-  const state = live
-    ? gastos.error
-      ? "erro"
-      : gastos.data
-        ? null
-        : "carregando"
-    : parseScreenState(estado);
+  const plannedCount = planned.data?.data.length ?? 0;
+  if (gastos.data?.semDados) return <NewUserSpending />;
+  // Carregando até a API responder; erro se alguma rota falhar (ou se a API não está configurada).
+  const state = gastos.error || !live ? "erro" : gastos.data ? null : "carregando";
   const view = gastos.data;
-  const data = view ?? prototypeGastos;
+  // Enquanto carrega, a forma dos cards sem números (o carregando cobre cada um).
+  const data = view ?? EMPTY_GASTOS;
   const { ledger, tetos } = data;
-  const mes = futureMonth
-    ? labelsOfMonth(futureMonth)
-    : (view?.mes ??
-      (live
-        ? labelsOfMonth(month)
-        : { name: "setembro", short: "Set 2026", long: "Setembro 2026" }));
+  const mes = futureMonth ? labelsOfMonth(futureMonth) : (view?.mes ?? labelsOfMonth(month));
   const shownMonth = futureMonth ?? month;
   const fechado = view?.mesFechado ?? false;
   // No celular, só o mês ("Out"); de outro ano, com o ano ("Out/25").
@@ -175,39 +146,15 @@ export function GastosScreen({ estado }: { estado?: string }) {
       )}
     </MonthPicker>
   );
-  const bankOptions = view
-    ? [
-        { value: "todos", label: "Todos os bancos", icon: "grid" as const },
-        ...view.bancos.map((bank) => ({ value: bank, label: bank })),
-      ]
-    : prototypeBanks;
-  // Sem dados (erro ou vazio), cada card mostra o aviso e perde a ação e os números do subtítulo.
-  const noData = state === "erro" || state === "vazio";
-  const body = (main?: ReactNode) =>
-    state === "erro" ? <ErrorBlock /> : state === "vazio" ? (main ?? <NoDataBlock />) : null;
+  const bankOptions = [
+    ALL_BANKS,
+    ...(view?.bancos ?? []).map((bank) => ({ value: bank, label: bank })),
+  ];
+  // No erro, cada card mostra o aviso e perde a ação e os números do subtítulo.
+  const noData = state === "erro";
+  const body = () => (noData ? <ErrorBlock /> : null);
   const sub = (text: ReactNode, withNumbers?: boolean) =>
-    state === "sem-internet" ? (
-      <span className="text-tucano">{OFFLINE_NOTE}</span>
-    ) : noData && withNumbers ? undefined : (
-      text
-    );
-  /** O aviso "Ainda sem gastos" vai no maior card: categorias (celular e desktop) ou lançamentos. */
-  const categoryMain = (
-    <>
-      <div className="flex grow flex-col @tab:hidden @desk:flex">{noSpending}</div>
-      <div className="hidden grow flex-col @tab:flex @desk:hidden">
-        <NoDataBlock />
-      </div>
-    </>
-  );
-  const ledgerMain = (
-    <>
-      <div className="flex grow flex-col @tab:hidden @desk:flex">
-        <NoDataBlock />
-      </div>
-      <div className="hidden grow flex-col @tab:flex @desk:hidden">{noSpending}</div>
-    </>
-  );
+    noData && withNumbers ? undefined : text;
   const renderBlock = (id: string) => {
     switch (id) {
       case "ritmo":
@@ -228,14 +175,7 @@ export function GastosScreen({ estado }: { estado?: string }) {
                   wide={<SpendingPaceChart variant="desktop" />}
                 />
               </div>
-              {view ? (
-                <Footer parts={view.rodapes.ritmo} />
-              ) : (
-                <ChartFooter>
-                  <strong className="text-sand">R$ 1.012 acima</strong> de agosto no mesmo dia,
-                  puxado pela compra de eletrônicos de hoje.
-                </ChartFooter>
-              )}
+              {view && <Footer parts={view.rodapes.ritmo} />}
             </StateSwap>
           </Panel>
         );
@@ -264,14 +204,7 @@ export function GastosScreen({ estado }: { estado?: string }) {
                   wide={<MonthlySpendingChart variant="wide" />}
                 />
               </div>
-              {view ? (
-                <Footer parts={view.rodapes.meses} />
-              ) : (
-                <ChartFooter>
-                  Setembro deve fechar perto de <strong className="text-sand">R$ 6.050</strong>, 4%
-                  acima da média dos últimos meses.
-                </ChartFooter>
-              )}
+              {view && <Footer parts={view.rodapes.meses} />}
             </StateSwap>
           </Panel>
         );
@@ -281,11 +214,9 @@ export function GastosScreen({ estado }: { estado?: string }) {
             <PanelHeader
               title="Por dia da semana"
               subtitle={sub(
-                view
-                  ? fechado
-                    ? `Gasto médio por dia nos 3 meses antes de ${mes.name}`
-                    : "Gasto médio por dia nos últimos 3 meses"
-                  : "Gasto médio por dia, sem aluguel e compras acima de R$ 1.000",
+                fechado
+                  ? `Gasto médio por dia nos 3 meses antes de ${mes.name}`
+                  : "Gasto médio por dia nos últimos 3 meses",
                 true,
               )}
             />
@@ -297,14 +228,7 @@ export function GastosScreen({ estado }: { estado?: string }) {
                   wide={<WeekdaySpendingChart variant="wide" />}
                 />
               </div>
-              {view ? (
-                <Footer parts={view.rodapes.semana} />
-              ) : (
-                <ChartFooter>
-                  Sexta e sábado concentram <strong className="text-sand">36%</strong> dos gastos do
-                  mês, quase tudo em delivery e lazer.
-                </ChartFooter>
-              )}
+              {view && <Footer parts={view.rodapes.semana} />}
             </StateSwap>
           </Panel>
         );
@@ -322,7 +246,7 @@ export function GastosScreen({ estado }: { estado?: string }) {
               title="Por categoria"
               subtitle={sub("Clique numa categoria para ver os lançamentos")}
             />
-            <StateSwap replacement={body(categoryMain)} className="grow gap-2 @tab:gap-4">
+            <StateSwap replacement={body()} className="grow gap-2 @tab:gap-4">
               {/* Pela largura do bloco (que a pessoa pode mudar), não da página. */}
               <ChartFit
                 className="flex grow flex-col"
@@ -351,13 +275,13 @@ export function GastosScreen({ estado }: { estado?: string }) {
               action={
                 !noData && (
                   <Link href="/gastos/lancamentos" className={panelLinkClass}>
-                    {view ? "Ver todos" : "Ver 118"}
+                    Ver todos
                     <Icon name="chevron-right" size={16} />
                   </Link>
                 )
               }
             />
-            <StateSwap replacement={body(ledgerMain)} className="grow gap-1 @tab:gap-3">
+            <StateSwap replacement={body()} className="grow gap-1 @tab:gap-3">
               <SearchField
                 label="Buscar lançamento"
                 size="sm"
@@ -365,14 +289,7 @@ export function GastosScreen({ estado }: { estado?: string }) {
                 inputClassName="@max-tab:text-16"
               />
               <div className="@tab:hidden">
-                <LedgerList
-                  items={
-                    view
-                      ? ledger.slice(0, 4)
-                      : ledger.filter((l) => ["l1", "l2", "l3", "l6"].includes(l.id))
-                  }
-                  short
-                />
+                <LedgerList items={ledger.slice(0, 4)} short />
               </div>
               <div className="hidden @tab:block @desk:hidden">
                 <LedgerList items={ledger.slice(0, 5)} />
@@ -430,10 +347,10 @@ export function GastosScreen({ estado }: { estado?: string }) {
       case "proximos":
         return (
           <NextMonthsBlock
-            projection={projectionData}
-            error={live && Boolean(projection.error)}
+            projection={projection.data}
+            error={Boolean(projection.error)}
             plannedCount={plannedCount}
-            onSelect={live ? (value) => setChosen(value) : undefined}
+            onSelect={(value) => setChosen(value)}
           />
         );
       default:
@@ -454,20 +371,7 @@ export function GastosScreen({ estado }: { estado?: string }) {
             actions={
               <>
                 <EditLayoutButton layout={layout} compact />
-                {/* A troca de mês é com login; o protótipo mostra setembro. */}
-                {live ? (
-                  monthPicker("mobile")
-                ) : (
-                  <button
-                    type="button"
-                    aria-haspopup="dialog"
-                    className="flex h-11 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 font-medium whitespace-nowrap"
-                  >
-                    <Icon name="calendar" size={18} />
-                    {mes.short.slice(0, 3)}
-                    <Icon name="chevron-down" size={16} />
-                  </button>
-                )}
+                {monthPicker("mobile")}
               </>
             }
           />
@@ -494,28 +398,12 @@ export function GastosScreen({ estado }: { estado?: string }) {
                   </span>
                 </>
               ) : (
-                <>
-                  Setembro · 118 lançamentos
-                  <span className="hidden @desk:inline"> em 2 bancos</span>
-                </>
+                <>{mes.long.split(" ")[0]}</>
               )}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {live ? (
-              monthPicker("desktop")
-            ) : (
-              <button
-                type="button"
-                aria-haspopup="dialog"
-                className="flex h-11 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 font-medium whitespace-nowrap"
-              >
-                <Icon name="calendar" size={18} />
-                <span className="@desk:hidden">{mes.short}</span>
-                <span className="hidden @desk:inline">{mes.long}</span>
-                <Icon name="chevron-down" size={16} />
-              </button>
-            )}
+            {monthPicker("desktop")}
             <EditLayoutButton layout={layout} className="hidden @desk:inline-flex" />
             <EditLayoutButton layout={layout} compact className="@desk:hidden" />
             <ButtonLink
@@ -549,19 +437,7 @@ export function GastosScreen({ estado }: { estado?: string }) {
                   className="@max-tab:flex-nowrap @max-tab:overflow-hidden"
                   trailing={<AddChip>Conectar</AddChip>}
                 />
-                {/* "Por banco" ainda é só do protótipo. */}
-                {!live && (
-                  <div className="hidden @tab:block">
-                    <ViewModeToggle appearance="card" />
-                  </div>
-                )}
               </div>
-
-              {!live && (
-                <div className="flex flex-col gap-4 @tab:hidden">
-                  <ViewModeToggle appearance="pill" />
-                </div>
-              )}
             </Skeleton>
             <div className="flex flex-col gap-4 @tab:hidden">
               <nav aria-label="Ir para" className="-mr-4 flex gap-1.5 overflow-hidden">

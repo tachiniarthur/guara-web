@@ -84,7 +84,7 @@ editar usa rascunho; "Concluir" grava local com `pending` e envia `PUT`; se falh
 
 ## Estado local (Zustand)
 
-`chat-panel` (UI do chat e mensagens fake em memória), `privacy` (ocultar valores), `settings` (localStorage `guara-settings`),
+`chat-panel` (painel aberto, visão e conversa atual), `features/conversas/stream` (turno sendo enviado/respondido), `privacy` (ocultar valores), `settings` (localStorage `guara-settings`),
 `saved-simulations` (localStorage: sem login, e a aposentadoria com login), `profile-answers`/`onboarding-banks`/`auth-flow` (sessionStorage).
 Query keys em português: `["gastos",…]`, `["alertas",…]`, `["usuario",…]`, `["plano","meu"]`, `["perfil","eu"]`, `["layout",screen]`.
 

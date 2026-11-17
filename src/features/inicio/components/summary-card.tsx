@@ -12,12 +12,7 @@ import { NoDataBlock, StateBlock } from "@/components/states/state-block";
 import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import {
-  cashFlow as prototypeCashFlow,
-  cashFlowYear as prototypeCashFlowYear,
-  summary as prototypeSummary,
-  type CashFlowData,
-} from "../data";
+import type { CashFlowData } from "../types";
 import { CashFlowChart, CashFlowLegend } from "./cash-flow-chart";
 
 function RowMarker({ id }: { id: SummaryData["linhas"][number]["id"] }) {
@@ -63,15 +58,27 @@ export type SummaryData = {
   }[];
 };
 
+/** Enquanto a API responde: a mesma forma do card, sem números. */
+const LOADING_SUMMARY: SummaryData = {
+  saldo: "—",
+  saldoRotulo: "Saldo",
+  linhas: [
+    { id: "entradas", rotulo: "Entradas", valor: "—", variacao: "" },
+    { id: "saidas", rotulo: "Saídas", valor: "—", variacao: "" },
+    { id: "sobrou", rotulo: "Sobrou no mês", valor: "—", variacao: "" },
+  ],
+};
+
 export function SummaryCard({
   className,
-  summary = prototypeSummary,
-  cashFlow = prototypeCashFlow,
-  cashFlowYear = prototypeCashFlowYear,
+  summary = LOADING_SUMMARY,
+  cashFlow = null,
+  cashFlowYear = null,
 }: {
   className?: string;
+  /** Sem `summary` (carregando), o card fica com a forma e sem números. */
   summary?: SummaryData;
-  /** `undefined` = exemplo do protótipo; `null` = conta sem lançamentos no período (aviso). */
+  /** `null` (ou ainda sem resposta): sem lançamentos no período, o aviso no lugar do gráfico. */
   cashFlow?: CashFlowData | null;
   /** Acumulado do ano, mês a mês (aba "Ano"). */
   cashFlowYear?: CashFlowData | null;

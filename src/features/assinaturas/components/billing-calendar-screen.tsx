@@ -16,7 +16,6 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { capitalize, MONTHS } from "@/lib/live-format";
 import { cn } from "@/lib/utils";
 
-import { subscriptions, subscriptionTotals } from "../data";
 import {
   calendarMonth,
   calendarNote,
@@ -29,21 +28,6 @@ const PALETTE = ["#6DB3EC", "#F2C230", "#FF6A50", "#6CC08E", "#B79CED", "#E0935A
 const weekdays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 /** Quantos meses dá para avançar (as cobranças futuras são estimadas pela última). */
 const MAX_AHEAD = 11;
-
-/** O mês do protótipo (outubro de 2026, hoje 23/09), no mesmo formato do real. */
-const prototypeMonth: CalendarMonth = {
-  titulo: "outubro de 2026",
-  nome: "outubro",
-  ano: 2026,
-  dias: 31,
-  primeiroDiaSemana: 4,
-  cobrancas: subscriptions.map((item) => ({
-    dia: item.dia,
-    item,
-    valorCents: Number(item.valor.replace(/\D/g, "")),
-  })),
-  totalCents: 0,
-};
 
 function MonthGrid({
   month,
@@ -221,28 +205,7 @@ export function BillingCalendarScreen() {
     </Page>
   );
 
-  if (!live) {
-    const colors = new Map(subscriptions.map((s, i) => [s.id, PALETTE[i % PALETTE.length]!]));
-    return shell(
-      "Outubro de 2026",
-      <div className="flex flex-col gap-4 @tab:gap-5 @desk:grid @desk:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] @desk:items-stretch">
-        <MonthGrid
-          month={prototypeMonth}
-          colors={colors}
-          previous="Setembro"
-          next="Novembro"
-          note="Hoje é 23/09. O calendário mostra o mês das próximas cobranças."
-        />
-        <ChargesPanel
-          month={prototypeMonth}
-          subtitle={`${subscriptions.length} assinaturas · ${subscriptionTotals.mensal}`}
-          note="Todas vencem até o dia 15: R$ 66,80 até o dia 8 (Spotify e Netflix) e R$ 34,80 entre os dias 12 e 15 (Amazon Prime e iCloud+). Nenhuma na segunda quinzena."
-        />
-      </div>,
-    );
-  }
-
-  if (view.error) return shell("Assinaturas", <ErrorBlock />);
+  if (view.error || !live) return shell("Assinaturas", <ErrorBlock />);
   if (!view.data) {
     return shell(
       "Assinaturas",

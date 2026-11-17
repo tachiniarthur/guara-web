@@ -8,8 +8,6 @@ import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { MobileActionBar } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
-import { Note } from "@/components/ui/note";
-import { useSession } from "@/features/acesso/session";
 import { ApiError } from "@/lib/api";
 
 import { usePlannedMutations } from "../api";
@@ -24,7 +22,6 @@ const FORM_ID = "novo-gasto-futuro";
  */
 export function NewPlannedScreen() {
   const router = useRouter();
-  const { live } = useSession();
   const { create } = usePlannedMutations();
   const problem = create.error
     ? create.error instanceof ApiError
@@ -61,16 +58,10 @@ export function NewPlannedScreen() {
         <h1 className="m-0 font-display text-24 leading-[1.25] font-bold @tab:hidden">
           Que gasto vem por aí?
         </h1>
-        {!live && (
-          <Note icon="info" tone="info">
-            No protótipo, o gasto não é salvo. Entre na sua conta para guardar.
-          </Note>
-        )}
         <PlannedExpenseForm
           formId={FORM_ID}
           problem={problem}
           onSubmit={(input) => {
-            if (!live) return router.push("/gastos/futuros");
             create.mutate(input, { onSuccess: () => router.push("/gastos/futuros") });
           }}
           actions={

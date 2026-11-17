@@ -2,19 +2,14 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 
-import { categorySpending, otherSpending, type CategorySpending } from "./data";
-import { monthTotals, transactionDays, type TransactionDay } from "./lancamentos";
+import type { TransactionDay } from "./lancamentos";
+import type { CategorySpending } from "./types";
 
-/**
- * Dados da lista de lançamentos. No protótipo, os de exemplo; com login, os da API
- * (`live-lancamentos.ts`), no mesmo formato.
- */
+/** Dados da lista de lançamentos, montados com a API (`live-lancamentos.ts`). */
 export interface LancamentosData {
   days: TransactionDay[];
   /** "Todos os bancos" primeiro. */
   banks: string[];
-  /** Mostra a marca do banco ao lado do nome (só os do protótipo têm). */
-  bankMarks: boolean;
   totals: { entrou: string; saiu: string; sobrou: string };
   resumo: string;
   /** "Setembro 2026". */
@@ -27,21 +22,20 @@ export interface LancamentosData {
   loadMore: { onClick: () => void; pending: boolean } | null;
 }
 
-export const prototypeLancamentos: LancamentosData = {
-  days: transactionDays,
-  banks: ["Todos os bancos", "Nubank", "Itaú"],
-  bankMarks: true,
-  totals: monthTotals,
-  resumo: `${monthTotals.lancamentos} lançamentos em setembro · Nubank e Itaú`,
-  mes: "Setembro 2026",
-  categorias: categorySpending,
-  outros: otherSpending.valorFormatado,
-  foraDoPadrao:
-    "A compra de R$ 1.249,90 às 02:14 está fora do seu padrão. Clique nela para confirmar se foi você.",
-  loadMore: { onClick: () => {}, pending: false },
+/** Enquanto a API responde: a forma da tela, sem lançamentos nem números. */
+export const EMPTY_LANCAMENTOS: LancamentosData = {
+  days: [],
+  banks: ["Todos os bancos"],
+  totals: { entrou: "—", saiu: "—", sobrou: "—" },
+  resumo: "",
+  mes: "",
+  categorias: [],
+  outros: "—",
+  foraDoPadrao: null,
+  loadMore: null,
 };
 
-const LancamentosContext = createContext<LancamentosData>(prototypeLancamentos);
+const LancamentosContext = createContext<LancamentosData>(EMPTY_LANCAMENTOS);
 
 export function LancamentosDataProvider({
   value,

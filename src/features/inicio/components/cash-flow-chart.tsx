@@ -5,9 +5,9 @@ import { ChartInspector, InspectorLayer, type InspectPoint } from "@/components/
 import { formatCurrency, formatReais } from "@/lib/format";
 import { capitalize, MONTHS } from "@/lib/live-format";
 
-import { cashFlow, type CashFlowData } from "../data";
+import type { CashFlowData } from "../types";
 
-/** Área do gráfico em unidades do viewBox (iguais ao protótipo, no tamanho natural). */
+/** Área do gráfico em unidades do viewBox (no tamanho natural do design). */
 const X0 = 52;
 const Y_TOP = 14;
 /**
@@ -75,10 +75,10 @@ export function axisTicks(periodo: "mes" | "ano", total: number, atual: number) 
  */
 export function CashFlowChart({
   variant,
-  data = cashFlow,
+  data,
 }: {
   variant: "wide" | "compact";
-  data?: CashFlowData;
+  data: CashFlowData;
 }) {
   const natural = variant === "compact" ? COMPACT : WIDE;
   return (
@@ -299,7 +299,7 @@ function CashFlowSvg({
 }
 
 /** Legenda do gráfico compacto. */
-export function CashFlowLegend({ data = cashFlow }: { data?: CashFlowData }) {
+export function CashFlowLegend({ data }: { data: CashFlowData }) {
   return (
     <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 text-12 text-mist">
       <span className="inline-flex items-center gap-1.5">

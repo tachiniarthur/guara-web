@@ -2,9 +2,9 @@ import { Icon, type IconName } from "@/components/ui/icon";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-import { subscriptionStats } from "../data";
+import type { SubscriptionStatsData } from "../types";
 
-export type SubscriptionStatsData = typeof subscriptionStats;
+export type { SubscriptionStatsData };
 
 function Stat({
   label,
@@ -44,12 +44,13 @@ function Stat({
  */
 export function SubscriptionStats({
   className,
-  stats = subscriptionStats,
+  stats,
 }: {
   className?: string;
+  /** Sem `stats` (carregando), a faixa fica com a forma e sem números. */
   stats?: SubscriptionStatsData;
 }) {
-  const { ativas, mensal, anual, media } = stats;
+  const { ativas = null, mensal = null, anual = null, media = null } = stats ?? {};
   return (
     <section
       aria-label="Resumo das assinaturas"
@@ -58,7 +59,12 @@ export function SubscriptionStats({
         className,
       )}
     >
-      <Stat icon="repeat" label="Assinaturas" value={String(ativas)} caption="ativas" />
+      <Stat
+        icon="repeat"
+        label="Assinaturas"
+        value={ativas === null ? "—" : String(ativas)}
+        caption="ativas"
+      />
       <Stat label="Gasto mensal" value={formatCurrency(mensal)} caption="por mês" />
       <Stat
         label="Projeção anual"

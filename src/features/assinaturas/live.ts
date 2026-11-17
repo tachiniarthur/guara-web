@@ -15,7 +15,7 @@ import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { apiPercent, buildView, MONTHS, percent } from "@/lib/live-format";
 
-import type { Subscription, SubscriptionDetail } from "./data";
+import type { Subscription, SubscriptionDetail } from "./types";
 
 /** Assinaturas com os dados da API (`/v1/subscriptions`), no formato que as telas desenham. */
 

@@ -7,12 +7,12 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { CountBadge } from "@/components/ui/count-badge";
 import { cn } from "@/lib/utils";
 
-import { pendingItems as prototypeItems, type PendingItem } from "../data";
+import type { PendingItem } from "../types";
 
 /** "Precisa de você": decisões pendentes que o Guará separou. */
 export function PendingCard({
   className,
-  pendingItems = prototypeItems,
+  pendingItems = [],
 }: {
   className?: string;
   pendingItems?: PendingItem[];

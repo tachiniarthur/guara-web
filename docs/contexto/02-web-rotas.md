@@ -43,7 +43,7 @@ painel de conversas à direita; conversa fixa a partir de 1600). Comportamento p
 `lib/navigation.ts → shellConfig(pathname)`: `aside` (`history`|`home`|false), `fab`, `bottomNav`,
 `mobileFab`, `tabletChat`. Formulários (`isForm`) não têm barra inferior (ação fixa no rodapé).
 O chat fecha ao entrar em `/perfil*` e `/configuracoes`. `?valores=ocultos` oculta valores;
-`?chat=aberto|nova|historico|…` abre o chat (protótipo).
+`?chat=historico|nova|<uuid>` abre o painel de conversa (histórico, conversa nova ou uma conversa).
 
 ### Navegação (`lib/navigation.ts`)
 
@@ -82,12 +82,12 @@ ids do protótipo (só `conversas/[id]` tem `dynamicParams=false`).
 | `/alertas`                                                                      | Hub (tetos + preços + avisos)            | **API**                                                                    |
 | `/alertas/precos`, `/precos/[id]`, `/precos/[id]/editar`, `/alertas/novo-preco` | Alertas de preço                         | **API** (criar/listar/ver); editar: protótipo                              |
 | `/alertas/tetos`, `/tetos/[id]`, `/tetos/[id]/editar`, `/alertas/novo-teto`     | Tetos de gasto                           | leitura **API**; criar/editar: protótipo                                   |
-| `/conversas`, `/conversas/[id]`, `/conversas/historico`                         | Chat                                     | **protótipo** (resposta fixa, sem API)                                     |
+| `/conversas`, `/conversas/[id]`, `/conversas/historico`                         | Chat                                     | **API** (`/v1/chat`: conversas, mensagens em SSE, busca, renomear/excluir) |
 | `/perfil`, `/perfil/editar`, `/editar/email`, `/senha`, `/excluir-conta`        | Conta                                    | nome/CPF/celular via **API**; senha via Supabase; excluir-conta: só tela   |
 | `/perfil/planos`                                                                | Planos                                   | plano via **API**; resto protótipo                                         |
 | `/perfil/bancos/[banco]/renovar`, `/perfil/investidor`, `/investidor/resultado` | Bancos / perfil de investidor            | protótipo                                                                  |
 | `/configuracoes`                                                                | Preferências                             | `localStorage` (store `settings`)                                          |
-| `/previa/[estado]/[[...rota]]`                                                  | Renderiza abas em estados do protótipo   | interna (via `proxy.ts`)                                                   |
+| `/previa/[estado]/[[...rota]]`                                                  | Estados do protótipo (Invest., Metas…)   | interna (via `proxy.ts`)                                                   |
 
 ### Onboarding/entrada `(onboarding)`
 

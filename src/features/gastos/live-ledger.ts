@@ -1,16 +1,17 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { apiQuery, type ApiPath } from "@/lib/api-query";
+import { apiRequest } from "@/lib/api";
+import { apiQuery, invalidateApi, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { MONTHS, formatWhole, percent, apiPercent, buildView } from "@/lib/live-format";
 
 import { formatDayTotal, type CategoryLedger, type TransactionDay } from "./lancamentos";
 
 /*
- * Lançamentos com os dados da API (modo real): agrupados por dia, como a lista do design, e a
+ * Lançamentos com os dados da API: agrupados por dia, como a lista do design, e a
  * página de uma categoria (total, comparação com a média, teto, "onde foi" e a lista).
  */
 
@@ -346,6 +347,9 @@ export function toTransactionDetail(
         ? "poupança"
         : "conta corrente";
   const categoryName = (top && names.get(top)) || item.categoria;
+  const anomaly = anomalies.data.find(
+    (a) => a.transaction.id === transaction.id && a.status === "pending",
+  );
   return {
     item,
     details: {
@@ -354,10 +358,9 @@ export function toTransactionDetail(
       descricaoBanco: transaction.description,
       origem: account ? `Open Finance · ${account.institutionName}` : "Open Finance",
       resumo: [`${weekday}, ${date}`, time, item.conta].filter(Boolean).join(" · "),
-      categorias: [
-        item.categoria,
-        ...categories.data.filter((c) => c.name !== item.categoria).map((c) => c.name),
-      ].slice(0, 6),
+      categoriaId: top ?? null,
+      opcoes: categories.data.map((c) => ({ id: c.id, nome: c.name })),
+      anomaliaId: anomaly?.id ?? null,
       semTeto:
         transaction.direction === "debit" && !hasBudget
           ? `Esta compra não entra em nenhum teto. Você não tem teto para ${categoryName}.`
@@ -403,4 +406,31 @@ export function useTransactionDetail(id: string, { enabled }: { enabled: boolean
     ),
     missing: false,
   };
+}
+
+/** Troca a categoria do lançamento (e, se pedido, das próximas compras na mesma loja). */
+export function useUpdateTransactionCategory(id: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ categoryId, applyToFuture }: { categoryId: string; applyToFuture: boolean }) =>
+      apiRequest(`/v1/transactions/${encodeURIComponent(id)}`, z.unknown(), {
+        method: "PATCH",
+        body: { categoryId, applyToFuture },
+      }),
+    // Categoria muda os totais de Gastos, do Início e dos tetos.
+    onSuccess: () => invalidateApi(client),
+  });
+}
+
+/** Responde à compra fora do padrão ("Fui eu" ou "Não reconheço"). */
+export function useAnswerAnomaly() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, recognized }: { id: string; recognized: boolean }) =>
+      apiRequest(`/v1/anomalies/${encodeURIComponent(id)}`, z.unknown(), {
+        method: "PATCH",
+        body: { status: recognized ? "recognized" : "not_recognized" },
+      }),
+    onSuccess: () => invalidateApi(client, "/v1/anomalies", "/v1/notifications", "/v1/dashboard"),
+  });
 }

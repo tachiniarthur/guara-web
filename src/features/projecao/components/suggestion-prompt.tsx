@@ -13,7 +13,7 @@ import { shiftMonth } from "@/lib/live-format";
 import { cn } from "@/lib/utils";
 
 import { type Suggestion, usePlannedMutations } from "../api";
-import { monthsSentence } from "../data";
+import { monthsSentence } from "../format";
 import { currentMonthKey } from "./planned-expense-form";
 
 /** Da conta: some ao sair (`clearPersistedQueries`, em `lib/query-persist.ts`). */

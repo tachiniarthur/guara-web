@@ -4,7 +4,7 @@ import { useQueries } from "@tanstack/react-query";
 import { z } from "zod";
 
 import { BudgetSummarySchema, buildTetos, type BudgetSummary } from "@/features/gastos/live";
-import type { TetoProgress } from "@/features/gastos/data";
+import type { TetoProgress } from "@/features/gastos/types";
 import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatDate, formatMoney } from "@/lib/format";
 import { percent, relativeDay, apiPercent, buildView } from "@/lib/live-format";

@@ -26,7 +26,7 @@ import {
 import { useAlertasView } from "@/features/alertas/live";
 import { useSession } from "@/features/acesso/session";
 import { TetoMeter } from "@/features/gastos/components/teto-meter";
-import { tetos as prototypeTetos } from "@/features/gastos/data";
+import { tetos as prototypeTetos } from "@/features/gastos/prototype";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 function NewTetoLink({ className }: { className?: string }) {

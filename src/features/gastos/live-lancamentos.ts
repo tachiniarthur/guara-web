@@ -8,7 +8,7 @@ import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { MONTHS, capitalize, formatWhole, apiPercent, buildView } from "@/lib/live-format";
 
-import type { CategorySpending } from "./data";
+import type { CategorySpending } from "./types";
 import type { LancamentosData } from "./lancamentos-context";
 import {
   AccountsSchema,
@@ -96,7 +96,6 @@ export function toLancamentos(
   return {
     days: toTransactionDays(transactions, { accounts, categories, anomalies }, now),
     banks: ["Todos os bancos", ...banks],
-    bankMarks: false,
     totals: {
       entrou: formatCurrency(summary.incomeCents),
       saiu: formatCurrency(summary.spentCents),

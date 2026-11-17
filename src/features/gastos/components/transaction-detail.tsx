@@ -3,17 +3,14 @@
 import { useState } from "react";
 
 import { GuaraTip } from "@/components/ui/guara-tip";
-import { ActionList } from "@/components/ui/action-list";
 import { Button } from "@/components/ui/button";
 import { filterChipClass } from "@/components/ui/chip";
 import { DetailList } from "@/components/ui/detail-list";
 import { Icon } from "@/components/ui/icon";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
-import { OFFLINE_NOTE, type ScreenState } from "@/components/states/screen-state";
-import { ErrorBlock, NoDataBlock, StateSwap } from "@/components/states/state-block";
-
 import type { Transaction, TransactionDetails } from "../lancamentos";
+import { useAnswerAnomaly, useUpdateTransactionCategory } from "../live-ledger";
 import { OffPatternTag } from "./transaction-days";
 
 type Props = { item: Transaction; details: TransactionDetails };
@@ -53,31 +50,44 @@ export function TransactionHero({ item, details, desktop }: Props & { desktop?: 
   );
 }
 
-/** Pergunta do Guará quando a compra está fora do padrão. */
-export function OffPatternCheck() {
-  const [answer, setAnswer] = useState<"sim" | "nao" | null>(null);
+/** Pergunta do Guará quando a compra está fora do padrão; a resposta vai para a API. */
+export function OffPatternCheck({ anomalyId }: { anomalyId: string }) {
+  const answer = useAnswerAnomaly();
+  const recognized = answer.isSuccess ? answer.variables.recognized : null;
   return (
     <GuaraTip
       named
       action={
-        answer ? undefined : (
+        recognized === null && (
           <div className="flex items-center gap-2">
-            <Button variant="primary" size="sm" onClick={() => setAnswer("sim")}>
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={answer.isPending}
+              onClick={() => answer.mutate({ id: anomalyId, recognized: true })}
+            >
               <Icon name="check" size={18} />
               <span>Fui eu</span>
             </Button>
-            <Button variant="danger-outline" size="sm" onClick={() => setAnswer("nao")}>
+            <Button
+              variant="danger-outline"
+              size="sm"
+              disabled={answer.isPending}
+              onClick={() => answer.mutate({ id: anomalyId, recognized: false })}
+            >
               <span>Não reconheço</span>
             </Button>
           </div>
         )
       }
     >
-      {answer === "sim"
-        ? "Anotado. Não vou perguntar de novo sobre compras parecidas nesta loja."
-        : answer === "nao"
-          ? "Vou te ajudar a contestar no Nubank. Bloqueie o cartão pelo app do banco agora."
-          : "Compra às 02:14, bem acima do seu costume em eletrônicos. Foi você?"}
+      {recognized === true
+        ? "Anotado. Obrigado por confirmar."
+        : recognized === false
+          ? "Fale com o seu banco para contestar a compra e, se precisar, bloqueie o cartão pelo app dele."
+          : answer.isError
+            ? answer.error.message
+            : "Esta compra está fora do seu padrão. Foi você?"}
     </GuaraTip>
   );
 }
@@ -108,48 +118,49 @@ export function NoCeilingNote({ text }: { text: string }) {
   );
 }
 
-/** Categoria do lançamento (troca a categoria e lembra para a mesma loja). */
+/** Categoria do lançamento: troca na API e, marcado, vale também para a mesma loja daqui em diante. */
 export function CategoryPicker({
+  transactionId,
   details,
-  current,
   desktop,
   id,
-  state,
 }: {
+  transactionId: string;
   details: TransactionDetails;
-  current: string;
   desktop?: boolean;
   id: string;
-  state?: ScreenState | null;
 }) {
-  const [category, setCategory] = useState(current);
+  const update = useUpdateTransactionCategory(transactionId);
+  const [category, setCategory] = useState(details.categoriaId);
+  const [future, setFuture] = useState(true);
+  const choose = (next: string) => {
+    if (next === category || update.isPending) return;
+    const previous = category;
+    setCategory(next);
+    update.mutate(
+      { categoryId: next, applyToFuture: future },
+      { onError: () => setCategory(previous) },
+    );
+  };
   return (
     <Panel className={cn("gap-3", desktop ? "p-5.5" : "p-4.5")}>
       <PanelHeader
         title="Categoria"
-        subtitle={
-          state === "sem-internet" ? (
-            <span className="text-tucano">{OFFLINE_NOTE}</span>
-          ) : (
-            `${desktop ? "Clique" : "Toque"} para mudar · vale para compras parecidas`
-          )
-        }
+        subtitle={`${desktop ? "Clique" : "Toque"} para mudar`}
         titleClassName={cn("tracking-normal", desktop ? "text-19" : "text-17")}
       />
-      <StateSwap
-        replacement={state === "erro" ? <ErrorBlock /> : state === "vazio" && <NoDataBlock />}
-        className="grow gap-3"
-      >
-        <div className="flex flex-wrap gap-2">
-          {[...details.categorias, "Outra…"].map((option) => (
+      <div className="flex grow flex-col gap-3">
+        <div role="group" aria-label="Categorias" className="flex flex-wrap gap-2">
+          {details.opcoes.map((option) => (
             <button
-              key={option}
+              key={option.id}
               type="button"
-              aria-pressed={option === category}
-              onClick={() => setCategory(option)}
-              className={filterChipClass(option === category)}
+              aria-pressed={option.id === category}
+              disabled={update.isPending}
+              onClick={() => choose(option.id)}
+              className={filterChipClass(option.id === category)}
             >
-              {option}
+              {option.nome}
             </button>
           ))}
         </div>
@@ -157,44 +168,28 @@ export function CategoryPicker({
           <input
             id={id}
             type="checkbox"
-            defaultChecked
+            checked={future}
+            onChange={(event) => setFuture(event.target.checked)}
             className="m-0 size-5.5 shrink-0 accent-sand"
           />
           <label htmlFor={id} className="flex grow flex-col leading-[1.35]">
-            <span className="font-bold">Usar “{category}” para esta loja nas próximas vezes</span>
+            <span className="font-bold">
+              Usar a mesma categoria para esta loja nas próximas vezes
+            </span>
           </label>
         </div>
+        {update.isError && (
+          <p role="alert" className="m-0 text-13 text-urucum">
+            {update.error.message}
+          </p>
+        )}
+        {update.isSuccess && (
+          <p role="status" className="m-0 text-13 text-mist">
+            Categoria trocada.
+          </p>
+        )}
         {desktop && details.semTeto && <NoCeilingNote text={details.semTeto} />}
-      </StateSwap>
-    </Panel>
-  );
-}
-
-export function MoreActions({ desktop, failed }: { desktop?: boolean; failed?: boolean }) {
-  return (
-    <Panel className={cn("grow gap-1.5", desktop ? "p-5.5" : "p-4.5")}>
-      <PanelHeader
-        title="Mais ações"
-        titleClassName={cn("tracking-normal", desktop ? "text-19" : "text-17")}
-      />
-      <StateSwap replacement={failed && <ErrorBlock />} className="grow">
-        <ActionList
-          items={[
-            {
-              icon: "copy",
-              label: "Marcar como duplicado",
-              description: "Some do total se o mesmo gasto apareceu duas vezes",
-            },
-            {
-              icon: "repeat-alt",
-              label: "Não é assinatura",
-              description: "Para de tratar esta loja como cobrança recorrente",
-            },
-            { icon: "edit", label: "Adicionar observação" },
-            { icon: "eye-alt", label: "Esconder dos relatórios" },
-          ]}
-        />
-      </StateSwap>
+      </div>
     </Panel>
   );
 }

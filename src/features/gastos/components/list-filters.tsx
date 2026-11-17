@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { dropdownPillClass, filterChipClass } from "@/components/ui/chip";
 import { Icon, type IconName } from "@/components/ui/icon";
-import { BankMark } from "@/components/ui/bank-mark";
 import { cn } from "@/lib/utils";
 
 import { useLancamentosData } from "../lancamentos-context";
@@ -22,7 +21,7 @@ export function BankFilter({
   onChange?: (bank: string) => void;
   className?: string;
 }) {
-  const { banks: options, bankMarks } = useLancamentosData();
+  const { banks: options } = useLancamentosData();
   const [own, setOwn] = useState(ALL_BANKS);
   const current = value ?? own;
   const setCurrent = (bank: string) => {
@@ -39,7 +38,6 @@ export function BankFilter({
           onClick={() => setCurrent(bank)}
           className={filterChipClass(bank === current)}
         >
-          {bank !== ALL_BANKS && bankMarks && <BankMark bank={bank} size={20} />}
           {bank}
         </button>
       ))}

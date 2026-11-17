@@ -28,14 +28,12 @@ function filterDays(days: TransactionDay[], query: string, bank: string) {
 }
 
 /**
- * Busca, filtro por banco e a lista de lançamentos por dia. A busca e o banco filtram de verdade;
- * `?estado=vazio-filtro` abre com "academia" no Nubank, que não tem nenhum lançamento.
+ * Busca, filtro por banco e a lista de lançamentos por dia (filtrados no aparelho).
  * `tiles` (totais do mês) e `footer` (carregar mais) somem quando o filtro não acha nada.
  */
 export function TransactionBrowser({
   columns,
   filtersOnly,
-  preset,
   failed,
   tiles,
   footer,
@@ -44,14 +42,15 @@ export function TransactionBrowser({
   filtersOnly?: boolean;
   /** Desktop: busca e filtros numa linha só e os dias em duas colunas. */
   columns?: boolean;
-  preset?: boolean;
   failed?: boolean;
   tiles?: ReactNode;
   footer?: ReactNode;
 }) {
-  const [query, setQuery] = useState(preset ? "academia" : "");
-  const [bank, setBank] = useState(preset ? "Nubank" : ALL_BANKS);
-  const days = filterDays(useLancamentosData().days, query, bank);
+  const [query, setQuery] = useState("");
+  const [bank, setBank] = useState(ALL_BANKS);
+  const data = useLancamentosData();
+  const days = filterDays(data.days, query, bank);
+  const month = data.mes.split(" ")[0]?.toLowerCase();
   const clear = () => {
     setQuery("");
     setBank(ALL_BANKS);
@@ -62,7 +61,7 @@ export function TransactionBrowser({
   );
   const empty = (
     <FilterEmptyBlock onClear={clear} className={cn(columns && "grow")}>
-      {`Nenhum lançamento com “${query.trim()}”${bank === ALL_BANKS ? "" : ` no ${bank}`} em setembro.`}
+      {`Nenhum lançamento${query.trim() ? ` com “${query.trim()}”` : ""}${bank === ALL_BANKS ? "" : ` no ${bank}`}${month ? ` em ${month}` : ""}.`}
     </FilterEmptyBlock>
   );
 

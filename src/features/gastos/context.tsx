@@ -2,28 +2,19 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 
-import {
-  categorySpending,
-  ledger,
-  monthForecast,
-  monthlySpending,
-  otherSpending,
-  spendingPace,
-  tetos,
-  totalSaidas,
-  weekdaySpending,
-  type CategorySpending,
-  type LedgerEntry,
-  type MonthForecastData,
-  type MonthlySpending,
-  type SpendingPace,
-  type TetoProgress,
-  type WeekdaySpending,
-} from "./data";
+import type {
+  CategorySpending,
+  LedgerEntry,
+  MonthForecastData,
+  MonthlySpending,
+  SpendingPace,
+  TetoProgress,
+  WeekdaySpending,
+} from "./types";
 
 /**
- * Dados da tela Gastos. No protótipo, os de exemplo (`data.ts`); com login, os da API
- * (`live.ts`), no mesmo formato. Os componentes leem daqui, nunca do `data.ts` direto.
+ * Dados da tela Gastos, montados com a API (`live.ts`). Os gráficos leem daqui; enquanto a API
+ * responde, a tela usa `EMPTY_GASTOS` (a forma dos cards, sem números).
  */
 export interface GastosData {
   spendingPace: SpendingPace;
@@ -37,19 +28,50 @@ export interface GastosData {
   monthForecast: MonthForecastData;
 }
 
-export const prototypeGastos: GastosData = {
-  spendingPace,
-  monthlySpending,
-  weekdaySpending,
-  categorySpending,
-  otherSpending,
-  totalSaidas,
-  ledger,
-  tetos,
-  monthForecast,
+/** Enquanto a API responde: gráficos sem pontos e listas vazias (os cards guardam o lugar). */
+export const EMPTY_GASTOS: GastosData = {
+  spendingPace: {
+    hoje: 0,
+    atual: [],
+    anterior: [],
+    nomeAtual: "",
+    nomeAnterior: "",
+    maximo: 1,
+    descricao: "",
+  },
+  monthlySpending: {
+    meses: [],
+    previsao: null,
+    media: null,
+    rotuloMedia: "",
+    rotuloPrevisao: "",
+    maximo: 1,
+    descricao: "",
+  },
+  weekdaySpending: { dias: [], maximo: 1, descricao: "" },
+  categorySpending: [],
+  otherSpending: { valor: 0, valorFormatado: "—", cor: "#34443B" },
+  totalSaidas: "—",
+  ledger: [],
+  tetos: [],
+  monthForecast: {
+    fechado: false,
+    hoje: 0,
+    diasNoMes: 30,
+    diasRestantes: 30,
+    ateHoje: 0,
+    porDia: 0,
+    previsao: null,
+    media: null,
+    contraMedia: null,
+    nomeAnterior: "",
+    anteriorMesmoDia: null,
+    contraAnterior: null,
+    restante: null,
+  },
 };
 
-const GastosContext = createContext<GastosData>(prototypeGastos);
+const GastosContext = createContext<GastosData>(EMPTY_GASTOS);
 
 export function GastosDataProvider({
   value,

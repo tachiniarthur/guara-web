@@ -17,7 +17,7 @@ import {
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { TetoBar } from "@/features/gastos/components/teto-meter";
-import type { TetoMilestone } from "@/features/gastos/data";
+import type { TetoMilestone } from "@/features/gastos/types";
 import {
   CategoryHistoryChart,
   type MonthValue,

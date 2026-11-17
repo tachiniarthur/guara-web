@@ -24,7 +24,7 @@ import {
   usePlannedMutations,
   useSuggestions,
 } from "../api";
-import { monthsSentence, prototypePlanned, prototypeSuggestions, untilLabel } from "../data";
+import { monthsSentence, untilLabel } from "../format";
 import { PlannedExpenseForm } from "./planned-expense-form";
 
 const errorText = (error: unknown, fallback: string) =>
@@ -51,12 +51,11 @@ export function PlannedListScreen() {
   const [editing, setEditing] = useState<PlannedExpense | null>(null);
   const [removing, setRemoving] = useState<PlannedExpense | null>(null);
 
-  const items = live ? planned.data?.data : prototypePlanned;
-  const suggested = live ? suggestions.data?.data : prototypeSuggestions;
+  const items = planned.data?.data;
+  const suggested = suggestions.data?.data;
   const totalCents = (items ?? []).reduce((total, item) => total + item.amountCents, 0);
 
   const accept = (suggestion: Suggestion) =>
-    live &&
     create.mutate({
       name: suggestion.name,
       amountCents: suggestion.amountCents,
@@ -144,7 +143,7 @@ export function PlannedListScreen() {
               : undefined
           }
         />
-        {live && planned.error ? (
+        {!live || planned.error ? (
           <ErrorBlock />
         ) : !items ? (
           <p role="status" className="m-0 text-14 text-mist">

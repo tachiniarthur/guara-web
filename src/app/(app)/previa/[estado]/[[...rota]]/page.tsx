@@ -2,10 +2,6 @@ import { notFound } from "next/navigation";
 import type { ComponentType, ReactNode } from "react";
 
 import { AlertasScreen } from "../../../alertas/alertas-screen";
-import { AssinaturasScreen } from "../../../assinaturas/assinaturas-screen";
-import { ConversaAtualScreen, ConversaScreen } from "../../../conversas/conversas-screen";
-import { GastosScreen } from "../../../gastos/gastos-screen";
-import { InicioScreen } from "../../../inicio-screen";
 import { AtivoScreen } from "../../../investimentos/[ativo]/ativo-screen";
 import { InvestimentosScreen } from "../../../investimentos/investimentos-screen";
 import { PosicoesScreen } from "../../../investimentos/posicoes/posicoes-screen";
@@ -19,20 +15,15 @@ import { RelatorioScreen } from "../../../relatorio/relatorio-screen";
  * não muda.
  */
 const screens: Record<string, ComponentType<{ estado?: string }>> = {
-  "": InicioScreen,
-  gastos: GastosScreen,
-  assinaturas: AssinaturasScreen,
   investimentos: InvestimentosScreen,
   metas: MetasScreen,
   relatorio: RelatorioScreen,
   alertas: AlertasScreen,
-  conversas: ConversaAtualScreen,
   "investimentos/posicoes": PosicoesScreen,
 };
 
 /** Rotas com parâmetro: `[segmento fixo, tela]` (ex.: `investimentos/petr4`). */
 const withParam: Record<string, (param: string, estado: string) => ReactNode> = {
-  conversas: (id, estado) => <ConversaScreen id={id} estado={estado} />,
   investimentos: (ativo, estado) => <AtivoScreen ativo={ativo} estado={estado} />,
 };
 

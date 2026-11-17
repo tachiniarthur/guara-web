@@ -27,11 +27,11 @@ import {
   type SpendingPace,
   type TetoProgress,
   type WeekdaySpending,
-} from "./data";
+} from "./types";
 
 /*
- * Gastos com os dados da API (modo real), no mesmo formato dos dados de exemplo. Valores em
- * reais inteiros nos gráficos (como no design); textos montados com os números calculados aqui.
+ * Gastos com os dados da API, no formato que os gráficos desenham (`types.ts`). Valores em reais
+ * inteiros nos gráficos (como no design); textos montados com os números calculados aqui.
  */
 
 const cents = z.number().int();

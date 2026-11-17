@@ -4,11 +4,10 @@ import Link from "next/link";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Page } from "@/components/layout/page";
-import { OFFLINE_NOTE, parseScreenState, type ScreenState } from "@/components/states/screen-state";
+import type { ScreenState } from "@/components/states/screen-state";
 import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import {
   ErrorBlock,
-  FilterEmptyBlock,
   NoDataBlock,
   StateBlock,
   StateSwap,
@@ -18,13 +17,11 @@ import {
 import { inlineLinkClass } from "@/components/ui/text-link";
 import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { Button, ButtonLink } from "@/components/ui/button";
-import { Icon } from "@/components/ui/icon";
+import { ButtonLink } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { BillingCalendar } from "@/features/assinaturas/components/billing-calendar";
 import { SubscriptionDetailList } from "@/features/assinaturas/components/subscription-detail-list";
 import { SubscriptionStats } from "@/features/assinaturas/components/subscription-stats";
-import { subscriptions } from "@/features/assinaturas/data";
 import {
   calendarNote,
   useAssinaturasView,
@@ -32,7 +29,7 @@ import {
 } from "@/features/assinaturas/live";
 import { useSession } from "@/features/acesso/session";
 
-/** Com login, o que veio da API; no protótipo, `undefined` (os dados de exemplo). */
+/** O que veio da API (`undefined` enquanto carrega). */
 type Props = { state: ScreenState | null; view?: AssinaturasView };
 
 /**
@@ -71,47 +68,26 @@ function StatsStrip({ state, view }: Props) {
   );
 }
 
+/** Dica do Guará a partir dos dados (maior aumento ou o peso no ano); sem dica, nada. */
 function PrimeTip({ state, view, className }: Props & { className?: string }) {
-  // Com login, a dica vem dos dados (maior aumento ou o peso no ano); sem assinatura, não há dica.
-  if (view && !view.dica) return null;
+  if (!view?.dica) return null;
   return (
     <StateSwap
       replacement={tileState(state)}
       overlayClassName="rounded-bubble bg-shade p-4"
       className={className}
     >
-      {view?.dica ? (
-        <GuaraTip
-          className={className}
-          action={
-            <ButtonLink href={view.dica.acao.href} size="sm">
-              <span>{view.dica.acao.label}</span>
-            </ButtonLink>
-          }
-        >
-          {view.dica.texto}
-        </GuaraTip>
-      ) : (
-        <PrimeTipBubble className={className} />
-      )}
+      <GuaraTip
+        className={className}
+        action={
+          <ButtonLink href={view.dica.acao.href} size="sm">
+            <span>{view.dica.acao.label}</span>
+          </ButtonLink>
+        }
+      >
+        {view.dica.texto}
+      </GuaraTip>
     </StateSwap>
-  );
-}
-
-function PrimeTipBubble({ className }: { className?: string }) {
-  return (
-    <GuaraTip
-      className={className}
-      action={
-        <Button size="sm">
-          <Icon name="chat" size={18} />
-          <span>Perguntar ao Guará</span>
-        </Button>
-      }
-    >
-      Você não comprou na Amazon nos últimos 60 dias. Se cancelar o Prime, economiza{" "}
-      <strong>R$ 238,80 por ano</strong>.
-    </GuaraTip>
   );
 }
 
@@ -122,7 +98,7 @@ function CalendarCard({ state, view }: Props) {
       <PanelHeader
         title={
           <Link href="/assinaturas/calendario" className={inlineLinkClass}>
-            Cobranças de {month ? month.nome : "outubro"}
+            {month ? `Cobranças de ${month.nome}` : "Cobranças do mês"}
           </Link>
         }
         titleClassName="text-18 tracking-normal"
@@ -141,12 +117,8 @@ function CalendarCard({ state, view }: Props) {
             <span className="text-13 text-mist">{calendarNote(month)}</span>
           </>
         ) : (
-          <>
-            <BillingCalendar items={subscriptions} />
-            <span className="text-13 text-mist">
-              Todas as cobranças vencem até o dia 15. Nenhuma na segunda quinzena.
-            </span>
-          </>
+          // Carregando: o calendário vazio guarda o lugar.
+          <BillingCalendar items={[]} />
         )}
       </StateSwap>
     </Panel>
@@ -154,19 +126,10 @@ function CalendarCard({ state, view }: Props) {
 }
 
 function ActiveCard({ state, view }: Props) {
-  const items = view?.items ?? subscriptions;
+  const items = view?.items ?? [];
   return (
     <Panel className="gap-1.5">
-      <PanelHeader
-        title="Ativas"
-        subtitle={
-          state === "sem-internet" ? (
-            <span className="text-tucano">{OFFLINE_NOTE}</span>
-          ) : (
-            "Detectadas por valor e empresa que se repetem"
-          )
-        }
-      />
+      <PanelHeader title="Ativas" subtitle="Detectadas por valor e empresa que se repetem" />
       <StateSwap
         className="grow"
         replacement={
@@ -185,10 +148,6 @@ function ActiveCard({ state, view }: Props) {
               Procuramos cobranças da mesma empresa, com o mesmo valor, todo mês. Com 2 ou 3 meses
               de lançamentos já dá para reconhecer.
             </StateBlock>
-          ) : state === "vazio-filtro" ? (
-            <FilterEmptyBlock>
-              Nenhuma assinatura com “Disney”. As suas são Spotify, Netflix, Amazon Prime e iCloud+.
-            </FilterEmptyBlock>
           ) : null
         }
       >
@@ -203,21 +162,20 @@ function ActiveCard({ state, view }: Props) {
   );
 }
 
-/** `estado`: estados do protótipo (`?estado=`), abertos pela prévia (ver `src/proxy.ts`). */
-export function AssinaturasScreen({ estado }: { estado?: string }) {
+/** Assinaturas detectadas nos lançamentos, com o resumo, o calendário do mês e a dica. */
+export function AssinaturasScreen() {
   const { live } = useSession();
   const assinaturas = useAssinaturasView({ enabled: live });
-  const view = live ? assinaturas.data : undefined;
-  // Com login: carregando até a API responder, erro se falhar, vazio sem assinatura ativa.
-  const state: ScreenState | null = live
-    ? assinaturas.error
+  const view = assinaturas.data;
+  // Carregando até a API responder, erro se falhar (ou sem API), vazio sem assinatura ativa.
+  const state: ScreenState | null =
+    assinaturas.error || !live
       ? "erro"
       : !view
         ? "carregando"
         : view.items.length === 0
           ? "vazio"
-          : null
-    : parseScreenState(estado);
+          : null;
   const loading = state === "carregando";
   return (
     <Page

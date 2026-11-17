@@ -13,7 +13,6 @@ import {
   PreviewListPanel,
   RowIcon,
 } from "@/features/novo/components";
-import { useSession } from "@/features/acesso/session";
 import { UserGreeting, useUser, withFirstName } from "@/features/usuario/live";
 import { formatDate } from "@/lib/format";
 import { capitalize, greeting } from "@/lib/live-format";
@@ -145,16 +144,13 @@ const emptyCards = [
   },
 ] as const;
 
-/** Início de quem ainda não conectou nenhum banco (`/?estado=novo`). */
+/** Início de quem ainda não conectou nenhum banco. */
 export function NewUserHome() {
   const user = useUser();
-  const { live } = useSession();
-  // Com login, a saudação e o dia de hoje (São Paulo); no protótipo, os do design.
+  // A saudação e o dia de hoje (São Paulo).
   const now = new Date();
-  const hello = live ? greeting(now) : "Boa tarde";
-  const today = live
-    ? capitalize(formatDate(now, "EEEE, d 'de' MMMM").replace("-feira", ""))
-    : "Terça, 23 de setembro";
+  const hello = greeting(now);
+  const today = capitalize(formatDate(now, "EEEE, d 'de' MMMM").replace("-feira", ""));
   return (
     <Page
       padding="detail"

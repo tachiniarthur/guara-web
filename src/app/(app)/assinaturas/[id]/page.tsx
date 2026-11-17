@@ -1,12 +1,7 @@
 import { SubscriptionDetailScreen } from "@/features/assinaturas/components/subscription-detail-screen";
-import { subscriptions } from "@/features/assinaturas/data";
 
-/** As do protótipo saem no build; com login, o id é o da API e a tela abre sob demanda. */
-export function generateStaticParams() {
-  return subscriptions.map((s) => ({ id: s.id }));
-}
-
-export default async function AssinaturaPage({ params }: { params: Promise<{ id: string }> }) {
+/** O id é o da API: a tela abre sob demanda. */
+export default async function AssinaturaPage({ params }: PageProps<"/assinaturas/[id]">) {
   const { id } = await params;
   return <SubscriptionDetailScreen id={id} />;
 }

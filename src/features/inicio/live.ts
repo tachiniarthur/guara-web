@@ -3,7 +3,7 @@
 import { useQueries } from "@tanstack/react-query";
 import { z } from "zod";
 
-import type { CategoryBudget, Transaction } from "@/features/gastos/data";
+import type { CategoryBudget, Transaction } from "@/features/gastos/types";
 import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate } from "@/lib/format";
 import {
@@ -21,11 +21,11 @@ import {
   since,
 } from "@/lib/live-format";
 
-import type { CashFlowData, PendingItem } from "./data";
+import type { CashFlowData, PendingItem } from "./types";
 
 /*
- * Início com os dados da API (modo real). Cada bloco vem de uma rota e é convertido para o mesmo
- * formato dos dados de exemplo, então os cards não mudam. Valor ausente vira "—"; nada é inventado.
+ * Início com os dados da API. Cada bloco vem de uma rota e é convertido para o formato que os
+ * cards desenham (`types.ts`). Valor ausente vira "—"; nada é inventado.
  */
 
 const cents = z.number().int();

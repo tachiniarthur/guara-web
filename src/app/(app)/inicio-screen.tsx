@@ -3,7 +3,6 @@
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { ShowValuesButton } from "@/components/layout/privacy-toggle";
 import { Page, PageTitle } from "@/components/layout/page";
-import { parseScreenState } from "@/components/states/screen-state";
 import {
   CardAction,
   CardBody,
@@ -14,11 +13,9 @@ import { Icon } from "@/components/ui/icon";
 import { IconButtonLink } from "@/components/ui/icon-button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
-import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextLink } from "@/components/ui/text-link";
 import { CategoryBudgetList } from "@/features/gastos/components/category-budget-list";
 import { TransactionList } from "@/features/gastos/components/transaction-list";
-import { categoryBudgets, recentTransactions } from "@/features/gastos/data";
 import { NewUserHome } from "@/features/inicio/components/new-user-home";
 import { OverviewCards } from "@/features/inicio/components/overview-cards";
 import { PendingCard } from "@/features/inicio/components/pending-card";
@@ -35,37 +32,27 @@ import { EditLayoutButton, LayoutEditBar } from "@/features/layout/components/la
 import { useScreenLayout } from "@/features/layout/use-screen-layout";
 
 /**
- * Início (e o caso de quem ainda não conectou banco: ?estado=novo). Estados do protótipo por
- * `?estado=`, abertos pela prévia (ver `src/proxy.ts`).
+ * Início: resumo do mês, visão geral e detalhes, com os dados da API. Quem ainda não conectou
+ * banco vê os primeiros passos.
  */
-export function InicioScreen({ estado }: { estado?: string }) {
+export function InicioScreen() {
   const { live } = useSession();
   const home = useHomeView({ enabled: live });
   const layout = useScreenLayout("home", HOME_BLOCKS);
   const user = useUser();
-  if (estado === "novo" || (live && home.data?.semBanco)) return <NewUserHome />;
-  // Modo real: carregando até a API responder, erro se alguma rota falhar. Protótipo: `?estado=`.
-  const state = live
-    ? home.error
-      ? "erro"
-      : home.data
-        ? null
-        : "carregando"
-    : parseScreenState(estado);
+  if (home.data?.semBanco) return <NewUserHome />;
+  // Carregando até a API responder; erro se alguma rota falhar (ou se a API não está configurada).
+  const state = home.error || !live ? "erro" : home.data ? null : "carregando";
   const loading = state === "carregando";
   const view = home.data;
   const notificacoes = view ? view.notificacoes : user.notificacoesNovas;
-  // Com login, enquanto a API responde: o mês e a data de hoje, sem contar pendências.
+  // Enquanto a API responde: o mês e a data de hoje, sem contar pendências.
   const now = new Date();
-  const pendencias = view ? view.pendencias : live ? null : 3;
-  const mes =
-    view?.mes ??
-    (live ? monthLabels(now) : { name: "setembro", short: "Set 2026", long: "Setembro 2026" });
+  const pendencias = view ? view.pendencias : null;
+  const mes = view?.mes ?? monthLabels(now);
   const hoje = view
     ? view.data
-    : live
-      ? capitalize(formatDate(now, "EEEE, d 'de' MMMM").replace("-feira", ""))
-      : "Quarta, 23 de setembro";
+    : capitalize(formatDate(now, "EEEE, d 'de' MMMM").replace("-feira", ""));
   /** Seção sem nenhum bloco à vista some fora da edição (na edição, mostra onde ficaria). */
   const sectionShown = (group: string) =>
     layout.editing ||
@@ -79,9 +66,8 @@ export function InicioScreen({ estado }: { estado?: string }) {
           <SummaryCard
             className="@desk:min-h-[18.75rem]"
             summary={view?.summary}
-            // Com login, `null` (sem lançamentos) vira aviso; nunca o exemplo do protótipo.
-            cashFlow={view ? view.cashFlow : undefined}
-            cashFlowYear={view ? view.cashFlowYear : undefined}
+            cashFlow={view?.cashFlow}
+            cashFlowYear={view?.cashFlowYear}
           />
         );
       case "pendencias":
@@ -103,9 +89,7 @@ export function InicioScreen({ estado }: { estado?: string }) {
               }
             />
             <CardBody className="grow">
-              <CategoryBudgetList
-                items={view ? view.categoryBudgets : live ? [] : categoryBudgets}
-              />
+              <CategoryBudgetList items={view?.categoryBudgets ?? []} />
             </CardBody>
           </Card>
         );
@@ -116,12 +100,12 @@ export function InicioScreen({ estado }: { estado?: string }) {
               title="Últimos lançamentos"
               action={
                 <CardAction>
-                  <TextLink href="/gastos">{live ? "Ver todos" : "Ver os 118"}</TextLink>
+                  <TextLink href="/gastos">Ver todos</TextLink>
                 </CardAction>
               }
             />
             <CardBody className="grow">
-              <TransactionList items={view ? view.recent : live ? [] : recentTransactions} />
+              <TransactionList items={view?.recent ?? []} />
             </CardBody>
           </Card>
         );
@@ -158,8 +142,8 @@ export function InicioScreen({ estado }: { estado?: string }) {
             title={
               view
                 ? view.titulo
-                : // Enquanto a API responde, já com o nome de quem entrou (no protótipo, o do design).
-                  `${withFirstName(live ? greeting(new Date()) : "Boa tarde", user.nome)}.`
+                : // Enquanto a API responde, já com o nome de quem entrou.
+                  `${withFirstName(greeting(now), user.nome)}.`
             }
             subtitle={
               pendencias === null ? (
@@ -179,36 +163,11 @@ export function InicioScreen({ estado }: { estado?: string }) {
           />
 
           <div className="flex w-full items-center justify-between gap-2.5 @tab:w-auto @tab:justify-start @tab:gap-3">
-            {/* "Por banco" e a troca de mês ainda são só do protótipo: com login, o mês atual. */}
-            {!live && (
-              <SegmentedControl
-                label="Como ver os bancos"
-                itemClassName="px-3 @tab:px-4"
-                options={[
-                  { value: "junto", label: "Tudo junto" },
-                  { value: "banco", label: "Por banco" },
-                ]}
-              />
-            )}
-            {live ? (
-              <span className="flex h-12 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-15 font-semibold whitespace-nowrap @tab:px-4.5">
-                <Icon name="calendar" size={18} className="hidden @tab:block" />
-                <span className="@tab:hidden">{mes.short}</span>
-                <span className="hidden @tab:inline">{mes.long}</span>
-              </span>
-            ) : (
-              <button
-                type="button"
-                aria-haspopup="dialog"
-                aria-label={`Mês: ${mes.long.toLowerCase().replace(" ", " de ")}`}
-                className="flex h-12 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-15 font-semibold whitespace-nowrap @tab:px-4.5"
-              >
-                <Icon name="calendar" size={18} className="hidden @tab:block" />
-                <span className="@tab:hidden">{mes.short}</span>
-                <span className="hidden @tab:inline">{mes.long}</span>
-                <Icon name="chevron-down" size={16} />
-              </button>
-            )}
+            <span className="flex h-12 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-15 font-semibold whitespace-nowrap @tab:px-4.5">
+              <Icon name="calendar" size={18} className="hidden @tab:block" />
+              <span className="@tab:hidden">{mes.short}</span>
+              <span className="hidden @tab:inline">{mes.long}</span>
+            </span>
             <ShowValuesButton variant="pill" className="hidden @tab:flex" />
             <EditLayoutButton layout={layout} className="hidden h-12 @desk:inline-flex" />
             <EditLayoutButton layout={layout} compact className="h-12 @desk:hidden" />
@@ -231,15 +190,7 @@ export function InicioScreen({ estado }: { estado?: string }) {
               title={`Resumo de ${mes.name}`}
               subtitle="Como está o seu mês"
               aside={
-                view
-                  ? view.atualizado && (
-                      <span className="text-13 text-caption">{view.atualizado}</span>
-                    )
-                  : !live && (
-                      <span className="text-13 text-caption">
-                        Atualizado há 5 min · 2 de 4 bancos
-                      </span>
-                    )
+                view?.atualizado && <span className="text-13 text-caption">{view.atualizado}</span>
               }
             />
             <Skeleton active={loading}>

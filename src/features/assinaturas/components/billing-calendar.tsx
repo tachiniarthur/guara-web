@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 export function BillingCalendar({
   items,
   days = 31,
-  month = "outubro",
+  month = "",
 }: {
   items: readonly { dia: number; nome: string }[];
   days?: number;

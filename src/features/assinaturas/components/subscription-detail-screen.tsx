@@ -15,22 +15,17 @@ import { LoadingStatus } from "@/components/states/skeleton";
 import { ErrorBlock, StateBlock } from "@/components/states/state-block";
 import { useSession } from "@/features/acesso/session";
 
-import {
-  subscriptionDetailFor,
-  subscriptions,
-  type Subscription,
-  type SubscriptionDetail,
-} from "../data";
+import type { Subscription, SubscriptionDetail } from "../types";
 import { useAssinaturaDetail } from "../live";
 
-/** Textos que, com login, saem dos dados (no protótipo, os do design). */
+/** Textos que saem dos dados (rótulos do aumento, dica e notas do histórico). */
 type Extras = {
   aumentoRotulo: string | null;
   dica: string;
   rotuloHistorico: string;
   notaPrevisto: string | null;
 };
-type Props = { item: Subscription; detail: SubscriptionDetail; extras?: Extras };
+type Props = { item: Subscription; detail: SubscriptionDetail; extras: Extras };
 
 function Note({
   tone,
@@ -73,7 +68,7 @@ function SummaryPanel({ item, detail, extras }: Props) {
         {detail.aumento && (
           <Tag tone="tucano" status>
             <Icon name="arrow-up" size={14} strokeWidth={2} />
-            {extras ? extras.aumentoRotulo : "Subiu R$ 5,00"}
+            {extras.aumentoRotulo}
           </Tag>
         )}
       </div>
@@ -81,25 +76,13 @@ function SummaryPanel({ item, detail, extras }: Props) {
         <StatTile
           label={item.periodo === "por ano" ? "Valor por ano" : "Valor por mês"}
           value={item.valor}
-          hint={
-            extras
-              ? detail.aumento
-                ? `desde ${detail.aumento.desde}`
-                : item.conta
-              : detail.aumento
-                ? "a partir de outubro"
-                : "no cartão"
-          }
+          hint={detail.aumento ? `desde ${detail.aumento.desde}` : item.conta}
           valueClassName="text-19"
         />
         <StatTile
           label="Próxima cobrança"
           value={detail.proximaData}
-          hint={
-            extras
-              ? `${item.valor} · ${item.conta}`
-              : `${item.valor} no ${item.conta.split(" ")[0]}`
-          }
+          hint={`${item.valor} · ${item.conta}`}
           valueClassName="text-19"
         />
         <StatTile
@@ -138,11 +121,7 @@ function HistoryPanel({
   wide,
   className,
 }: Props & { wide?: boolean; className?: string }) {
-  const regular = detail.historico.filter((h) => !h.previsto);
-  const next = detail.historico.find((h) => h.previsto);
-  const label =
-    extras?.rotuloHistorico ??
-    `${item.nome}: R$ ${regular[0]?.display} de abril a setembro; R$ ${next?.display} previsto para outubro`;
+  const label = extras.rotuloHistorico;
   // Escala pelo maior valor (as barras sempre cabem, com espaço para o número em cima).
   const base = wide ? 178 : 128;
   const max = Math.max(...detail.historico.map((h) => h.valor), 0);
@@ -181,10 +160,8 @@ function HistoryPanel({
       ) : (
         <p className="m-0 text-14 text-mist">Nenhuma cobrança encontrada nos últimos 6 meses.</p>
       )}
-      {(extras ? extras.notaPrevisto : "*outubro previsto") && (
-        <p className="m-0 text-12 leading-[1.55] text-caption">
-          {extras ? extras.notaPrevisto : "*outubro previsto"}
-        </p>
+      {extras.notaPrevisto && (
+        <p className="m-0 text-12 leading-[1.55] text-caption">{extras.notaPrevisto}</p>
       )}
     </Panel>
   );
@@ -224,7 +201,7 @@ function CancelPanel({ detail, className }: { detail: SubscriptionDetail; classN
   );
 }
 
-function Tip({ text }: { text?: string }) {
+function Tip({ text }: { text: string }) {
   return (
     <GuaraTip
       named
@@ -234,18 +211,16 @@ function Tip({ text }: { text?: string }) {
         </ButtonLink>
       }
     >
-      {text ??
-        "Com o aumento, as 4 assinaturas passam a somar R$ 101,60 por mês. Quer ver quanto sobraria cortando uma delas?"}
+      {text}
     </GuaraTip>
   );
 }
 
-/** Detalhe de uma assinatura: com login, da API; no protótipo, dos dados de exemplo. */
+/** Detalhe de uma assinatura, com os dados da API. */
 export function SubscriptionDetailScreen({ id }: { id: string }) {
   const { live } = useSession();
   const fromApi = useAssinaturaDetail(id, { enabled: live });
-  const prototype = live ? undefined : subscriptions.find((s) => s.id === id);
-  if (live && (fromApi.error || fromApi.missing || !fromApi.data)) {
+  if (!live || fromApi.error || fromApi.missing || !fromApi.data) {
     return (
       <Page
         padding="detail"
@@ -268,7 +243,7 @@ export function SubscriptionDetailScreen({ id }: { id: string }) {
           >
             Ela pode ter sido marcada como “não é assinatura” ou ter parado de cobrar.
           </StateBlock>
-        ) : fromApi.error ? (
+        ) : fromApi.error || !live ? (
           <ErrorBlock />
         ) : (
           <>
@@ -279,10 +254,8 @@ export function SubscriptionDetailScreen({ id }: { id: string }) {
       </Page>
     );
   }
-  const item = live ? fromApi.data!.item : prototype;
-  if (!item) return <ErrorBlock />;
-  const detail = live ? fromApi.data!.detail : subscriptionDetailFor(item);
-  const extras: Extras | undefined = live ? fromApi.data!.detail : undefined;
+  const { item, detail } = fromApi.data;
+  const extras: Extras = detail;
 
   return (
     <Page
@@ -299,7 +272,7 @@ export function SubscriptionDetailScreen({ id }: { id: string }) {
       <div className="contents @tab:hidden">
         <SummaryPanel item={item} detail={detail} extras={extras} />
         <IncreasePanel detail={detail} />
-        <Tip text={extras?.dica} />
+        <Tip text={extras.dica} />
         <HistoryPanel item={item} detail={detail} extras={extras} />
         <UsagePanel detail={detail} />
         <CancelPanel detail={detail} />
@@ -313,7 +286,7 @@ export function SubscriptionDetailScreen({ id }: { id: string }) {
             <UsagePanel detail={detail} className="grow" />
           </div>
           <div className="flex min-w-0 flex-col gap-4">
-            <Tip text={extras?.dica} />
+            <Tip text={extras.dica} />
             <CancelPanel detail={detail} className="grow" />
           </div>
         </div>
@@ -332,7 +305,7 @@ export function SubscriptionDetailScreen({ id }: { id: string }) {
             <CancelPanel detail={detail} className="grow" />
           </div>
         </div>
-        <Tip text={extras?.dica} />
+        <Tip text={extras.dica} />
       </div>
     </Page>
   );

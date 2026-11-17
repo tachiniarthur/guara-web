@@ -3,7 +3,7 @@ import Link from "next/link";
 import { inlineLinkClass } from "@/components/ui/text-link";
 import { cn } from "@/lib/utils";
 
-import type { TetoMilestone, TetoProgress } from "../data";
+import type { TetoMilestone, TetoProgress } from "../types";
 import { barWidth } from "@/lib/bar-width";
 
 const fill: Record<TetoProgress["estado"], string> = {

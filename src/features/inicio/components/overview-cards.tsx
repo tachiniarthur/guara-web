@@ -5,10 +5,6 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { TextLink } from "@/components/ui/text-link";
-import { priceAlerts } from "@/features/alertas/data";
-import { subscriptions, subscriptionTotals } from "@/features/assinaturas/data";
-import { allocation, portfolio } from "@/features/investimentos/data";
-import { goals, goalsSummary } from "@/features/metas/data";
 import { cn } from "@/lib/utils";
 
 import type { OverviewData } from "../live";
@@ -57,52 +53,13 @@ function OverviewCard({
   );
 }
 
-/** Os dados de exemplo no formato da Visão geral (modo protótipo). */
-function prototypeOverview(): OverviewData {
-  const mainGoal = goals.find((goal) => goal.percentual > 0) ?? goals[0]!;
-  const nearestAlert = priceAlerts.reduce((best, alert) =>
-    alert.progresso > best.progresso ? alert : best,
-  );
-  const nextCharges = [...subscriptions].sort((a, b) => a.dia - b.dia).slice(0, 3);
-  return {
-    investimentos: {
-      valor: portfolio.patrimonio,
-      legenda: portfolio.variacaoMes,
-      alocacao: allocation.map(({ classe, atual, cor }) => ({ classe, atual, cor })),
-    },
-    cobrancas: {
-      valor: subscriptionTotals.mensal,
-      legenda: `por mês em ${subscriptions.length} assinaturas`,
-      itens: nextCharges.map((charge) => ({
-        id: charge.id,
-        nome: charge.nome,
-        quando: charge.proxima.replace("Próxima cobrança em ", ""),
-        valor: charge.valor,
-      })),
-    },
-    metas: {
-      valor: goalsSummary.guardado,
-      legenda: `guardados em ${goals.length} metas`,
-      principal: {
-        nome: mainGoal.nome,
-        percentual: mainGoal.percentual,
-        guardado: mainGoal.guardado,
-        alvo: mainGoal.alvo,
-      },
-    },
-    alertas: {
-      valor: `${priceAlerts.length} ativos`,
-      legenda: "vigiados para você",
-      maisPerto: {
-        ativo: nearestAlert.ativo,
-        direcao: nearestAlert.direcao === "venda" ? "venda" : "compra",
-        faltam: nearestAlert.faltam,
-        progresso: nearestAlert.progresso,
-        condicao: nearestAlert.condicao,
-      },
-    },
-  };
-}
+/** Enquanto a API responde: os cards com a forma e sem números. */
+const LOADING_OVERVIEW: OverviewData = {
+  investimentos: { valor: "—", legenda: "", alocacao: [] },
+  cobrancas: { valor: "—", legenda: "", itens: [] },
+  metas: { valor: "—", legenda: "", principal: null },
+  alertas: { valor: "—", legenda: "", maisPerto: null },
+};
 
 /**
  * Visão geral do Início: investimentos, próximas cobranças, metas e alertas de preço, cada um
@@ -110,7 +67,7 @@ function prototypeOverview(): OverviewData {
  */
 export function OverviewCards({
   className,
-  data = prototypeOverview(),
+  data = LOADING_OVERVIEW,
   only,
 }: {
   className?: string;

@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/format";
 import { futureMonthOrNull, shiftMonth } from "@/lib/live-format";
 
 import { PlannedExpenseForm } from "./components/planned-expense-form";
-import { monthsSentence, prototypeProjection, untilLabel } from "./data";
+import { monthsSentence, untilLabel } from "./format";
 
 describe("projeção dos próximos meses", () => {
   const now = new Date("2026-11-17T12:00:00-03:00");
@@ -26,18 +26,6 @@ describe("projeção dos próximos meses", () => {
     expect(monthsSentence(["2026-11"])).toBe("novembro");
     expect(untilLabel("2031-06")).toBe("até junho de 2031");
     expect(untilLabel(null)).toBe("sem data de fim");
-  });
-
-  it("protótipo: começa no mês seguinte e cada gasto futuro só vale até o fim dele", () => {
-    const { currentMonth, months } = prototypeProjection();
-    expect(months[0]!.month).toBe(shiftMonth(currentMonth, 1));
-    // Curso de inglês vai até março de 2027; a parcela do carro continua.
-    const march = months.find((m) => m.month === "2027-03")!;
-    const april = months.find((m) => m.month === "2027-04")!;
-    expect(march.plannedCents - april.plannedCents).toBe(38_900);
-    for (const m of months) {
-      expect(m.totalCents).toBe(m.subscriptionsCents + m.plannedCents);
-    }
   });
 });
 

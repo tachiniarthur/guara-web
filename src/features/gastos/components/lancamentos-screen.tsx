@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
 import { GuaraTip } from "@/components/ui/guara-tip";
-import { OFFLINE_NOTE, parseScreenState, type ScreenState } from "@/components/states/screen-state";
+import type { ScreenState } from "@/components/states/screen-state";
 import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import {
   ErrorBlock,
@@ -24,8 +24,8 @@ import { StatTile } from "@/components/ui/stat-tile";
 import { TransactionBrowser } from "@/features/gastos/components/transaction-browser";
 import { useSession } from "@/features/acesso/session";
 import {
+  EMPTY_LANCAMENTOS,
   LancamentosDataProvider,
-  prototypeLancamentos,
   useLancamentosData,
 } from "@/features/gastos/lancamentos-context";
 import { useLancamentos } from "@/features/gastos/live-lancamentos";
@@ -88,20 +88,19 @@ function LoadMore() {
   );
 }
 
-/** Todos os lançamentos do mês: com login, os da API; no protótipo, os de exemplo (`?estado=`). */
-export function LancamentosScreen({ estado }: { estado?: string }) {
+/** Todos os lançamentos do mês, com os dados da API. */
+export function LancamentosScreen() {
   const { live } = useSession();
   const real = useLancamentos({ enabled: live });
-  const state = live
-    ? real.error
+  const state: ScreenState | null =
+    real.error || !live
       ? "erro"
       : real.data
         ? real.data.days.length === 0
           ? "vazio"
           : null
-        : "carregando"
-    : parseScreenState(estado);
-  const data = real.data ?? prototypeLancamentos;
+        : "carregando";
+  const data = real.data ?? EMPTY_LANCAMENTOS;
   return (
     <LancamentosDataProvider value={data}>
       <LancamentosBody state={state} />
@@ -181,7 +180,6 @@ function LancamentosBody({ state }: StateProps) {
               <span className="text-14 text-mist">{summary}</span>
             </div>
             <TransactionBrowser
-              preset={state === "vazio-filtro"}
               tiles={<MonthTiles valueClassName="text-17" state={state} />}
               footer={<LoadMore />}
             />
@@ -192,7 +190,7 @@ function LancamentosBody({ state }: StateProps) {
         <div className="hidden grid-cols-[minmax(0,2.6fr)_minmax(0,1fr)] items-stretch gap-5 @desk:grid">
           <Panel className="gap-4 p-6">
             <StateSwap replacement={listState} className="grow gap-4">
-              <TransactionBrowser columns preset={state === "vazio-filtro"} footer={<LoadMore />} />
+              <TransactionBrowser columns footer={<LoadMore />} />
             </StateSwap>
           </Panel>
           <div className="flex min-w-0 flex-col gap-4">
@@ -220,13 +218,7 @@ function LancamentosBody({ state }: StateProps) {
             <Panel className="grow gap-3.5 p-5.5">
               <PanelHeader
                 title="Maiores categorias"
-                subtitle={
-                  state === "sem-internet" ? (
-                    <span className="text-tucano">{OFFLINE_NOTE}</span>
-                  ) : (
-                    !listState && `Outros gastos somam ${data.outros}`
-                  )
-                }
+                subtitle={!listState && `Outros gastos somam ${data.outros}`}
                 titleClassName="text-19 tracking-normal"
                 action={
                   !listState && (

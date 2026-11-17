@@ -1,7 +1,7 @@
 import { ProgressBar, tetoTone, toneText } from "@/components/ui/progress-bar";
 import { cn } from "@/lib/utils";
 
-import type { CategoryBudget } from "../data";
+import type { CategoryBudget } from "../types";
 
 /** Lista "gasto de teto" por categoria. Em linha a partir do tablet; empilhada no mobile. */
 export function CategoryBudgetList({ items }: { items: CategoryBudget[] }) {

@@ -1,6 +1,7 @@
 import type { IconName } from "@/components/ui/icon";
 
-import { tetos, type TetoProgress } from "./data";
+import { tetos } from "./prototype";
+import type { TetoProgress } from "./types";
 
 /** Situação do teto no mês: abaixo de 70%, 70% ou mais, ou passou. */
 export type TetoStatus = "no-ritmo" | "perto" | "estourou";
