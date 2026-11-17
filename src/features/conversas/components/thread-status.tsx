@@ -3,13 +3,10 @@
 import type { ReactNode } from "react";
 
 import { GuaraAvatar } from "@/components/ui/guara-avatar";
-import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { Tag } from "@/components/ui/tag";
 import { guara } from "@/features/guara/identity";
 import { UserGreeting } from "@/features/usuario/live";
 import { cn } from "@/lib/utils";
-import { useChatPanel } from "@/stores/chat-panel";
 
 /** Cursor piscando no fim da resposta que ainda está sendo escrita. */
 export function TypingCursor() {
@@ -33,44 +30,32 @@ export function TypingIndicator() {
   );
 }
 
-/** O Guará não respondeu: a pergunta fica guardada e dá para tentar de novo. */
-export function UnavailableAlert() {
-  return (
-    <div
-      role="alert"
-      className="flex flex-col gap-2.5 rounded-[1.125rem] border border-urucum-line bg-urucum-bg px-4 py-3.5"
-    >
-      <div className="flex items-center gap-2.5">
-        <GuaraAvatar size={28} variant="ring" />
-        <strong className="grow text-14">{`O ${guara.nome} não está respondendo agora`}</strong>
-        <Tag tone="urucum" status>
-          Indisponível
-        </Tag>
-      </div>
-      <p className="m-0 text-14 leading-[1.55] text-sand">
-        Sua pergunta ficou guardada. Tentamos de novo sozinhos em alguns minutos e avisamos quando a
-        resposta chegar. Seus dados não foram afetados.
-      </p>
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="secondary" size="sm">
-          <Icon name="retry" size={18} />
-          <span>Tentar de novo</span>
-        </Button>
-        <Button variant="ghost" size="sm">
-          <Icon name="chat" size={18} />
-          <span>Perguntar no chat</span>
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-/** Mensagem que não saiu (sem conexão): bolha tracejada, tentar de novo ou apagar. */
-export function UnsentMessage({ children }: { children: ReactNode }) {
+/**
+ * Pergunta que não saiu (sem internet, limite do plano, outra resposta em andamento): bolha
+ * tracejada, o motivo e "Tentar de novo" ou "Apagar".
+ */
+export function UnsentMessage({
+  children,
+  reason,
+  offline,
+  action,
+  onRetry,
+  onDiscard,
+}: {
+  children: ReactNode;
+  /** Por que não saiu (a mensagem da API, em português). */
+  reason: string;
+  /** Sem conexão: o aviso leva o ícone de sem internet. */
+  offline?: boolean;
+  /** Ação extra ao lado do motivo (ex.: "Ver planos"). */
+  action?: ReactNode;
+  onRetry?: () => void;
+  onDiscard?: () => void;
+}) {
   return (
     <>
       <div className="flex justify-end">
-        <p className="m-0 max-w-[21.75rem] rounded-[1.25rem_1.25rem_0.375rem_1.25rem] border-[1.5px] border-dashed border-urucum bg-transparent px-3.5 py-2.5 text-15 leading-normal font-medium">
+        <p className="m-0 max-w-[21.75rem] rounded-[1.25rem_1.25rem_0.375rem_1.25rem] border-[1.5px] border-dashed border-urucum bg-transparent px-3.5 py-2.5 text-15 leading-normal font-medium break-words whitespace-pre-wrap">
           {children}
         </p>
       </div>
@@ -79,35 +64,44 @@ export function UnsentMessage({ children }: { children: ReactNode }) {
           <Icon name="alert-triangle" size={16} />
           Não enviada
         </span>
-        <button
-          type="button"
-          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line-strong bg-card px-3.5 text-13 font-bold text-sand"
-        >
-          <Icon name="retry" size={16} />
-          Tentar de novo
-        </button>
-        <button
-          type="button"
-          className="h-9 border-none bg-transparent px-2 text-13 text-mist underline"
-        >
-          Apagar
-        </button>
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line-strong bg-card px-3.5 text-13 font-bold text-sand"
+          >
+            <Icon name="retry" size={16} />
+            Tentar de novo
+          </button>
+        )}
+        {onDiscard && (
+          <button
+            type="button"
+            onClick={onDiscard}
+            className="h-9 border-none bg-transparent px-2 text-13 text-mist underline"
+          >
+            Apagar
+          </button>
+        )}
       </div>
-      <div className="flex items-start gap-2.5 rounded-[0.875rem] bg-tucano-bg px-3.5 py-3 text-13 leading-normal">
-        <span className="mt-px text-tucano">
-          <Icon name="wifi-off" size={16} />
-        </span>
-        <span>Sem conexão. A mensagem fica aqui até você tentar de novo; nada se perde.</span>
+      <div className="flex flex-col gap-2 rounded-[0.875rem] bg-tucano-bg px-3.5 py-3 text-13 leading-normal">
+        <div className="flex items-start gap-2.5">
+          <span className="mt-px text-tucano">
+            <Icon name={offline ? "wifi-off" : "alert-triangle"} size={16} />
+          </span>
+          <span>{reason}</span>
+        </div>
+        {action}
       </div>
     </>
   );
 }
 
 const starters: { assunto: string; pergunta: string }[] = [
-  { assunto: "Gastos", pergunta: "Quanto gastei com comida em setembro?" },
+  { assunto: "Gastos", pergunta: "Quanto gastei com comida este mês?" },
   { assunto: "Investimentos", pergunta: "Minha carteira está no meu perfil?" },
-  { assunto: "Alertas de preço", pergunta: "Me avisa se o Bitcoin passar de R$ 650.000" },
-  { assunto: "Metas", pergunta: "Quanto falta para a reserva de emergência?" },
+  { assunto: "Alertas de preço", pergunta: "Quais alertas de preço eu tenho?" },
+  { assunto: "Metas", pergunta: "Quanto falta para as minhas metas?" },
   { assunto: "Fora do padrão", pergunta: "Teve alguma compra fora do padrão?" },
 ];
 
@@ -119,10 +113,10 @@ export function NewConversationStart({
 }: {
   /** Painel compacto: duas sugestões e sem a nota no celular; três e a nota na gaveta do tablet. */
   compact?: boolean;
-  onAsk?: (text: string) => void;
+  /** Manda a pergunta escolhida (começa a conversa). */
+  onAsk: (text: string) => void;
   className?: string;
 }) {
-  const ask = useChatPanel((state) => state.ask);
   return (
     <div className={cn("mt-auto flex flex-col gap-4", className)}>
       <div className="flex flex-col gap-2">
@@ -144,7 +138,7 @@ export function NewConversationStart({
             type="button"
             data-extra={i === 4 || undefined}
             data-third={(compact && i === 2) || undefined}
-            onClick={() => (onAsk ?? ask)(item.pergunta)}
+            onClick={() => onAsk(item.pergunta)}
             className="flex min-h-13 items-center gap-2.5 rounded-tile border border-line-strong bg-card px-3.5 py-3 text-left text-14 leading-[1.4] text-sand hover:bg-shade data-extra:hidden data-third:hidden @chat:data-third:flex @tab:data-extra:flex"
           >
             <GuaraAvatar size={28} variant="ring" />
@@ -158,56 +152,6 @@ export function NewConversationStart({
       <p className={cn("m-0 text-12 leading-[1.55] text-caption", compact && "hidden @chat:block")}>
         Eu consulto seus dados do Guará para responder e nunca invento números.
       </p>
-    </div>
-  );
-}
-
-/** Arquivo anexado ao campo: pronto para enviar ou com falha no envio. */
-export function AttachmentCard({ failed, onRemove }: { failed?: boolean; onRemove?: () => void }) {
-  return (
-    <div
-      role={failed ? "alert" : undefined}
-      className={cn(
-        "flex items-center gap-3 rounded-tile border px-3 py-2.5",
-        failed ? "border-urucum-line bg-urucum-bg" : "border-line-strong bg-shade",
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-xl",
-          failed ? "bg-urucum-bg text-urucum" : "bg-folha-bg text-folha",
-        )}
-      >
-        <Icon name="file-doc" size={20} />
-      </span>
-      <span className="flex min-w-0 grow flex-col leading-[1.3]">
-        <strong className="overflow-hidden text-14 whitespace-nowrap">
-          extrato-itau-setembro.pdf
-        </strong>
-        <span className={cn("text-12", failed ? "text-mist" : "text-caption")}>
-          {failed
-            ? "Não deu para enviar · a conexão caiu em 60%"
-            : "PDF · 2 páginas · 184 KB · pronto para enviar"}
-        </span>
-      </span>
-      {failed && (
-        <button
-          type="button"
-          aria-label="Tentar enviar de novo"
-          className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line-strong bg-card text-sand"
-        >
-          <Icon name="retry" size={18} />
-        </button>
-      )}
-      <button
-        type="button"
-        aria-label="Remover anexo"
-        onClick={onRemove}
-        className="flex size-11 shrink-0 items-center justify-center rounded-full border border-transparent bg-transparent text-mist hover:bg-card"
-      >
-        <Icon name="x" />
-      </button>
     </div>
   );
 }

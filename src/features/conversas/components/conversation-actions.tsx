@@ -9,8 +9,11 @@ import { ConfirmDialog, DialogText } from "@/components/ui/confirm-dialog";
 import { Presence } from "@/components/ui/presence";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
+import { Field, FieldLabel, TextInput } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
+
+import { useDeleteConversation, useRenameConversation } from "../api";
 
 type MenuItem = { icon: IconName; label: string; detail?: string; danger?: boolean };
 
@@ -42,25 +45,24 @@ function MenuList({ items, onPick }: { items: MenuItem[]; onPick: (item: MenuIte
 }
 
 /**
- * "Mais opções da conversa": folha no celular, menu suspenso no tablet e no desktop. "Apagar
- * conversa" pede confirmação. `initial` abre já aberto (links como `?estado=menu`).
+ * "Mais opções da conversa": folha no celular, menu suspenso no tablet e no desktop. Renomear abre
+ * um campo; apagar pede confirmação e, depois de apagada, chama `onDeleted`.
  */
 export function ConversationMenu({
+  conversationId,
   title,
-  keepNote,
-  initial,
+  onDeleted,
 }: {
+  conversationId: string;
   title: string;
-  /** O que não é apagado junto com a conversa. */
-  keepNote: string;
-  initial?: "menu" | "apagar";
+  onDeleted: () => void;
 }) {
-  const [open, setOpen] = useState<"menu" | "apagar" | null>(initial ?? null);
+  const [open, setOpen] = useState<"menu" | "renomear" | "apagar" | null>(null);
+  const [name, setName] = useState(title);
+  const rename = useRenameConversation();
+  const remove = useDeleteConversation();
   const items: MenuItem[] = [
     { icon: "edit", label: "Renomear conversa", detail: `Agora: ${title}` },
-    { icon: "pin", label: "Fixar no topo", detail: "Fica primeiro no histórico" },
-    { icon: "upload", label: "Compartilhar", detail: "Gera um resumo sem valores de saldo" },
-    { icon: "arrow-down-to", label: "Exportar em PDF" },
     { icon: "trash", label: "Apagar conversa", detail: "Não dá para desfazer", danger: true },
   ];
 
@@ -71,7 +73,13 @@ export function ConversationMenu({
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
-  const pick = (item: MenuItem) => setOpen(item.danger ? "apagar" : null);
+  const pick = (item: MenuItem) => {
+    rename.reset();
+    remove.reset();
+    setName(title);
+    setOpen(item.danger ? "apagar" : "renomear");
+  };
+  const close = () => setOpen(null);
 
   return (
     <>
@@ -89,7 +97,7 @@ export function ConversationMenu({
               type="button"
               aria-label="Fechar"
               tabIndex={-1}
-              onClick={() => setOpen(null)}
+              onClick={close}
               data-motion="backdrop"
               className="absolute inset-0 border-none bg-[rgba(5,9,7,0.72)] md:bg-[rgba(5,9,7,0.45)]"
             />
@@ -106,41 +114,86 @@ export function ConversationMenu({
               </div>
               <h2 className="m-0 font-display text-20 font-bold md:hidden">{title}</h2>
               <MenuList items={items} onPick={pick} />
-              <Button
-                variant="secondary"
-                size="lg"
-                block
-                className="md:hidden"
-                onClick={() => setOpen(null)}
-              >
+              <Button variant="secondary" size="lg" block className="md:hidden" onClick={close}>
                 <span>Cancelar</span>
               </Button>
             </div>
           </div>
         )}
       </Presence>
-      <Presence show={open === "apagar"}>
-        {open === "apagar" && (
+      <Presence show={open === "renomear"}>
+        {open === "renomear" && (
           <ConfirmDialog
-            title="Apagar esta conversa?"
-            onClose={() => setOpen(null)}
+            title="Renomear conversa"
+            onClose={close}
             centered
             className="md:w-[28.75rem] lg:w-[32.5rem]"
             actions={
               <>
-                <Button variant="ghost" className="text-15" onClick={() => setOpen(null)}>
+                <Button variant="ghost" className="text-15" onClick={close}>
                   <span>Cancelar</span>
                 </Button>
-                <Button variant="danger" className="text-15" onClick={() => setOpen(null)}>
+                <Button
+                  variant="primary"
+                  className="text-15"
+                  disabled={!name.trim() || rename.isPending}
+                  onClick={() =>
+                    rename.mutate({ id: conversationId, title: name.trim() }, { onSuccess: close })
+                  }
+                >
+                  <span>{rename.isPending ? "Salvando…" : "Salvar"}</span>
+                </Button>
+              </>
+            }
+          >
+            <Field>
+              <FieldLabel htmlFor="renomear-conversa">Nome da conversa</FieldLabel>
+              <TextInput
+                id="renomear-conversa"
+                value={name}
+                maxLength={80}
+                onChange={(event) => setName(event.target.value)}
+              />
+            </Field>
+            {rename.isError && <DialogText>{rename.error.message}</DialogText>}
+          </ConfirmDialog>
+        )}
+      </Presence>
+      <Presence show={open === "apagar"}>
+        {open === "apagar" && (
+          <ConfirmDialog
+            title="Apagar esta conversa?"
+            onClose={close}
+            centered
+            className="md:w-[28.75rem] lg:w-[32.5rem]"
+            actions={
+              <>
+                <Button variant="ghost" className="text-15" onClick={close}>
+                  <span>Cancelar</span>
+                </Button>
+                <Button
+                  variant="danger"
+                  className="text-15"
+                  disabled={remove.isPending}
+                  onClick={() =>
+                    remove.mutate(conversationId, {
+                      onSuccess: () => {
+                        close();
+                        onDeleted();
+                      },
+                    })
+                  }
+                >
                   <Icon name="trash" size={18} />
-                  <span>Apagar</span>
+                  <span>{remove.isPending ? "Apagando…" : "Apagar"}</span>
                 </Button>
               </>
             }
           >
             <DialogText>
-              {`A conversa “${title}” e as respostas do ${guara.nome} somem do histórico. ${keepNote}`}
+              {`A conversa “${title}” e as respostas do ${guara.nome} somem do histórico. Seus dados de gastos, metas e investimentos não são apagados.`}
             </DialogText>
+            {remove.isError && <DialogText>{remove.error.message}</DialogText>}
           </ConfirmDialog>
         )}
       </Presence>

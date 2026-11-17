@@ -1,25 +1,18 @@
-import { notFound, redirect } from "next/navigation";
+"use client";
 
-import {
-  ConversationView,
-  type ConversationState,
-} from "@/features/conversas/components/conversation-view";
-import { CURRENT_CONVERSATION, type ConversationId } from "@/features/conversas/data";
-import { threads } from "@/features/conversas/threads";
+import { notFound } from "next/navigation";
 
-const asState = (estado?: string) => (estado ? (estado as ConversationState) : undefined);
+import { ConversationView } from "@/features/conversas/components/conversation-view";
+import { isConversationId } from "@/features/conversas/api";
 
-/** A conversa atual (`/conversas`). `estado`: estados do protótipo (ver `src/proxy.ts`). */
-export function ConversaAtualScreen({ estado }: { estado?: string }) {
-  return <ConversationView thread={threads[CURRENT_CONVERSATION]} estado={asState(estado)} />;
+/** `/conversas` (e `/conversas/nova`): uma conversa nova, criada na primeira pergunta. */
+export function ConversaNovaScreen() {
+  return <ConversationView conversationId={null} />;
 }
 
-/** Uma conversa (`/conversas/nova`: conversa nova, ainda sem mensagens). */
-export function ConversaScreen({ id, estado }: { id: string; estado?: string }) {
-  const state = asState(estado);
-  if (id === "nova") return <ConversationView thread={null} />;
-  if (id === CURRENT_CONVERSATION && !state) redirect("/conversas");
-  const thread = threads[id as ConversationId];
-  if (!thread) notFound();
-  return <ConversationView thread={thread} estado={state} />;
+/** Uma conversa da pessoa (`/conversas/<id>`). */
+export function ConversaScreen({ id }: { id: string }) {
+  if (id === "nova") return <ConversationView conversationId={null} />;
+  if (!isConversationId(id)) notFound();
+  return <ConversationView key={id} conversationId={id} />;
 }

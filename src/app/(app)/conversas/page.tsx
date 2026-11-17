@@ -1,6 +1,6 @@
-import { ConversaAtualScreen } from "./conversas-screen";
+import { ConversaNovaScreen } from "./conversas-screen";
 
 /** Gerada no build (sem `searchParams`): pré-carregada pelos links e servida da borda. */
-export default function ConversaAtualPage() {
-  return <ConversaAtualScreen />;
+export default function ConversaNovaPage() {
+  return <ConversaNovaScreen />;
 }

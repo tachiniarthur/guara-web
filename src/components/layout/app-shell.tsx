@@ -8,6 +8,7 @@ import { ErrorToast, OfflineToast } from "@/components/states/status-toast";
 import { PANEL_EXIT_MS, Presence, useStaysUnder } from "@/components/ui/presence";
 import { shellConfig } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { isConversationId } from "@/features/conversas/api";
 import { useChatPanel } from "@/stores/chat-panel";
 import { usePrivacy } from "@/stores/privacy";
 
@@ -101,13 +102,6 @@ function useHandleVisibility(pathname: string) {
   };
 }
 
-const chatLinks: Record<string, string> = {
-  aberto: "gastos-setembro",
-  digitando: "rendimento-setembro",
-  indisponivel: "petr4-hoje",
-  "anexo-falhou": "extrato-itau",
-};
-
 function ShellChromeFromUrl({ pathname }: { pathname: string }) {
   const params = useSearchParams();
   const novo = params.get("estado") === "novo";
@@ -117,15 +111,14 @@ function ShellChromeFromUrl({ pathname }: { pathname: string }) {
   useEffect(() => {
     if (ocultos) setHidden(true);
   }, [ocultos, setHidden]);
-  // Chat aberto por link (`?chat=aberto`, `?chat=nova`, `?chat=digitando`…).
+  // Chat aberto por link (`?chat=nova`, `?chat=historico` ou `?chat=<id da conversa>`).
   const chat = params.get("chat");
   useEffect(() => {
     if (!chat) return;
-    const { openConversation, newConversation } = useChatPanel.getState();
-    if (chat === "historico") useChatPanel.getState().close();
+    const { openConversation, newConversation, close } = useChatPanel.getState();
+    if (chat === "historico") close();
     else if (chat === "nova") newConversation();
-    else if (chat === "nao-enviada") openConversation("gastos-setembro", "nao-enviada");
-    else openConversation(chatLinks[chat] ?? chat);
+    else if (isConversationId(chat)) openConversation(chat);
   }, [chat]);
   const estado = params.get("estado");
   return (

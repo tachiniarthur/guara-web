@@ -8,8 +8,8 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { ChatComposer } from "@/features/conversas/components/chat-composer";
-import { PanelThread } from "@/features/conversas/components/panel-thread";
-import { threads } from "@/features/conversas/threads";
+import { ChatThread, useThreadTick } from "@/features/conversas/components/chat-thread";
+import { useChatSend } from "@/features/conversas/stream";
 import { PANEL_EXIT_MS, Presence, useStaysUnder } from "@/components/ui/presence";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
@@ -23,11 +23,11 @@ type Mode = "docked" | "overlay";
 
 /** Cabeçalho, conversa e campo de mensagem. Igual nos dois modos; só os botões do topo mudam. */
 function ChatPanelBody({ mode }: { mode: Mode }) {
-  const { conversationId, draft, send, close, newConversation } = useChatPanel();
+  const { conversationId, draft, close, newConversation, conversationCreated } = useChatPanel();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const count = useChatPanel((state) =>
-    conversationId ? (state.messages[conversationId]?.length ?? 0) : 0,
-  );
+  const tick = useThreadTick(conversationId);
+  const send = useChatSend();
+  const ask = (text: string) => void send(conversationId, text, { onCreated: conversationCreated });
   const docked = mode === "docked";
   const buttonSize = docked ? "lg" : "md";
 
@@ -37,7 +37,7 @@ function ChatPanelBody({ mode }: { mode: Mode }) {
   useEffect(() => {
     const list = scrollRef.current;
     if (list) list.scrollTop = list.scrollHeight;
-  }, [conversationId, count]);
+  }, [tick]);
 
   return (
     <>
@@ -86,18 +86,15 @@ function ChatPanelBody({ mode }: { mode: Mode }) {
           key={conversationId ?? "nova"}
           className="mt-auto flex animate-chat-slide flex-col gap-5"
         >
-          <PanelThread conversationId={conversationId} />
+          <ChatThread conversationId={conversationId} variant="panel" compact onAsk={ask} />
         </div>
       </div>
       <ChatComposer
         key={`${conversationId ?? "nova"}-${draft}`}
+        conversationId={conversationId}
+        onCreated={conversationCreated}
         defaultValue={draft}
-        prompts={conversationId === null ? [] : undefined}
-        attachmentFailed={
-          conversationId !== null &&
-          threads[conversationId as keyof typeof threads]?.attachmentFailed
-        }
-        onSend={(text) => send(text)}
+        prompts={conversationId !== null}
         className="px-4 pt-4 pb-6 md:px-6 md:pb-7"
       />
     </>

@@ -1,11 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
 import { Button, ForestBackdrop } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { ConversationList } from "@/features/conversas/components/conversation-list";
+import {
+  ConversationSearch,
+  useDebounced,
+} from "@/features/conversas/components/conversation-search";
 import { cn } from "@/lib/utils";
 import { useChatPanel } from "@/stores/chat-panel";
 
@@ -39,6 +44,9 @@ export function HistoryPanel({
     hideHistory,
   } = useChatPanel();
   const sheet = mode === "sheet";
+  const [searching, setSearching] = useState(false);
+  const [query, setQuery] = useState("");
+  const debounced = useDebounced(query);
 
   return (
     <aside
@@ -71,9 +79,14 @@ export function HistoryPanel({
         </h2>
         <IconButton
           icon="search"
-          label="Buscar conversas"
+          label={searching ? "Fechar a busca" : "Buscar conversas"}
+          aria-expanded={searching}
           variant="ghost"
           size={wide ? "md" : "sm"}
+          onClick={() => {
+            setSearching(!searching);
+            setQuery("");
+          }}
         />
         {sheet ? (
           <>
@@ -106,7 +119,17 @@ export function HistoryPanel({
           </>
         )}
       </header>
-      <div className="shrink-0 px-3 pt-3.5">
+      <div className="flex shrink-0 flex-col gap-3 px-3 pt-3.5">
+        {searching && (
+          <ConversationSearch
+            id={`busca-historico-${mode}`}
+            value={query}
+            onChange={setQuery}
+            autoFocus
+            inputClassName="h-11 pr-3 text-14"
+            iconClassName="top-3"
+          />
+        )}
         <Button
           variant="forest"
           size={wide ? "lg" : "md"}
@@ -125,6 +148,7 @@ export function HistoryPanel({
         <ConversationList
           currentId={open ? conversationId : undefined}
           onSelect={openConversation}
+          query={searching ? debounced : ""}
           size={wide ? "lg" : "md"}
         />
       </div>

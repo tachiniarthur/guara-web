@@ -134,6 +134,38 @@ export async function apiRequest<T>(
   return schema.parse(await response.json());
 }
 
+/**
+ * `POST` que responde em streaming (Server-Sent Events): devolve o corpo para ler aos poucos.
+ * Erros antes do streaming (limite, conflito, sessão) chegam em JSON e viram `ApiError`, como no
+ * `apiRequest`. Fechar o `signal` corta a conexão (a API para de gerar a resposta).
+ */
+export async function apiStream(
+  path: `/v1/${string}`,
+  body: unknown,
+  signal?: AbortSignal,
+): Promise<ReadableStream<Uint8Array>> {
+  if (!env.apiUrl) throw new ApiError("unavailable", "A API não está configurada.");
+  let response: Response;
+  try {
+    response = await fetch(`${env.apiUrl.replace(/\/+$/, "")}${path}`, {
+      method: "POST",
+      signal,
+      headers: {
+        Accept: "text/event-stream",
+        "Content-Type": "application/json",
+        ...(await authHeader()),
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") throw error;
+    throw new ApiError("network");
+  }
+  if (!response.ok) throw await errorFrom(response);
+  if (!response.body) throw new ApiError("internal");
+  return response.body;
+}
+
 /** Baixa um arquivo da API (com o token da sessão) e devolve o conteúdo e o nome dele. */
 export async function apiDownload(
   path: `/v1/${string}`,

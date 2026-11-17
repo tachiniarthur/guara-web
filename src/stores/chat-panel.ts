@@ -1,9 +1,5 @@
 import { create } from "zustand";
 
-import type { ConversationSummary } from "@/features/conversas/data";
-
-export type ChatMessage = { id: string; role: "user" | "guara"; text: string };
-
 type ChatPanelState = {
   /**
    * Painel de conversa aberto. `null` = padrão da tela: começa fechado em todas, inclusive no
@@ -12,10 +8,8 @@ type ChatPanelState = {
   open: boolean | null;
   /** O que o painel mostra quando aparece por cima da tela (tablet, mobile e desktop sem painel fixo). */
   view: "chat" | "history";
-  /** Conversa aberta; `null` = nova conversa, ainda sem mensagens. */
+  /** Conversa aberta (id da API); `null` = conversa nova, ainda sem mensagens. */
   conversationId: string | null;
-  /** Variação da conversa aberta (ex.: a última mensagem não saiu). */
-  variant: "nao-enviada" | null;
   /**
    * Histórico fechado pelo X (desktop com painel à direita): a tela ocupa a largura toda e fica
    * só um atalho na borda direita. Qualquer abertura do chat traz o painel de volta.
@@ -23,103 +17,44 @@ type ChatPanelState = {
   historyHidden: boolean;
   /** Texto inicial do campo (ex.: uma pergunta sugerida). */
   draft: string;
-  /** Mensagens enviadas nesta sessão, por conversa (ainda não há API). */
-  messages: Record<string, ChatMessage[]>;
-  /** Conversas criadas nesta sessão, da mais nova para a mais antiga. */
-  started: ConversationSummary[];
 
-  openConversation: (id: string, variant?: "nao-enviada" | null) => void;
+  openConversation: (id: string) => void;
   /** Abre a conversa atual (ou a última aberta). */
   openCurrent: () => void;
   newConversation: (draft?: string) => void;
+  /** A conversa nova ganhou id (a primeira pergunta saiu): o painel continua nela. */
+  conversationCreated: (id: string) => void;
   showHistory: () => void;
   close: () => void;
   /** Fecha o histórico (o X dele): some o painel da direita. */
   hideHistory: () => void;
   /** Traz o histórico de volta à direita (o atalho na borda da tela). */
   restoreHistory: () => void;
-  send: (text: string, conversationId?: string | null) => void;
-  /** Começa uma conversa nova com esta pergunta e abre o painel nela. */
-  ask: (text: string) => void;
+  /** Ao sair da conta: nada da conversa anterior fica aberto. */
+  reset: () => void;
 };
 
-const PENDING_REPLY =
-  "Anotei sua pergunta. Assim que a conexão com o Guará estiver ligada, eu respondo por aqui.";
-
-let sequence = 0;
-const nextId = (prefix: string) =>
-  `${prefix}-${Date.now().toString(36)}-${(sequence++).toString(36)}`;
-
-const summarize = (text: string, max: number) =>
-  text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
-
-export const useChatPanel = create<ChatPanelState>((set, get) => ({
+const initial = {
   open: null,
   view: "chat",
-  conversationId: "gastos-setembro",
-  variant: null,
+  conversationId: null,
   draft: "",
   historyHidden: false,
-  messages: {},
-  started: [],
+} as const;
 
-  openConversation: (id, variant = null) =>
-    set({
-      open: true,
-      view: "chat",
-      conversationId: id,
-      variant,
-      draft: "",
-      historyHidden: false,
-    }),
+export const useChatPanel = create<ChatPanelState>((set) => ({
+  ...initial,
+
+  openConversation: (id) =>
+    set({ open: true, view: "chat", conversationId: id, draft: "", historyHidden: false }),
   openCurrent: () => set({ open: true, view: "chat", draft: "", historyHidden: false }),
   newConversation: (draft = "") =>
-    set({
-      open: true,
-      view: "chat",
-      conversationId: null,
-      variant: null,
-      draft,
-      historyHidden: false,
-    }),
+    set({ open: true, view: "chat", conversationId: null, draft, historyHidden: false }),
+  conversationCreated: (id) =>
+    set((state) => (state.conversationId === null ? { conversationId: id, draft: "" } : {})),
   showHistory: () => set({ open: true, view: "history", historyHidden: false }),
   close: () => set({ open: false, view: "chat" }),
   hideHistory: () => set({ open: false, view: "chat", historyHidden: true }),
   restoreHistory: () => set({ historyHidden: false }),
-
-  send: (raw, target) => {
-    const text = raw.trim();
-    if (!text) return;
-    let id = target === undefined ? get().conversationId : target;
-    const started = [...get().started];
-    if (id === null) {
-      id = nextId("conversa");
-      started.unshift({
-        id,
-        titulo: summarize(text, 36),
-        quando: "agora",
-        resumo: summarize(text, 60),
-      });
-    }
-    const thread = get().messages[id] ?? [];
-    set({
-      conversationId: target === undefined ? id : get().conversationId,
-      draft: "",
-      started,
-      messages: {
-        ...get().messages,
-        [id]: [
-          ...thread,
-          { id: nextId("msg"), role: "user", text },
-          { id: nextId("msg"), role: "guara", text: PENDING_REPLY },
-        ],
-      },
-    });
-  },
-
-  ask: (text) => {
-    set({ conversationId: null });
-    get().send(text);
-    set({ open: true, view: "chat", historyHidden: false });
-  },
+  reset: () => set(initial),
 }));

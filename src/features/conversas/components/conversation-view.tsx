@@ -1,40 +1,28 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { IconButton, IconButtonLink } from "@/components/ui/icon-button";
+import { IconButtonLink } from "@/components/ui/icon-button";
+import { useSession } from "@/features/acesso/session";
 
-import type { Thread } from "../threads";
+import { useConversation } from "../api";
+import { startedLabel } from "../format";
+import { useChatSend } from "../stream";
+import { QuickPrompts } from "./chat-composer";
+import { ChatThread, useThreadTick } from "./chat-thread";
 import { ConversationMenu, ExitFullscreenButton } from "./conversation-actions";
 import { ConversationList } from "./conversation-list";
-import { ConversationSearch } from "./conversation-search";
-import { MessageComposer, type ComposerState } from "./message-composer";
-import { SessionMessages } from "./session-messages";
-import { NewConversationStart } from "./thread-status";
-
-const promptClass =
-  "h-9 shrink-0 rounded-full border border-line-strong bg-transparent px-4 text-14 whitespace-nowrap text-sand hover:bg-shade @tab:h-10";
-
-/** Estados da conversa que dá para abrir por link (`?estado=`). */
-export type ConversationState =
-  | "nao-enviada"
-  | "anexar"
-  | "anexo-previa"
-  | "gravando"
-  | "transcrevendo"
-  | "limite"
-  | "menu"
-  | "apagar";
-
-const composerStates: Partial<Record<ConversationState, ComposerState>> = {
-  anexar: "anexar",
-  "anexo-previa": "previa",
-  gravando: "gravando",
-  transcrevendo: "transcrevendo",
-  limite: "limite",
-};
+import { ConversationSearch, useDebounced } from "./conversation-search";
+import { MessageComposer } from "./message-composer";
 
 /** Lista de conversas à esquerda (desktop). */
 function ConversationsColumn({ currentId }: { currentId: string | null }) {
+  const [query, setQuery] = useState("");
+  const debounced = useDebounced(query);
   return (
     <section
       aria-label="Lista de conversas"
@@ -42,16 +30,25 @@ function ConversationsColumn({ currentId }: { currentId: string | null }) {
     >
       <div className="flex items-center justify-between px-1.5">
         <h2 className="m-0 font-display text-22 font-bold tracking-[-0.01em]">Conversas</h2>
-        <IconButton icon="plus" label="Nova conversa" variant="forest" size="sm" />
+        <IconButtonLink
+          href="/conversas"
+          icon="plus"
+          label="Nova conversa"
+          variant="forest"
+          size="sm"
+        />
       </div>
       <ConversationSearch
         id="busca-conversas-lista"
+        value={query}
+        onChange={setQuery}
         inputClassName="h-11 pr-3 text-14"
         iconClassName="top-3"
       />
       <div className="flex flex-col gap-1">
         <ConversationList
-          currentId={currentId ?? ""}
+          currentId={currentId}
+          query={debounced}
           groupClassName="contents"
           headingClassName="mt-2 mb-1"
         />
@@ -60,44 +57,47 @@ function ConversationsColumn({ currentId }: { currentId: string | null }) {
   );
 }
 
-/** O que não é apagado junto com a conversa (texto de "Apagar esta conversa?"). */
-const keepNotes: Record<string, string> = {
-  "aposentadoria-55": "Suas simulações salvas e seus dados não são apagados.",
-};
+/** Conversa aberta em tela cheia (ou uma conversa nova, com `conversationId` nulo). */
+export function ConversationView({ conversationId }: { conversationId: string | null }) {
+  const router = useRouter();
+  const { live } = useSession();
+  const send = useChatSend();
+  const conversation = useConversation(live ? conversationId : null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const tick = useThreadTick(conversationId);
 
-/** Conversa aberta em tela cheia (ou uma conversa nova, com `thread` nulo). */
-export function ConversationView({
-  thread,
-  estado,
-}: {
-  thread: Thread | null;
-  estado?: ConversationState;
-}) {
-  const id = thread?.id ?? null;
-  const title = thread?.title ?? "Nova conversa";
-  const unsent = estado === "nao-enviada" && thread?.unsentContent;
-  const subtitle = !thread
-    ? "Ainda sem mensagens"
-    : unsent
-      ? thread.subtitle
-      : (thread.pageSubtitle ?? thread.time);
-  const menu = (
+  // A primeira pergunta cria a conversa: o endereço passa a ser o dela (sem recarregar).
+  const onCreated = (id: string) => router.replace(`/conversas/${id}`);
+  const ask = (text: string) => void send(conversationId, text, { onCreated });
+
+  useEffect(() => {
+    const list = scrollRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
+  }, [tick]);
+
+  const title = conversationId ? (conversation.data?.title ?? "Conversa") : "Nova conversa";
+  const subtitle = conversation.data
+    ? startedLabel(conversation.data.createdAt, new Date())
+    : conversationId
+      ? ""
+      : "Ainda sem mensagens";
+  const menu = conversationId && conversation.data && (
     <ConversationMenu
-      title={title}
-      keepNote={(id && keepNotes[id]) || "Seus dados de gastos não são apagados."}
-      initial={estado === "menu" || estado === "apagar" ? estado : undefined}
+      conversationId={conversationId}
+      title={conversation.data.title}
+      onDeleted={() => router.replace("/conversas")}
     />
   );
 
   return (
     <div className="flex">
-      <ConversationsColumn currentId={id} />
+      <ConversationsColumn currentId={conversationId} />
       <div className="flex h-dvh min-w-0 grow flex-col">
         {/* Mobile */}
         <header className="flex h-[3.8125rem] shrink-0 items-center gap-1 border-b border-line px-2 @tab:hidden">
           <IconButtonLink href="/" icon="chevron-left" label="Voltar" variant="ghost" />
           <div className="flex min-w-0 grow flex-col items-center leading-[1.3]">
-            <strong className="text-16">{title}</strong>
+            <strong className="max-w-full truncate text-16">{title}</strong>
             <span className="text-12 text-caption">{subtitle}</span>
           </div>
           <IconButtonLink
@@ -106,7 +106,7 @@ export function ConversationView({
             label="Histórico de conversas"
             variant="ghost"
           />
-          <ExitFullscreenButton conversationId={id} />
+          <ExitFullscreenButton conversationId={conversationId} />
           {menu}
         </header>
         {/* Tablet e desktop: o caminho numa faixa fina acima do cabeçalho (a conversa ocupa a tela). */}
@@ -117,12 +117,11 @@ export function ConversationView({
           />
         </div>
         <header className="hidden h-[4.5625rem] shrink-0 items-center gap-2 border-b border-line pr-5 pl-7 @tab:flex @desk:justify-between @desk:gap-4 @desk:px-8">
-          <div className="grow leading-[1.3] @desk:grow-0">
-            <h1 className="m-0 font-display text-22 font-bold tracking-[-0.01em]">{title}</h1>
-            <span className="text-13 text-caption">
-              <span className="@desk:hidden">{subtitle}</span>
-              <span className="hidden @desk:inline">{thread?.startedAt ?? subtitle}</span>
-            </span>
+          <div className="min-w-0 grow leading-[1.3] @desk:grow-0">
+            <h1 className="m-0 truncate font-display text-22 font-bold tracking-[-0.01em]">
+              {title}
+            </h1>
+            <span className="text-13 text-caption">{subtitle}</span>
           </div>
           <div className="flex items-center gap-2">
             <ButtonLink href="/conversas/historico" variant="secondary" className="@desk:hidden">
@@ -130,52 +129,40 @@ export function ConversationView({
               <span>Histórico</span>
             </ButtonLink>
             <IconButtonLink
-              href="/conversas/nova"
+              href="/conversas"
               icon="plus"
               label="Nova conversa"
               variant="forest"
               className="@desk:hidden"
             />
-            <span className="hidden @desk:contents">
-              <ExitFullscreenButton conversationId={id} />
-            </span>
+            <ExitFullscreenButton conversationId={conversationId} />
             {menu}
-            <span className="contents @desk:hidden">
-              <ExitFullscreenButton conversationId={id} />
-            </span>
           </div>
         </header>
 
-        <div className="flex grow justify-center overflow-y-auto p-4 @tab:p-7 @desk:px-8 @desk:pt-7 @desk:pb-0">
+        <div
+          ref={scrollRef}
+          className="flex grow justify-center overflow-y-auto p-4 @tab:p-7 @desk:px-8 @desk:pt-7 @desk:pb-0"
+        >
           <div className="flex w-full flex-col gap-4 @tab:gap-5 @desk:max-w-[42.5rem]">
-            {thread ? unsent ? thread.unsentContent : thread.content : <NewConversationStart />}
-            {id && <SessionMessages conversationId={id} variant="page" />}
+            <ChatThread conversationId={conversationId} variant="page" onAsk={ask} />
           </div>
         </div>
 
         <div className="flex shrink-0 justify-center border-t border-line bg-canvas px-3 pt-2.5 pb-5 @tab:border-t-0 @tab:px-7 @tab:pt-3 @tab:pb-7 @desk:px-8 @desk:pt-4 @desk:pb-6">
           <MessageComposer
-            key={estado ?? "padrao"}
-            conversationId={id ?? undefined}
+            key={conversationId ?? "nova"}
+            conversationId={conversationId}
+            onCreated={onCreated}
             placeholder="Pergunte qualquer coisa sobre seu dinheiro"
             compactPlaceholder="Pergunte qualquer coisa"
-            initialState={estado ? composerStates[estado] : undefined}
-            typing={thread?.typing}
-            attachmentFailed={thread?.attachmentFailed}
             className="w-full @desk:max-w-[42.5rem]"
             header={
-              thread?.prompts && (
-                <div
-                  role="group"
-                  aria-label="Sugestões"
-                  className="-mr-3 flex gap-2 overflow-hidden @tab:mr-0 @desk:hidden"
-                >
-                  {thread.prompts.map((prompt) => (
-                    <button key={prompt} type="button" className={promptClass}>
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
+              conversationId && (
+                <QuickPrompts
+                  conversationId={conversationId}
+                  className="-mr-3 @tab:mr-0 @desk:hidden"
+                />
               )
             }
             footer={

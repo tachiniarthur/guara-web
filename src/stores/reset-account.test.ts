@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import type { SavedSimulation } from "@/features/simulador/saved";
 
+import { useChatStream } from "@/features/conversas/stream";
+
+import { useChatPanel } from "./chat-panel";
 import { useOnboardingBanks } from "./onboarding-banks";
 import { useProfileAnswers } from "./profile-answers";
 import { resetAccountStores } from "./reset-account";
@@ -12,6 +15,12 @@ describe("dados da conta nas stores", () => {
     useSavedSimulations.getState().add({ id: "s1", nome: "Aposentadoria" } as SavedSimulation);
     useProfileAnswers.getState().answer("onboarding", 1, 2);
     useOnboardingBanks.getState().connect("itau");
+    useChatPanel.getState().openConversation("11111111-1111-4111-8111-111111111111");
+    useChatStream.setState({
+      pending: {
+        nova: { text: "oi", phase: "failed", reply: "", tools: [], error: null, savedIds: [] },
+      },
+    });
     expect(localStorage.getItem("guara-saved-simulations")).not.toBeNull();
 
     resetAccountStores();
@@ -22,5 +31,7 @@ describe("dados da conta nas stores", () => {
     expect(localStorage.getItem("guara-saved-simulations")).toBeNull();
     expect(sessionStorage.getItem("guara-profile-answers")).toBeNull();
     expect(sessionStorage.getItem("guara-onboarding-banks")).toBeNull();
+    expect(useChatPanel.getState().conversationId).toBeNull();
+    expect(useChatStream.getState().pending).toEqual({});
   });
 });

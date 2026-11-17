@@ -1,12 +1,20 @@
+"use client";
+
+import { useState } from "react";
+
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { ConversationSearch } from "@/features/conversas/components/conversation-search";
 import { ConversationList } from "@/features/conversas/components/conversation-list";
-import { CURRENT_CONVERSATION, conversationCount } from "@/features/conversas/data";
+import {
+  ConversationSearch,
+  useDebounced,
+} from "@/features/conversas/components/conversation-search";
 
 export default function HistoricoConversasPage() {
+  const [query, setQuery] = useState("");
+  const debounced = useDebounced(query);
   return (
     <>
       <MobileHeader title="Conversas" account />
@@ -18,7 +26,7 @@ export default function HistoricoConversasPage() {
           <h1 className="m-0 font-display text-22 font-bold tracking-[-0.01em]">
             Histórico de conversas
           </h1>
-          <span className="text-13 text-caption">{`${conversationCount} conversas com o Guará`}</span>
+          <span className="text-13 text-caption">Suas conversas com o Guará</span>
         </div>
         <ButtonLink href="/conversas" variant="forest" className="text-15">
           <Icon name="plus" size={18} />
@@ -36,9 +44,14 @@ export default function HistoricoConversasPage() {
           <Icon name="plus" size={18} />
           <span>Nova conversa</span>
         </ButtonLink>
-        <ConversationSearch id="busca-conversas" inputClassName="h-[2.875rem] @tab:h-12" />
-        <div>
-          <ConversationList currentId={CURRENT_CONVERSATION} />
+        <ConversationSearch
+          id="busca-conversas"
+          value={query}
+          onChange={setQuery}
+          inputClassName="h-[2.875rem] @tab:h-12"
+        />
+        <div className="flex flex-col">
+          <ConversationList query={debounced} />
         </div>
       </div>
     </>
