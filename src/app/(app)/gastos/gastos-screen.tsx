@@ -27,9 +27,12 @@ import { MonthForecast } from "@/features/gastos/components/month-forecast";
 import { TetoMeter } from "@/features/gastos/components/teto-meter";
 import { ViewModeToggle } from "@/features/gastos/components/view-mode-toggle";
 import { GastosDataProvider, prototypeGastos } from "@/features/gastos/context";
-import { type FooterPart, useGastosView } from "@/features/gastos/live";
+import { type FooterPart, gastosMonthOptions, useGastosView } from "@/features/gastos/live";
+import { MonthPicker } from "@/features/gastos/components/month-picker";
 import { useSession } from "@/features/acesso/session";
-import { monthLabels } from "@/lib/live-format";
+import { formatDate } from "@/lib/format";
+import { labelsOfMonth, pastMonthOrNull } from "@/lib/live-format";
+import { useGastosMonth } from "@/stores/gastos-month";
 import { NewUserSpending } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
@@ -93,7 +96,14 @@ const noSpending = (
 /** `estado`: estados do protótipo (`?estado=`), abertos pela prévia (ver `src/proxy.ts`). */
 export function GastosScreen({ estado }: { estado?: string }) {
   const { live } = useSession();
-  const gastos = useGastosView({ enabled: live });
+  // Mês escolhido no seletor (com login); `null` = o atual. Um mês guardado que já saiu da lista
+  // (virou o ano) volta ao atual.
+  const now = new Date();
+  const currentMonth = formatDate(now, "yyyy-MM");
+  const chosen = useGastosMonth((state) => state.month);
+  const setChosen = useGastosMonth((state) => state.setMonth);
+  const month = pastMonthOrNull(chosen, now) ?? currentMonth;
+  const gastos = useGastosView({ enabled: live, month });
   const layout = useScreenLayout("spending", SPENDING_BLOCKS);
   if (estado === "novo" || (live && gastos.data?.semDados)) return <NewUserSpending />;
   // Modo real: carregando até a API responder, erro se alguma rota falhar. Protótipo: `?estado=`.
@@ -109,9 +119,30 @@ export function GastosScreen({ estado }: { estado?: string }) {
   const { ledger, tetos } = data;
   const mes =
     view?.mes ??
-    (live
-      ? monthLabels(new Date())
-      : { name: "setembro", short: "Set 2026", long: "Setembro 2026" });
+    (live ? labelsOfMonth(month) : { name: "setembro", short: "Set 2026", long: "Setembro 2026" });
+  const fechado = view?.mesFechado ?? false;
+  // No celular, só o mês ("Out"); de outro ano, com o ano ("Out/25").
+  const mesCurto =
+    month.slice(0, 4) === currentMonth.slice(0, 4)
+      ? mes.short.slice(0, 3)
+      : `${mes.short.slice(0, 3)}/${month.slice(2, 4)}`;
+  const monthPicker = (variant: "mobile" | "desktop") => (
+    <MonthPicker
+      options={gastosMonthOptions(now)}
+      value={month}
+      onChange={(value) => setChosen(value === currentMonth ? null : value)}
+      className="h-11 text-14"
+    >
+      {variant === "mobile" ? (
+        mesCurto
+      ) : (
+        <>
+          <span className="@desk:hidden">{mes.short}</span>
+          <span className="hidden @desk:inline">{mes.long}</span>
+        </>
+      )}
+    </MonthPicker>
+  );
   const bankOptions = view
     ? [
         { value: "todos", label: "Todos os bancos", icon: "grid" as const },
@@ -179,13 +210,19 @@ export function GastosScreen({ estado }: { estado?: string }) {
       case "meses":
         return (
           <Panel id="g-meses">
-            <PanelHeader title="Últimos 6 meses" subtitle={sub("Total gasto por mês")} />
+            <PanelHeader
+              title={fechado ? `6 meses até ${mes.name}` : "Últimos 6 meses"}
+              subtitle={sub("Total gasto por mês")}
+            />
             <StateSwap replacement={body()} className="grow gap-3.5">
               <ChartLegend
                 items={[
                   { label: "Gasto no mês", color: SAIDAS },
                   { label: data.monthlySpending.rotuloMedia, color: "#BDC6BE", dashed: true },
-                  { label: data.monthlySpending.rotuloPrevisao, color: SAIDAS, dashed: true },
+                  // Mês fechado não tem previsão.
+                  ...(data.monthlySpending.previsao !== null
+                    ? [{ label: data.monthlySpending.rotuloPrevisao, color: SAIDAS, dashed: true }]
+                    : []),
                 ]}
               />
               <div className="flex grow flex-col">
@@ -213,7 +250,9 @@ export function GastosScreen({ estado }: { estado?: string }) {
               title="Por dia da semana"
               subtitle={sub(
                 view
-                  ? "Gasto médio por dia nos últimos 3 meses"
+                  ? fechado
+                    ? `Gasto médio por dia nos 3 meses antes de ${mes.name}`
+                    : "Gasto médio por dia nos últimos 3 meses"
                   : "Gasto médio por dia, sem aluguel e compras acima de R$ 1.000",
                 true,
               )}
@@ -344,8 +383,12 @@ export function GastosScreen({ estado }: { estado?: string }) {
         return (
           <Panel id="g-previsao" className="gap-4 p-4 @tab:p-5">
             <PanelHeader
-              title="Previsão do mês"
-              subtitle={sub(`No ritmo de ${mes.name}, comparado aos últimos meses`)}
+              title={fechado ? "Fechamento do mês" : "Previsão do mês"}
+              subtitle={sub(
+                fechado
+                  ? `Como ${mes.name} fechou, comparado aos meses anteriores`
+                  : `No ritmo de ${mes.name}, comparado aos últimos meses`,
+              )}
             />
             <StateSwap replacement={body()} className="grow">
               <MonthForecast />
@@ -364,19 +407,26 @@ export function GastosScreen({ estado }: { estado?: string }) {
         header={
           <MobileHeader
             title="Gastos"
+            // Acima do conteúdo: o menu do mês abre por cima dele.
+            className="relative z-10"
             account
             actions={
               <>
                 <EditLayoutButton layout={layout} compact />
-                <button
-                  type="button"
-                  aria-haspopup="dialog"
-                  className="flex h-11 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 font-medium whitespace-nowrap"
-                >
-                  <Icon name="calendar" size={18} />
-                  {mes.short.slice(0, 3)}
-                  <Icon name="chevron-down" size={16} />
-                </button>
+                {/* A troca de mês é com login; o protótipo mostra setembro. */}
+                {live ? (
+                  monthPicker("mobile")
+                ) : (
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    className="flex h-11 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 font-medium whitespace-nowrap"
+                  >
+                    <Icon name="calendar" size={18} />
+                    {mes.short.slice(0, 3)}
+                    <Icon name="chevron-down" size={16} />
+                  </button>
+                )}
               </>
             }
           />
@@ -384,7 +434,8 @@ export function GastosScreen({ estado }: { estado?: string }) {
       >
         <Breadcrumb className="hidden flex-wrap @tab:flex" items={[{ label: "Gastos" }]} />
         {state === "carregando" && <LoadingStatus />}
-        <header className="hidden items-end justify-between gap-4 @tab:flex">
+        {/* Acima dos cards: o menu do mês abre por cima deles. */}
+        <header className="relative z-10 hidden items-end justify-between gap-4 @tab:flex">
           <div className="flex flex-col gap-1.5">
             <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em] @desk:text-32">
               Gastos
@@ -408,16 +459,20 @@ export function GastosScreen({ estado }: { estado?: string }) {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-haspopup="dialog"
-              className="flex h-11 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 font-medium whitespace-nowrap"
-            >
-              <Icon name="calendar" size={18} />
-              <span className="@desk:hidden">{mes.short}</span>
-              <span className="hidden @desk:inline">{mes.long}</span>
-              <Icon name="chevron-down" size={16} />
-            </button>
+            {live ? (
+              monthPicker("desktop")
+            ) : (
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                className="flex h-11 items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 font-medium whitespace-nowrap"
+              >
+                <Icon name="calendar" size={18} />
+                <span className="@desk:hidden">{mes.short}</span>
+                <span className="hidden @desk:inline">{mes.long}</span>
+                <Icon name="chevron-down" size={16} />
+              </button>
+            )}
             <EditLayoutButton layout={layout} className="hidden @desk:inline-flex" />
             <EditLayoutButton layout={layout} compact className="@desk:hidden" />
             <ButtonLink

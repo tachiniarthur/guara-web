@@ -41,6 +41,44 @@ export function monthLabels(now: Date) {
   };
 }
 
+const isMonth = (value: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+
+/** O mês `yyyy-MM` deslocado em `delta` meses (`-1` = o anterior). */
+export function shiftMonth(month: string, delta: number) {
+  const [year, m] = month.split("-").map(Number) as [number, number];
+  const date = new Date(Date.UTC(year, m - 1 + delta, 1));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Quantos meses de `from` até `to` (`yyyy-MM`; negativo se `to` vem antes). */
+export function monthsBetween(from: string, to: string) {
+  const [fy, fm] = from.split("-").map(Number) as [number, number];
+  const [ty, tm] = to.split("-").map(Number) as [number, number];
+  return (ty - fy) * 12 + (tm - fm);
+}
+
+/** Último dia do mês `yyyy-MM` ("2026-02-28"). */
+export function lastDayOf(month: string) {
+  const [year, m] = month.split("-").map(Number) as [number, number];
+  const day = new Date(Date.UTC(year, m, 0)).getUTCDate();
+  return `${month}-${String(day).padStart(2, "0")}`;
+}
+
+/** Rótulos de um mês `yyyy-MM`, como `monthLabels`. */
+export function labelsOfMonth(month: string) {
+  return monthLabels(new Date(`${month}-15T12:00:00-03:00`));
+}
+
+/**
+ * Mês `yyyy-MM` válido entre `oldest` meses atrás e o mês atual (São Paulo); fora disso, `null`.
+ * Para o mês vindo do endereço (`?mes=`) ou guardado.
+ */
+export function pastMonthOrNull(value: string | null | undefined, now: Date, oldest = 11) {
+  if (!value || !isMonth(value)) return null;
+  const back = monthsBetween(value, formatDate(now, "yyyy-MM"));
+  return back >= 0 && back <= oldest ? value : null;
+}
+
 export function greeting(now: Date) {
   const hour = Number(formatDate(now, "H"));
   if (hour < 12) return "Bom dia";

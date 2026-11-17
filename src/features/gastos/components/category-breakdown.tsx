@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { Donut } from "@/components/charts/donut";
 import { Icon } from "@/components/ui/icon";
+import { pastMonthOrNull } from "@/lib/live-format";
 import { cn } from "@/lib/utils";
+import { useGastosMonth } from "@/stores/gastos-month";
 
 import { useGastosData } from "../context";
 
@@ -24,6 +26,11 @@ function DonutCenter({ totalSaidas }: { totalSaidas: string }) {
  */
 export function CategoryBreakdown({ variant }: { variant: "desktop" | "tablet" | "mobile" }) {
   const { categorySpending, otherSpending, totalSaidas } = useGastosData();
+  // Mês anterior escolhido em Gastos: a categoria abre nele (`?mes=`); o atual, sem parâmetro.
+  const month = pastMonthOrNull(
+    useGastosMonth((state) => state.month),
+    new Date(),
+  );
   const segments = [
     ...categorySpending.map((c) => ({ value: c.valor, color: c.cor })),
     { value: otherSpending.valor, color: otherSpending.cor },
@@ -51,7 +58,10 @@ export function CategoryBreakdown({ variant }: { variant: "desktop" | "tablet" |
     >
       {categorySpending.map((c) => (
         <li key={c.id} className={cn(desktop && "flex-1")}>
-          <Link href={`/gastos/categorias/${c.id}`} className={rowClass}>
+          <Link
+            href={`/gastos/categorias/${c.id}${month ? `?mes=${month}` : ""}`}
+            className={rowClass}
+          >
             <span
               aria-hidden="true"
               className={cn("w-2.5 shrink-0 rounded-[3px]", mobile ? "h-7" : "h-6.5")}

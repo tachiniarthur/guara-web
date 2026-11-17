@@ -56,7 +56,10 @@ export const recentTransactions: Transaction[] = [
 ];
 
 export interface SpendingPace {
+  /** Último dia com dado: hoje no mês atual, o último dia num mês fechado. */
   hoje: number;
+  /** Mês já terminado (escolhido no seletor): o último dia não é "hoje". */
+  fechado?: boolean;
   /** Gasto acumulado por dia (reais) do mês atual até hoje e do anterior completo. */
   atual: number[];
   anterior: number[];
@@ -327,11 +330,14 @@ export type MonthForecastData = ReturnType<typeof forecastFrom>;
  * Valores em reais inteiros, como o resto dos gráficos. `null` sem previsão ou sem média.
  */
 export function forecastFrom(pace: SpendingPace, monthly: MonthlySpending, diasNoMes: number) {
-  const { hoje, atual, anterior, nomeAnterior } = pace;
+  const { hoje, atual, anterior, nomeAnterior, fechado = false } = pace;
   const ateHoje = atual[hoje - 1] ?? 0;
   const anteriorMesmoDia = anterior[Math.min(hoje, anterior.length) - 1] ?? 0;
   const { previsao, media } = monthly;
+  // Mês fechado: compara o total do mês com a média; em andamento, a previsão.
+  const comparado = fechado ? ateHoje : previsao;
   return {
+    fechado,
     hoje,
     diasNoMes,
     diasRestantes: diasNoMes - hoje,
@@ -339,10 +345,10 @@ export function forecastFrom(pace: SpendingPace, monthly: MonthlySpending, diasN
     porDia: Math.round(ateHoje / Math.max(hoje, 1)),
     previsao,
     media,
-    /** Previsão contra a média dos meses anteriores, em %. */
+    /** Previsão (ou o total, no mês fechado) contra a média dos meses anteriores, em %. */
     contraMedia:
-      previsao !== null && media !== null && media > 0
-        ? Math.round((previsao / media - 1) * 100)
+      comparado !== null && media !== null && media > 0
+        ? Math.round((comparado / media - 1) * 100)
         : null,
     nomeAnterior,
     anteriorMesmoDia: anterior.length > 0 ? anteriorMesmoDia : null,

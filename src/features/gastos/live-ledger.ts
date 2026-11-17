@@ -227,7 +227,8 @@ export function toCategoryLedger(
             (budget.noticesSent.length
               ? `Aviso de ${budget.noticesSent.map((pct) => formatWhole((budget.budget.limitCents * pct) / 100)).join(" e ")} já enviado`
               : "Nenhum aviso enviado ainda") +
-            (budget.projectedCents === null
+            // Mês fechado (escolhido em Gastos) não tem "ritmo atual".
+            (budget.projectedCents === null || category.month < formatDate(now, "yyyy-MM")
               ? ""
               : ` · no ritmo atual, fecha perto de ${formatWhole(budget.projectedCents)}`),
         }
@@ -245,10 +246,17 @@ export function toCategoryLedger(
   };
 }
 
-/** Busca a página de uma categoria no mês atual. `data` fica `undefined` enquanto carrega. */
-export function useCategoryLedger(categoryId: string, { enabled }: { enabled: boolean }) {
+/**
+ * Busca a página de uma categoria no mês (`yyyy-MM`; padrão: o atual). `data` fica `undefined`
+ * enquanto carrega.
+ */
+export function useCategoryLedger(
+  categoryId: string,
+  { enabled, month: chosen }: { enabled: boolean; month?: string },
+) {
   const now = new Date();
-  const month = formatDate(now, "yyyy-MM");
+  const current = formatDate(now, "yyyy-MM");
+  const month = chosen ?? current;
   const get = <T>(path: ApiPath, schema: z.ZodType<T>, staleTime?: number) => ({
     ...apiQuery(path, schema, { enabled, staleTime }),
   });
@@ -259,7 +267,10 @@ export function useCategoryLedger(categoryId: string, { enabled }: { enabled: bo
         CategoryResponseSchema,
       ),
       get(`/v1/insights/spending?month=${month}`, SummarySchema),
-      get("/v1/budgets/summary", BudgetSummarySchema),
+      get(
+        month === current ? "/v1/budgets/summary" : `/v1/budgets/summary?month=${month}`,
+        BudgetSummarySchema,
+      ),
       get("/v1/accounts", AccountsSchema),
       get("/v1/categories", CategoriesSchema, 30 * 60_000),
       get("/v1/anomalies?status=pending", AnomaliesSchema),

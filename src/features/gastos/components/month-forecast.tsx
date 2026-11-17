@@ -9,13 +9,13 @@ const reais = (value: number | null) =>
 
 /**
  * "Previsão do mês" (Gastos): para onde o mês caminha no ritmo atual, com o que já saiu, a média
- * por dia e a comparação com agosto no mesmo dia.
+ * por dia e a comparação com agosto no mesmo dia. Num mês fechado, o total dele contra a média.
  */
 export function MonthForecast() {
   const f = useGastosData().monthForecast;
   const acima = (f.contraMedia ?? 0) >= 0;
   const rows = [
-    { label: "Gasto até hoje", value: reais(f.ateHoje) },
+    { label: f.fechado ? "Gasto no mês" : "Gasto até hoje", value: reais(f.ateHoje) },
     { label: "Média por dia", value: reais(f.porDia) },
     {
       label: `${f.nomeAnterior} no mesmo dia`,
@@ -24,19 +24,23 @@ export function MonthForecast() {
           ? "—"
           : `${reais(f.anteriorMesmoDia)} (${f.contraAnterior >= 0 ? "+" : "−"}${reais(Math.abs(f.contraAnterior))})`,
     },
-    {
-      label: `Até o fim do mês (${f.diasRestantes} dias)`,
-      value: f.restante === null ? "—" : `cerca de ${reais(f.restante)}`,
-    },
+    ...(f.fechado
+      ? []
+      : [
+          {
+            label: `Até o fim do mês (${f.diasRestantes} dias)`,
+            value: f.restante === null ? "—" : `cerca de ${reais(f.restante)}`,
+          },
+        ]),
   ];
   return (
     <div className="flex grow flex-col gap-4">
       <div className="flex flex-col gap-1">
         <strong className="font-display text-30 leading-tight font-extrabold tabular-nums">
-          {reais(f.previsao)}
+          {reais(f.fechado ? f.ateHoje : f.previsao)}
         </strong>
         <span className="text-14 text-mist">
-          previsão para o fim do mês
+          {f.fechado ? "total do mês" : "previsão para o fim do mês"}
           {f.contraMedia !== null && (
             <>
               {" · "}
@@ -57,9 +61,11 @@ export function MonthForecast() {
         />
         <span className="text-12 text-caption">
           Dia {f.hoje} de {f.diasNoMes}
-          {f.previsao
-            ? ` · ${Math.round((f.ateHoje / f.previsao) * 100)}% da previsão já saiu`
-            : ""}
+          {f.fechado
+            ? " · mês fechado"
+            : f.previsao
+              ? ` · ${Math.round((f.ateHoje / f.previsao) * 100)}% da previsão já saiu`
+              : ""}
         </span>
       </div>
       <dl className="m-0 flex flex-col">

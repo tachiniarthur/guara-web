@@ -9,8 +9,11 @@ import {
   MONTHS,
   capitalize,
   formatWhole,
-  monthLabels,
+  labelsOfMonth,
+  lastDayOf,
+  monthsBetween,
   relativeDay,
+  shiftMonth,
   apiPercent,
   buildView,
 } from "@/lib/live-format";
@@ -150,7 +153,9 @@ function cumulative(daily: Daily) {
 export type FooterPart = { texto: string; forte?: boolean };
 
 export interface GastosView extends GastosData {
-  mes: ReturnType<typeof monthLabels>;
+  mes: ReturnType<typeof labelsOfMonth>;
+  /** O mês mostrado já terminou (escolhido no seletor de mês). */
+  mesFechado: boolean;
   gastosNoMes: number;
   bancos: string[];
   rodapes: { ritmo: FooterPart[]; meses: FooterPart[]; semana: FooterPart[] };
@@ -170,7 +175,7 @@ export interface GastosResponses {
   categories: Categories;
 }
 
-function buildPace(current: Daily, previous: Daily): SpendingPace {
+function buildPace(current: Daily, previous: Daily, fechado: boolean): SpendingPace {
   const atual = cumulative(current);
   const anterior = cumulative(previous);
   const nomeAtual = capitalize(monthName(current.month));
@@ -180,18 +185,19 @@ function buildPace(current: Daily, previous: Daily): SpendingPace {
   const mesmoDia = anterior[Math.min(hoje, anterior.length) - 1] ?? 0;
   return {
     hoje,
+    fechado,
     atual,
     anterior,
     nomeAtual,
     nomeAnterior,
     maximo: scaleTop([...atual, ...anterior], 3000, 3000),
     descricao:
-      `Gasto acumulado dia a dia. ${nomeAtual}: ${formatWhole(ateHoje * 100)} até o dia ${hoje}. ` +
+      `Gasto acumulado dia a dia. ${nomeAtual}: ${formatWhole(ateHoje * 100)} ${fechado ? "no mês" : `até o dia ${hoje}`}. ` +
       `${nomeAnterior}, no mesmo dia: ${formatWhole(mesmoDia * 100)}; fechou em ${formatWhole((anterior.at(-1) ?? 0) * 100)}.`,
   };
 }
 
-function buildMonthly(monthly: Monthly, current: Daily): MonthlySpending {
+function buildMonthly(monthly: Monthly, current: Daily, fechado: boolean): MonthlySpending {
   const rows = monthly.months.filter((row) => row.spentCents !== null);
   const meses = rows.map((row) => ({
     rotulo: shortMonth(row.month),
@@ -202,25 +208,31 @@ function buildMonthly(monthly: Monthly, current: Daily): MonthlySpending {
   const media = closed.length
     ? Math.round(closed.reduce((sum, m) => sum + m.valor, 0) / closed.length)
     : null;
-  // Previsão do mês atual: o ritmo por dia até hoje, levado até o fim do mês.
+  // Previsão do mês atual: o ritmo por dia até hoje, levado até o fim do mês. Mês fechado não
+  // tem previsão (o total já é o do mês).
   const spent = meses.at(-1)?.valor ?? 0;
   const previsao =
     current.throughDay > 0 && current.throughDay < current.daysInMonth
       ? Math.round((spent / current.throughDay) * current.daysInMonth)
       : spent;
+  const comPrevisao = meses.length > 0 && !fechado;
   const first = closed[0]?.rotulo;
   const last = closed.at(-1)?.rotulo;
   const nomeAtual = monthName(current.month);
   return {
     meses,
-    previsao: meses.length ? previsao : null,
+    previsao: comPrevisao ? previsao : null,
     media,
     rotuloMedia: first && last ? `Média de ${first} a ${last}` : "Média",
     rotuloPrevisao: `Previsão de ${nomeAtual}`,
-    maximo: scaleTop([...meses.map((m) => m.valor), previsao, media ?? 0], 3000, 3000),
+    maximo: scaleTop(
+      [...meses.map((m) => m.valor), comPrevisao ? previsao : 0, media ?? 0],
+      3000,
+      3000,
+    ),
     descricao:
       `Gasto por mês: ${meses.map((m) => `${m.nome} ${formatWhole(m.valor * 100)}`).join(", ")}` +
-      `; previsão de ${nomeAtual} ${formatWhole(previsao * 100)}.` +
+      (comPrevisao ? `; previsão de ${nomeAtual} ${formatWhole(previsao * 100)}.` : ".") +
       (media === null ? "" : ` Média dos meses fechados ${formatWhole(media * 100)}.`),
   };
 }
@@ -371,14 +383,20 @@ function paceFooter(pace: SpendingPace): FooterPart[] {
   ];
 }
 
-function monthsFooter(monthly: MonthlySpending, month: string): FooterPart[] {
-  if (monthly.previsao === null) return [{ texto: "—" }];
+function monthsFooter(monthly: MonthlySpending, month: string, fechado: boolean): FooterPart[] {
+  // Mês fechado: o total dele; mês em andamento: a previsão.
+  const valor = fechado ? (monthly.meses.at(-1)?.valor ?? null) : monthly.previsao;
+  if (valor === null) return [{ texto: "—" }];
   const parts: FooterPart[] = [
-    { texto: `${capitalize(monthName(month))} deve fechar perto de ` },
-    { texto: formatWhole(monthly.previsao * 100), forte: true },
+    {
+      texto: fechado
+        ? `${capitalize(monthName(month))} fechou em `
+        : `${capitalize(monthName(month))} deve fechar perto de `,
+    },
+    { texto: formatWhole(valor * 100), forte: true },
   ];
   if (monthly.media) {
-    const pct = Math.round((monthly.previsao / monthly.media - 1) * 100);
+    const pct = Math.round((valor / monthly.media - 1) * 100);
     parts.push({
       texto:
         pct === 0
@@ -422,8 +440,10 @@ export function toGastosView(responses: GastosResponses, now: Date): GastosView 
     accounts,
     categories,
   } = responses;
-  const spendingPace = buildPace(current, previous);
-  const monthlySpending = buildMonthly(monthly, current);
+  // Mês já terminado (escolhido no seletor): sem "hoje" nem previsão.
+  const fechado = current.month < formatDate(now, "yyyy-MM");
+  const spendingPace = buildPace(current, previous, fechado);
+  const monthlySpending = buildMonthly(monthly, current, fechado);
   const weekdaySpending = buildWeekday([previous, ...older]);
   const { categorySpending, otherSpending, totalSaidas } = buildCategories(summary);
   return {
@@ -436,48 +456,67 @@ export function toGastosView(responses: GastosResponses, now: Date): GastosView 
     ledger: buildLedger(transactions, anomalies, accounts, categories, now),
     tetos: buildTetos(budgets),
     monthForecast: forecastFrom(spendingPace, monthlySpending, current.daysInMonth),
-    mes: monthLabels(now),
+    mes: labelsOfMonth(current.month),
+    mesFechado: fechado,
     gastosNoMes: summary.categories.reduce((sum, item) => sum + item.count, 0),
     bancos: [...new Set(accounts.data.map((account) => account.institutionName))],
     rodapes: {
       ritmo: paceFooter(spendingPace),
-      meses: monthsFooter(monthlySpending, current.month),
+      meses: monthsFooter(monthlySpending, current.month, fechado),
       semana: weekdayFooter(weekdaySpending),
     },
     semDados: !summary.hasAccounts,
   };
 }
 
-const monthOf = (now: Date, back: number) => {
-  const [year, month] = formatDate(now, "yyyy-MM").split("-").map(Number) as [number, number];
-  const date = new Date(Date.UTC(year, month - 1 - back, 1));
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-};
+/** Quantos meses o seletor de Gastos oferece (o atual e os 11 anteriores). */
+export const GASTOS_MONTHS = 12;
 
-/** Endereços que a tela Gastos lê (os mesmos que o pré-carregamento busca). */
-export function gastosPaths(now: Date) {
-  const daily = (back: number): ApiPath =>
-    `/v1/insights/spending/daily?month=${monthOf(now, back)}`;
+/** Os meses do seletor, do atual para trás: `yyyy-MM` e os rótulos. */
+export function gastosMonthOptions(now: Date) {
+  const current = formatDate(now, "yyyy-MM");
+  return Array.from({ length: GASTOS_MONTHS }, (_, back) => {
+    const value = shiftMonth(current, -back);
+    return { value, ...labelsOfMonth(value) };
+  });
+}
+
+/**
+ * Endereços que a tela Gastos lê para um mês (`yyyy-MM`; padrão: o atual, os mesmos que o
+ * pré-carregamento busca). Num mês anterior, tetos e lançamentos são os daquele mês.
+ */
+export function gastosPaths(now: Date, month = formatDate(now, "yyyy-MM")) {
+  const back = Math.max(0, monthsBetween(month, formatDate(now, "yyyy-MM")));
+  const daily = (before: number): ApiPath =>
+    `/v1/insights/spending/daily?month=${shiftMonth(month, -before)}`;
+  const isCurrent = back === 0;
   return {
     current: daily(0),
     previous: daily(1),
     older2: daily(2),
     older3: daily(3),
-    // Os 12 meses que o Início também pede (uma chamada só); o gráfico usa os últimos 6.
-    monthly: "/v1/insights/spending/monthly?months=12",
-    summary: `/v1/insights/spending?month=${monthOf(now, 0)}`,
-    budgets: "/v1/budgets/summary",
-    transactions: "/v1/transactions?limit=8",
+    // Os 12 meses que o Início também pede (uma chamada só); o gráfico usa os 6 até o mês
+    // escolhido (num mês mais antigo, pede os que faltam, até 24).
+    monthly: `/v1/insights/spending/monthly?months=${Math.min(24, Math.max(12, back + 6))}`,
+    summary: `/v1/insights/spending?month=${month}`,
+    budgets: isCurrent ? "/v1/budgets/summary" : `/v1/budgets/summary?month=${month}`,
+    transactions: isCurrent
+      ? "/v1/transactions?limit=8"
+      : `/v1/transactions?from=${month}-01&to=${lastDayOf(month)}&limit=8`,
     anomalies: "/v1/anomalies?status=pending",
     accounts: "/v1/accounts",
     categories: "/v1/categories",
   } satisfies Record<string, ApiPath>;
 }
 
-/** Busca tudo o que a tela Gastos mostra. `data` fica `undefined` enquanto carrega. */
-export function useGastosView({ enabled }: { enabled: boolean }) {
+/**
+ * Busca tudo o que a tela Gastos mostra no mês (`yyyy-MM`; padrão: o atual). `data` fica
+ * `undefined` enquanto carrega.
+ */
+export function useGastosView({ enabled, month }: { enabled: boolean; month?: string }) {
   const now = new Date();
-  const paths = gastosPaths(now);
+  const shown = month ?? formatDate(now, "yyyy-MM");
+  const paths = gastosPaths(now, shown);
   const get = <T>(path: ApiPath, schema: z.ZodType<T>, staleTime?: number) => ({
     ...apiQuery(path, schema, { enabled, staleTime }),
   });
@@ -532,7 +571,7 @@ export function useGastosView({ enabled }: { enabled: boolean }) {
           current,
           previous,
           older: [older2, older3],
-          monthly: { ...monthly, months: monthly.months.slice(-6) },
+          monthly: { ...monthly, months: monthly.months.filter((m) => m.month <= shown).slice(-6) },
           summary,
           budgets,
           transactions,

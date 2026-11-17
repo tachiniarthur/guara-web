@@ -69,6 +69,7 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
     maximo,
     nomeAtual,
     nomeAnterior,
+    fechado,
   } = useGastosData().spendingPace;
   const step = (x1 - x0) / (agosto.length - 1);
   const x = (day: number) => x0 + (day - 1) * step;
@@ -77,29 +78,42 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
     values.map((v, i) => `${i ? "L" : "M"}${x(i + 1).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   const xHoje = x(hoje);
   const setHoje = setembro[hoje - 1] ?? 0;
-  const agoHoje = agosto[hoje - 1] ?? 0;
+  // O mês anterior pode ter menos dias (dia 31 contra um mês de 30): vale o acumulado do último.
+  const prevAt = (day: number) => agosto[Math.min(day, agosto.length) - 1] ?? 0;
+  const agoHoje = prevAt(hoje);
   const agoFim = agosto[agosto.length - 1] ?? 0;
   const currentText = `${nomeAtual} ${fmt(setHoje)}`;
   const previousText = `${nomeAnterior} ${fmt(agoHoje)}`;
+  // No fim do mês (ou num mês fechado) o "hoje" encosta na borda: o rótulo que não couber à
+  // direita vai para a esquerda, se couber antes do eixo.
+  const fitsLeft = (text: string, size: number, bold?: boolean) =>
+    xHoje - 10 - textWidth(text, size, bold) > x0;
+  const fitsRight = (text: string, size: number, bold?: boolean) =>
+    xHoje + 10 + textWidth(text, size, bold) <= width;
+  // Os dois à esquerda, empilhados como à direita (um acima do outro, sem encostar).
+  const bothLeft = !fitsRight(previousText, 12) && fitsLeft(previousText, 12);
   const labels = paceLabels({
     current: y(setHoje),
     previous: y(agoHoje),
-    // À esquerda de hoje só quando cabe antes do eixo (no começo do mês, vai para a direita).
-    left: labelSide === "left" && xHoje - 10 - textWidth(currentText, 13, true) > x0,
+    left:
+      !bothLeft &&
+      (labelSide === "left" || !fitsRight(currentText, 13, true)) &&
+      fitsLeft(currentText, 13, true),
     top: 14,
     bottom: base - 4,
   });
+  const currentLeft = labels.left || bothLeft;
 
   const points = setembro.map((v, i) => ({
     x: x(i + 1),
-    title: i + 1 === hoje ? `Hoje, dia ${hoje}` : `Dia ${i + 1}`,
+    title: i + 1 === hoje && !fechado ? `Hoje, dia ${hoje}` : `Dia ${i + 1}`,
     rows: [
       { label: nomeAtual, value: brl(v), color: chartColors.saidas, y: y(v) },
       {
         label: nomeAnterior,
-        value: brl(agosto[i] ?? 0),
+        value: brl(prevAt(i + 1)),
         color: chartColors.label,
-        y: y(agosto[i] ?? 0),
+        y: y(prevAt(i + 1)),
       },
     ],
   }));
@@ -145,9 +159,9 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
         />
         <text
           {...halo}
-          x={(labels.left ? xHoje - 10 : xHoje + 10).toFixed(1)}
+          x={(currentLeft ? xHoje - 10 : xHoje + 10).toFixed(1)}
           y={labels.current.toFixed(1)}
-          textAnchor={labels.left ? "end" : "start"}
+          textAnchor={currentLeft ? "end" : "start"}
           fontSize="13"
           fontWeight="800"
           fill={chartColors.sand}
@@ -156,8 +170,9 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
         </text>
         <text
           {...halo}
-          x={(xHoje + 10).toFixed(1)}
+          x={(bothLeft ? xHoje - 10 : xHoje + 10).toFixed(1)}
           y={labels.previous.toFixed(1)}
+          textAnchor={bothLeft ? "end" : "start"}
           fontSize="12"
           fill={chartColors.mist}
         >
@@ -171,7 +186,8 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
           stroke={chartColors.card}
           strokeWidth="2"
         />
-        {showClose && (
+        {/* O fechamento do mês anterior, quando o "hoje" ainda não chegou ao fim dele. */}
+        {showClose && hoje < agosto.length && (
           <text x={x1 + 6} y={(y(agoFim) + 4).toFixed(1)} fontSize="12" fill={chartColors.label}>
             {fmt(agoFim)}
           </text>
@@ -182,7 +198,7 @@ function PaceChart({ variant, size }: { variant: PaceVariant; size: Size }) {
           .filter((day) => day === hoje || Math.abs(x(day) - xHoje) >= 24)
           .map((day) => (
             <AxisLabel key={day} x={x(day)} y={208 + extra} highlight={day === hoje}>
-              {day === hoje ? "hoje" : day}
+              {day === hoje && !fechado ? "hoje" : day}
             </AxisLabel>
           ))}
         <InspectorLayer x0={x0 - 6} x1={x1 + 6} top={14} bottom={base} />
@@ -299,7 +315,8 @@ function MonthlyChart({ variant, size }: { variant: BarVariant; size: Size }) {
         })();
   const points = meses.map((mes, i) => ({
     x: barX(i) + bar / 2,
-    title: i === last ? `${mes.nome} (até hoje)` : mes.nome,
+    // Só o mês em andamento (com previsão) é "até hoje"; num mês fechado, o total dele.
+    title: i === last && previsao !== null ? `${mes.nome} (até hoje)` : mes.nome,
     rows: [
       { label: "Gasto", value: brl(mes.valor), color: chartColors.saidas },
       ...(i === last && previsao !== null

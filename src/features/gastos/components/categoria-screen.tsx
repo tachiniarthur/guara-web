@@ -1,6 +1,7 @@
 "use client";
 
-import { notFound } from "next/navigation";
+import { notFound, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
@@ -22,6 +23,20 @@ import type { CategoryLedger } from "@/features/gastos/lancamentos";
 import { useCategoryLedger } from "@/features/gastos/live-ledger";
 import { LoadingStatus } from "@/components/states/skeleton";
 import { ErrorBlock } from "@/components/states/state-block";
+import { formatDate } from "@/lib/format";
+import { pastMonthOrNull } from "@/lib/live-format";
+
+/**
+ * O mês do endereço (`?mes=2026-10`, vindo de Gastos com outro mês escolhido). Fica num
+ * `Suspense` à parte para a página continuar gerada no build; sem mês válido, o atual (`null`).
+ */
+function MonthFromUrl({ onMonth }: { onMonth: (month: string | null) => void }) {
+  const mes = useSearchParams().get("mes");
+  useEffect(() => {
+    onMonth(pastMonthOrNull(mes, new Date()));
+  }, [mes, onMonth]);
+  return null;
+}
 
 /**
  * Uma categoria no mês: com login, os dados da API; no protótipo, os de exemplo (`prototype`,
@@ -37,19 +52,31 @@ export function CategoriaScreen({
   prototypeHasCeiling: boolean;
 }) {
   const { live } = useSession();
-  const real = useCategoryLedger(categoria, { enabled: live });
+  // `undefined` até ler o endereço: a busca espera para não pedir o mês errado antes.
+  const [month, setMonth] = useState<string | null | undefined>(undefined);
+  const real = useCategoryLedger(categoria, {
+    enabled: live && month !== undefined,
+    month: month ?? undefined,
+  });
+  const fromUrl = (
+    <Suspense fallback={null}>
+      <MonthFromUrl onMonth={setMonth} />
+    </Suspense>
+  );
   if (!live && !prototype) notFound();
   if (live && !real.data) {
     return (
       <Page padding="detail" header={<MobileHeader title="Gastos" back="/gastos" balanced />}>
+        {fromUrl}
         {real.error ? <ErrorBlock /> : <LoadingStatus />}
       </Page>
     );
   }
   const ledger = live ? real.data! : prototype!;
   const hasCeiling = live ? Boolean(ledger.teto) : prototypeHasCeiling;
+  const year = (month ?? formatDate(new Date(), "yyyy-MM")).slice(0, 4);
   const subtitle = live
-    ? `${ledger.mes ? ledger.mes.charAt(0).toUpperCase() + ledger.mes.slice(1) : ""} ${new Date().getFullYear()}`
+    ? `${ledger.mes ? ledger.mes.charAt(0).toUpperCase() + ledger.mes.slice(1) : ""} ${year}`
     : "Setembro 2026 · Nubank e Itaú";
   const search = <SearchField label={`Buscar em ${ledger.nome}`} size="list" />;
   const tip = ledger.dica && <GuaraTip named>{ledger.dica}</GuaraTip>;
@@ -61,6 +88,7 @@ export function CategoriaScreen({
       className="gap-4 @tab:gap-5 @desk:gap-6"
       header={<MobileHeader title={ledger.nome} back="/gastos" balanced />}
     >
+      {fromUrl}
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
         items={[{ label: "Gastos", href: "/gastos" }, { label: ledger.nome }]}
