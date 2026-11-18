@@ -1,14 +1,21 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { z } from "zod";
 
 import { CLASS_COLOR, type AssetClassId } from "@/features/alocacao/live";
-import { INSTRUMENT, RISK, ApiPositionSchema } from "@/features/investimentos/live";
+import {
+  INSTRUMENT,
+  INVESTIMENTOS_PATHS,
+  PositionsSchema,
+  RISK,
+  ApiPositionSchema,
+} from "@/features/investimentos/live";
 import type { Risk } from "@/features/investimentos/types";
 import { exchangeLabel } from "@/features/mercado/live";
 import { ApiError, apiRequest } from "@/lib/api";
-import { apiQuery, invalidateApi, markApiStale, type ApiPath } from "@/lib/api-query";
+import { apiKey, apiQuery, invalidateApi, markApiStale, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate, formatUsd } from "@/lib/format";
 import { apiPercent, percent } from "@/lib/live-format";
 
@@ -269,6 +276,35 @@ export function toAssetView(p: PositionDetail): AssetView {
   };
 }
 
+/** Enquanto a API responde: a forma da posição com "—" (os cards guardam o lugar). */
+export const EMPTY_ASSET: AssetView = {
+  id: "",
+  nome: "—",
+  ticker: null,
+  descricao: "",
+  instrumento: "—",
+  classe: "—",
+  cor: "#93A198",
+  risco: "Médio",
+  manual: true,
+  origem: "—",
+  bolsa: null,
+  mercado: false,
+  cotado: true,
+  valor: "—",
+  valorOriginal: null,
+  custo: "—",
+  ganho: null,
+  rentabilidade: null,
+  percentual: "—",
+  quantidade: "—",
+  precoMedio: "—",
+  cotacao: "—",
+  valorEm: "—",
+  desatualizado: false,
+  form: { name: "", quantity: "0", averagePriceCents: 0, manualValueCents: null },
+};
+
 // --- Mercado ---------------------------------------------------------------------------------
 
 const PERIOD_LABEL: Record<string, string> = {
@@ -389,6 +425,28 @@ export function toMarketView(m: MarketAsset): MarketView {
   };
 }
 
+/** Enquanto a cotação não chega: a forma dos cards de mercado com "—". */
+export const EMPTY_MARKET: MarketView = {
+  nomeLongo: null,
+  setor: null,
+  cotacao: "—",
+  variacaoDia: null,
+  cotadoEm: null,
+  dia: null,
+  faixa52: { min: "—", max: "—", posicao: 50 },
+  desempenho: Object.values(PERIOD_LABEL).map((periodo) => ({
+    periodo,
+    retorno: "—",
+    cdi: "—",
+    volatilidade: "—",
+    sharpe: "—",
+  })),
+  fundamentos: null,
+  proventos: { porCota: "—", dy: null, itens: [] },
+  eventos: [],
+  limites: [],
+};
+
 /** Variação, máxima e mínima do período do gráfico (valores em reais). `null` com menos de 2. */
 export function periodStats(points: { value: number }[]) {
   if (points.length < 2) return null;
@@ -448,6 +506,40 @@ export function useHistory(
     }),
     retry,
   });
+}
+
+/** Ticker com página de mercado (B3 ou cripto); `null` sem ticker ou de bolsa de fora. */
+const marketSymbol = (p: { symbol: string | null; micCode?: string | null }) =>
+  p.symbol && !p.micCode ? p.symbol : null;
+
+/** A posição como veio na lista de Investimentos, se ela já está em cache (sem buscar). */
+function useListedPosition(id: string) {
+  const client = useQueryClient();
+  const raw = client.getQueryData(apiKey(INVESTIMENTOS_PATHS.positions));
+  return useMemo(() => {
+    const list = PositionsSchema.safeParse(raw);
+    return list.success ? (list.data.data.find((p) => p.id === id) ?? null) : null;
+  }, [raw, id]);
+}
+
+/**
+ * Posição e dados de mercado das telas do ativo. Vindo da lista de Investimentos, o ticker já
+ * está em cache: a cotação é pedida junto com a posição, em vez de esperar por ela.
+ * `hasMarket` diz se a tela terá a parte de mercado (`undefined` enquanto não se sabe).
+ */
+export function useAssetData(id: string, { enabled }: { enabled: boolean }) {
+  const position = usePosition(id, { enabled });
+  const listed = useListedPosition(id);
+  const known = position.data ?? listed;
+  const symbol = known ? marketSymbol(known) : null;
+  const market = useMarketAsset(symbol, { enabled });
+  return {
+    position,
+    asset: position.data ? toAssetView(position.data) : null,
+    symbol,
+    hasMarket: known ? symbol !== null : undefined,
+    market,
+  };
 }
 
 /** Recurso fora do plano (a página de mercado do ativo é do plano Pro). */

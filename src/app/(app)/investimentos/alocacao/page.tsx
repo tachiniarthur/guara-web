@@ -2,7 +2,7 @@
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { LoadingStatus } from "@/components/states/skeleton";
+import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import { ErrorBlock } from "@/components/states/state-block";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink, buttonVariants } from "@/components/ui/button";
@@ -21,7 +21,11 @@ import {
   OffTargetSummary,
 } from "@/features/alocacao/components/class-allocation";
 import { donutSizes } from "@/features/alocacao/components/donut";
-import { useAllocation, type PortfolioAllocation } from "@/features/alocacao/live";
+import {
+  EMPTY_ALLOCATION,
+  useAllocation,
+  type PortfolioAllocation,
+} from "@/features/alocacao/live";
 import { OpenChat } from "@/features/conversas/components/open-chat";
 import { MataCard } from "@/features/gastos/components/teto-cards";
 import { useHoldings } from "@/features/investimentos/posicoes";
@@ -125,12 +129,14 @@ export default function AlocacaoPage() {
   const { live } = useSession();
   const allocation = useAllocation({ enabled: live });
   const holdings = useHoldings({ enabled: live });
-  const data = allocation.data;
   const failed = !live || allocation.error || holdings.error;
-  const perfil = data?.perfil;
+  // Carregando: os cards no lugar, com o círculo girando.
+  const loading = !allocation.data || !holdings.data;
+  const data = allocation.data ?? EMPTY_ALLOCATION;
+  const perfil = allocation.data?.perfil;
   const ativos = holdings.data?.quantidade ?? 0;
   const unvalued =
-    data && data.semValor > 0
+    data.semValor > 0
       ? `${data.semValor === 1 ? "1 posição sem valor ficou" : `${data.semValor} posições sem valor ficaram`} de fora da conta.`
       : null;
 
@@ -141,7 +147,9 @@ export default function AlocacaoPage() {
       header={
         <MobileHeader
           title="Alocação"
-          subtitle={perfil ? `Perfil ${perfil.nome}` : "Sem perfil definido"}
+          subtitle={
+            !allocation.data ? undefined : perfil ? `Perfil ${perfil.nome}` : "Sem perfil definido"
+          }
           back="/investimentos"
           actions={
             <IconButtonLink
@@ -157,42 +165,44 @@ export default function AlocacaoPage() {
         className="hidden flex-wrap @tab:flex"
         items={[{ label: "Investimentos", href: "/investimentos" }, { label: "Alocação" }]}
       />
-      <DetailHeader
-        title="Alocação"
-        subtitle={
-          perfil
-            ? `Carteira-alvo do perfil ${perfil.nome} em 4 classes`
-            : "Sua carteira em 4 classes"
-        }
-        actions={
-          <>
-            <ButtonLink
-              href="/investimentos/alocacao/perfis"
-              variant="secondary"
-              className="text-15"
-            >
-              <span>Comparar os perfis</span>
-            </ButtonLink>
-            <ButtonLink href="/perfil/investidor" variant="ghost" className="text-15">
-              <span>{perfil ? "Mudar perfil" : "Definir perfil"}</span>
-            </ButtonLink>
-          </>
-        }
-      />
+      {!failed && loading && <LoadingStatus />}
+      <Skeleton active={!failed && !allocation.data}>
+        <DetailHeader
+          title="Alocação"
+          subtitle={
+            perfil
+              ? `Carteira-alvo do perfil ${perfil.nome} em 4 classes`
+              : "Sua carteira em 4 classes"
+          }
+          actions={
+            <>
+              <ButtonLink
+                href="/investimentos/alocacao/perfis"
+                variant="secondary"
+                className="text-15"
+              >
+                <span>Comparar os perfis</span>
+              </ButtonLink>
+              <ButtonLink href="/perfil/investidor" variant="ghost" className="text-15">
+                <span>{perfil ? "Mudar perfil" : "Definir perfil"}</span>
+              </ButtonLink>
+            </>
+          }
+        />
+      </Skeleton>
 
       {failed ? (
         <ErrorBlock />
-      ) : !data || !holdings.data ? (
-        <LoadingStatus />
       ) : (
-        <>
+        <Skeleton active={loading}>
           {/* Celular */}
           <div className="flex flex-col gap-4 @tab:hidden">
             <MataCard>
               <span className="text-14 text-[#C5D8CB]">
-                {perfil ? `Perfil ${perfil.nome}` : "Sem perfil"} · {data.total} investidos
+                {data.perfil ? `Perfil ${data.perfil.nome}` : "Sem perfil"} · {data.total}{" "}
+                investidos
               </span>
-              {perfil ? (
+              {data.perfil ? (
                 <span className="font-display text-30 leading-[1.1] font-extrabold tracking-[-0.01em] tabular-nums">
                   {data.foraDoAlvo.length} de {data.classes.length}
                   <span className="text-16 font-medium text-mist"> fora do alvo</span>
@@ -239,7 +249,7 @@ export default function AlocacaoPage() {
               </div>
             </div>
           </div>
-        </>
+        </Skeleton>
       )}
       <ButtonLink
         href="/investimentos/alocacao/perfis"

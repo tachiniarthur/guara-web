@@ -6,7 +6,9 @@
    Investimentos, Simulador, Metas, Relatórios, Alertas) leem a API com login. **Início, Gastos (lista, lançamento,
    categoria, projeção), Assinaturas e o chat não têm mais dados de exemplo (17/11/2026)**: sem as variáveis ou com a API
    fora, mostram o estado de erro; carregando, os cards guardam o lugar com "—" (`EMPTY_GASTOS`, `EMPTY_LANCAMENTOS`,
-   `LOADING_SUMMARY`…). **Investimentos e Metas (com as telas filhas) também são só API desde 17/11/2026.** Ainda com
+   `LOADING_SUMMARY`…). **Investimentos e Metas (com as telas filhas) também são só API desde 17/11/2026**;
+   desde 18/11/2026 as telas por id (ativo, detalhes, gráfico, proventos, bem, meta), Alocação, Perfis e
+   Duplicidade também carregam com os cards no lugar. Ainda com
    dados de exemplo: notificações, editar alertas/tetos, as telas de tetos (`features/gastos/prototype.ts`, só para
    Alertas) e a conexão de banco do onboarding. O questionário de perfil (onboarding e `/perfil/investidor`) vem da
    API e grava nela desde 17/11/2026; `features/alocacao/prototype.ts` (5 grupos, Sofisticado) é só referência.

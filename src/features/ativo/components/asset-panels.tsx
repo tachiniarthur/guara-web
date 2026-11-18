@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { LineSeries } from "@/components/charts/line-series";
-import { LoadingStatus } from "@/components/states/skeleton";
 import { CompactStateBlock } from "@/components/states/state-block";
 import { DetailList } from "@/components/ui/detail-list";
 import { Icon } from "@/components/ui/icon";
 import { Note } from "@/components/ui/note";
 import { Panel, PanelHeader, panelLinkClass } from "@/components/ui/panel";
 import { SegmentedControl } from "@/components/ui/segmented-control";
+import { Spinner } from "@/components/ui/spinner";
 import { StatTile } from "@/components/ui/stat-tile";
 import { RiskBadge } from "@/features/investimentos/components/position-parts";
 import { formatDate } from "@/lib/format";
@@ -166,7 +166,7 @@ export function QuotePanel({
         </CompactStateBlock>
       ) : !history.data ? (
         <div className="flex h-[13.75rem] items-center justify-center">
-          <LoadingStatus />
+          <Spinner size={28} />
         </div>
       ) : points.length < 2 ? (
         <p className="m-0 py-8 text-center text-14 text-mist">Sem histórico para este período.</p>

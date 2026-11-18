@@ -146,6 +146,35 @@ export function toAllocation(
   };
 }
 
+const PLACEHOLDER_NAME: Record<AssetClassId, string> = {
+  fixed_income: "Renda fixa",
+  equities: "Renda variável",
+  real_estate: "Imobiliário",
+  alternatives: "Alternativos",
+};
+
+/** Enquanto a API responde: as 4 classes com "—" (os cards guardam o lugar). */
+export const EMPTY_ALLOCATION: PortfolioAllocation = {
+  perfil: { kind: "moderate", nome: "—", definidoEm: "—" },
+  investidoCents: 0,
+  total: "—",
+  semValor: 0,
+  classes: ASSET_CLASSES.map((id) => ({
+    id,
+    nome: PLACEHOLDER_NAME[id],
+    cor: CLASS_COLOR[id],
+    valorCents: 0,
+    valor: "—",
+    atual: 25,
+    alvo: 25,
+    diff: 0,
+    status: "aligned",
+    mensagem: null,
+    distanciaCents: 0,
+  })),
+  foraDoAlvo: [],
+};
+
 export const ALLOCATION_PATHS = {
   allocation: "/v1/investments/allocation",
   profile: "/v1/investor-profile",
@@ -177,6 +206,14 @@ export interface ProfileTarget {
   descricao: string;
   alvo: Record<AssetClassId, number>;
 }
+
+/** Enquanto a API responde: os 3 perfis com "—" (os cards guardam o lugar). */
+export const EMPTY_PROFILE_TARGETS: ProfileTarget[] = PROFILE_KINDS.map((kind) => ({
+  kind,
+  nome: "—",
+  descricao: "—",
+  alvo: { fixed_income: 25, equities: 25, real_estate: 25, alternatives: 25 },
+}));
 
 /** Os perfis do questionário com a carteira-alvo de cada um. */
 export function useProfileTargets({ enabled = true }: { enabled?: boolean } = {}) {

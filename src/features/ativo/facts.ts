@@ -39,6 +39,16 @@ export function rateText(p: Pick<PositionDetail, "ratePct" | "rateIndex" | "fixe
 const rows = (items: [string, string | null | undefined][]): FactRow[] =>
   items.flatMap(([label, value]) => (value ? [{ label, value }] : []));
 
+const placeholder = (labels: string[]): FactRow[] => labels.map((label) => ({ label, value: "—" }));
+
+/** Enquanto a API responde: as quatro seções com "—" (os cards guardam o lugar). */
+export const EMPTY_FACTS: FactSection[] = [
+  { titulo: "Identificação", linhas: placeholder(["Nome", "Ticker", "Tipo", "Classe", "Origem"]) },
+  { titulo: "Negociação", linhas: placeholder(["Bolsa", "Cotação", "Faixa de 52 semanas"]) },
+  { titulo: "Custos", linhas: placeholder(["Quantidade", "Preço médio", "Custo total"]) },
+  { titulo: "Risco", linhas: placeholder(["Risco na carteira", "Volatilidade em 12 meses"]) },
+];
+
 /** As seções na ordem do cadastro: Identificação, Negociação, Custos e Risco. */
 export function toAssetFacts(p: PositionDetail, market: MarketAsset | null): FactSection[] {
   const abroad = Boolean(p.micCode);

@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { LoadingStatus } from "@/components/states/skeleton";
+import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import { ErrorBlock, StateBlock } from "@/components/states/state-block";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -40,8 +40,20 @@ const OPTIONS: { value: Choice; title: string; description: string }[] = [
   },
 ];
 
-function SourceCard({ pair, side }: { pair: DuplicatePair; side: keyof DuplicatePair }) {
-  const position = pair[side];
+/** Carregando: a forma do card com "—". */
+const PLACEHOLDER_ROWS = ["Valor", "Quantidade", "Atualizado"].map((label) => ({
+  label,
+  value: "—",
+}));
+
+function SourceCard({
+  pair,
+  side,
+}: {
+  pair: DuplicatePair | undefined;
+  side: keyof DuplicatePair;
+}) {
+  const position = pair?.[side];
   const openFinance = side === "openFinance";
   return (
     <Panel className="gap-2.5">
@@ -51,8 +63,8 @@ function SourceCard({ pair, side }: { pair: DuplicatePair; side: keyof Duplicate
           {openFinance ? "Open Finance" : "Cadastro manual"}
         </Tag>
       </div>
-      <strong className="font-display text-20">{position.name}</strong>
-      <DetailList items={duplicateRows(position)} />
+      <strong className="font-display text-20">{position?.name ?? "—"}</strong>
+      <DetailList items={position ? duplicateRows(position) : PLACEHOLDER_ROWS} />
     </Panel>
   );
 }
@@ -111,11 +123,10 @@ export function DuplicidadeScreen() {
             : undefined
         }
       />
+      {live && !duplicates.error && !pairs && <LoadingStatus />}
       {!live || duplicates.error ? (
         <ErrorBlock />
-      ) : !pairs ? (
-        <LoadingStatus />
-      ) : !pair ? (
+      ) : pairs && !pair ? (
         <StateBlock
           icon="check"
           title="Nada duplicado"
@@ -128,7 +139,7 @@ export function DuplicidadeScreen() {
           Nenhum cadastro manual repete um investimento que chega pelo Open Finance.
         </StateBlock>
       ) : (
-        <>
+        <Skeleton active={!pairs}>
           <p className="m-0 text-15 leading-[1.55] text-mist @desk:text-16">{intro}</p>
           <div className="grid grid-cols-1 items-stretch gap-4 @tab:grid-cols-2 @tab:gap-y-5 @desk:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)] @desk:gap-5">
             <SourceCard pair={pair} side="openFinance" />
@@ -189,7 +200,7 @@ export function DuplicidadeScreen() {
               <span>{label}</span>
             </Button>
           </MobileActionBar>
-        </>
+        </Skeleton>
       )}
     </Page>
   );

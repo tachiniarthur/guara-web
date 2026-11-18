@@ -5,7 +5,7 @@ import { useState, type ReactNode } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { LoadingStatus } from "@/components/states/skeleton";
+import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import { ErrorBlock } from "@/components/states/state-block";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
   useBelongingFields,
 } from "@/features/bens/components/belonging-form";
 import {
+  EMPTY_BELONGING,
   isBelongingId,
   toBelongingView,
   useBelonging,
@@ -233,18 +234,22 @@ export function BemScreen({ id }: { id: string }) {
   if (!isBelongingId(id)) notFound();
   if (query.error instanceof ApiError && query.error.code === "not_found") notFound();
 
-  const bem = query.data
+  const loaded = query.data
     ? toBelongingView(query.data, netWorth.data?.totalNetWorthCents ?? null)
     : null;
-  const header = <MobileHeader title={bem?.nome ?? "Bem"} back="/investimentos" balanced />;
+  const header = <MobileHeader title={loaded?.nome ?? "Bem"} back="/investimentos" balanced />;
 
-  if (!live || query.error || !bem) {
+  if (!live || query.error) {
     return (
       <Page padding="detail" header={header}>
-        {!live || query.error ? <ErrorBlock /> : <LoadingStatus />}
+        <ErrorBlock />
       </Page>
     );
   }
+
+  // Carregando: os cards no lugar, com o círculo girando.
+  const loading = !loaded;
+  const bem = loaded ?? EMPTY_BELONGING;
 
   const actions = (
     <Actions onEdit={() => setDialog("editar")} onRemove={() => setDialog("excluir")} />
@@ -253,24 +258,32 @@ export function BemScreen({ id }: { id: string }) {
     <Page padding="detail" zoom={1.4} className="gap-4 @tab:gap-5 @desk:gap-6" header={header}>
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[{ label: "Investimentos", href: "/investimentos" }, { label: bem.nome }]}
+        items={[
+          { label: "Investimentos", href: "/investimentos" },
+          { label: loaded?.nome ?? "Bem" },
+        ]}
       />
-      <DetailHeader
-        title={bem.nome}
-        actions={<div className="hidden @desk:block">{actions}</div>}
-      />
-      <div className="flex flex-col gap-4 @tab:gap-5 @desk:grid @desk:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] @desk:items-stretch">
-        <Hero bem={bem} />
-        <div className="@desk:hidden">{actions}</div>
-        <NetWorth bem={bem} />
-      </div>
-      <div className="@tab:max-w-[40rem]">
-        <Financing bem={bem} />
-      </div>
-      <Presence show={dialog !== null}>
-        {dialog === "editar" && <EditDialog bem={bem} onClose={() => setDialog(null)} />}
-        {dialog === "excluir" && <RemoveDialog bem={bem} onClose={() => setDialog(null)} />}
-      </Presence>
+      {loading && <LoadingStatus />}
+      <Skeleton active={loading}>
+        <DetailHeader
+          title={bem.nome}
+          actions={<div className="hidden @desk:block">{actions}</div>}
+        />
+        <div className="flex flex-col gap-4 @tab:gap-5 @desk:grid @desk:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] @desk:items-stretch">
+          <Hero bem={bem} />
+          <div className="@desk:hidden">{actions}</div>
+          <NetWorth bem={bem} />
+        </div>
+        <div className="@tab:max-w-[40rem]">
+          <Financing bem={bem} />
+        </div>
+      </Skeleton>
+      {loaded && (
+        <Presence show={dialog !== null}>
+          {dialog === "editar" && <EditDialog bem={loaded} onClose={() => setDialog(null)} />}
+          {dialog === "excluir" && <RemoveDialog bem={loaded} onClose={() => setDialog(null)} />}
+        </Presence>
+      )}
     </Page>
   );
 }

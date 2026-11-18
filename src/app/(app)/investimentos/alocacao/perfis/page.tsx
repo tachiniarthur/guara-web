@@ -2,14 +2,19 @@
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { LoadingStatus } from "@/components/states/skeleton";
+import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import { ErrorBlock } from "@/components/states/state-block";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { Note } from "@/components/ui/note";
 import { useSession } from "@/features/acesso/session";
 import { ProfileTargetCard } from "@/features/alocacao/components/class-allocation";
-import { useAllocation, useProfileTargets } from "@/features/alocacao/live";
+import {
+  EMPTY_ALLOCATION,
+  EMPTY_PROFILE_TARGETS,
+  useAllocation,
+  useProfileTargets,
+} from "@/features/alocacao/live";
 
 /** Os perfis do questionário, cada um com a carteira-alvo, e a carteira de hoje ao lado (API). */
 export default function PerfisPage() {
@@ -43,21 +48,22 @@ export default function PerfisPage() {
           { label: title },
         ]}
       />
-      <DetailHeader
-        title={`${title} de investidor`}
-        subtitle="Carteira-alvo de cada perfil, por classe"
-        actions={
-          <ButtonLink href="/perfil/investidor" variant="secondary" className="text-15">
-            <span>{perfil ? "Refazer o questionário" : "Responder o questionário"}</span>
-          </ButtonLink>
-        }
-      />
+      <Skeleton active={!failed && !allocation.data}>
+        <DetailHeader
+          title={`${title} de investidor`}
+          subtitle="Carteira-alvo de cada perfil, por classe"
+          actions={
+            <ButtonLink href="/perfil/investidor" variant="secondary" className="text-15">
+              <span>{perfil ? "Refazer o questionário" : "Responder o questionário"}</span>
+            </ButtonLink>
+          }
+        />
+      </Skeleton>
+      {!failed && !ready && <LoadingStatus />}
       {failed ? (
         <ErrorBlock />
-      ) : !ready ? (
-        <LoadingStatus />
       ) : (
-        <>
+        <Skeleton active={!ready}>
           <p className="m-0 text-14 leading-[1.55] text-mist @tab:text-15 @desk:text-16">
             Cada perfil divide a carteira entre as classes. As barras mostram a sua carteira de hoje
             e a marca branca, o alvo de cada perfil.{" "}
@@ -71,11 +77,11 @@ export default function PerfisPage() {
             )}
           </p>
           <div className="grid grid-cols-1 items-stretch gap-4 @tab:grid-cols-2 @desk:grid-cols-3 @desk:gap-5">
-            {profiles.data!.map((profile) => (
+            {(profiles.data ?? EMPTY_PROFILE_TARGETS).map((profile) => (
               <ProfileTargetCard
                 key={profile.kind}
                 profile={profile}
-                allocation={allocation.data}
+                allocation={allocation.data ?? { ...EMPTY_ALLOCATION, perfil: null }}
               />
             ))}
           </div>
@@ -83,7 +89,7 @@ export default function PerfisPage() {
             É só uma referência para comparar. O Guará não compra nem vende nada; você decide se e
             como ajustar.
           </Note>
-        </>
+        </Skeleton>
       )}
       <ButtonLink
         href="/perfil/investidor"

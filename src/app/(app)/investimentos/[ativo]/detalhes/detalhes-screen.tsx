@@ -4,20 +4,14 @@ import { notFound } from "next/navigation";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { LoadingStatus } from "@/components/states/skeleton";
+import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import { ErrorBlock } from "@/components/states/state-block";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { DetailList } from "@/components/ui/detail-list";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { useSession } from "@/features/acesso/session";
-import { toAssetFacts } from "@/features/ativo/facts";
-import {
-  isPlanLimit,
-  isPositionId,
-  toAssetView,
-  useMarketAsset,
-  usePosition,
-} from "@/features/ativo/live";
+import { EMPTY_FACTS, toAssetFacts } from "@/features/ativo/facts";
+import { isPlanLimit, isPositionId, useAssetData } from "@/features/ativo/live";
 import { ApiError } from "@/lib/api";
 
 /**
@@ -26,10 +20,7 @@ import { ApiError } from "@/lib/api";
  */
 export function DetalhesScreen({ id }: { id: string }) {
   const { live } = useSession();
-  const position = usePosition(id, { enabled: live });
-  const asset = position.data ? toAssetView(position.data) : null;
-  const symbol = asset?.mercado ? asset.ticker : null;
-  const marketQuery = useMarketAsset(symbol, { enabled: live });
+  const { position, asset, symbol, market: marketQuery } = useAssetData(id, { enabled: live });
 
   if (!isPositionId(id)) notFound();
   if (position.error instanceof ApiError && position.error.code === "not_found") notFound();
@@ -57,15 +48,16 @@ export function DetalhesScreen({ id }: { id: string }) {
           { label: "Mais detalhes" },
         ]}
       />
-      <DetailHeader title={`Detalhes de ${nome}`} subtitle={asset?.descricao} />
+      {live && !position.error && !sections && <LoadingStatus />}
+      <Skeleton active={!asset && !position.error}>
+        <DetailHeader title={`Detalhes de ${nome}`} subtitle={asset?.descricao} />
+      </Skeleton>
       {!live || position.error ? (
         <ErrorBlock />
-      ) : !sections ? (
-        <LoadingStatus />
       ) : (
-        <>
+        <Skeleton active={!sections}>
           <div className="grid grid-cols-1 items-start gap-4 @tab:grid-cols-2 @desk:grid-cols-4 @desk:gap-5">
-            {sections.map((section) => (
+            {(sections ?? EMPTY_FACTS).map((section) => (
               <Panel key={section.titulo} className="p-4.5">
                 <PanelHeader title={section.titulo} titleClassName="text-17 tracking-normal" />
                 <DetailList items={section.linhas} />
@@ -81,7 +73,7 @@ export function DetalhesScreen({ id }: { id: string }) {
             Taxas de administração e de corretagem, descrição da empresa e indicadores por período
             entram aqui quando a fonte de dados trouxer.
           </p>
-        </>
+        </Skeleton>
       )}
     </Page>
   );

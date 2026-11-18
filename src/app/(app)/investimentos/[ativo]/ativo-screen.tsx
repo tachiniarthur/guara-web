@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { LoadingStatus } from "@/components/states/skeleton";
+import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import { ErrorBlock } from "@/components/states/state-block";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -25,12 +25,13 @@ import {
   QuotePanel,
 } from "@/features/ativo/components/asset-panels";
 import {
+  EMPTY_ASSET,
+  EMPTY_MARKET,
   isPlanLimit,
   isPositionId,
-  toAssetView,
   toMarketView,
-  useMarketAsset,
-  usePosition,
+  useAssetData,
+  useHistory,
   type AssetView,
 } from "@/features/ativo/live";
 import { ApiError } from "@/lib/api";
@@ -68,11 +69,19 @@ function Actions({ asset, onOpen }: { asset: AssetView; onOpen: (d: AssetDialog)
 /** Página do ativo (`/investimentos/<id da posição>`), toda com dados da API. */
 export function AtivoScreen({ id }: { id: string }) {
   const { live } = useSession();
-  const position = usePosition(id, { enabled: live });
-  const asset = position.data ? toAssetView(position.data) : null;
-  const symbol = asset?.mercado ? asset.ticker : null;
-  const marketQuery = useMarketAsset(symbol, { enabled: live });
+  const {
+    position,
+    asset,
+    symbol,
+    hasMarket,
+    market: marketQuery,
+  } = useAssetData(id, {
+    enabled: live,
+  });
   const market = marketQuery.data ? toMarketView(marketQuery.data) : null;
+  // O gráfico de 1 ano já começa a carregar com a tela. Aqui fora, a busca não é cancelada
+  // quando o card da cotação é remontado ao fim do carregamento.
+  useHistory(symbol, "1y", { enabled: live && symbol !== null });
   const [dialog, setDialog] = useState<AssetDialog>(null);
 
   // Id que não é uuid nunca vira chamada à API; posição de outra conta ou removida: 404.
@@ -88,35 +97,38 @@ export function AtivoScreen({ id }: { id: string }) {
     />
   );
 
-  if (!live || position.error || !asset) {
+  if (!live || position.error) {
     return (
       <Page padding="detail" header={header}>
-        {!live || position.error ? <ErrorBlock /> : <LoadingStatus />}
+        <ErrorBlock />
       </Page>
     );
   }
 
-  const eventsHref = `/investimentos/${asset.id}/eventos`;
-  const marketBlock = !symbol ? null : isPlanLimit(marketQuery.error) ? (
+  // Carregando: os cards ficam no lugar, com o círculo girando. Sem saber ainda se o ativo tem
+  // cotação (entrada direta pelo endereço), a forma é a de um ativo com cotação, a mais comum.
+  const loading = !asset;
+  const view = asset ?? EMPTY_ASSET;
+  const withMarket = hasMarket ?? true;
+  const marketLoading = withMarket && !market && !marketQuery.error;
+  const shownMarket = market ?? EMPTY_MARKET;
+  const eventsHref = `/investimentos/${view.id}/eventos`;
+  const marketBlock = isPlanLimit(marketQuery.error) ? (
     <PlanNote />
   ) : marketQuery.error ? (
     <MarketError />
-  ) : !market ? (
-    <LoadingStatus />
   ) : (
-    <QuotePanel
-      symbol={symbol}
-      market={market}
-      enabled={live}
-      chartHref={`/investimentos/${asset.id}/grafico`}
-    />
-  );
-  const side = market && (
     <>
-      <DividendsPanel market={market} href={eventsHref} />
-      <PerformancePanel market={market} />
-      <FundamentalsPanel market={market} />
-      <LimitsNote market={market} />
+      <QuotePanel
+        symbol={symbol ?? "—"}
+        market={shownMarket}
+        enabled={live && symbol !== null}
+        chartHref={`/investimentos/${view.id}/grafico`}
+      />
+      <DividendsPanel market={shownMarket} href={eventsHref} />
+      <PerformancePanel market={shownMarket} />
+      <FundamentalsPanel market={shownMarket} />
+      <LimitsNote market={shownMarket} />
     </>
   );
 
@@ -124,50 +136,57 @@ export function AtivoScreen({ id }: { id: string }) {
     <Page padding="detail" zoom={1.4} className="gap-4 @tab:gap-5 @desk:gap-6" header={header}>
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[{ label: "Investimentos", href: "/investimentos" }, { label: asset.nome }]}
+        items={[
+          { label: "Investimentos", href: "/investimentos" },
+          { label: asset?.nome ?? "Ativo" },
+        ]}
       />
-      <DetailHeader
-        title={asset.nome}
-        subtitle={[asset.descricao, market?.setor].filter(Boolean).join(" · ")}
-        actions={
-          <div className="hidden @tab:block">
-            <Actions asset={asset} onOpen={setDialog} />
-          </div>
-        }
-      />
-      <div className="@tab:hidden">
-        <Actions asset={asset} onOpen={setDialog} />
-      </div>
+      {(loading || marketLoading) && <LoadingStatus />}
+      <Skeleton active={loading}>
+        <DetailHeader
+          title={view.nome}
+          subtitle={[view.descricao, market?.setor].filter(Boolean).join(" · ")}
+          actions={
+            <div className="hidden @tab:block">
+              <Actions asset={view} onOpen={setDialog} />
+            </div>
+          }
+        />
+        <div className="@tab:hidden">
+          <Actions asset={view} onOpen={setDialog} />
+        </div>
+      </Skeleton>
       <div
         className={
-          symbol
+          withMarket
             ? "grid grid-cols-1 items-start gap-4 @tab:grid-cols-2 @desk:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] @desk:gap-5"
             : "grid grid-cols-1 gap-4 @tab:max-w-[36rem]"
         }
       >
         <div className="flex min-w-0 flex-col gap-4">
-          <PositionPanel asset={asset} />
-          <div className="flex justify-end">
-            <Link href={`/investimentos/${asset.id}/detalhes`} className={panelLinkClass}>
-              Mais detalhes
-              <Icon name="chevron-right" size={16} />
-            </Link>
-          </div>
-          {!asset.manual && (
-            <p className="m-0 text-13 leading-[1.55] text-caption">
-              Os números desta posição vêm da instituição pelo Open Finance e são atualizados a cada
-              sincronização.
-            </p>
-          )}
+          <Skeleton active={loading}>
+            <PositionPanel asset={view} />
+            <div className="flex justify-end">
+              <Link href={`/investimentos/${view.id}/detalhes`} className={panelLinkClass}>
+                Mais detalhes
+                <Icon name="chevron-right" size={16} />
+              </Link>
+            </div>
+            {!view.manual && (
+              <p className="m-0 text-13 leading-[1.55] text-caption">
+                Os números desta posição vêm da instituição pelo Open Finance e são atualizados a
+                cada sincronização.
+              </p>
+            )}
+          </Skeleton>
         </div>
-        {symbol && (
+        {withMarket && (
           <div className="flex min-w-0 flex-col gap-4">
-            {marketBlock}
-            {side}
+            <Skeleton active={marketLoading}>{marketBlock}</Skeleton>
           </div>
         )}
       </div>
-      <AssetDialogs asset={asset} open={dialog} onClose={() => setDialog(null)} />
+      {asset && <AssetDialogs asset={asset} open={dialog} onClose={() => setDialog(null)} />}
     </Page>
   );
 }

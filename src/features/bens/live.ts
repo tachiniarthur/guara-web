@@ -57,6 +57,23 @@ export interface BelongingView {
   form: { name: string; valueCents: number; valueDate: string; debtCents: number | null };
 }
 
+/** Enquanto a API responde: a forma do bem com "—" (os cards guardam o lugar). */
+export const EMPTY_BELONGING: BelongingView = {
+  id: "",
+  kind: "real_estate",
+  tipo: "—",
+  nome: "—",
+  linha: "—",
+  valor: "—",
+  atualizacao: "—",
+  financiado: false,
+  saldo: "—",
+  liquido: "—",
+  quitado: null,
+  noPatrimonio: null,
+  form: { name: "", valueCents: 0, valueDate: "", debtCents: null },
+};
+
 const brDay = (day: string) => formatDate(`${day}T12:00:00-03:00`);
 
 export function toBelongingView(b: Belonging, netWorthCents: number | null): BelongingView {

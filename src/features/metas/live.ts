@@ -256,6 +256,43 @@ export interface GoalDetail extends Goal {
   };
 }
 
+/** Enquanto a API responde: a forma da meta com "—" (os cards guardam o lugar). */
+export const EMPTY_GOAL: GoalDetail = {
+  id: "",
+  href: "",
+  nome: "—",
+  onde: "—",
+  icone: "target",
+  status: { texto: "—", tom: "folha" },
+  guardado: "—",
+  alvo: "—",
+  percentual: 0,
+  mensal: "—",
+  previsao: "—",
+  faltam: "—",
+  prazo: "—",
+  meses: "—",
+  alvoHoje: null,
+  fonte: "manual",
+  posicoes: [],
+  semValor: 0,
+  premissas: [
+    { label: "Rendimento estimado", value: "—" },
+    { label: "Inflação estimada", value: "—" },
+  ],
+  motivoPremissa: null,
+  aviso: null,
+  criada: null,
+  form: {
+    name: "",
+    targetCents: 0,
+    targetDate: "",
+    progressSource: "manual",
+    currentAmountCents: null,
+    positionIds: [],
+  },
+};
+
 const pctText = (decimal: string) =>
   `${Number(decimal).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% ao ano`;
 

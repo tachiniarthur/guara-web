@@ -6,7 +6,7 @@ import { useState, type ReactNode } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { LoadingStatus } from "@/components/states/skeleton";
+import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import { ErrorBlock, StateBlock } from "@/components/states/state-block";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import {
   useGoalFields,
 } from "@/features/metas/components/goal-form";
 import {
+  EMPTY_GOAL,
   isGoalId,
   isPlanLimit,
   toGoalDetail,
@@ -297,10 +298,10 @@ export function MetaScreen({ id }: { id: string }) {
   if (!isGoalId(id)) notFound();
   if (query.error instanceof ApiError && query.error.code === "not_found") notFound();
 
-  const goal = query.data ? toGoalDetail(query.data, positions.data ?? { data: [] }) : null;
-  const header = <MobileHeader title={goal?.nome ?? "Meta"} back="/metas" balanced />;
+  const loaded = query.data ? toGoalDetail(query.data, positions.data ?? { data: [] }) : null;
+  const header = <MobileHeader title={loaded?.nome ?? "Meta"} back="/metas" balanced />;
 
-  if (!live || query.error || !goal) {
+  if (!live || query.error) {
     return (
       <Page padding="detail" header={header}>
         {isPlanLimit(query.error) ? (
@@ -315,14 +316,16 @@ export function MetaScreen({ id }: { id: string }) {
           >
             Com metas, o Guará mostra quanto você já tem, quanto falta e quanto guardar por mês.
           </StateBlock>
-        ) : !live || query.error ? (
-          <ErrorBlock />
         ) : (
-          <LoadingStatus />
+          <ErrorBlock />
         )}
       </Page>
     );
   }
+
+  // Carregando: os cards no lugar, com o círculo girando.
+  const loading = !loaded;
+  const goal = loaded ?? EMPTY_GOAL;
 
   const actions = (
     <div className="flex flex-wrap items-center gap-2">
@@ -341,43 +344,48 @@ export function MetaScreen({ id }: { id: string }) {
     <Page padding="detail" zoom={1.4} className="gap-4 @tab:gap-5 @desk:gap-6" header={header}>
       <Breadcrumb
         className="hidden flex-wrap @tab:flex"
-        items={[{ label: "Metas", href: "/metas" }, { label: goal.nome }]}
+        items={[{ label: "Metas", href: "/metas" }, { label: loaded?.nome ?? "Meta" }]}
       />
-      <DetailHeader
-        title={goal.nome}
-        subtitle={goal.criada ?? undefined}
-        actions={<div className="hidden @tab:block">{actions}</div>}
-      />
-      <div className="@tab:hidden">{actions}</div>
-      <div className="flex flex-col gap-4 @tab:grid @tab:grid-cols-2 @tab:items-start @desk:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] @desk:gap-5">
-        <div className="flex min-w-0 flex-col gap-4">
-          <Hero goal={goal} />
-          <Monthly goal={goal} />
-          <GuaraGoalTip
-            action={<ChatAboutGoals question={`Como está a minha meta ${goal.nome}?`} />}
-          >
-            {`Quer ajuda para chegar em ${goal.alvo} até ${goal.prazo}? Pergunte ao Guará: ele lê esta meta e a sua carteira.`}
-          </GuaraGoalTip>
+      {loading && <LoadingStatus />}
+      <Skeleton active={loading}>
+        <DetailHeader
+          title={goal.nome}
+          subtitle={goal.criada ?? undefined}
+          actions={<div className="hidden @tab:block">{actions}</div>}
+        />
+        <div className="@tab:hidden">{actions}</div>
+        <div className="flex flex-col gap-4 @tab:grid @tab:grid-cols-2 @tab:items-start @desk:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] @desk:gap-5">
+          <div className="flex min-w-0 flex-col gap-4">
+            <Hero goal={goal} />
+            <Monthly goal={goal} />
+            <GuaraGoalTip
+              action={<ChatAboutGoals question={`Como está a minha meta ${goal.nome}?`} />}
+            >
+              {`Quer ajuda para chegar em ${goal.alvo} até ${goal.prazo}? Pergunte ao Guará: ele lê esta meta e a sua carteira.`}
+            </GuaraGoalTip>
+          </div>
+          <div className="flex min-w-0 flex-col gap-4">
+            <Source goal={goal} />
+            <Milestones goal={goal} />
+            <Link href="/simulador/objetivo" className={panelLinkClass}>
+              Simular outro ritmo
+              <Icon name="chevron-right" size={16} />
+            </Link>
+          </div>
         </div>
-        <div className="flex min-w-0 flex-col gap-4">
-          <Source goal={goal} />
-          <Milestones goal={goal} />
-          <Link href="/simulador/objetivo" className={panelLinkClass}>
-            Simular outro ritmo
-            <Icon name="chevron-right" size={16} />
-          </Link>
-        </div>
-      </div>
-      <Presence show={dialog !== null}>
-        {dialog === "editar" && (
-          <EditDialog
-            goal={goal}
-            positions={positions.data ? goalPositionOptions(positions.data.data) : undefined}
-            onClose={() => setDialog(null)}
-          />
-        )}
-        {dialog === "excluir" && <RemoveDialog goal={goal} onClose={() => setDialog(null)} />}
-      </Presence>
+      </Skeleton>
+      {loaded && (
+        <Presence show={dialog !== null}>
+          {dialog === "editar" && (
+            <EditDialog
+              goal={loaded}
+              positions={positions.data ? goalPositionOptions(positions.data.data) : undefined}
+              onClose={() => setDialog(null)}
+            />
+          )}
+          {dialog === "excluir" && <RemoveDialog goal={loaded} onClose={() => setDialog(null)} />}
+        </Presence>
+      )}
     </Page>
   );
 }

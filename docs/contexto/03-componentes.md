@@ -68,5 +68,11 @@ Telas de edição/detalhe frequentemente importam cards de outras features (`Mat
 1. `page.tsx` fino + `<Nome>Screen`; `Page` com `header={<MobileHeader/>}` e `Breadcrumb` primeiro.
 2. Só tokens/classes existentes e componentes de `ui`; nada de keyframe/duração novos.
 3. Se usa API: hook `live` com zod, estados carregando/erro/vazio via `states`.
+   **Carregando nunca é tela vazia**: desenhe os cards de verdade com um placeholder de "—"
+   (`EMPTY_*`) dentro de `<Skeleton active>`; cada card fica no lugar com o círculo girando, e
+   `<LoadingStatus />` fica fora do `Skeleton` (dentro ele some para o leitor de tela). Vale também
+   para telas por id e para partes que carregam depois (ex.: a cotação na página do ativo).
+   Placeholders existentes: `EMPTY_ASSET`/`EMPTY_MARKET` (ativo), `EMPTY_FACTS`, `EMPTY_GOAL`,
+   `EMPTY_BELONGING`, `EMPTY_ALLOCATION`, `EMPTY_PROFILE_TARGETS`.
 4. Formulário? Registre em `isForm` (`lib/navigation.ts`) para o shell.
 5. Se tem `?estado=`, registre em `previa/...` e no `matcher` do `proxy.ts`.
