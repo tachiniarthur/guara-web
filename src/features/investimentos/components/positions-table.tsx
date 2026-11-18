@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 import { useInvestimentosData } from "../context";
 import { useClosedGroups } from "./position-cards";
-import { DayChange, OriginInfo, RiskBadge, SortArrows } from "./position-parts";
+import { OriginInfo, ReturnChange, RiskBadge } from "./position-parts";
 import { MataArt } from "@/components/ui/mata-art";
 
 // Com o chat aberto ao lado a tabela estreita: o título quebra em duas linhas em vez de invadir
@@ -50,8 +50,8 @@ export function PositionsTable() {
           <th scope="col" className={cn(th, "text-center")}>
             Risco
             <span
-              title="Risco calculado pelo cadastro do ativo: volatilidade, risco de crédito e liquidez. Você pode ajustar."
-              aria-label="Como o risco é calculado"
+              title="Risco padrão do tipo de investimento. Dá para mudar na página da posição."
+              aria-label="De onde vem o risco"
               className="ml-1.5 inline-flex align-[-2px] text-caption"
             >
               <Icon name="info" size={14} />
@@ -67,27 +67,13 @@ export function PositionsTable() {
             Preço médio
           </th>
           <th scope="col" aria-sort="descending" className={cn(th, "text-center")}>
-            <button
-              type="button"
-              aria-label="Ordenar por total, ordenado do maior para o menor"
-              className="-mx-2 -my-1.5 inline-flex items-center gap-1.5 rounded-lg border-none bg-shade px-2 py-1.5 tracking-[inherit] text-sand uppercase"
-            >
-              Total
-              <SortArrows active />
-            </button>
+            Total
           </th>
-          <th scope="col" aria-sort="none" className={cn(th, "text-center")}>
-            <button
-              type="button"
-              aria-label="Ordenar por % da carteira"
-              className="-mx-2 -my-1.5 inline-flex max-w-[calc(100%+1rem)] items-center justify-center gap-1.5 rounded-lg border-none bg-transparent px-2 py-1.5 tracking-[inherit] text-balance text-mist uppercase"
-            >
-              % da carteira
-              <SortArrows active={false} />
-            </button>
+          <th scope="col" className={cn(th, "text-center text-balance")}>
+            % da carteira
           </th>
           <th scope="col" className={cn(th, "text-center")}>
-            Hoje
+            {"Rentabi\u00ADlidade"}
           </th>
           <th scope="col" className={cn(th, "text-center")}>
             <span className="sr-only">Abrir ativo</span>
@@ -147,7 +133,7 @@ export function PositionsTable() {
                   <SlideCell open={expanded} header className={cn(cell, "text-left")}>
                     <span className="flex flex-col leading-[1.35]">
                       <Link
-                        href={`/investimentos/${p.slug}`}
+                        href={p.href}
                         className="text-16 font-bold text-sand underline decoration-line-strong underline-offset-3"
                       >
                         {p.nome}
@@ -200,11 +186,11 @@ export function PositionsTable() {
                     {p.percentual}
                   </SlideCell>
                   <SlideCell open={expanded} className={cell}>
-                    <DayChange change={p.hoje} />
+                    <ReturnChange change={p.rentabilidade} />
                   </SlideCell>
                   <SlideCell open={expanded} className={cn(cell, "pl-1")}>
                     <Link
-                      href={`/investimentos/${p.slug}`}
+                      href={p.href}
                       aria-label={`Abrir ${p.nome}`}
                       title="Abrir ativo"
                       className="inline-flex size-[2.375rem] items-center justify-center rounded-full border border-line-strong text-sand no-underline"

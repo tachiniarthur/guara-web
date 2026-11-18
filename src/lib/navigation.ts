@@ -105,7 +105,7 @@ function hasHistoryAside(pathname: string) {
   if (pathname === "/metas" || pathname.startsWith("/metas/")) return true;
   // Detalhe de um ativo (/investimentos/petr4), mas não as outras telas de investimentos.
   const asset = pathname.match(/^\/investimentos\/([^/]+)$/)?.[1];
-  return asset !== undefined && !["novo", "posicoes", "alocacao", "duplicidade"].includes(asset);
+  return asset !== undefined && !["novo", "posicoes", "alocacao"].includes(asset);
 }
 
 /** Formulários: sem barra inferior no mobile, com a ação principal fixa no rodapé. */
@@ -118,7 +118,6 @@ function isForm(pathname: string) {
       "/metas/nova",
       "/configuracoes",
     ].includes(pathname) ||
-    pathname === "/investimentos/duplicidade" ||
     /^\/investimentos\/bens\/(imovel|veiculo)\/novo$/.test(pathname) ||
     /^\/alertas\/(tetos|precos)\/[^/]+\/editar$/.test(pathname) ||
     (pathname.startsWith("/perfil/") && pathname !== "/perfil/planos")

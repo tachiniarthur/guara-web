@@ -9,7 +9,7 @@ import { Panel, PanelHeader } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
 
 import { useInvestimentosData } from "../context";
-import type { CountryExposure } from "../data";
+import type { CountryExposure } from "../types";
 import { InteractiveGlobe, type GlobeOrbit, type GlobePlace } from "../globe/interactive-globe";
 
 type Variant = "desktop" | "tablet" | "mobile";
@@ -53,7 +53,7 @@ function PlaceAssets({ place, compact }: { place: CountryExposure; compact: bool
   return (
     <div className="flex flex-col gap-1 pb-3 pl-6">
       <span className={cn("text-caption", compact ? "text-12" : "text-13")}>
-        {place.globo?.local ?? "Cripto, sem país de origem"}
+        {place.globo?.local ?? "Sem país definido (ex.: cripto)"}
       </span>
       <ul className="m-0 flex list-none flex-col p-0">
         {place.ativos.map((asset) => {
@@ -61,11 +61,7 @@ function PlaceAssets({ place, compact }: { place: CountryExposure; compact: bool
             <>
               <span className="min-w-0 grow truncate">{asset.nome}</span>
               <span className="shrink-0 text-mist tabular-nums">{asset.total}</span>
-              {asset.slug ? (
-                <Icon name="chevron-right" size={14} className="shrink-0 text-caption" />
-              ) : (
-                <span className="w-3.5 shrink-0" />
-              )}
+              <Icon name="chevron-right" size={14} className="shrink-0 text-caption" />
             </>
           );
           const row = cn(
@@ -73,17 +69,13 @@ function PlaceAssets({ place, compact }: { place: CountryExposure; compact: bool
             compact ? "text-13" : "text-14",
           );
           return (
-            <li key={asset.nome}>
-              {asset.slug ? (
-                <Link
-                  href={`/investimentos/${asset.slug}`}
-                  className={cn(row, "text-sand no-underline hover:text-tucano")}
-                >
-                  {content}
-                </Link>
-              ) : (
-                <span className={row}>{content}</span>
-              )}
+            <li key={asset.href}>
+              <Link
+                href={asset.href}
+                className={cn(row, "text-sand no-underline hover:text-tucano")}
+              >
+                {content}
+              </Link>
             </li>
           );
         })}

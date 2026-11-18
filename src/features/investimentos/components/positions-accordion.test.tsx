@@ -1,11 +1,48 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 
+import { EMPTY_INVESTIMENTOS, InvestimentosDataProvider } from "../context";
+import type { Position } from "../types";
 import { ClassBanner, PositionCards } from "./position-cards";
 import { PositionsTable } from "./positions-table";
 
+const position = (id: string, nome: string, classe: string): Position => ({
+  id,
+  href: `/investimentos/${id}`,
+  nome,
+  descricao: classe,
+  classe,
+  instrumento: "Ação",
+  risco: "Médio",
+  origem: { tipo: "manual", texto: "Cadastro manual", atualizado: "" },
+  total: "R$ 1.000,00",
+  percentual: "50%",
+  rentabilidade: { valor: "1%", alta: true },
+});
+
+const data = {
+  ...EMPTY_INVESTIMENTOS,
+  positionGroups: [
+    {
+      classe: "Renda fixa",
+      total: "R$ 1.000,00",
+      percentual: "50%",
+      posicoes: [position("a", "Tesouro Selic 2029", "Renda fixa")],
+    },
+    {
+      classe: "Renda variável",
+      total: "R$ 1.000,00",
+      percentual: "50%",
+      posicoes: [position("b", "PETR4", "Renda variável")],
+    },
+  ],
+};
+
+const withData = (ui: React.ReactNode) =>
+  render(<InvestimentosDataProvider value={data}>{ui}</InvestimentosDataProvider>);
+
 describe("Posições em accordion por classe", () => {
   it("tabela: a faixa da classe esconde e mostra os ativos dela", () => {
-    render(<PositionsTable />);
+    withData(<PositionsTable />);
     const faixa = screen.getByRole("button", { name: /Renda fixa/ });
     expect(faixa).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("link", { name: "Tesouro Selic 2029" })).toBeVisible();
@@ -26,7 +63,7 @@ describe("Posições em accordion por classe", () => {
   });
 
   it("cards: a faixa vira botão com o estado aberto/fechado", () => {
-    render(<PositionCards columns={1} />);
+    withData(<PositionCards columns={1} />);
     const faixa = screen.getByRole("button", { name: /Renda variável/ });
     expect(faixa).toHaveAttribute("aria-expanded", "true");
     fireEvent.click(faixa);

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, FieldHint, FieldLabel, MobileActionBar } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
 import { PanelHeader } from "@/components/ui/panel";
@@ -87,20 +87,24 @@ export function LabeledField({
  */
 export function SaveActions({
   label,
-  href,
+  onSave,
+  pending,
   cancelHref,
   backHref,
 }: {
   label: string;
-  href: string;
+  onSave: () => void;
+  /** Salvando: o botão fica desabilitado e mostra "Salvando…". */
+  pending?: boolean;
   cancelHref: string;
   backHref?: string;
 }) {
+  const text = pending ? "Salvando…" : label;
   const save = (
-    <ButtonLink href={href} variant="primary" className="text-15">
+    <Button variant="primary" className="text-15" disabled={pending} onClick={onSave}>
       <Icon name="check" size={18} />
-      <span>{label}</span>
-    </ButtonLink>
+      <span>{text}</span>
+    </Button>
   );
   return (
     <>
@@ -133,16 +137,17 @@ export function SaveActions({
             <span>Cancelar</span>
           </ButtonLink>
         )}
-        <ButtonLink
-          href={href}
+        <Button
           variant="primary"
           size="xl"
           block={!backHref}
           className={backHref ? "min-w-0 grow" : undefined}
+          disabled={pending}
+          onClick={onSave}
         >
           <Icon name="check" size={18} />
-          <span>{label}</span>
-        </ButtonLink>
+          <span>{text}</span>
+        </Button>
       </MobileActionBar>
     </>
   );

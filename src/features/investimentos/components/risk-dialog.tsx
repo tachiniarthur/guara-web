@@ -1,40 +1,46 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Presence } from "@/components/ui/presence";
 import { DetailList } from "@/components/ui/detail-list";
 import { RadioCard } from "@/components/ui/form";
-import { Icon } from "@/components/ui/icon";
+import { Note } from "@/components/ui/note";
+import { Presence } from "@/components/ui/presence";
+import { ApiError } from "@/lib/api";
 
-import { allHoldings, riskOptions, riskReasons, type Holding } from "../posicoes";
+import { useUpdateRisk, type Holding, type HoldingsData } from "../posicoes";
+import type { Risk } from "../types";
 
-const fallbackReasons = (h: Holding) => [
-  { label: "Classe", value: h.descricao.split(" · ")[0] },
-  { label: "Risco calculado", value: h.risco },
-  { label: "Origem", value: h.origem },
+const riskOptions: { risco: Risk; texto: string }[] = [
+  { risco: "Baixo", texto: "Oscila pouco e tem garantia ou baixo risco de crédito" },
+  { risco: "Médio", texto: "Oscila de vez em quando" },
+  { risco: "Alto", texto: "Oscila bastante" },
 ];
 
 /**
  * "Ajustar risco" de uma posição (`?risco=<id>`): painel que sobe de baixo no celular e janela
- * centralizada a partir do tablet. O risco calculado vem marcado e explicado.
+ * centralizada a partir do tablet. Salvar grava o risco na API (vale só para a carteira da pessoa).
  */
-export function RiskDialog() {
+export function RiskDialog({ holdings }: { holdings: HoldingsData }) {
   const params = useSearchParams();
-  const holding = findHolding(params.get("risco"));
-  return <Presence show={Boolean(holding)}>{holding && <RiskPanel holding={holding} />}</Presence>;
+  const id = params.get("risco");
+  const holding = holdings.classes.flatMap((c) => c.itens).find((h) => h.id === id);
+  return (
+    <Presence show={Boolean(holding)}>
+      {holding && <RiskPanel key={holding.id} holding={holding} />}
+    </Presence>
+  );
 }
 
-const findHolding = (id: string | null) => allHoldings.find((h) => h.id === id);
-
-function RiskPanel({ holding }: { holding: NonNullable<ReturnType<typeof findHolding>> }) {
+function RiskPanel({ holding }: { holding: Holding }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [risk, setRisk] = useState<Risk>(holding.risco);
+  const update = useUpdateRisk(holding.id);
   const close = () => router.replace(pathname, { scroll: false });
-  const reasons = riskReasons[holding.id] ?? fallbackReasons(holding);
 
   return (
     <ConfirmDialog
@@ -52,38 +58,44 @@ function RiskPanel({ holding }: { holding: NonNullable<ReturnType<typeof findHol
         sua carteira.
       </p>
       <fieldset aria-label="Risco" className="m-0 flex flex-col gap-3.5 border-none p-0 md:gap-4">
-        {riskOptions.map((option) => {
-          const calculado = option.risco === holding.risco;
-          return (
-            <RadioCard
-              key={option.risco}
-              name="risco"
-              title={option.risco}
-              description={calculado ? `${option.texto} · calculado para este ativo` : option.texto}
-              defaultChecked={calculado}
-            />
-          );
-        })}
+        {riskOptions.map((option) => (
+          <RadioCard
+            key={option.risco}
+            name="risco"
+            title={option.risco}
+            description={
+              option.risco === holding.risco ? `${option.texto} · o de hoje` : option.texto
+            }
+            checked={risk === option.risco}
+            onChange={() => setRisk(option.risco)}
+          />
+        ))}
       </fieldset>
-      <details className="border-t border-line pt-1.5">
-        <summary className="flex min-h-10 cursor-pointer items-center gap-2 text-14 font-bold">
-          <Icon name="info-lg" size={16} />
-          Por que “{holding.risco}”?
-        </summary>
-        <DetailList items={reasons} />
-      </details>
-      <div className="flex items-center gap-2.5">
-        <Link
-          href={pathname}
-          scroll={false}
-          replace
-          className="flex min-h-6 items-center text-14 font-bold whitespace-nowrap text-sand underline underline-offset-3"
-        >
-          Voltar para o automático
-        </Link>
-      </div>
-      <Button variant="primary" size="lg" block onClick={close}>
-        <span>Salvar risco</span>
+      <DetailList
+        items={[
+          { label: "Tipo", value: holding.instrumento },
+          { label: "Risco de hoje", value: holding.risco },
+          { label: "Origem", value: holding.origem },
+        ]}
+      />
+      {update.error && (
+        <Note icon="alert-triangle" tone="warning">
+          {update.error instanceof ApiError
+            ? update.error.message
+            : "Não deu para salvar o risco. Tente de novo."}
+        </Note>
+      )}
+      <Button
+        variant="primary"
+        size="lg"
+        block
+        disabled={update.isPending}
+        onClick={() => {
+          if (risk === holding.risco) return close();
+          update.mutate(risk, { onSuccess: close });
+        }}
+      >
+        <span>{update.isPending ? "Salvando…" : "Salvar risco"}</span>
       </Button>
     </ConfirmDialog>
   );

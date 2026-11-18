@@ -1,4 +1,4 @@
-import { toMetasView } from "./live";
+import { isGoalId, toGoalDetail, toMetasView } from "./live";
 
 const plain = <T>(value: T): T => JSON.parse(JSON.stringify(value).replaceAll(" ", " "));
 const goal = (over: Record<string, unknown>, progress: Record<string, unknown>) => ({
@@ -51,7 +51,8 @@ describe("Metas com os dados da API", () => {
     expect(view.goals[0]).toMatchObject({
       nome: "Reserva de emergência",
       onde: "Tesouro Selic 2029",
-      icone: "shield-check",
+      icone: "trending-up",
+      href: "/metas/a",
       status: { texto: "Em andamento" },
       guardado: "R$ 5.000",
       percentual: 50,
@@ -65,6 +66,12 @@ describe("Metas com os dados da API", () => {
     });
   });
 
+  it("dica com a meta mais próxima e quantas já foram atingidas", () => {
+    expect(view.summary.dica).toBe(
+      "Uma meta já foi atingida. A mais próxima é Reserva de emergência, até jun/2027: pede cerca de R$ 625 por mês.",
+    );
+  });
+
   it("resumo: guardado, planejado só das metas em andamento e sobra do mês", () => {
     expect(view.summary).toMatchObject({
       guardado: "R$ 15.500",
@@ -72,7 +79,46 @@ describe("Metas com os dados da API", () => {
       mensalNota: "para 1 meta em andamento",
       sobrou: "R$ 7.425",
       sobrouQuando: "em novembro",
-      proximo: "—",
     });
+  });
+});
+
+describe("detalhe da meta", () => {
+  const detail = plain(
+    toGoalDetail(
+      {
+        ...(goal(
+          { id: "a", name: "Reserva", progressSource: "positions", positionIds: ["p1"] },
+          { remainingCents: 500_000, unvaluedPositions: 0 },
+        ) as never as Parameters<typeof toGoalDetail>[0]),
+        targetTodayCents: 950_000,
+        assumptions: {
+          annualReturnPct: "10.50",
+          annualInflationPct: "4.00",
+          annualReturnReason: "Prazo curto: CDI.",
+        },
+        createdAt: "2026-10-01T12:00:00Z",
+      },
+      { data: [{ id: "p1", name: "Tesouro Selic", symbol: null, valueCents: 500_000 }] },
+    ),
+  );
+
+  it("faltam, prazo, posições e premissas", () => {
+    expect(detail).toMatchObject({
+      faltam: "R$ 5.000,00",
+      prazo: "30/06/2027",
+      meses: "faltam 8 meses",
+      alvoHoje: "R$ 9.500,00",
+      posicoes: [{ id: "p1", nome: "Tesouro Selic", valor: "R$ 5.000,00" }],
+      premissas: [
+        { label: "Rendimento estimado", value: "10,5% ao ano" },
+        { label: "Inflação estimada", value: "4% ao ano" },
+      ],
+      criada: "Criada em 01/10/2026",
+    });
+  });
+
+  it("só uuid vira chamada à API", () => {
+    expect(isGoalId("reserva")).toBe(false);
   });
 });

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 
-import { portfolioAllocation } from "./data";
+import { portfolioAllocation } from "./prototype";
 
 /** A carteira nos 5 grupos do design: a de exemplo no protótipo; a da API com login. */
 export type PortfolioAllocation = typeof portfolioAllocation;

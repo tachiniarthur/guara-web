@@ -1,57 +1,150 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { apiQuery, type ApiPath } from "@/lib/api-query";
-import { formatDate } from "@/lib/format";
+import type { IconName } from "@/components/ui/icon";
+import { ApiError, apiRequest } from "@/lib/api";
+import { apiQuery, invalidateApi, markApiStale, type ApiPath } from "@/lib/api-query";
+import { formatCurrency, formatDate } from "@/lib/format";
 import { MONTHS, apiPercent, buildView, formatWhole } from "@/lib/live-format";
 
-import type { Goal, goalsSummary } from "./data";
-
-/* Metas com os dados da API (modo real), no mesmo formato dos dados de exemplo. */
+/*
+ * Metas com os dados da API (`/v1/goals`, recurso do plano). O progresso vem do valor que a
+ * pessoa informa ou da soma das posições vinculadas; o aporte mensal é a estimativa da API pelas
+ * premissas padrão (não há agenda de depósitos nem lembretes).
+ */
 
 const cents = z.number().int();
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const isGoalId = (id: string) => UUID.test(id);
 
-const GoalsSchema = z.object({
-  data: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      targetCents: cents,
-      targetDate: z.string(),
-      progressSource: z.enum(["manual", "positions"]),
-      positionIds: z.array(z.string()),
-      progress: z.object({
-        currentCents: cents.nullable(),
-        pct: apiPercent.nullable(),
-        achieved: z.boolean().nullable(),
-        monthsLeft: z.number().int(),
-        requiredContribution: z.object({ monthlyTodayCents: cents }).loose().nullable(),
-      }),
-    }),
-  ),
+export type GoalTone = "folha" | "arara" | "tucano";
+
+export type Goal = {
+  id: string;
+  href: string;
+  nome: string;
+  onde: string;
+  icone: IconName;
+  status: { texto: string; tom: GoalTone };
+  guardado: string;
+  alvo: string;
+  percentual: number;
+  mensal: string;
+  previsao: string;
+};
+
+export type GoalsSummary = {
+  guardado: string;
+  mensal: string;
+  mensalNota: string;
+  sobrou: string;
+  sobrouQuando: string;
+  dica: string;
+};
+
+const ProgressSchema = z.object({
+  currentCents: cents.nullable(),
+  pct: apiPercent.nullable(),
+  remainingCents: cents.nullable().optional(),
+  achieved: z.boolean().nullable(),
+  monthsLeft: z.number().int(),
+  unvaluedPositions: z.number().int().optional(),
+  requiredContribution: z
+    .object({ monthlyTodayCents: cents, firstNominalCents: cents.optional() })
+    .loose()
+    .nullable(),
 });
+
+export const ApiGoalSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  targetCents: cents,
+  targetDate: z.string(),
+  targetTodayCents: cents.nullable().optional(),
+  progressSource: z.enum(["manual", "positions"]),
+  currentAmountCents: cents.nullable().optional(),
+  currentAmountDate: z.string().nullable().optional(),
+  positionIds: z.array(z.string()),
+  progress: ProgressSchema,
+  assumptions: z
+    .object({
+      annualReturnPct: z.string(),
+      annualInflationPct: z.string(),
+      annualReturnReason: z.string(),
+    })
+    .loose()
+    .nullable()
+    .optional(),
+  disclaimer: z.string().optional(),
+  createdAt: z.string().optional(),
+});
+export type ApiGoal = z.infer<typeof ApiGoalSchema>;
+
+const GoalsSchema = z.object({ data: z.array(ApiGoalSchema) });
 type Goals = z.infer<typeof GoalsSchema>;
 
-const PositionsSchema = z.object({
+export const GoalPositionsSchema = z.object({
   data: z.array(
-    z.object({ id: z.string(), name: z.string(), symbol: z.string().nullable() }).loose(),
+    z
+      .object({
+        id: z.string(),
+        name: z.string(),
+        symbol: z.string().nullable(),
+        valueCents: cents.nullable().optional(),
+      })
+      .loose(),
   ),
 });
-type Positions = z.infer<typeof PositionsSchema>;
+type Positions = z.infer<typeof GoalPositionsSchema>;
 
 const MonthlySchema = z.object({
   months: z.array(z.object({ month: z.string(), balanceCents: cents.nullable() }).loose()),
 });
 type Monthly = z.infer<typeof MonthlySchema>;
 
-export type GoalsSummary = typeof goalsSummary;
-
-const monthYear = (isoDay: string) => {
+export const monthYear = (isoDay: string) => {
   const [year, month] = isoDay.split("-").map(Number) as [number, number];
   return `${MONTHS[month - 1]!.slice(0, 3)}/${year}`;
 };
+
+const goalHref = (id: string) => `/metas/${id}`;
+
+function statusOf(goal: ApiGoal): Goal["status"] {
+  if (goal.progress.achieved === true) return { texto: "Concluída", tom: "folha" };
+  if (goal.progress.monthsLeft <= 0) return { texto: "Prazo vencido", tom: "tucano" };
+  return { texto: "Em andamento", tom: "arara" };
+}
+
+function whereOf(goal: ApiGoal, nameOf: Map<string, string>) {
+  if (goal.progressSource === "manual") return "Valor informado por você";
+  const linked = goal.positionIds.map((id) => nameOf.get(id)).filter(Boolean);
+  return linked.length > 0 ? linked.join(" · ") : "Posições da carteira";
+}
+
+function toGoal(goal: ApiGoal, nameOf: Map<string, string>): Goal {
+  const { progress } = goal;
+  const achieved = progress.achieved === true;
+  const monthlyCents = progress.requiredContribution?.monthlyTodayCents ?? null;
+  return {
+    id: goal.id,
+    href: goalHref(goal.id),
+    nome: goal.name,
+    onde: whereOf(goal, nameOf),
+    icone: achieved ? "check" : goal.progressSource === "positions" ? "trending-up" : "target",
+    status: statusOf(goal),
+    guardado: formatWhole(progress.currentCents),
+    alvo: formatWhole(goal.targetCents),
+    percentual: Math.min(100, Math.round(progress.pct ?? 0)),
+    mensal: achieved
+      ? "meta atingida"
+      : monthlyCents === null
+        ? "—"
+        : `${formatWhole(monthlyCents)}/mês`,
+    previsao: `até ${monthYear(goal.targetDate)}`,
+  };
+}
 
 /** Converte as respostas da API nas metas e no resumo (função pura, testada). */
 export function toMetasView(
@@ -59,39 +152,7 @@ export function toMetasView(
   now: Date,
 ): { goals: Goal[]; summary: GoalsSummary } {
   const nameOf = new Map(positions.data.map((p) => [p.id, p.symbol ?? p.name]));
-  const items: Goal[] = goals.data.map((goal) => {
-    const { progress } = goal;
-    const achieved = progress.achieved === true;
-    const late = !achieved && progress.monthsLeft <= 0;
-    const linked = goal.positionIds.map((id) => nameOf.get(id)).filter(Boolean);
-    const monthlyCents = progress.requiredContribution?.monthlyTodayCents ?? null;
-    return {
-      id: goal.id,
-      nome: goal.name,
-      onde:
-        goal.progressSource === "positions"
-          ? linked.length > 0
-            ? linked.join(" · ")
-            : "Posições da carteira"
-          : "Valor informado por você",
-      icone: achieved ? "check" : /reserva/i.test(goal.name) ? "shield-check" : "target",
-      iconeTom: achieved ? "neutro" : "arara",
-      status: achieved
-        ? { texto: "Concluída", tom: "folha" }
-        : late
-          ? { texto: "Prazo vencido", tom: "tucano" }
-          : { texto: "Em andamento", tom: "arara" },
-      guardado: formatWhole(progress.currentCents),
-      alvo: formatWhole(goal.targetCents),
-      percentual: Math.min(100, Math.round(progress.pct ?? 0)),
-      mensal: achieved
-        ? "meta atingida"
-        : monthlyCents === null
-          ? "—"
-          : `${formatWhole(monthlyCents)}/mês`,
-      previsao: `até ${monthYear(goal.targetDate)}`,
-    };
-  });
+  const items = goals.data.map((goal) => toGoal(goal, nameOf));
 
   const open = goals.data.filter((g) => g.progress.achieved !== true);
   const planned = open.reduce(
@@ -115,8 +176,6 @@ export function toMetasView(
         open.length === 1 ? "para 1 meta em andamento" : `para ${open.length} metas em andamento`,
       sobrou: formatWhole(current?.balanceCents ?? null),
       sobrouQuando: `em ${monthName}`,
-      // Não há agenda de depósitos na API: sem data, o "Próximo depósito" fica "—".
-      proximo: "—",
       dica: nearest
         ? `${done > 0 ? `${done === 1 ? "Uma meta já foi atingida" : `${done} metas já foram atingidas`}. ` : ""}A mais próxima é ${nearest.name}, até ${monthYear(nearest.targetDate)}${nearestMonthly === null ? "." : `: pede cerca de ${formatWhole(nearestMonthly)} por mês.`}`
         : "Todas as metas foram atingidas. Que tal criar a próxima?",
@@ -132,21 +191,148 @@ export const METAS_PATHS = {
   monthly: "/v1/insights/spending/monthly?months=12",
 } as const satisfies Record<string, ApiPath>;
 
+/** 4xx (não existe, fora do plano) não melhora tentando de novo. */
+const retry = (count: number, error: unknown) =>
+  !(error instanceof ApiError && error.status !== null && error.status < 500) && count < 2;
+
+/** Metas são recurso do plano: 403 com `PLAN_LIMIT_REACHED`. */
+export const isPlanLimit = (error: unknown) =>
+  error instanceof ApiError &&
+  (error.code === "plan_limit_reached" || error.code === "subscription_required");
+
 /** Busca as metas. `data` fica `undefined` enquanto carrega. */
 export function useMetasView({ enabled }: { enabled: boolean }) {
   const paths = METAS_PATHS;
-  const get = <T>(path: ApiPath, schema: z.ZodType<T>, staleTime?: number) => ({
-    ...apiQuery(path, schema, { enabled, staleTime }),
-  });
   const results = useQueries({
     queries: [
-      get(paths.goals, GoalsSchema),
-      get(paths.positions, PositionsSchema),
-      get(paths.monthly, MonthlySchema),
+      { ...apiQuery(paths.goals, GoalsSchema, { enabled }), retry },
+      apiQuery(paths.positions, GoalPositionsSchema, { enabled }),
+      apiQuery(paths.monthly, MonthlySchema, { enabled }),
     ] as const,
   });
   const error = results.find((result) => result.error)?.error ?? null;
   if (error || results.some((result) => result.isPending)) return { data: undefined, error };
   const [goals, positions, monthly] = results.map((r) => r.data) as [Goals, Positions, Monthly];
   return buildView("metas", () => toMetasView({ goals, positions, monthly }, new Date()));
+}
+
+// --- Uma meta ---------------------------------------------------------------------------------
+
+export interface GoalDetail extends Goal {
+  faltam: string;
+  /** Data da meta por extenso ("30/06/2027") e quantos meses faltam. */
+  prazo: string;
+  meses: string;
+  alvoHoje: string | null;
+  fonte: "manual" | "positions";
+  posicoes: { id: string; nome: string; valor: string }[];
+  semValor: number;
+  premissas: { label: string; value: string }[];
+  motivoPremissa: string | null;
+  aviso: string | null;
+  criada: string | null;
+  form: {
+    name: string;
+    targetCents: number;
+    targetDate: string;
+    progressSource: "manual" | "positions";
+    currentAmountCents: number | null;
+    positionIds: string[];
+  };
+}
+
+const pctText = (decimal: string) =>
+  `${Number(decimal).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% ao ano`;
+
+export function toGoalDetail(goal: ApiGoal, positions: Positions): GoalDetail {
+  const nameOf = new Map(positions.data.map((p) => [p.id, p.symbol ?? p.name]));
+  const valueOf = new Map(positions.data.map((p) => [p.id, p.valueCents ?? null]));
+  const { progress } = goal;
+  const months = progress.monthsLeft;
+  return {
+    ...toGoal(goal, nameOf),
+    faltam: formatCurrency(progress.remainingCents ?? null),
+    prazo: formatDate(`${goal.targetDate}T12:00:00-03:00`),
+    meses: months <= 0 ? "prazo vencido" : months === 1 ? "falta 1 mês" : `faltam ${months} meses`,
+    alvoHoje:
+      goal.targetTodayCents === null || goal.targetTodayCents === undefined
+        ? null
+        : formatCurrency(goal.targetTodayCents),
+    fonte: goal.progressSource,
+    posicoes: goal.positionIds.map((id) => ({
+      id,
+      nome: nameOf.get(id) ?? "Posição",
+      valor: formatCurrency(valueOf.get(id) ?? null),
+    })),
+    semValor: progress.unvaluedPositions ?? 0,
+    premissas: goal.assumptions
+      ? [
+          { label: "Rendimento estimado", value: pctText(goal.assumptions.annualReturnPct) },
+          { label: "Inflação estimada", value: pctText(goal.assumptions.annualInflationPct) },
+        ]
+      : [],
+    motivoPremissa: goal.assumptions?.annualReturnReason ?? null,
+    aviso: goal.disclaimer ?? null,
+    criada: goal.createdAt ? `Criada em ${formatDate(goal.createdAt)}` : null,
+    form: {
+      name: goal.name,
+      targetCents: goal.targetCents,
+      targetDate: goal.targetDate,
+      progressSource: goal.progressSource,
+      currentAmountCents: goal.currentAmountCents ?? null,
+      positionIds: goal.positionIds,
+    },
+  };
+}
+
+const goalPath = (id: string): ApiPath => `/v1/goals/${encodeURIComponent(id)}`;
+
+export function useGoal(id: string, { enabled }: { enabled: boolean }) {
+  return useQuery({
+    ...apiQuery(goalPath(id), ApiGoalSchema, { enabled: enabled && isGoalId(id) }),
+    retry,
+  });
+}
+
+export function useGoalPositions({ enabled }: { enabled: boolean }) {
+  return useQuery(apiQuery(METAS_PATHS.positions, GoalPositionsSchema, { enabled }));
+}
+
+export type GoalInput = {
+  name: string;
+  targetCents: number;
+  targetDate: string;
+  progressSource: "manual" | "positions";
+  currentAmountCents?: number | null;
+  positionIds?: string[];
+};
+
+const invalidate = (client: ReturnType<typeof useQueryClient>) =>
+  invalidateApi(client, "/v1/goals");
+
+export function useCreateGoal() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: GoalInput) =>
+      apiRequest("/v1/goals", ApiGoalSchema, { method: "POST", body }),
+    onSuccess: () => invalidate(client),
+  });
+}
+
+export function useUpdateGoal(id: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Partial<GoalInput>) =>
+      apiRequest(goalPath(id), ApiGoalSchema, { method: "PATCH", body }),
+    onSuccess: () => invalidate(client),
+  });
+}
+
+export function useRemoveGoal(id: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiRequest(goalPath(id), z.undefined(), { method: "DELETE" }),
+    // Sem buscar agora: a página do item excluído ainda está aberta e pediria um 404.
+    onSuccess: () => markApiStale(client, "/v1/goals"),
+  });
 }

@@ -75,3 +75,18 @@ export function invalidateApi(client: QueryClient, ...prefixes: ApiPath[]) {
     },
   });
 }
+
+/**
+ * Como `invalidateApi`, mas sem buscar agora: as telas abertas não pedem de novo (ex.: a página
+ * de um item que acabou de ser excluído, que daria 404). Quem abrir depois busca a resposta nova.
+ */
+export function markApiStale(client: QueryClient, ...prefixes: ApiPath[]) {
+  return client.invalidateQueries({
+    refetchType: "none",
+    predicate: (query) => {
+      const [scope, path] = query.queryKey;
+      if (scope !== "api" || typeof path !== "string") return false;
+      return prefixes.length === 0 || prefixes.some((prefix) => path.startsWith(prefix));
+    },
+  });
+}

@@ -1,9 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { Suspense } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { OFFLINE_NOTE, parseScreenState, type ScreenState } from "@/components/states/screen-state";
+import type { ScreenState } from "@/components/states/screen-state";
 import { LoadingStatus, Skeleton } from "@/components/states/skeleton";
 import { ErrorBlock, NoDataBlock, StateSwap } from "@/components/states/state-block";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
@@ -13,7 +15,17 @@ import { Icon } from "@/components/ui/icon";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { HoldingsBrowser } from "@/features/investimentos/components/holdings-browser";
 import { RiskDialog } from "@/features/investimentos/components/risk-dialog";
-import { holdingClasses, holdingsSummary } from "@/features/investimentos/posicoes";
+import { useSession } from "@/features/acesso/session";
+import { useHoldings, type HoldingsData } from "@/features/investimentos/posicoes";
+
+/** Enquanto a API responde: a forma da tela, sem posições. */
+const EMPTY_HOLDINGS: HoldingsData = {
+  classes: [],
+  total: "—",
+  quantidade: 0,
+  atualizacao: "",
+  porOrigem: [],
+};
 
 function Swatch({ color }: { color: string }) {
   return (
@@ -26,7 +38,8 @@ function Swatch({ color }: { color: string }) {
 }
 
 /** Desktop: total com a divisão por classe, as classes e as origens das posições. */
-function SummaryCards({ state }: { state: ScreenState | null }) {
+function SummaryCards({ data, state }: { data: HoldingsData; state: ScreenState | null }) {
+  const { classes: holdingClasses } = data;
   const replacement = state === "erro" ? <ErrorBlock /> : state === "vazio" && <NoDataBlock />;
   const divisao = holdingClasses
     .map((c) => `${c.classe.toLowerCase()} ${c.percentual.replace(",0%", "%")}`)
@@ -37,10 +50,11 @@ function SummaryCards({ state }: { state: ScreenState | null }) {
         <StateSwap replacement={replacement} className="grow gap-2.5">
           <span className="text-14 text-mist">Total da carteira</span>
           <span className="font-display text-38 leading-[1.1] font-extrabold tracking-[-0.01em] tabular-nums">
-            {holdingsSummary.total}
+            {data.total}
           </span>
           <span className="text-14 text-mist">
-            {holdingsSummary.quantidade} posições · cotações das {holdingsSummary.hora}
+            {data.quantidade === 1 ? "1 posição" : `${data.quantidade} posições`} ·{" "}
+            {data.atualizacao}
           </span>
           <div
             role="img"
@@ -68,13 +82,7 @@ function SummaryCards({ state }: { state: ScreenState | null }) {
       <Panel className="p-6">
         <PanelHeader
           title="Por classe"
-          subtitle={
-            state === "sem-internet" ? (
-              <span className="text-tucano">{OFFLINE_NOTE}</span>
-            ) : (
-              `${holdingClasses.length} classes`
-            )
-          }
+          subtitle={holdingClasses.length === 1 ? "1 classe" : `${holdingClasses.length} classes`}
           titleClassName="text-19 tracking-normal"
         />
         <StateSwap replacement={replacement} className="grow">
@@ -98,14 +106,14 @@ function SummaryCards({ state }: { state: ScreenState | null }) {
       <Panel className="p-6">
         <PanelHeader title="Por origem" titleClassName="text-19 tracking-normal" />
         <StateSwap replacement={replacement} className="grow gap-3.5">
-          <DetailList items={holdingsSummary.porOrigem} />
+          <DetailList items={data.porOrigem} />
           <div className="flex items-start gap-2.5 rounded-[0.875rem] bg-shade px-3.5 py-3 text-13 leading-normal">
             <span className="mt-px text-mist">
               <Icon name="info-lg" size={16} />
             </span>
             <span>
-              Clique no selo de risco para ajustar. O risco vem do cadastro do ativo (volatilidade,
-              crédito e liquidez). Preço médio aparece só quando foi informado.
+              Clique no selo de risco para ajustar. O risco é o padrão do tipo de investimento e a
+              mudança vale só para a sua carteira.
             </span>
           </div>
         </StateSwap>
@@ -114,10 +122,20 @@ function SummaryCards({ state }: { state: ScreenState | null }) {
   );
 }
 
-/** `estado`: estados do protótipo (`?estado=`), abertos pela prévia (ver `src/proxy.ts`). */
-export function PosicoesScreen({ estado }: { estado?: string }) {
-  const state = parseScreenState(estado);
-  const { quantidade, total, hora } = holdingsSummary;
+/** Todas as posições da carteira (API), com busca, agrupamento, ordenação e ajuste de risco. */
+export function PosicoesScreen() {
+  const { live } = useSession();
+  const real = useHoldings({ enabled: live });
+  const data = real.data ?? EMPTY_HOLDINGS;
+  const state: ScreenState | null =
+    real.error || !live
+      ? "erro"
+      : !real.data
+        ? "carregando"
+        : data.quantidade === 0
+          ? "vazio"
+          : null;
+  const count = data.quantidade === 1 ? "1 posição" : `${data.quantidade} posições`;
   return (
     <>
       <Page
@@ -132,7 +150,7 @@ export function PosicoesScreen({ estado }: { estado?: string }) {
         />
         <DetailHeader
           title="Todas as posições"
-          subtitle={`${quantidade} posições · ${total} · cotações das ${hora}`}
+          subtitle={real.data ? `${count} · ${data.total} · ${data.atualizacao}` : undefined}
           actions={
             <ButtonLink href="/investimentos/novo" variant="secondary" size="sm">
               <Icon name="plus" size={18} />
@@ -143,7 +161,7 @@ export function PosicoesScreen({ estado }: { estado?: string }) {
         <Skeleton active={state === "carregando"}>
           <div className="flex items-center gap-2.5 @tab:hidden">
             <span className="grow text-14 text-mist">
-              {quantidade} posições · atualizado às {hora}
+              {real.data ? `${count} · ${data.atualizacao}` : ""}
             </span>
             <Link
               href="/investimentos/novo"
@@ -155,27 +173,17 @@ export function PosicoesScreen({ estado }: { estado?: string }) {
           </div>
         </Skeleton>
         <Skeleton active={state === "carregando"}>
-          <SummaryCards state={state} />
-          <HoldingsBrowser state={state} />
+          <SummaryCards data={data} state={state} />
+          <HoldingsBrowser data={data} state={state} />
         </Skeleton>
-        {state !== "vazio" && (
-          <>
-            {state !== "vazio-filtro" && (
-              <p className="m-0 text-13 leading-[1.55] text-caption @tab:hidden">
-                Toque no selo de risco para ajustar. O risco vem do cadastro do ativo (volatilidade,
-                crédito e liquidez).
-              </p>
-            )}
-            <Skeleton active={state === "carregando"}>
-              <p className="m-0 hidden text-13 leading-[1.55] text-caption @tab:block @desk:hidden">
-                Toque no selo de risco para ajustar. Preço médio aparece só quando foi informado.
-              </p>
-            </Skeleton>
-          </>
+        {state === null && (
+          <p className="m-0 text-13 leading-[1.55] text-caption @desk:hidden">
+            Toque no selo de risco para ajustar. Preço médio aparece só quando foi informado.
+          </p>
         )}
       </Page>
       <Suspense>
-        <RiskDialog />
+        <RiskDialog holdings={data} />
       </Suspense>
     </>
   );

@@ -2,45 +2,50 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 
-import { priceAlerts, type PriceAlert } from "@/features/alertas/data";
+import type { PriceAlert } from "@/features/alertas/data";
+import type { PortfolioAllocation } from "@/features/alocacao/live";
 
-import {
-  allocation,
-  countryExposure,
-  otherAssets,
-  portfolio,
-  positionGroups,
-  type AllocationSlice,
-  type CountryExposure,
-  type OtherAsset,
-  type PortfolioData,
-  type PositionGroup,
-} from "./data";
 import type { PerformancePeriod } from "./performance";
+import type { CountryExposure, OtherAsset, PortfolioData, PositionGroup } from "./types";
 
-/**
- * Dados da tela Investimentos. No protótipo, os de exemplo (`data.ts`); com login, os da API
- * (`live.ts`), no mesmo formato. Os componentes leem daqui, nunca do `data.ts` direto.
- */
+/** Dados da tela Investimentos, montados com a API (`live.ts`). Os componentes leem daqui. */
 export interface InvestimentosData {
   portfolio: PortfolioData;
   positionGroups: PositionGroup[];
-  allocation: AllocationSlice[];
   countryExposure: CountryExposure[];
   otherAssets: OtherAsset[];
   priceAlerts: PriceAlert[];
+  alocacao: PortfolioAllocation;
 }
 
-export const prototypeInvestimentos: InvestimentosData = {
-  portfolio,
-  positionGroups,
-  allocation,
-  countryExposure,
-  otherAssets,
-  priceAlerts,
+/** Enquanto a API responde: a forma da tela com "—" (os cards guardam o lugar). */
+export const EMPTY_INVESTIMENTOS: InvestimentosData = {
+  portfolio: {
+    patrimonio: "—",
+    variacaoMes: "",
+    totalComBens: "—",
+    investido: "—",
+    bens: "—",
+    atualizacao: "",
+    outras: { quantidade: 0, total: "—", percentual: "—" },
+    rentabilidade: { carteira: [], cdi: [], rotulos: [] },
+    stats: [],
+  },
+  positionGroups: [],
+  countryExposure: [],
+  otherAssets: [],
+  priceAlerts: [],
+  alocacao: {
+    perfil: null,
+    investidoCents: 0,
+    total: "—",
+    semValor: 0,
+    classes: [],
+    foraDoAlvo: [],
+  },
 };
 
-const InvestimentosContext = createContext<InvestimentosData>(prototypeInvestimentos);
+const InvestimentosContext = createContext<InvestimentosData>(EMPTY_INVESTIMENTOS);
 
 export function InvestimentosDataProvider({
   value,

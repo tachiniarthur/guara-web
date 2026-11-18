@@ -33,7 +33,7 @@ Arquivos `*.test.ts(x)` **ao lado do código**. 40 arquivos, concentrados em:
 - conversões `live` (`gastos`, `gastos-tetos`, `inicio`, `investimentos`, `metas`, `alertas`): chamam `toXView` com objetos de resposta;
 - acesso (login, signup, code, password forms, `session-gate`); onboarding (cpf, plano, avisos, bancos, perfil);
 - layout editor (`model`, editor), simulador (`build`, salvar), configurações, skeleton, posições (accordion), `page.test.tsx` do Início.
-  **Sem cobertura**: a maioria das páginas de protótipo (assinaturas, relatório, bens, ativo, conversas, notificações), `components/ui`
+  **Sem cobertura**: a maioria das páginas de protótipo (assinaturas, relatório, conversas, notificações; ativo, bens e metas têm testes das conversões em `live.test.ts`), `components/ui`
   quase todo, e2e/Playwright (não há). Não há MSW; mocks são objetos/`vi.mock` dos módulos.
 
 ## Testes da API (resumo)

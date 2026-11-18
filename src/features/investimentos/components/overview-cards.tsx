@@ -4,28 +4,21 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { ChartFit } from "@/components/charts/chart-fit";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import { chipClass } from "@/components/ui/chip";
 import { Icon } from "@/components/ui/icon";
 import { CardAction, CardBody, CardNote } from "@/components/states/screen-state-context";
-import {
-  CompactStateBlock,
-  ErrorBlock,
-  NoDataBlock,
-  RetryButton,
-} from "@/components/states/state-block";
+import { CompactStateBlock, RetryButton } from "@/components/states/state-block";
 import { Panel, PanelHeader, panelLinkClass } from "@/components/ui/panel";
 import {
-  donutSizes,
-  GroupBarHeading,
-  GroupBarList,
-  GroupLegend,
-  PortfolioVsTarget,
-} from "@/features/alocacao/components/allocation-parts";
+  AllocationVsTarget,
+  ClassBarHeading,
+  ClassBarList,
+  ClassLegend,
+  OffTargetSummary,
+} from "@/features/alocacao/components/class-allocation";
+import { donutSizes } from "@/features/alocacao/components/donut";
 import { OpenChat } from "@/features/conversas/components/open-chat";
-import { useSession } from "@/features/acesso/session";
-import { usePortfolioAllocation } from "@/features/alocacao/context";
-import { formatDiff, groups, offTargetGroups } from "@/features/alocacao/data";
 import { cn } from "@/lib/utils";
 
 import { useInvestimentosData, usePerformancePeriod } from "../context";
@@ -217,13 +210,7 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
       <CardBody className="grow gap-2">
         <div className="flex items-center justify-between">
           <span className="text-14 text-mist">Patrimônio investido</span>
-          <Link
-            href="/perfil/investidor"
-            className="flex min-h-8 items-center gap-1 text-13 text-sand"
-          >
-            <Icon name="shield" size={16} />
-            Moderado
-          </Link>
+          <ProfileLink className="flex min-h-8 items-center gap-1 text-13 text-sand" />
         </div>
         <span className="font-display text-34 leading-[1.1] font-extrabold tracking-[-0.01em] tabular-nums">
           {portfolio.patrimonio}
@@ -263,11 +250,34 @@ export function PortfolioCard({ variant }: { variant: Variant }) {
   );
 }
 
-/** Alocação atual × alvo do perfil, grupo por grupo (5 grupos). */
+/** O perfil de investidor (ou o convite para responder), com link para o questionário. */
+export function ProfileLink({ className, long }: { className?: string; long?: boolean }) {
+  const { alocacao } = useInvestimentosData();
+  const nome = alocacao.perfil?.nome;
+  return (
+    <Link href="/perfil/investidor" className={className}>
+      <Icon name="shield" size={long ? 18 : 16} />
+      {nome ? (
+        long ? (
+          <>
+            Perfil <strong>{nome}</strong>
+          </>
+        ) : (
+          nome
+        )
+      ) : (
+        "Definir perfil"
+      )}
+      {long && nome && <span className="hidden text-caption @desk:inline">· alterar</span>}
+    </Link>
+  );
+}
+
+/** Alocação atual × alvo do perfil, classe por classe (as quatro classes da API). */
 export function AllocationCard({ variant }: { variant: Variant }) {
-  const allocationData = usePortfolioAllocation();
-  const offTarget = offTargetGroups(allocationData.perfil, allocationData.atual);
-  const biggest = offTarget[0];
+  const { alocacao, positionGroups, portfolio } = useInvestimentosData();
+  const ativos =
+    positionGroups.reduce((sum, g) => sum + g.posicoes.length, 0) + portfolio.outras.quantidade;
   const desktop = variant === "desktop";
   const mobile = variant === "mobile";
   const linkClass =
@@ -282,47 +292,42 @@ export function AllocationCard({ variant }: { variant: Variant }) {
     <Panel className={cn("gap-4", desktop ? "p-6" : mobile ? "p-4" : undefined)}>
       <PanelHeader
         title="Alocação"
-        subtitle={<CardNote>Sua carteira comparada ao perfil Moderado, em 5 grupos</CardNote>}
+        subtitle={
+          <CardNote>
+            {alocacao.perfil
+              ? `Sua carteira comparada ao perfil ${alocacao.perfil.nome}`
+              : "Sua carteira por classe"}
+          </CardNote>
+        }
         titleClassName={desktop ? undefined : "text-18"}
         action={desktop ? <CardAction>{fullLink}</CardAction> : undefined}
       />
       <CardBody className="grow gap-4">
-        <PortfolioVsTarget
-          // Tablet com a rosca do celular: na menor (xs), "Moderado" só cabia no furo encostando no anel.
+        <AllocationVsTarget
+          allocation={alocacao}
+          ativos={ativos}
           dims={desktop ? donutSizes.lg : donutSizes.sm}
           titleClassName={variant === "tablet" ? "text-13" : "text-14"}
           gapClassName={variant === "tablet" ? "gap-2" : "gap-3"}
         />
-        {variant !== "tablet" && <GroupLegend />}
+        {variant !== "tablet" && <ClassLegend classes={alocacao.classes} />}
         <div className="flex flex-col gap-1.5 border-t border-line pt-3.5">
-          <GroupBarHeading />
-          <GroupBarList stacked={!desktop} />
+          <ClassBarHeading withTarget={alocacao.perfil !== null} />
+          <ClassBarList allocation={alocacao} stacked={!desktop} />
         </div>
         <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-line pt-3">
-          <p className="m-0 text-13 text-mist">
-            Fora do alvo em{" "}
-            <strong className="text-sand">
-              {offTarget.length} de {groups.length} grupos
-            </strong>
-            {variant === "tablet" || !biggest ? (
-              "."
-            ) : (
-              <>
-                . A maior diferença é <strong className="text-tucano">{biggest.grupo.nome}</strong>,{" "}
-                <strong className="text-sand">
-                  {formatDiff(biggest.diff).replace("p.p.", "")}p.p.{" "}
-                  {biggest.diff > 0 ? "acima" : "abaixo"}
-                </strong>
-                .
-              </>
-            )}
-          </p>
+          <OffTargetSummary allocation={alocacao} withBiggest={variant !== "tablet"} />
           <div className="flex flex-wrap gap-x-4 gap-y-1.5">
             {!desktop && fullLink}
-            <OpenChat question="Como rebalancear minha carteira?" className={linkClass}>
-              Rebalancear com o Guará
-              <Icon name="chevron-right" size={16} />
-            </OpenChat>
+            {alocacao.perfil && (
+              <OpenChat
+                question="Como está minha carteira em relação ao meu perfil?"
+                className={linkClass}
+              >
+                Conversar com o Guará
+                <Icon name="chevron-right" size={16} />
+              </OpenChat>
+            )}
           </div>
         </div>
       </CardBody>
@@ -330,14 +335,22 @@ export function AllocationCard({ variant }: { variant: Variant }) {
   );
 }
 
-/** Imóveis, veículos e outros bens (entram no patrimônio, fora da alocação). */
+function NoAssets() {
+  return (
+    <p className="m-0 py-2 text-14 text-mist">
+      Nenhum imóvel ou veículo cadastrado. Eles entram no patrimônio total, fora da alocação.
+    </p>
+  );
+}
+
+/** Imóveis e veículos (entram no patrimônio, fora da alocação). */
 export function AssetsCard({ variant }: { variant: Variant }) {
   const { otherAssets, portfolio } = useInvestimentosData();
   if (variant === "mobile") {
     return (
       <Panel className="gap-2 p-4">
         <PanelHeader
-          title="Imóveis e outros bens"
+          title="Imóveis e veículos"
           subtitle={<CardNote numbers>Somam {portfolio.bens} no patrimônio</CardNote>}
           titleClassName="text-18 tracking-normal"
           action={
@@ -354,6 +367,7 @@ export function AssetsCard({ variant }: { variant: Variant }) {
           }
         />
         <CardBody className="grow gap-2">
+          {otherAssets.length === 0 && <NoAssets />}
           <ul className="m-0 list-none p-0">
             {otherAssets.map((a) => (
               <li key={a.id} className="border-b border-line">
@@ -390,7 +404,7 @@ export function AssetsCard({ variant }: { variant: Variant }) {
   return (
     <Panel className="gap-3">
       <PanelHeader
-        title="Imóveis, veículos e outros bens"
+        title="Imóveis e veículos"
         subtitle={<CardNote numbers>Somam {portfolio.bens} · entram no patrimônio total</CardNote>}
         action={
           <CardAction>
@@ -405,6 +419,7 @@ export function AssetsCard({ variant }: { variant: Variant }) {
         }
       />
       <CardBody className="grow gap-3">
+        {otherAssets.length === 0 && <NoAssets />}
         <ul className="m-0 list-none p-0">
           {otherAssets.map((a) => (
             <li key={a.id} className="border-b border-line">
@@ -433,108 +448,9 @@ export function AssetsCard({ variant }: { variant: Variant }) {
         </ul>
         <p className="m-0 text-13 leading-normal text-mist">
           Bens não entram na alocação do seu perfil de investidor. Imóveis e veículos valem o que
-          você informar; lembramos de atualizar a cada 6 meses.
+          você informar; atualize o valor quando ele mudar.
         </p>
       </CardBody>
     </Panel>
-  );
-}
-
-/** Aviso de posição possivelmente duplicada (Open Finance × cadastro manual). */
-export function DuplicateBanner({ variant }: { variant: Variant }) {
-  // A detecção de duplicidade ainda não existe na API: no modo real, o aviso não aparece.
-  const { live } = useSession();
-  if (live) return null;
-  if (variant === "mobile") {
-    return (
-      <section
-        aria-label="Possível duplicidade"
-        className="flex flex-col gap-2.5 rounded-bubble border border-tucano bg-tucano-bg p-4"
-      >
-        <CardBody className="grow gap-2.5">
-          <strong className="text-15">Possível duplicidade</strong>
-          <span className="text-14 text-mist">
-            “Tesouro Selic 2029” veio do Itaú e também está no seu cadastro manual.
-          </span>
-          <div className="flex flex-col gap-2">
-            <Button variant="light" size="md" block>
-              <Icon name="merge" size={18} />
-              <span>Somar em uma posição</span>
-            </Button>
-            <div className="grid grid-cols-2 gap-2">
-              <Button size="md">
-                <span>Manter separados</span>
-              </Button>
-              <Button size="md">
-                <span>Excluir um</span>
-              </Button>
-            </div>
-          </div>
-        </CardBody>
-      </section>
-    );
-  }
-
-  const actions = (
-    <>
-      <Button variant="light" size="sm">
-        <Icon name="merge" size={18} />
-        <span>Somar em uma posição</span>
-      </Button>
-      <Button size="sm">
-        <span>Manter separados</span>
-      </Button>
-      <Button size="sm">
-        <span>Excluir um</span>
-      </Button>
-    </>
-  );
-
-  if (variant === "tablet") {
-    return (
-      <section
-        aria-label="Possível duplicidade"
-        className="flex flex-col gap-2.5 rounded-bubble border border-tucano bg-tucano-bg px-4.5 py-4"
-      >
-        <CardBody
-          className="grow gap-2.5"
-          error={<ErrorBlock compact />}
-          empty={<NoDataBlock compact />}
-        >
-          <strong className="text-15">Este investimento pode estar duplicado</strong>
-          <span className="text-14 leading-normal text-mist">
-            “Tesouro Selic 2029” chegou pelo Itaú e também foi cadastrado por você em agosto. Como
-            prefere tratar?
-          </span>
-          <div className="flex flex-wrap gap-2">{actions}</div>
-        </CardBody>
-      </section>
-    );
-  }
-
-  return (
-    <section
-      aria-label="Possível duplicidade"
-      className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-bubble border border-tucano bg-tucano-bg px-5 py-4"
-    >
-      <CardBody
-        className="grow flex-row flex-wrap items-center gap-x-4 gap-y-3"
-        overlayClassName="items-center"
-        error={<ErrorBlock compact />}
-        empty={<NoDataBlock compact />}
-      >
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-tucano">
-          <Icon name="copy" size={18} strokeWidth={1.8} />
-        </span>
-        <div className="flex flex-[1_1_25rem] flex-col leading-[1.4]">
-          <strong className="text-15">Este investimento pode estar duplicado</strong>
-          <span className="text-14 text-mist">
-            “Tesouro Selic 2029” chegou pelo Itaú e também foi cadastrado por você em agosto. Como
-            prefere tratar?
-          </span>
-        </div>
-        <div className="ml-13 flex gap-2">{actions}</div>
-      </CardBody>
-    </section>
   );
 }

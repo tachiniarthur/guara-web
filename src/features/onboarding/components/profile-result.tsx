@@ -13,7 +13,7 @@ import {
   GroupDonut,
   GroupSwatch,
 } from "@/features/alocacao/components/allocation-parts";
-import { formatPercent, groups, profileById, type ProfileId } from "@/features/alocacao/data";
+import { formatPercent, groups, profileById, type ProfileId } from "@/features/alocacao/prototype";
 import { useTweenNumber } from "@/hooks/use-tween";
 import { cn } from "@/lib/utils";
 

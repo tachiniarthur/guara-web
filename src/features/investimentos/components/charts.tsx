@@ -1,14 +1,7 @@
 "use client";
 
 import { ChartInspector, InspectorLayer } from "@/components/charts/inspector";
-import {
-  buildBar,
-  ChartSvg,
-  chartColors,
-  halo,
-  roundedBar,
-  textWidth,
-} from "@/components/charts/primitives";
+import { chartColors, halo, textWidth } from "@/components/charts/primitives";
 import { rem } from "@/lib/rem";
 import { cn } from "@/lib/utils";
 
@@ -17,8 +10,6 @@ import { performanceTitle } from "../performance";
 
 type Variant = "desktop" | "tablet" | "mobile";
 
-/** Meses da série do protótipo (out a set). */
-const MONTHS = ["out", "nov", "dez", "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set"];
 const pct = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1).replace(".", ",")}%`;
 
 /** Até 7 rótulos no eixo, em passo fixo e sempre com o último mês (12 meses: um sim, um não). */
@@ -124,7 +115,7 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
   const {
     carteira,
     cdi: cdiRaw,
-    rotulos = MONTHS,
+    rotulos = [],
     periodo,
   } = useInvestimentosData().portfolio.rentabilidade;
   // Sem CDI (fonte fora do plano), a linha tracejada some.
@@ -255,123 +246,6 @@ export function PerformanceChart({ variant }: { variant: Variant }) {
         ))}
         <InspectorLayer x0={0} x1={l.width} top={4} bottom={l.zero + 8} />
       </svg>
-    </ChartInspector>
-  );
-}
-
-const classLayout: Record<
-  Variant,
-  {
-    width: number;
-    height: number;
-    x1: number;
-    base: number;
-    bar: number;
-    showTarget: boolean;
-    short: boolean;
-  }
-> = {
-  desktop: { width: 760, height: 230, x1: 754, base: 204, bar: 26, showTarget: true, short: false },
-  tablet: { width: 600, height: 220, x1: 594, base: 194, bar: 26, showTarget: true, short: false },
-  mobile: { width: 330, height: 210, x1: 324, base: 184, bar: 17, showTarget: false, short: true },
-};
-
-/** Classe por classe: barra cheia (carteira) ao lado da barra tracejada (alvo do perfil). */
-export function ClassComparisonChart({ variant }: { variant: Variant }) {
-  const { allocation } = useInvestimentosData();
-  const comparisonLabel = `Comparação por classe, sua carteira contra o alvo do perfil: ${allocation
-    .map((slice) => `${slice.classe} ${slice.atual}% contra ${slice.alvo}%`)
-    .join("; ")}.`;
-  const l = classLayout[variant];
-  const x0 = 40;
-  const group = (l.x1 - x0) / allocation.length;
-  const y = (pct: number) => l.base - (pct / 60) * (l.base - 14);
-  const f = (n: number) => n.toFixed(1);
-  const points = allocation.map((slice, i) => ({
-    x: x0 + group * i + group / 2,
-    title: slice.classe,
-    rows: [
-      { label: "sua carteira", value: `${slice.atual}%`, color: slice.cor },
-      { label: "alvo do perfil", value: `${slice.alvo}%`, color: chartColors.mist },
-    ],
-  }));
-
-  return (
-    <ChartInspector points={points} label="Sua carteira contra o alvo, classe por classe">
-      <ChartSvg reveal="none" width={l.width} height={l.height} label={comparisonLabel}>
-        {[0, 20, 40, 60].map((v) => (
-          <g key={v}>
-            <line
-              x1={x0}
-              x2={l.x1}
-              y1={f(y(v))}
-              y2={f(y(v))}
-              stroke={chartColors.grid}
-              strokeDasharray="3 5"
-            />
-            <text x="34" y={f(y(v) + 4)} textAnchor="end" fontSize="12" fill={chartColors.label}>
-              {v}%
-            </text>
-          </g>
-        ))}
-        {allocation.map((slice, i) => {
-          const center = x0 + group * i + group / 2;
-          const left = center - l.bar - 1;
-          const right = center + 1;
-          const over = slice.atual - slice.alvo >= 5;
-          return (
-            <g key={slice.classe}>
-              <path
-                d={roundedBar(left, y(slice.atual), l.bar, l.base)}
-                fill={slice.cor}
-                fillOpacity="1"
-                {...buildBar(i * 2)}
-              />
-              <path
-                d={roundedBar(right, y(slice.alvo), l.bar, l.base)}
-                fill={slice.cor}
-                fillOpacity="0.28"
-                stroke={slice.cor}
-                strokeWidth="1.5"
-                strokeDasharray="3 3"
-                {...buildBar(i * 2 + 1)}
-              />
-              <text
-                x={f(left + l.bar / 2)}
-                y={f(y(slice.atual) - 6)}
-                textAnchor="middle"
-                fontSize="12"
-                fontWeight="800"
-                fill={over ? chartColors.tucano : chartColors.sand}
-              >
-                {slice.atual}%
-              </text>
-              {l.showTarget && (
-                <text
-                  x={f(right + l.bar / 2)}
-                  y={f(y(slice.alvo) - 6)}
-                  textAnchor="middle"
-                  fontSize="12"
-                  fill={chartColors.mist}
-                >
-                  {slice.alvo}%
-                </text>
-              )}
-              <text
-                x={f(center)}
-                y={l.base + 18}
-                textAnchor="middle"
-                fontSize="12"
-                fill={chartColors.mist}
-              >
-                {l.short ? slice.curta : slice.classe}
-              </text>
-            </g>
-          );
-        })}
-        <line x1={x0} x2={l.x1} y1={l.base} y2={l.base} stroke={chartColors.axis} />
-        <InspectorLayer x0={x0} x1={l.x1} top={8} bottom={l.base} mode="band" bandWidth={group} />
-      </ChartSvg>
     </ChartInspector>
   );
 }

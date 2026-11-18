@@ -136,6 +136,8 @@ export function RadioCard({
   description,
   value,
   defaultChecked,
+  checked,
+  onChange,
   className,
 }: {
   name: string;
@@ -143,6 +145,9 @@ export function RadioCard({
   description?: ReactNode;
   value?: string;
   defaultChecked?: boolean;
+  /** Controlado: com `checked`, passe `onChange`. */
+  checked?: boolean;
+  onChange?: () => void;
   className?: string;
 }) {
   return (
@@ -157,6 +162,8 @@ export function RadioCard({
         name={name}
         value={value}
         defaultChecked={defaultChecked}
+        checked={checked}
+        onChange={onChange}
         className="m-0 size-5.5 shrink-0 accent-sand"
       />
       <span className="flex flex-col leading-[1.35]">

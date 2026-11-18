@@ -3,13 +3,14 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { GuaraTip } from "@/components/ui/guara-tip";
 import { StateSwap } from "@/components/states/state-block";
-import { ButtonLink } from "@/components/ui/button";
+import { ButtonLink, buttonVariants } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Tag } from "@/components/ui/tag";
+import { OpenChat } from "@/features/conversas/components/open-chat";
 import { MataCard } from "@/features/gastos/components/teto-cards";
 import { cn } from "@/lib/utils";
 
-import { goalsSummary as prototypeSummary, type Goal, type GoalTone } from "../data";
+import type { Goal, GoalTone, GoalsSummary } from "../live";
 
 const ringStroke: Record<GoalTone, string> = {
   folha: "stroke-folha",
@@ -57,7 +58,6 @@ function ProgressRing({ percent, tone }: { percent: number; tone: GoalTone }) {
  * guardado e o ritmo (por mês e previsão).
  */
 export function GoalCard({ goal }: { goal: Goal }) {
-  const href = goal.detalhe ? `/metas/${goal.id}` : undefined;
   const content = (
     <>
       <ProgressRing percent={goal.percentual} tone={goal.status.tom} />
@@ -91,39 +91,29 @@ export function GoalCard({ goal }: { goal: Goal }) {
           </span>
         </span>
       </span>
-      {href && (
-        <Icon
-          name="chevron-right"
-          size={20}
-          className="hidden self-center text-caption @tab:block"
-        />
-      )}
+      <Icon name="chevron-right" size={20} className="hidden self-center text-caption @tab:block" />
     </>
   );
   const className =
     "flex items-start gap-4 rounded-card border border-line bg-card p-4.5 text-sand no-underline @tab:items-center @tab:gap-5 @tab:p-5.5";
-  return href ? (
+  return (
     <Link
-      href={href}
+      href={goal.href}
       aria-label={`${goal.nome}: ${goal.percentual}% da meta`}
       className={cn(className, "hover:border-line-strong")}
     >
       {content}
     </Link>
-  ) : (
-    <section aria-label={goal.nome} className={className}>
-      {content}
-    </section>
   );
 }
 
 /** Resumo das metas sobre a mata: quanto já tem, o planejado por mês e o que sobrou no mês. */
 export function GoalsHero({
   replacement,
-  summary: goalsSummary = prototypeSummary,
+  summary: goalsSummary,
 }: {
   replacement?: ReactNode;
-  summary?: typeof prototypeSummary;
+  summary: GoalsSummary;
 }) {
   return (
     <MataCard className="gap-4">
@@ -146,12 +136,6 @@ export function GoalsHero({
             <dd className="m-0 text-12 text-[#C5D8CB]">{goalsSummary.sobrouQuando}</dd>
           </div>
         </dl>
-        <span className="flex items-center gap-2 text-14 text-[#E4EEE6]">
-          <Icon name="calendar" size={16} />
-          <span>
-            Próximo depósito: <strong className="text-white">{goalsSummary.proximo}</strong>
-          </span>
-        </span>
       </StateSwap>
     </MataCard>
   );
@@ -181,9 +165,12 @@ export function NewGoalButton({ block }: { block?: boolean }) {
   );
 }
 
-export const chatWithOnca = (
-  <ButtonLink href="/conversas" variant="secondary" size="sm">
-    <Icon name="chat" size={18} />
-    <span>Conversar com o Guará</span>
-  </ButtonLink>
-);
+/** Abre o chat com uma pergunta sobre as metas (o Guará lê as metas pela API). */
+export function ChatAboutGoals({ question }: { question: string }) {
+  return (
+    <OpenChat question={question} className={buttonVariants({ variant: "secondary", size: "sm" })}>
+      <Icon name="chat" size={18} />
+      <span>Conversar com o Guará</span>
+    </OpenChat>
+  );
+}

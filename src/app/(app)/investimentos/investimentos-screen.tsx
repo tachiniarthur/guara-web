@@ -5,7 +5,6 @@ import Link from "next/link";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { ShowValuesButton } from "@/components/layout/privacy-toggle";
 import { Page } from "@/components/layout/page";
-import { parseScreenState } from "@/components/states/screen-state";
 import {
   CardAction,
   CardBody,
@@ -22,29 +21,25 @@ import { PriceAlertList } from "@/features/alertas/components/price-alert-list";
 import {
   AllocationCard,
   AssetsCard,
-  DuplicateBanner,
   PortfolioCard,
+  ProfileLink,
 } from "@/features/investimentos/components/overview-cards";
 import { PositionCards } from "@/features/investimentos/components/position-cards";
 import { WorldCard } from "@/features/investimentos/components/world-card";
-import { SortArrows } from "@/features/investimentos/components/position-parts";
 import { PositionsTable } from "@/features/investimentos/components/positions-table";
 import { NewUserInvestments } from "@/features/novo/empty-screens";
 import { cn } from "@/lib/utils";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { useSession } from "@/features/acesso/session";
-import { AlocacaoDataProvider } from "@/features/alocacao/context";
-import { portfolioAllocation as prototypeAllocation } from "@/features/alocacao/data";
 import {
+  EMPTY_INVESTIMENTOS,
   InvestimentosDataProvider,
   PerformancePeriodProvider,
-  prototypeInvestimentos,
   useInvestimentosData,
 } from "@/features/investimentos/context";
 import { useInvestimentosView, usePerformance } from "@/features/investimentos/live";
 import {
   emptyPerformance,
-  prototypePerformance,
   withPerformance,
   type PerformancePeriod,
 } from "@/features/investimentos/performance";
@@ -75,11 +70,8 @@ const noInvestments = (
   </StateBlock>
 );
 
-/** Quantas posições e o total, para o subtítulo da lista (o do design no protótipo). */
-const PositionsCount = createContext<{ count: number; total: string }>({
-  count: 12,
-  total: "R$ 48.310,90",
-});
+/** Quantas posições e o total, para o subtítulo da lista. */
+const PositionsCount = createContext<{ count: number; total: string }>({ count: 0, total: "—" });
 
 function PositionsSection({ variant }: { variant: "desktop" | "tablet" | "mobile" }) {
   const { count, total } = useContext(PositionsCount);
@@ -106,8 +98,8 @@ function PositionsSection({ variant }: { variant: "desktop" | "tablet" | "mobile
             <span className="text-caption">
               <Icon name="info" size={16} />
             </span>
-            Risco calculado pelo cadastro do ativo (volatilidade, risco de crédito e liquidez).
-            Clique no selo para ajustar. Preço médio aparece só quando foi informado.
+            O risco é o padrão do tipo de investimento; dá para mudar na página da posição. Preço
+            médio aparece só quando foi informado.
           </p>
         </CardBody>
       </Panel>
@@ -135,17 +127,6 @@ function PositionsSection({ variant }: { variant: "desktop" | "tablet" | "mobile
         </CardAction>
       </div>
       <CardBody main={noInvestments} className="grow gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <button
-            type="button"
-            aria-label="Ordenar posições. Atual: maior valor primeiro. Opções: valor da posição ou % da carteira"
-            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line-strong bg-transparent px-3 text-14 font-semibold text-sand"
-          >
-            <SortArrows active size={16} />
-            Maior valor
-            <Icon name="chevron-down" size={14} />
-          </button>
-        </div>
         <PositionCards columns={mobile ? 1 : 2} />
       </CardBody>
     </Panel>
@@ -187,35 +168,23 @@ function AlertsSection({ variant }: { variant: "desktop" | "tablet" | "mobile" }
   );
 }
 
-/**
- * Investimentos. `estado` abre os estados do protótipo (`?estado=erro`, `?estado=novo`…): a rota
- * normal é gerada no build, sem estado; com `?estado=` o proxy leva à prévia (`/previa/...`).
- */
-export function InvestimentosScreen({ estado }: { estado?: string }) {
+/** Investimentos: carteira, alocação, exposição por país, bens, alertas e posições (API). */
+export function InvestimentosScreen() {
   const { live } = useSession();
   const real = useInvestimentosView({ enabled: live });
   // Período do gráfico de rentabilidade: 12 meses vem com a tela; 6M e Tudo, ao escolher.
   const [period, setPeriod] = useState<PerformancePeriod>("12m");
   const chosen = usePerformance(period, { enabled: live });
-  if (estado === "novo" || (live && real.data?.semInvestimentos)) return <NewUserInvestments />;
-  // Modo real: carregando até a API responder, erro se alguma rota falhar. Protótipo: `?estado=`.
-  const state = live
-    ? real.error
-      ? "erro"
-      : real.data
-        ? null
-        : "carregando"
-    : parseScreenState(estado);
+  if (real.data?.semInvestimentos) return <NewUserInvestments />;
+  // Sem conta (sem as variáveis da API) não há o que mostrar: o mesmo aviso de erro.
+  const state = real.error || !live ? "erro" : real.data ? null : "carregando";
   const view = real.data;
-  const base = view ?? prototypeInvestimentos;
-  const performance = !live
-    ? prototypePerformance(prototypeInvestimentos.portfolio, period)
-    : chosen.error
-      ? emptyPerformance(period)
-      : chosen.performance;
-  const data = performance
-    ? { ...base, portfolio: withPerformance(base.portfolio, performance) }
-    : base;
+  const base = view ?? EMPTY_INVESTIMENTOS;
+  const performance = chosen.error ? emptyPerformance(period) : chosen.performance;
+  const data =
+    view && performance
+      ? { ...base, portfolio: withPerformance(base.portfolio, performance) }
+      : base;
   const periodState = {
     period,
     setPeriod,
@@ -226,147 +195,132 @@ export function InvestimentosScreen({ estado }: { estado?: string }) {
   return (
     <InvestimentosDataProvider value={data}>
       <PerformancePeriodProvider value={periodState}>
-        <AlocacaoDataProvider value={view?.portfolioAllocation ?? prototypeAllocation}>
-          <PositionsCount
-            value={
-              view
-                ? { count: view.posicoes, total: view.portfolio.patrimonio }
-                : { count: 12, total: "R$ 48.310,90" }
-            }
-          >
-            <ScreenStateProvider state={state}>
-              <Page
-                padding="list"
-                className="gap-4 lg:px-10 @tab:gap-5 @desk:gap-6"
-                header={
-                  <MobileHeader
-                    title="Investimentos"
-                    account
-                    actions={
-                      <>
-                        <ShowValuesButton variant="icon" />
-                        <IconButtonLink
-                          href="/investimentos/novo"
-                          icon="plus"
-                          label="Adicionar investimento"
-                          variant="ghost"
-                        />
-                      </>
-                    }
-                  />
-                }
-              >
-                <Breadcrumb
-                  className="hidden flex-wrap @tab:flex"
-                  items={[{ label: "Investimentos" }]}
+        <PositionsCount value={{ count: view?.posicoes ?? 0, total: base.portfolio.patrimonio }}>
+          <ScreenStateProvider state={state}>
+            <Page
+              padding="list"
+              className="gap-4 lg:px-10 @tab:gap-5 @desk:gap-6"
+              header={
+                <MobileHeader
+                  title="Investimentos"
+                  account
+                  actions={
+                    <>
+                      <ShowValuesButton variant="icon" />
+                      <IconButtonLink
+                        href="/investimentos/novo"
+                        icon="plus"
+                        label="Adicionar investimento"
+                        variant="ghost"
+                      />
+                    </>
+                  }
                 />
-                {state === "carregando" && <LoadingStatus />}
-                {/* Mobile */}
-                <div className="flex flex-col gap-4 @tab:hidden">
-                  <Skeleton active={state === "carregando"}>
-                    <p className="m-0 text-13 text-caption">
-                      {(view ?? prototypeInvestimentos).portfolio.atualizacao} · posições dos bancos
-                      conectados e cadastradas por você
-                    </p>
-                    <PortfolioCard variant="mobile" />
-                    <DuplicateBanner variant="mobile" />
-                    <AllocationCard variant="mobile" />
-                    <WorldCard variant="mobile" />
-                    <AssetsCard variant="mobile" />
-                    <AlertsSection variant="mobile" />
-                    <PositionsSection variant="mobile" />
-                  </Skeleton>
-                </div>
+              }
+            >
+              <Breadcrumb
+                className="hidden flex-wrap @tab:flex"
+                items={[{ label: "Investimentos" }]}
+              />
+              {state === "carregando" && <LoadingStatus />}
+              {/* Mobile */}
+              <div className="flex flex-col gap-4 @tab:hidden">
+                <Skeleton active={state === "carregando"}>
+                  <p className="m-0 text-13 text-caption">
+                    {base.portfolio.atualizacao} · posições dos bancos conectados e cadastradas por
+                    você
+                  </p>
+                  <PortfolioCard variant="mobile" />
+                  <AllocationCard variant="mobile" />
+                  <WorldCard variant="mobile" />
+                  <AssetsCard variant="mobile" />
+                  <AlertsSection variant="mobile" />
+                  <PositionsSection variant="mobile" />
+                </Skeleton>
+              </div>
 
-                {/* Tablet e desktop */}
-                <header className="hidden items-end justify-between gap-4 @tab:flex">
-                  <div className="flex flex-col gap-1.5">
-                    <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em] @desk:text-32">
-                      Investimentos
-                    </h1>
-                    <p className="m-0 text-15 text-mist">
-                      {(view ?? prototypeInvestimentos).portfolio.atualizacao}
-                      <span className="hidden @desk:inline">
-                        {" "}
-                        · posições dos bancos conectados e cadastradas por você
-                      </span>
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShowValuesButton variant="pill" />
-                    <Link
-                      href="/perfil/investidor"
-                      className="flex h-[2.875rem] items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 whitespace-nowrap text-sand no-underline"
-                    >
-                      <Icon name="shield" size={18} />
-                      Perfil <strong>Moderado</strong>
-                      <span className="hidden text-caption @desk:inline">· alterar</span>
-                    </Link>
-                    <ButtonLink
-                      href="/investimentos/novo"
-                      size="md"
-                      className="hidden text-15 @desk:inline-flex"
-                    >
+              {/* Tablet e desktop */}
+              <header className="hidden items-end justify-between gap-4 @tab:flex">
+                <div className="flex flex-col gap-1.5">
+                  <h1 className="m-0 font-display text-28 leading-[1.15] font-extrabold tracking-[-0.01em] @desk:text-32">
+                    Investimentos
+                  </h1>
+                  <p className="m-0 text-15 text-mist">
+                    {base.portfolio.atualizacao}
+                    <span className="hidden @desk:inline">
+                      {" "}
+                      · posições dos bancos conectados e cadastradas por você
+                    </span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <ShowValuesButton variant="pill" />
+                  <ProfileLink
+                    long
+                    className="flex h-[2.875rem] items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 text-14 whitespace-nowrap text-sand no-underline"
+                  />
+                  <ButtonLink
+                    href="/investimentos/novo"
+                    size="md"
+                    className="hidden text-15 @desk:inline-flex"
+                  >
+                    <Icon name="plus" size={18} />
+                    <span>Adicionar</span>
+                  </ButtonLink>
+                  <ButtonLink
+                    href="/simulador"
+                    variant="primary"
+                    size="md"
+                    className="hidden text-15 @desk:inline-flex"
+                  >
+                    <Icon name="simulator" size={18} />
+                    <span>Simular cenário</span>
+                  </ButtonLink>
+                </div>
+              </header>
+
+              <Skeleton active={state === "carregando"}>
+                <div className="hidden flex-col gap-5 @tab:flex @desk:hidden">
+                  <div className="flex gap-2.5">
+                    <ButtonLink href="/investimentos/novo" size="md" className="text-15">
                       <Icon name="plus" size={18} />
-                      <span>Adicionar</span>
+                      <span>Adicionar investimento</span>
                     </ButtonLink>
-                    <ButtonLink
-                      href="/simulador"
-                      variant="primary"
-                      size="md"
-                      className="hidden text-15 @desk:inline-flex"
-                    >
+                    <ButtonLink href="/simulador" variant="primary" size="md" className="text-15">
                       <Icon name="simulator" size={18} />
                       <span>Simular cenário</span>
                     </ButtonLink>
                   </div>
-                </header>
-
-                <Skeleton active={state === "carregando"}>
-                  <div className="hidden flex-col gap-5 @tab:flex @desk:hidden">
-                    <div className="flex gap-2.5">
-                      <ButtonLink href="/investimentos/novo" size="md" className="text-15">
-                        <Icon name="plus" size={18} />
-                        <span>Adicionar investimento</span>
-                      </ButtonLink>
-                      <ButtonLink href="/simulador" variant="primary" size="md" className="text-15">
-                        <Icon name="simulator" size={18} />
-                        <span>Simular cenário</span>
-                      </ButtonLink>
-                    </div>
-                    <DuplicateBanner variant="tablet" />
-                    <div className="grid grid-cols-2 items-stretch gap-4">
-                      <PortfolioCard variant="tablet" />
-                      <AllocationCard variant="tablet" />
-                    </div>
-                    <WorldCard variant="tablet" />
-                    <AssetsCard variant="tablet" />
-                    <AlertsSection variant="tablet" />
-                    <PositionsSection variant="tablet" />
+                  <div className="grid grid-cols-2 items-stretch gap-4">
+                    <PortfolioCard variant="tablet" />
+                    <AllocationCard variant="tablet" />
                   </div>
+                  <WorldCard variant="tablet" />
+                  <AssetsCard variant="tablet" />
+                  <AlertsSection variant="tablet" />
+                  <PositionsSection variant="tablet" />
+                </div>
 
-                  <div className="hidden flex-col gap-6 @desk:flex">
-                    <DuplicateBanner variant="desktop" />
-                    <div className="grid grid-cols-2 gap-5">
-                      <PortfolioCard variant="desktop" />
-                      <AllocationCard variant="desktop" />
-                    </div>
-                    <div className="flex flex-col gap-5">
-                      <PositionsSection variant="desktop" />
-                      <div className="grid grid-cols-2 items-stretch gap-6">
-                        <div className="flex min-w-0 flex-col gap-6">
-                          <AssetsCard variant="desktop" />
-                          <AlertsSection variant="desktop" />
-                        </div>
-                        <WorldCard variant="desktop" />
+                <div className="hidden flex-col gap-6 @desk:flex">
+                  <div className="grid grid-cols-2 gap-5">
+                    <PortfolioCard variant="desktop" />
+                    <AllocationCard variant="desktop" />
+                  </div>
+                  <div className="flex flex-col gap-5">
+                    <PositionsSection variant="desktop" />
+                    <div className="grid grid-cols-2 items-stretch gap-6">
+                      <div className="flex min-w-0 flex-col gap-6">
+                        <AssetsCard variant="desktop" />
+                        <AlertsSection variant="desktop" />
                       </div>
+                      <WorldCard variant="desktop" />
                     </div>
                   </div>
-                </Skeleton>
-              </Page>
-            </ScreenStateProvider>
-          </PositionsCount>
-        </AlocacaoDataProvider>
+                </div>
+              </Skeleton>
+            </Page>
+          </ScreenStateProvider>
+        </PositionsCount>
       </PerformancePeriodProvider>
     </InvestimentosDataProvider>
   );

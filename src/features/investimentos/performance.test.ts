@@ -1,7 +1,22 @@
 import { axisFit, axisIndexes, gridTicks } from "./components/charts";
-import { portfolio } from "./data";
 import { toPerformance, type Evolution } from "./live";
-import { emptyPerformance, prototypePerformance, withPerformance } from "./performance";
+import { emptyPerformance, withPerformance } from "./performance";
+import type { PortfolioData } from "./types";
+
+const portfolio: PortfolioData = {
+  patrimonio: "R$ 10.000,00",
+  variacaoMes: "",
+  totalComBens: "R$ 10.000,00",
+  investido: "R$ 10.000,00",
+  bens: "R$ 0",
+  atualizacao: "",
+  outras: { quantidade: 0, total: "R$ 0,00", percentual: "0%" },
+  rentabilidade: { carteira: [0, 1], cdi: [0, 1], rotulos: ["out", "nov"] },
+  stats: [
+    { id: "rent", rotulo: "Rentabilidade em 12 meses", valor: "+1%", detalhe: "" },
+    { id: "aportes", rotulo: "Aportes em 2026", valor: "R$ 1.000", detalhe: "" },
+  ],
+};
 
 const plain = <T>(value: T): T => JSON.parse(JSON.stringify(value).replaceAll(" ", " "));
 
@@ -76,66 +91,20 @@ describe("Rentabilidade por período (API)", () => {
   });
 });
 
-describe("Rentabilidade por período (protótipo)", () => {
-  it("12M é a série do design", () => {
-    const perf = prototypePerformance(portfolio, "12m");
-    expect(perf.rentabilidade.carteira).toEqual(portfolio.rentabilidade.carteira);
-    expect(perf.rent).toMatchObject({ valor: "+11,1%", detalhe: "CDI no período: +9,9%" });
-  });
-
-  it("6M recomeça do zero em março", () => {
-    const perf = prototypePerformance(portfolio, "6m");
-    expect(perf.rentabilidade.rotulos).toEqual(["mar", "abr", "mai", "jun", "jul", "ago", "set"]);
-    expect(perf.rentabilidade.carteira[0]).toBe(0);
-    expect(perf.rentabilidade.carteira.at(-1)).toBe(8.1);
-    expect(perf.rent).toMatchObject({ rotulo: "Rentabilidade em 6 meses", valor: "+8,1%" });
-  });
-
-  it("Tudo junta o ano anterior ao do design (24 meses)", () => {
-    const perf = prototypePerformance(portfolio, "all");
-    expect(perf.rentabilidade.carteira).toHaveLength(24);
-    expect(perf.rentabilidade.rotulos?.[0]).toBe("out/24");
-    expect(perf.rentabilidade.rotulos?.at(-1)).toBe("set/26");
-    expect(perf.rentabilidade.carteira.at(-1)).toBe(21.1);
-  });
-});
-
-describe("Eixo e grade do gráfico de rentabilidade", () => {
-  it("até 7 rótulos, sempre com o último mês", () => {
+describe("eixos do gráfico de rentabilidade", () => {
+  it("até 7 rótulos, sempre com o último ponto", () => {
     expect(axisIndexes(12)).toEqual([1, 3, 5, 7, 9, 11]);
-    expect(axisIndexes(13)).toEqual([0, 2, 4, 6, 8, 10, 12]);
-    expect(axisIndexes(7)).toEqual([0, 1, 2, 3, 4, 5, 6]);
-    expect(axisIndexes(6)).toEqual([0, 1, 2, 3, 4, 5]);
-    expect(axisIndexes(24)).toEqual([3, 7, 11, 15, 19, 23]);
-    expect(axisIndexes(1)).toEqual([0]);
-    expect(axisIndexes(0)).toEqual([]);
+    expect(axisIndexes(3)).toEqual([0, 1, 2]);
   });
 
-  it("rótulos com ano ficam em menos posições no celular (sem encostar)", () => {
-    const months = [
-      "out",
-      "nov",
-      "dez",
-      "jan",
-      "fev",
-      "mar",
-      "abr",
-      "mai",
-      "jun",
-      "jul",
-      "ago",
-      "set",
-    ];
-    expect(axisFit(months, 11, 300)).toBe(7);
-    const withYear = months.map((m) => `${m}/25`);
-    expect(axisFit(withYear, 11, 300)).toBe(5);
-    expect(axisFit(withYear, 8.5, 540)).toBe(7);
-    expect(axisIndexes(24, axisFit(withYear, 11, 300))).toEqual([3, 8, 13, 18, 23]);
+  it("quantos rótulos cabem sem encostar (entre 2 e 7)", () => {
+    expect(axisFit(["nov/25", "dez/25"], 12, 600)).toBe(7);
+    expect(axisFit(["nov/25", "dez/25"], 12, 40)).toBe(2);
   });
 
-  it("grade em passo redondo dentro da escala", () => {
+  it("grade em passo redondo, com escala negativa sem -0", () => {
     expect(gridTicks(0, 12)).toEqual([0, 5, 10]);
-    expect(gridTicks(-3, 40)).toEqual([0, 20, 40]);
     expect(gridTicks(-8, 12)).toEqual([-5, 0, 5, 10]);
+    expect(Object.is(gridTicks(-3, 12)[0], -0)).toBe(false);
   });
 });

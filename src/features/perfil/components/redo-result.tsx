@@ -13,7 +13,7 @@ import {
   TargetDonutWithList,
 } from "@/features/alocacao/components/allocation-parts";
 import { OffTargetNote } from "@/features/alocacao/components/allocation-summary";
-import { portfolioAllocation, profileById, type ProfileId } from "@/features/alocacao/data";
+import { portfolioAllocation, profileById, type ProfileId } from "@/features/alocacao/prototype";
 import { profileEffects } from "@/features/onboarding/data";
 import {
   answersSummary,

@@ -1,7 +1,8 @@
 /**
- * Carteira-alvo por perfil: quatro perfis dividem a carteira em cinco grupos, cada um com
- * subclasses. O Guará compara a carteira real com o alvo do perfil e mostra a diferença em
- * pontos percentuais, sem nunca mover dinheiro. Bens (imóveis e veículos) ficam fora.
+ * PROTÓTIPO do design (cinco grupos e quatro perfis com subclasses), usado só pelo onboarding e
+ * por "Perfil de investidor", que ainda não leem a API. Investimentos e Alocação usam as quatro
+ * classes e o alvo do perfil que a API devolve (`live.ts`). Sai quando essas telas também lerem
+ * `/v1/investor-profile`.
  */
 
 export type GroupId = "rf-br" | "rf-int" | "rv-br" | "rv-int" | "cripto";
@@ -202,25 +203,7 @@ export const portfolioAllocation = {
   ] as { grupo: GroupId; hoje: string; alvo: string; falta: string }[],
 };
 
-const pct = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
-
-/** "46%", "36,2%". */
-export function formatPercent(value: number) {
-  return `${pct.format(value)}%`;
-}
-
-/** Diferença em p.p. com sinal tipográfico ("+17,2 p.p.", "−2 p.p."). */
-export function formatDiff(diff: number) {
-  if (Math.abs(diff) < 0.05) return "no alvo";
-  const sign = diff > 0 ? "+" : "−";
-  return `${sign}${pct.format(Math.abs(diff))} p.p.`;
-}
-
-/** Cor da diferença: acima do alvo em urucum, abaixo em arara, perto (menos de 2 p.p.) neutra. */
-export function diffColor(diff: number) {
-  if (Math.abs(diff) < 2) return "#93A198";
-  return diff > 0 ? "#FF6A50" : "#6DB3EC";
-}
+export { diffColor, formatDiff, formatPercent } from "./format";
 
 /** Fora do alvo: diferença maior que 5 p.p. num grupo. */
 export const OFF_TARGET_PP = 5;

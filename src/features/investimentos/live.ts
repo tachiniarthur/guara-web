@@ -6,30 +6,29 @@ import { z } from "zod";
 import { toPriceAlert, ApiPriceAlertSchema } from "@/features/alertas/live";
 import type { PriceAlert } from "@/features/alertas/data";
 import {
-  groups as allocationGroups,
-  profileById,
-  type GroupId,
-  type HeldSubclass,
-  type ProfileId,
-} from "@/features/alocacao/data";
+  AllocationResponseSchema,
+  ALLOCATION_PATHS,
+  InvestorProfileSchema,
+  toAllocation,
+  type AllocationResponse,
+  type InvestorProfileResponse,
+} from "@/features/alocacao/live";
 import { exchangeLabel } from "@/features/mercado/live";
 import { apiQuery, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate, formatUsd } from "@/lib/format";
 import { MONTHS, apiPercent, buildView, formatWhole, percent, signed } from "@/lib/live-format";
 
-import type { AllocationSlice, CountryExposure, Position, PositionGroup, Risk } from "./data";
+import type { CountryExposure, Position, PositionGroup, Risk } from "./types";
 import { performanceTitle, type Performance, type PerformancePeriod } from "./performance";
 
 /*
- * Investimentos com os dados da API (modo real), no mesmo formato dos dados de exemplo. A
- * alocação segue os 5 grupos do design (renda fixa Brasil e exterior, renda variável Brasil e
- * exterior, cripto), montados das posições pelo instrumento e pelo país; o alvo é o do perfil
- * que a pessoa respondeu no questionário.
+ * Investimentos com os dados da API: resumo, rentabilidade, posições, bens, alertas de preço e a
+ * alocação nas quatro classes da API contra o alvo do perfil respondido no questionário.
  */
 
 const cents = z.number().int();
 
-const ApiPositionSchema = z.object({
+export const ApiPositionSchema = z.object({
   id: z.string(),
   assetClass: z.string(),
   instrumentType: z.string(),
@@ -55,7 +54,7 @@ const ApiPositionSchema = z.object({
 });
 export type ApiPosition = z.infer<typeof ApiPositionSchema>;
 
-const PositionsSchema = z.object({
+export const PositionsSchema = z.object({
   data: z.array(ApiPositionSchema),
   groups: z
     .array(
@@ -69,7 +68,7 @@ const PositionsSchema = z.object({
     )
     .nullable(),
 });
-type Positions = z.infer<typeof PositionsSchema>;
+export type Positions = z.infer<typeof PositionsSchema>;
 
 const SummarySchema = z.object({
   investedCents: cents,
@@ -181,14 +180,6 @@ type Belongings = z.infer<typeof BelongingsSchema>;
 const AlertsSchema = z.object({ data: z.array(ApiPriceAlertSchema) });
 type Alerts = z.infer<typeof AlertsSchema>;
 
-const ProfileSchema = z.object({
-  profile: z
-    .object({ profile: z.enum(["conservative", "moderate", "aggressive"]), createdAt: z.string() })
-    .loose()
-    .nullable(),
-});
-type Profile = z.infer<typeof ProfileSchema>;
-
 const DashboardSchema = z.object({
   netWorth: z.object({
     data: z.object({ investmentsMonthChangeCents: cents.nullable() }).loose().nullable(),
@@ -196,8 +187,12 @@ const DashboardSchema = z.object({
 });
 type Dashboard = z.infer<typeof DashboardSchema>;
 
-const RISK: Record<ApiPosition["risk"], Risk> = { low: "Baixo", medium: "Médio", high: "Alto" };
-const INSTRUMENT: Record<string, string> = {
+export const RISK: Record<ApiPosition["risk"], Risk> = {
+  low: "Baixo",
+  medium: "Médio",
+  high: "Alto",
+};
+export const INSTRUMENT: Record<string, string> = {
   stock: "Ação",
   unit: "Unit",
   fii: "Fundo imobiliário",
@@ -213,69 +208,38 @@ const INSTRUMENT: Record<string, string> = {
   pension: "Previdência",
   other: "Outro",
 };
-const PROFILE: Record<"conservative" | "moderate" | "aggressive", ProfileId> = {
-  conservative: "conservador",
-  moderate: "moderado",
-  aggressive: "arrojado",
-};
-
-/** Grupo do design: cripto; renda fixa (Brasil ou exterior); o resto é renda variável. */
-export function groupOf(
-  position: Pick<ApiPosition, "assetClass" | "instrumentType" | "country">,
-): GroupId {
-  const abroad = position.country !== null && position.country !== "BR";
-  if (position.instrumentType === "crypto") return "cripto";
-  if (position.assetClass === "fixed_income") return abroad ? "rf-int" : "rf-br";
-  return abroad ? "rv-int" : "rv-br";
-}
-
-/** Subclasse do design (as do alvo do perfil), pelo instrumento e pelo nome. */
-function subclassOf(p: ApiPosition): { grupo: GroupId; nome: string } {
-  const grupo = groupOf(p);
-  if (grupo === "cripto") return { grupo, nome: /eth/i.test(p.name) ? "Ethereum" : "Bitcoin" };
-  if (grupo === "rf-br") {
-    if (/IPCA/i.test(p.name)) return { grupo, nome: "Inflação (IPCA+)" };
-    if (/Prefixad/i.test(p.name)) return { grupo, nome: "Prefixada" };
-    if (p.instrumentType === "debenture") return { grupo, nome: "Crédito privado" };
-    return { grupo, nome: "Pós-fixada" };
-  }
-  if (grupo === "rf-int") return { grupo, nome: "Treasuries" };
-  if (grupo === "rv-int") {
-    return {
-      grupo,
-      nome: p.instrumentType === "etf" ? "ETFs internacionais" : "Ações diretas/BDRs",
-    };
-  }
-  if (p.instrumentType === "fii") return { grupo, nome: "FIIs" };
-  if (/small/i.test(p.name)) return { grupo, nome: "Ações small caps" };
-  return { grupo, nome: "Ações large cap" };
-}
-
-const COUNTRY: Record<string, Omit<CountryExposure, "percentual" | "valor" | "ativos">> = {
+/** Onde o globo marca cada país (o centro financeiro). */
+const COUNTRY: Record<
+  string,
+  Omit<CountryExposure, "percentual" | "valor" | "ativos" | "detalhe">
+> = {
   BR: {
     id: "br",
     pais: "Brasil",
-    detalhe: "Renda fixa, ações e fundos no Brasil",
     cor: "tucano",
-    globo: { iso: 76, lat: -23.55, lng: -46.63, local: "B3 e Tesouro Nacional" },
+    globo: { iso: 76, lat: -23.55, lng: -46.63, local: "São Paulo" },
   },
   US: {
     id: "us",
     pais: "Estados Unidos",
-    detalhe: "ETFs e BDRs de empresas americanas",
     cor: "arara",
-    globo: { iso: 840, lat: 40.71, lng: -74.01, local: "Bolsas de Nova York" },
+    globo: { iso: 840, lat: 40.71, lng: -74.01, local: "Nova York" },
   },
 };
-const NO_COUNTRY = {
-  id: "none",
-  pais: "Sem país",
-  detalhe: "Ativos negociados no mundo todo",
-  cor: "folha" as const,
-  globo: null,
-};
+const NO_COUNTRY = { id: "none", pais: "Sem país definido", cor: "folha" as const, globo: null };
 
-const slugOf = (p: ApiPosition) => (p.symbol ?? p.name).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+/** Página da posição. */
+export const positionHref = (id: string) => `/investimentos/${id}`;
+
+/** "3 posições: ação, FII e ETF". */
+function exposureDetail(list: ApiPosition[]) {
+  const kinds = [...new Set(list.map((p) => INSTRUMENT[p.instrumentType] ?? p.instrumentType))];
+  const count = list.length === 1 ? "1 posição" : `${list.length} posições`;
+  const names = kinds.map((k) => k.toLowerCase());
+  const joined =
+    names.length > 1 ? `${names.slice(0, -1).join(", ")} e ${names.at(-1)}` : (names[0] ?? "");
+  return joined ? `${count}: ${joined}` : count;
+}
 
 function toPosition(p: ApiPosition, groupLabel: string): Position {
   const manual = p.source === "manual";
@@ -284,7 +248,7 @@ function toPosition(p: ApiPosition, groupLabel: string): Position {
   const when = p.valuedOn ? formatDate(`${p.valuedOn}T12:00:00-03:00`, "dd/MM") : null;
   return {
     id: p.id,
-    slug: slugOf(p),
+    href: positionHref(p.id),
     nome: p.symbol ?? p.name,
     descricao: p.symbol
       ? exchange
@@ -306,7 +270,7 @@ function toPosition(p: ApiPosition, groupLabel: string): Position {
     total: formatCurrency(p.valueCents),
     totalOriginal: abroad ? formatUsd(p.originalValue ?? null) : undefined,
     percentual: p.portfolioPct === null ? "—" : `${percent.format(p.portfolioPct)}%`,
-    hoje:
+    rentabilidade:
       p.returnPct === null
         ? { valor: "—", alta: true }
         : { valor: `${percent.format(Math.abs(p.returnPct))}%`, alta: p.returnPct >= 0 },
@@ -319,7 +283,8 @@ export interface InvestimentosResponses {
   positions: Positions;
   belongings: Belongings;
   alerts: Alerts;
-  profile: Profile;
+  profile: InvestorProfileResponse;
+  allocation: AllocationResponse;
   dashboard: Dashboard;
 }
 
@@ -353,67 +318,7 @@ export function toInvestimentosView(r: InvestimentosResponses, now: Date) {
   const rest = all.filter((p) => !shown.has(p.id));
   const restCents = rest.reduce((s, p) => s + (p.valueCents ?? 0), 0);
 
-  // Alocação nos 5 grupos do design.
-  const byGroup: Record<GroupId, number> = {
-    "rf-br": 0,
-    "rf-int": 0,
-    "rv-br": 0,
-    "rv-int": 0,
-    cripto: 0,
-  };
-  for (const p of all) byGroup[groupOf(p)] += p.valueCents ?? 0;
   const share = (value: number) => (invested > 0 ? Math.round((value / invested) * 1000) / 10 : 0);
-  const atual = Object.fromEntries(
-    allocationGroups.map((g) => [g.id, share(byGroup[g.id])]),
-  ) as Record<GroupId, number>;
-  const perfil: ProfileId = r.profile.profile ? PROFILE[r.profile.profile.profile] : "moderado";
-  const alvo = profileById[perfil].alvo;
-  const subTotals = new Map<string, { grupo: GroupId; valor: number; nomes: string[] }>();
-  for (const p of all) {
-    const sub = subclassOf(p);
-    const key = `${sub.grupo}|${sub.nome}`;
-    const entry = subTotals.get(key) ?? { grupo: sub.grupo, valor: 0, nomes: [] };
-    entry.valor += p.valueCents ?? 0;
-    entry.nomes.push(p.symbol ?? p.name);
-    subTotals.set(key, entry);
-  }
-  const subclasses: HeldSubclass[] = profileById[perfil].subclasses.map((s) => {
-    const held = [...subTotals.entries()].find(
-      ([key]) => key.split("|")[0] === s.grupo && s.nome.startsWith(key.split("|")[1]!),
-    )?.[1];
-    return held
-      ? {
-          ...s,
-          atual: share(held.valor),
-          detalhe: `${held.nomes.slice(0, 3).join(", ")}${held.nomes.length > 3 ? "…" : ""} · ${formatCurrency(held.valor)}`,
-        }
-      : { ...s, atual: 0 };
-  });
-  const portfolioAllocation = {
-    perfil,
-    definidoEm: r.profile.profile ? formatDate(r.profile.profile.createdAt) : "—",
-    total: formatCurrency(invested),
-    ativos: all.length,
-    atual,
-    subclasses,
-    emReais: allocationGroups.map((g) => {
-      const target = Math.round((invested * alvo[g.id]) / 100);
-      const diff = byGroup[g.id] - target;
-      return {
-        grupo: g.id,
-        hoje: formatCurrency(byGroup[g.id]),
-        alvo: formatCurrency(target),
-        falta: diff >= 0 ? `${formatCurrency(diff)} acima` : `faltam ${formatCurrency(-diff)}`,
-      };
-    }),
-  };
-  const allocation: AllocationSlice[] = allocationGroups.map((g) => ({
-    classe: g.nome,
-    curta: g.curta,
-    cor: g.cor,
-    atual: atual[g.id],
-    alvo: alvo[g.id],
-  }));
 
   // Exposição por país das posições.
   const countries = new Map<string, ApiPosition[]>();
@@ -430,6 +335,7 @@ export function toInvestimentosView(r: InvestimentosResponses, now: Date) {
           : (COUNTRY[code] ?? { ...NO_COUNTRY, id: code.toLowerCase(), pais: code });
       return {
         ...meta,
+        detalhe: exposureDetail(list),
         percentual: Math.round(share(value)),
         valor: formatWhole(value),
         ativos: [...list]
@@ -438,7 +344,7 @@ export function toInvestimentosView(r: InvestimentosResponses, now: Date) {
           .map((p) => ({
             nome: p.symbol ?? p.name,
             total: formatCurrency(p.valueCents),
-            slug: slugOf(p),
+            href: positionHref(p.id),
           })),
       };
     })
@@ -502,7 +408,10 @@ export function toInvestimentosView(r: InvestimentosResponses, now: Date) {
         id: "proventos",
         rotulo: `Proventos em ${r.summary.year}`,
         valor: formatWhole(r.summary.dividendsYearCents),
-        detalhe: "Dividendos, JCP e rendimentos",
+        detalhe:
+          r.summary.dividendsYearCents === null
+            ? "Ainda não calculados por posição"
+            : "Dividendos, JCP e rendimentos",
       },
     ],
   };
@@ -513,11 +422,10 @@ export function toInvestimentosView(r: InvestimentosResponses, now: Date) {
   return {
     portfolio,
     positionGroups: visibleGroups,
-    allocation,
     countryExposure,
     otherAssets,
     priceAlerts,
-    portfolioAllocation,
+    alocacao: toAllocation(r.allocation, r.profile),
     posicoes: all.length,
     semInvestimentos: all.length === 0,
   };
@@ -532,7 +440,8 @@ export const INVESTIMENTOS_PATHS = {
   positions: "/v1/investments/positions?groupBy=class",
   belongings: "/v1/belongings",
   alerts: "/v1/price-alerts",
-  profile: "/v1/investor-profile",
+  profile: ALLOCATION_PATHS.profile,
+  allocation: ALLOCATION_PATHS.allocation,
   dashboard: "/v1/dashboard",
 } as const satisfies Record<string, ApiPath>;
 
@@ -549,18 +458,27 @@ export function useInvestimentosView({ enabled }: { enabled: boolean }) {
       get(paths.positions, PositionsSchema),
       get(paths.belongings, BelongingsSchema),
       get(paths.alerts, AlertsSchema),
-      get(paths.profile, ProfileSchema),
+      get(paths.profile, InvestorProfileSchema),
+      get(paths.allocation, AllocationResponseSchema),
       get(paths.dashboard, DashboardSchema),
     ] as const,
   });
   const error = results.find((result) => result.error)?.error ?? null;
   if (error || results.some((result) => result.isPending)) return { data: undefined, error };
-  const [summary, evolution, positions, belongings, alerts, profile, dashboard] = results.map(
-    (result) => result.data,
-  ) as [Summary, Evolution, Positions, Belongings, Alerts, Profile, Dashboard];
+  const [summary, evolution, positions, belongings, alerts, profile, allocation, dashboard] =
+    results.map((result) => result.data) as [
+      Summary,
+      Evolution,
+      Positions,
+      Belongings,
+      Alerts,
+      InvestorProfileResponse,
+      AllocationResponse,
+      Dashboard,
+    ];
   return buildView("investimentos", () =>
     toInvestimentosView(
-      { summary, evolution, positions, belongings, alerts, profile, dashboard },
+      { summary, evolution, positions, belongings, alerts, profile, allocation, dashboard },
       new Date(),
     ),
   );

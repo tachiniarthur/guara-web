@@ -2,7 +2,7 @@
  * Perfil de investidor a partir das respostas do questionário (a mesma regra do app). É uma
  * estimativa mostrada logo depois das perguntas; a classificação oficial virá da API.
  */
-import type { ProfileId } from "@/features/alocacao/data";
+import type { ProfileId } from "@/features/alocacao/prototype";
 
 import { profileQuestions } from "./data";
 

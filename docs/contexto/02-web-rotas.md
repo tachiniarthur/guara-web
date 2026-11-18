@@ -4,7 +4,7 @@
 
 ```
 src/
-├── proxy.ts            "middleware" do Next 16: reescreve ?estado=X para /previa/X/<rota> (só abas principais)
+├── proxy.ts            "middleware" do Next 16: reescreve ?estado=X para /previa/X/<rota> (só Relatório e Alertas)
 ├── app/
 │   ├── layout.tsx      raiz: fontes, <html class="dark" lang="pt-BR">, <Providers>
 │   ├── providers.tsx   QueryClientProvider (retry 1, sem refetch no foco) + CountUpNumbers + SessionProvider
@@ -60,34 +60,33 @@ ids do protótipo (só `conversas/[id]` tem `dynamicParams=false`).
 
 ### Área logada `(app)`
 
-| Rota                                                                            | Tela                                     | Dados                                                                      |
-| ------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------- |
-| `/`                                                                             | InicioScreen (blocos editáveis)          | **API**                                                                    |
-| `/notificacoes`                                                                 | Notificações                             | protótipo (`notificacoes/data.ts`)                                         |
-| `/gastos`                                                                       | GastosScreen (blocos editáveis)          | **API**                                                                    |
-| `/gastos/lancamentos`, `/gastos/lancamentos/[id]`                               | Lista (paginada) e detalhe de lançamento | **API**                                                                    |
-| `/gastos/categorias/[categoria]`                                                | Gastos de uma categoria                  | **API**                                                                    |
-| `/assinaturas`, `/assinaturas/[id]`, `/assinaturas/calendario`                  | Assinaturas                              | **API** (lista, detalhe com cobranças, calendário, "não é assinatura")     |
-| `/investimentos`                                                                | Visão geral + globo                      | **API**                                                                    |
-| `/investimentos/posicoes`                                                       | Tabela de posições                       | **API** (via `InvestimentosData`)                                          |
-| `/investimentos/novo`                                                           | Adicionar investimento                   | API (`POST /positions`) ou protótipo                                       |
-| `/investimentos/[ativo]` + `/detalhes` `/eventos` `/grafico`                    | Página do ativo                          | protótipo (`features/ativo`)                                               |
-| `/investimentos/alocacao`, `/alocacao/perfis`                                   | Alocação × perfil                        | alocacao: **API**; perfis: protótipo                                       |
-| `/investimentos/bens`, `/bens/[bem]`, `/bens/imovel/novo`, `/bens/veiculo/novo` | Bens                                     | protótipo                                                                  |
-| `/investimentos/duplicidade`                                                    | Aviso de posição duplicada               | protótipo                                                                  |
-| `/simulador`, `/simulador/corte`, `/simulador/objetivo`, `/simulador/salvas`    | Simulador                                | premissas da **API**; cálculo local; salvas: **API** (aposentadoria local) |
-| `/metas`                                                                        | Lista                                    | **API**                                                                    |
-| `/metas/[id]`, `/metas/nova`                                                    | Detalhe e criação                        | protótipo                                                                  |
-| `/relatorio`, `/relatorio/linha-do-tempo`                                       | Relatório                                | **API** (períodos 7d/mês/3m/12m, exportação PDF/CSV)                       |
-| `/alertas`                                                                      | Hub (tetos + preços + avisos)            | **API**                                                                    |
-| `/alertas/precos`, `/precos/[id]`, `/precos/[id]/editar`, `/alertas/novo-preco` | Alertas de preço                         | **API** (criar/listar/ver); editar: protótipo                              |
-| `/alertas/tetos`, `/tetos/[id]`, `/tetos/[id]/editar`, `/alertas/novo-teto`     | Tetos de gasto                           | leitura **API**; criar/editar: protótipo                                   |
-| `/conversas`, `/conversas/[id]`, `/conversas/historico`                         | Chat                                     | **API** (`/v1/chat`: conversas, mensagens em SSE, busca, renomear/excluir) |
-| `/perfil`, `/perfil/editar`, `/editar/email`, `/senha`, `/excluir-conta`        | Conta                                    | nome/CPF/celular via **API**; senha via Supabase; excluir-conta: só tela   |
-| `/perfil/planos`                                                                | Planos                                   | plano via **API**; resto protótipo                                         |
-| `/perfil/bancos/[banco]/renovar`, `/perfil/investidor`, `/investidor/resultado` | Bancos / perfil de investidor            | protótipo                                                                  |
-| `/configuracoes`                                                                | Preferências                             | `localStorage` (store `settings`)                                          |
-| `/previa/[estado]/[[...rota]]`                                                  | Estados do protótipo (Invest., Metas…)   | interna (via `proxy.ts`)                                                   |
+| Rota                                                                            | Tela                                      | Dados                                                                                          |
+| ------------------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `/`                                                                             | InicioScreen (blocos editáveis)           | **API**                                                                                        |
+| `/notificacoes`                                                                 | Notificações                              | protótipo (`notificacoes/data.ts`)                                                             |
+| `/gastos`                                                                       | GastosScreen (blocos editáveis)           | **API**                                                                                        |
+| `/gastos/lancamentos`, `/gastos/lancamentos/[id]`                               | Lista (paginada) e detalhe de lançamento  | **API**                                                                                        |
+| `/gastos/categorias/[categoria]`                                                | Gastos de uma categoria                   | **API**                                                                                        |
+| `/assinaturas`, `/assinaturas/[id]`, `/assinaturas/calendario`                  | Assinaturas                               | **API** (lista, detalhe com cobranças, calendário, "não é assinatura")                         |
+| `/investimentos`                                                                | Visão geral + globo                       | **API**                                                                                        |
+| `/investimentos/posicoes`                                                       | Tabela de posições + ajustar risco        | **API** (`features/investimentos/posicoes.ts`; `PATCH` do risco)                               |
+| `/investimentos/novo`                                                           | Adicionar investimento                    | **API** (`POST /positions`, prévia)                                                            |
+| `/investimentos/[ativo]` + `/eventos`                                           | Página do ativo (id da posição)           | **API** (`features/ativo/live.ts`: posição, mercado, histórico; corrigir, movimentar, remover) |
+| `/investimentos/alocacao`, `/alocacao/perfis`                                   | Alocação × perfil (4 classes)             | **API** (`features/alocacao/live.ts`)                                                          |
+| `/investimentos/bens/[bem]`, `/bens/imovel/novo`, `/bens/veiculo/novo`          | Bens                                      | **API** (`features/bens/live.ts`, `/v1/belongings`)                                            |
+| `/simulador`, `/simulador/corte`, `/simulador/objetivo`, `/simulador/salvas`    | Simulador                                 | premissas da **API**; cálculo local; salvas: **API** (aposentadoria local)                     |
+| `/metas`                                                                        | Lista                                     | **API**                                                                                        |
+| `/metas/[id]`, `/metas/nova`                                                    | Detalhe (corrigir/excluir) e criação      | **API** (`features/metas/live.ts`, `/v1/goals`)                                                |
+| `/relatorio`, `/relatorio/linha-do-tempo`                                       | Relatório                                 | **API** (períodos 7d/mês/3m/12m, exportação PDF/CSV)                                           |
+| `/alertas`                                                                      | Hub (tetos + preços + avisos)             | **API**                                                                                        |
+| `/alertas/precos`, `/precos/[id]`, `/precos/[id]/editar`, `/alertas/novo-preco` | Alertas de preço                          | **API** (criar/listar/ver); editar: protótipo                                                  |
+| `/alertas/tetos`, `/tetos/[id]`, `/tetos/[id]/editar`, `/alertas/novo-teto`     | Tetos de gasto                            | leitura **API**; criar/editar: protótipo                                                       |
+| `/conversas`, `/conversas/[id]`, `/conversas/historico`                         | Chat                                      | **API** (`/v1/chat`: conversas, mensagens em SSE, busca, renomear/excluir)                     |
+| `/perfil`, `/perfil/editar`, `/editar/email`, `/senha`, `/excluir-conta`        | Conta                                     | nome/CPF/celular via **API**; senha via Supabase; excluir-conta: só tela                       |
+| `/perfil/planos`                                                                | Planos                                    | plano via **API**; resto protótipo                                                             |
+| `/perfil/bancos/[banco]/renovar`, `/perfil/investidor`, `/investidor/resultado` | Bancos / perfil de investidor             | protótipo                                                                                      |
+| `/configuracoes`                                                                | Preferências                              | `localStorage` (store `settings`)                                                              |
+| `/previa/[estado]/[[...rota]]`                                                  | Estados do protótipo (Relatório, Alertas) | interna (via `proxy.ts`)                                                                       |
 
 ### Onboarding/entrada `(onboarding)`
 

@@ -4,7 +4,7 @@ import { BankMark } from "@/components/ui/bank-mark";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
-import type { Origin, Position, Risk } from "../data";
+import type { Origin, Position, Risk } from "../types";
 
 const riskStyle: Record<Risk, { bg: string; dot: string; text: string }> = {
   Baixo: { bg: "bg-folha-bg", dot: "bg-folha", text: "text-folha" },
@@ -13,28 +13,23 @@ const riskStyle: Record<Risk, { bg: string; dot: string; text: string }> = {
 };
 
 const riskHint =
-  "Risco calculado pelo cadastro do ativo: volatilidade, risco de crédito e liquidez. Você pode ajustar.";
+  "Risco padrão do tipo de investimento. Dá para ajustar na lista de posições ou na página do ativo.";
 
-/** Selo de risco do ativo (clicável para ajustar). */
+/** Selo de risco do ativo (só leitura; o ajuste fica no `RiskPill` e na página do ativo). */
 export function RiskBadge({ risk }: { risk: Risk }) {
   const style = riskStyle[risk];
   return (
-    <button
-      type="button"
+    <span
       title={riskHint}
-      aria-label={`Risco ${risk}. Ajustar risco`}
       className={cn(
-        "inline-flex h-7 items-center gap-1.5 rounded-full border-none pr-2 pl-2.5 text-13 font-bold",
+        "inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-13 font-bold",
         style.bg,
         style.text,
       )}
     >
       <span aria-hidden="true" className={cn("size-[0.4375rem] rounded-full", style.dot)} />
       {risk}
-      <span className="opacity-80">
-        <Icon name="chevron-down" size={12} />
-      </span>
-    </button>
+    </span>
   );
 }
 
@@ -59,9 +54,8 @@ export function RiskPill({ risk, href, label }: { risk: Risk; href: string; labe
   );
 }
 
-/** De onde vem a posição: Open Finance, cadastro manual ou via chat. */
+/** De onde vem a posição: Open Finance ou cadastro manual. */
 export function OriginInfo({ origin }: { origin: Origin }) {
-  const icon = origin.tipo === "open-finance" ? "link" : origin.tipo === "chat" ? "chat" : "user";
   return (
     <span className="inline-flex items-start gap-1.5 text-13 leading-[1.35] text-soft">
       {origin.tipo === "open-finance" ? (
@@ -69,7 +63,7 @@ export function OriginInfo({ origin }: { origin: Origin }) {
         <BankMark bank={origin.texto.split(" · ")[0] ?? origin.texto} size={16} className="mt-px" />
       ) : (
         <span className="mt-0.5">
-          <Icon name={icon} size={14} />
+          <Icon name="user" size={14} />
         </span>
       )}
       <span className="flex flex-col whitespace-nowrap">
@@ -80,13 +74,13 @@ export function OriginInfo({ origin }: { origin: Origin }) {
   );
 }
 
-/** Variação do dia com seta (▲ verde / ▼ urucum). */
-export function DayChange({
+/** Rentabilidade sobre o custo com seta (▲ verde / ▼ urucum). */
+export function ReturnChange({
   change,
   className,
   arrowClassName = "text-11",
 }: {
-  change: Position["hoje"];
+  change: Position["rentabilidade"];
   className?: string;
   arrowClassName?: string;
 }) {
@@ -107,25 +101,5 @@ export function DayChange({
       </span>
       {` ${change.valor}`}
     </span>
-  );
-}
-
-/** Seta de ordenação (ativa: para baixo em tucano). */
-export function SortArrows({ active, size = 14 }: { active: boolean; size?: number }) {
-  return (
-    <svg
-      width={`${size / 16}rem`}
-      height={`${size / 16}rem`}
-      viewBox="0 0 24 24"
-      fill="none"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className="block shrink-0"
-    >
-      <path d="M8 9l4-4 4 4" stroke={active ? "#93A198" : "#BDC6BE"} opacity={active ? 0.45 : 1} />
-      <path d="M16 15l-4 4-4-4" stroke={active ? "#F2C230" : "#BDC6BE"} />
-    </svg>
   );
 }

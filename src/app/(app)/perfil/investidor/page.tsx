@@ -9,7 +9,7 @@ import { Icon } from "@/components/ui/icon";
 import { Note } from "@/components/ui/note";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { GroupDetailsList, ProfileLevels } from "@/features/alocacao/components/allocation-parts";
-import { portfolioAllocation, profileById } from "@/features/alocacao/data";
+import { portfolioAllocation, profileById } from "@/features/alocacao/prototype";
 import {
   ProfileQuestionFields,
   QuestionContinue,

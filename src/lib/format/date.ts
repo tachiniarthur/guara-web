@@ -27,3 +27,8 @@ export function formatDate(value: DateInput | null | undefined, pattern = "dd/MM
 export function formatDateTime(value: DateInput | null | undefined): string {
   return formatDate(value, "dd/MM/yyyy HH:mm");
 }
+
+/** Hoje em São Paulo no formato da API ("2026-11-17"), para campos de data e o `max` deles. */
+export function todayInSaoPaulo(now: DateInput = new Date()): string {
+  return formatDate(now, "yyyy-MM-dd");
+}

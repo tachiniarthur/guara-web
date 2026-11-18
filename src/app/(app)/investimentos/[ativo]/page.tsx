@@ -1,13 +1,7 @@
-import { assets } from "@/features/ativo/data";
-
 import { AtivoScreen } from "./ativo-screen";
 
-export function generateStaticParams() {
-  return Object.keys(assets).map((ativo) => ({ ativo }));
-}
-
-/** Gerada no build para cada ativo (sem `searchParams`). */
+/** Página do ativo: o segmento é o id da posição (a tela busca tudo na API). */
 export default async function AtivoPage({ params }: PageProps<"/investimentos/[ativo]">) {
   const { ativo } = await params;
-  return <AtivoScreen ativo={ativo} />;
+  return <AtivoScreen id={ativo} />;
 }

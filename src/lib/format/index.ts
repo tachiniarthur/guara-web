@@ -1,3 +1,3 @@
 export { formatCurrency, formatMoney, formatReais, formatUsd } from "./currency";
-export { APP_TIME_ZONE, formatDate, formatDateTime } from "./date";
+export { APP_TIME_ZONE, formatDate, formatDateTime, todayInSaoPaulo } from "./date";
 export { EMPTY_VALUE, isNil } from "./empty";

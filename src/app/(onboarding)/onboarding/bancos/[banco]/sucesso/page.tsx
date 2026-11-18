@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { BankMark } from "@/components/ui/bank-mark";
 import { ButtonLink } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
@@ -8,7 +6,6 @@ import {
   bankFromSlug,
   MalvoShell,
   ResultIcon,
-  StatusNote,
 } from "@/features/onboarding/components/malvo-screens";
 
 export function generateStaticParams() {
@@ -96,13 +93,6 @@ export default async function SucessoBancoPage({ params }: { params: Promise<{ b
           </ul>
         </Panel>
       </div>
-      <StatusNote tone="tucano" icon="copy">
-        O Tesouro Selic 2029 do {bank.nome} também está no seu cadastro manual. Vamos perguntar em
-        Investimentos se você quer somar ou manter separado.{" "}
-        <Link href="/investimentos/duplicidade" className="font-bold text-sand">
-          Resolver agora
-        </Link>
-      </StatusNote>
       <div className="hidden items-center gap-2.5 md:flex">
         <ButtonLink href="/onboarding/bancos" variant="secondary" size="xl">
           <span>Conectar outro banco</span>

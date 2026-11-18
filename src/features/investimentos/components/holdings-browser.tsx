@@ -18,13 +18,21 @@ import { PillToggle } from "@/components/ui/pill-toggle";
 import { SearchField } from "@/components/ui/search-field";
 import { cn } from "@/lib/utils";
 
-import { holdingClasses, holdingsSummary, type Holding, type HoldingOrigin } from "../posicoes";
+import type { Holding, HoldingOrigin, HoldingsData } from "../posicoes";
 import { Collapse } from "@/components/ui/collapse";
 import { SlideCell, slideRowClass } from "@/components/ui/slide-cell";
 import { ClassBanner, classBannerClass, useClosedGroups } from "./position-cards";
-import { DayChange, RiskPill } from "./position-parts";
+import { ReturnChange, RiskPill } from "./position-parts";
 
 type Grouping = "lista" | "classe";
+type Sort = "valor" | "rentabilidade";
+
+const sorts: { value: Sort; label: string }[] = [
+  { value: "valor", label: "Maior valor" },
+  { value: "rentabilidade", label: "Maior rentabilidade" },
+];
+const byValue = (a: Holding, b: Holding) => b.valorCents - a.valorCents;
+const byReturn = (a: Holding, b: Holding) => (b.retorno ?? -Infinity) - (a.retorno ?? -Infinity);
 type OriginFilter = "todas" | HoldingOrigin;
 
 const origins: { value: OriginFilter; label: string }[] = [
@@ -38,7 +46,6 @@ const groupings = [
   { value: "classe", label: "Por classe" },
 ] as const;
 
-const assetHref = (h: Holding) => (h.slug ? `/investimentos/${h.slug}` : undefined);
 const riskHref = (h: Holding) => `/investimentos/posicoes?risco=${h.id}`;
 
 function AssetName({ holding: h, size }: { holding: Holding; size: "list" | "table" }) {
@@ -59,13 +66,10 @@ function AssetName({ holding: h, size }: { holding: Holding; size: "list" | "tab
     "flex flex-col text-sand no-underline",
     size === "list" ? "leading-[1.35]" : "leading-[1.3]",
   );
-  const href = assetHref(h);
-  return href ? (
-    <Link href={href} className={cn(className, "hover:underline")}>
+  return (
+    <Link href={h.href} className={cn(className, "hover:underline")}>
       {content}
     </Link>
-  ) : (
-    <span className={className}>{content}</span>
   );
 }
 
@@ -87,7 +91,7 @@ function HoldingRow({ holding: h }: { holding: Holding }) {
       <span className="flex shrink-0 flex-col items-end leading-[1.35]">
         <strong className="whitespace-nowrap tabular-nums">{h.total}</strong>
         <span className="text-12 text-mist">{h.percentual} da carteira</span>
-        <DayChange change={h.hoje} className="text-13" arrowClassName="text-10" />
+        <ReturnChange change={h.rentabilidade} className="text-13" arrowClassName="text-10" />
       </span>
     </li>
   );
@@ -113,7 +117,7 @@ function HoldingTableRow({ holding: h, open }: { holding: Holding; open: boolean
         {h.percentual}
       </SlideCell>
       <SlideCell open={open} className={cell}>
-        <DayChange change={h.hoje} className="text-13" arrowClassName="text-10" />
+        <ReturnChange change={h.rentabilidade} className="text-13" arrowClassName="text-10" />
       </SlideCell>
     </tr>
   );
@@ -125,7 +129,7 @@ const columns = [
   { label: "Origem", align: "center" },
   { label: "Total", align: "center" },
   { label: "% carteira", align: "center" },
-  { label: "Hoje", align: "center" },
+  { label: "Rentabilidade", align: "center" },
 ] as const;
 
 const noPositions = (
@@ -148,13 +152,19 @@ const noPositions = (
  * No vazio e no erro, o card inteiro (tablet e desktop) dá lugar ao aviso, com a mesma altura;
  * no celular, o aviso fica no lugar das listas.
  */
-export function HoldingsBrowser({ state }: { state?: ScreenState | null }) {
+export function HoldingsBrowser({
+  data,
+  state,
+}: {
+  data: HoldingsData;
+  state?: ScreenState | null;
+}) {
   const blocked = state === "vazio" || state === "erro";
-  if (!blocked) return <HoldingsCard state={state} />;
+  if (!blocked) return <HoldingsCard data={data} state={state} />;
   return (
     <>
       <div className="contents @tab:hidden">
-        <HoldingsCard state={state} />
+        <HoldingsCard data={data} state={state} />
       </div>
       <div className="hidden @tab:contents">
         <section className="flex min-w-0 flex-col rounded-card border border-line bg-card p-5.5 @desk:p-6">
@@ -162,7 +172,7 @@ export function HoldingsBrowser({ state }: { state?: ScreenState | null }) {
             replacement={state === "erro" ? <ErrorBlock /> : noPositions}
             className="grow gap-3.5"
           >
-            <HoldingsCard bare />
+            <HoldingsCard data={data} bare />
           </StateSwap>
         </section>
       </div>
@@ -171,16 +181,19 @@ export function HoldingsBrowser({ state }: { state?: ScreenState | null }) {
 }
 
 function HoldingsCard({
+  data,
   state,
   bare,
 }: {
+  data: HoldingsData;
   state?: ScreenState | null;
   /** Sem a moldura de card (quando o card fica por fora, no vazio e no erro). */
   bare?: boolean;
 }) {
   const [grouping, setGrouping] = useState<Grouping>("classe");
   const [origin, setOrigin] = useState<OriginFilter>("todas");
-  const [query, setQuery] = useState(state === "vazio-filtro" ? "Vale" : "");
+  const [sort, setSort] = useState<Sort>("valor");
+  const [query, setQuery] = useState("");
   const [closed, toggle] = useClosedGroups();
   const listId = useId();
   const failed = state === "erro";
@@ -191,10 +204,11 @@ function HoldingsCard({
     (origin === "todas" || h.tipoOrigem === origin) &&
     (!term || `${h.nome} ${h.descricao}`.toLowerCase().includes(term));
 
+  const order = sort === "valor" ? byValue : byReturn;
   const sections =
     grouping === "classe"
-      ? holdingClasses
-          .map((c) => ({ ...c, itens: c.itens.filter(matches) }))
+      ? data.classes
+          .map((c) => ({ ...c, itens: c.itens.filter(matches).sort(order) }))
           .filter((c) => c.itens.length > 0)
       : [
           {
@@ -202,10 +216,10 @@ function HoldingsCard({
             cor: "",
             total: "",
             percentual: "",
-            itens: holdingClasses
+            itens: data.classes
               .flatMap((c) => c.itens)
               .filter(matches)
-              .sort((a, b) => parseFloat(b.percentual) - parseFloat(a.percentual)),
+              .sort(order),
           },
         ];
   // Accordion por classe; buscando, todas ficam abertas (nenhum resultado fica escondido).
@@ -247,11 +261,23 @@ function HoldingsCard({
               value={grouping}
               onChange={setGrouping}
             />
-            <button type="button" className={dropdownPillClass}>
+            <label className={cn(dropdownPillClass, "relative")}>
               <Icon name="sort" size={16} />
-              Maior valor
+              <span className="sr-only">Ordenar por</span>
+              {sorts.find((o) => o.value === sort)?.label}
               <Icon name="chevron-down" size={14} />
-            </button>
+              <select
+                value={sort}
+                onChange={(event) => setSort(event.target.value as Sort)}
+                className="absolute inset-0 cursor-pointer opacity-0"
+              >
+                {sorts.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
           <div
             role="group"
@@ -351,7 +377,7 @@ function HoldingsCard({
       >
         <strong className="font-display text-17">Total da carteira</strong>
         <span className="font-display text-22 leading-[1.1] font-extrabold tracking-[-0.01em] text-sand tabular-nums">
-          {holdingsSummary.total}
+          {data.total}
         </span>
       </div>
     </section>

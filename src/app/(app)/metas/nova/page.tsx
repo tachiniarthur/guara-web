@@ -1,90 +1,108 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { GuaraTip } from "@/components/ui/guara-tip";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { DetailGrid } from "@/components/ui/detail-list";
-import { AmountInput, SelectInput, TextInput } from "@/components/ui/form";
-import { FormSection, LabeledField, SaveActions } from "@/components/ui/form-sections";
-import { Icon } from "@/components/ui/icon";
+import { DetailList } from "@/components/ui/detail-list";
+import { FormSection, SaveActions } from "@/components/ui/form-sections";
+import { Note } from "@/components/ui/note";
 import { Panel, PanelHeader } from "@/components/ui/panel";
-import { SwitchRow } from "@/components/ui/switch";
-import { Tag } from "@/components/ui/tag";
-import { LineChart } from "@/features/ativo/components/line-compare-chart";
-import { HowToSave } from "@/features/metas/components/how-to-save";
-import { genericSaveOptions, goalDraft as draft, ownSaveOptions } from "@/features/metas/data";
-import { cn } from "@/lib/utils";
+import { useSession } from "@/features/acesso/session";
+import {
+  GoalBasics,
+  GoalProgressFields,
+  goalErrorText,
+  goalPositionOptions,
+  useGoalFields,
+} from "@/features/metas/components/goal-form";
+import { isPlanLimit, useCreateGoal, useGoalPositions } from "@/features/metas/live";
+import { formatCurrency, todayInSaoPaulo } from "@/lib/format";
+import { parseMoneyInput } from "@/lib/money-input";
 
-const grid = "contents @tab:grid @tab:grid-cols-2 @tab:items-start @tab:gap-3.5 @desk:gap-4";
+/** Meses inteiros de hoje até a data (mínimo 1). */
+function monthsUntil(isoDay: string, today: string) {
+  const [y1, m1] = today.split("-").map(Number) as [number, number];
+  const [y2, m2] = isoDay.split("-").map(Number) as [number, number];
+  return Math.max(1, (y2 - y1) * 12 + (m2 - m1));
+}
 
-function Preview() {
-  const { previa } = draft;
+/** Conta simples, sem rendimento: o que falta dividido pelos meses (a API refina depois). */
+function Preview({
+  target,
+  currentCents,
+  date,
+}: {
+  target: string;
+  currentCents: number;
+  date: string;
+}) {
+  const targetCents = parseMoneyInput(target);
+  const ready = targetCents !== null && date >= todayInSaoPaulo();
+  const remaining = ready ? Math.max(0, targetCents - currentCents) : null;
+  const months = ready ? monthsUntil(date, todayInSaoPaulo()) : null;
   return (
     <Panel className="p-4 @tab:p-5.5 @desk:p-6">
       <PanelHeader
         title="Prévia"
-        subtitle="Com os depósitos e o rendimento estimado"
+        subtitle="Conta simples, sem rendimento"
         titleClassName="text-17 tracking-normal"
       />
-      <LineChart
-        lines={[
-          { nome: "Guardado com rendimento", cor: "#6CC08E", valores: previa.comRendimento },
+      <DetailList
+        items={[
+          { label: "Falta juntar", value: remaining === null ? "—" : formatCurrency(remaining) },
           {
-            nome: "Só os depósitos",
-            cor: "#93A198",
-            tracejada: true,
-            valores: previa.soDepositos,
+            label: "Prazo",
+            value: months === null ? "—" : months === 1 ? "1 mês" : `${months} meses`,
+          },
+          {
+            label: "Por mês, sem rendimento",
+            value:
+              remaining === null || months === null
+                ? "—"
+                : formatCurrency(Math.ceil(remaining / months)),
           },
         ]}
-        domain={[0, 32]}
-        ticks={[0, 15, 30]}
-        tickLabel={(v) => (v === 0 ? "0" : `${v} mil`)}
-        target={{ value: 30, label: "meta R$ 30.000", color: "#F2C230" }}
-        xLabels={previa.meses}
-        label={previa.rotulo}
-        width={340}
-        height={150}
       />
-      <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-12 text-mist">
-        <span className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="w-4.5 border-t-2 border-solid border-folha" />
-          Guardado com rendimento
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="w-4.5 border-t-2 border-dashed border-caption" />
-          Só os depósitos
-        </span>
-      </div>
-      <DetailGrid items={previa.resumo} />
+      <p className="m-0 text-13 leading-[1.55] text-caption">
+        Depois de criar, a meta mostra o aporte estimado com rendimento e inflação.
+      </p>
     </Panel>
   );
 }
 
-function Tracking({ className }: { className?: string }) {
-  return (
-    <Panel className={cn("gap-1 p-4 @tab:gap-1.5 @tab:p-5.5 @desk:p-6", className)}>
-      <PanelHeader title="Acompanhamento" titleClassName="text-17 tracking-normal @tab:text-20" />
-      <SwitchRow
-        id="meta-guara"
-        title="O Guará acompanha esta meta"
-        description="Avisa se o ritmo cair e comemora cada marco"
-        defaultChecked
-      />
-      <GuaraTip named className="hidden @tab:flex">
-        Combinado: guardo o ritmo da viagem com você e aviso em jan/27 quando chegar a 25%.
-      </GuaraTip>
-    </Panel>
-  );
-}
+/** Nova meta (`POST /v1/goals`). */
+export default function NovaMetaPage() {
+  const router = useRouter();
+  const { live } = useSession();
+  const positions = useGoalPositions({ enabled: live });
+  const create = useCreateGoal();
+  const f = useGoalFields();
+  const [invalid, setInvalid] = useState<string | null>(null);
+  const currentCents =
+    f.values.source === "manual"
+      ? (parseMoneyInput(f.values.current) ?? 0)
+      : (positions.data?.data ?? [])
+          .filter((p) => f.values.positionIds.includes(p.id))
+          .reduce((sum, p) => sum + (p.valueCents ?? 0), 0);
 
-/**
- * Nova meta (a partir da simulação "Juntar para um objetivo"). Quem ainda não tem aplicações
- * conectadas (`?estado=novo`) vê sugestões genéricas em "Onde guardar".
- */
-export default async function NovaMetaPage({ searchParams }: PageProps<"/metas/nova">) {
-  const suggested = (await searchParams).estado === "novo";
-  const options = suggested ? genericSaveOptions : ownSaveOptions();
+  function save() {
+    const result = f.read();
+    if ("error" in result) return setInvalid(result.error);
+    setInvalid(null);
+    create.mutate(result.body, { onSuccess: (goal) => router.replace(`/metas/${goal.id}`) });
+  }
+
+  const error =
+    invalid ??
+    (create.error
+      ? isPlanLimit(create.error)
+        ? "Metas fazem parte de outro plano. Veja os planos em Configurações."
+        : goalErrorText(create.error)
+      : null);
+
   return (
     <Page
       padding="form"
@@ -96,54 +114,33 @@ export default async function NovaMetaPage({ searchParams }: PageProps<"/metas/n
         className="hidden flex-wrap @tab:flex"
         items={[{ label: "Metas", href: "/metas" }, { label: "Nova meta" }]}
       />
-      <DetailHeader title="Transformar em meta" />
-      <div className="flex flex-wrap items-center justify-between gap-2.5">
-        <Tag tone="arara" status>
-          <Icon name="loader" size={14} strokeWidth={2} />
-          Da simulação · Juntar para um objetivo
-        </Tag>
-        <Link
-          href="/simulador/objetivo"
-          className="flex min-h-6 items-center text-14 font-bold whitespace-nowrap text-sand underline underline-offset-3"
-        >
-          Ver simulação
-        </Link>
-      </div>
-
-      <div className="flex flex-col gap-4.5 @tab:gap-5 @desk:grid @desk:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] @desk:items-stretch">
+      <DetailHeader title="Nova meta" />
+      <div className="flex flex-col gap-4.5 @tab:gap-5 @desk:grid @desk:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] @desk:items-start">
         <div className="contents @desk:flex @desk:min-w-0 @desk:flex-col @desk:gap-4">
           <FormSection title="A meta" className="@desk:gap-3.5">
-            <div className={grid}>
-              <LabeledField id="meta-nome" label="Nome da meta">
-                <TextInput id="meta-nome" defaultValue={draft.nome} />
-              </LabeledField>
-              <LabeledField id="meta-valor" label="Quanto custa" hint={draft.valorDica}>
-                <AmountInput
-                  id="meta-valor"
-                  defaultValue={draft.valor}
-                  className="h-16 rounded-tile text-28"
-                />
-              </LabeledField>
-              <LabeledField id="meta-prazo" label="Prazo">
-                <SelectInput id="meta-prazo" defaultValue={draft.prazo}>
-                  <option>{draft.prazo}</option>
-                </SelectInput>
-              </LabeledField>
-              <LabeledField id="meta-guardado" label="Já guardado" hint={draft.guardadoDica}>
-                <TextInput id="meta-guardado" defaultValue={draft.guardado} />
-              </LabeledField>
-            </div>
+            <GoalBasics fields={f} idPrefix="meta" />
           </FormSection>
-          <FormSection title="Como guardar" className="@desk:grow @desk:gap-3.5">
-            <HowToSave options={options} suggested={suggested} />
+          <FormSection title="Acompanhamento" className="@desk:gap-3.5">
+            <GoalProgressFields
+              fields={f}
+              idPrefix="meta"
+              positions={positions.data ? goalPositionOptions(positions.data.data) : undefined}
+            />
           </FormSection>
         </div>
-        <div className="flex flex-col gap-4.5 @tab:grid @tab:grid-cols-2 @tab:items-stretch @tab:gap-4 @desk:flex @desk:min-w-0 @desk:flex-col @desk:gap-4">
-          <Preview />
-          <Tracking className="@desk:grow" />
-        </div>
+        <Preview target={f.values.target} currentCents={currentCents} date={f.values.date} />
       </div>
-      <SaveActions label="Criar meta" href="/metas" cancelHref="/metas" />
+      {error && (
+        <Note icon="alert-triangle" tone="warning">
+          {error}
+        </Note>
+      )}
+      <SaveActions
+        label="Criar meta"
+        onSave={save}
+        pending={create.isPending}
+        cancelHref="/metas"
+      />
     </Page>
   );
 }

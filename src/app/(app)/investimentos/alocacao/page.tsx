@@ -2,80 +2,88 @@
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
-import { GuaraTip } from "@/components/ui/guara-tip";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { ButtonLink } from "@/components/ui/button";
-import { IconButtonLink } from "@/components/ui/icon-button";
-import { Panel, PanelHeader } from "@/components/ui/panel";
-import { MataCard } from "@/features/gastos/components/teto-cards";
-import {
-  donutSizes,
-  GroupDetailsList,
-  GroupLegend,
-  PortfolioVsTarget,
-} from "@/features/alocacao/components/allocation-parts";
-import {
-  AllocationStatTiles,
-  useAllocationStats,
-  OffTargetNote,
-  TargetGapList,
-} from "@/features/alocacao/components/allocation-summary";
-import type { GroupId } from "@/features/alocacao/data";
-import { AlocacaoDataProvider, usePortfolioAllocation } from "@/features/alocacao/context";
-import { portfolioAllocation as prototypeAllocation } from "@/features/alocacao/data";
-import { useSession } from "@/features/acesso/session";
-import { useInvestimentosView } from "@/features/investimentos/live";
 import { LoadingStatus } from "@/components/states/skeleton";
 import { ErrorBlock } from "@/components/states/state-block";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { ButtonLink, buttonVariants } from "@/components/ui/button";
+import { GuaraTip } from "@/components/ui/guara-tip";
+import { IconButtonLink } from "@/components/ui/icon-button";
+import { Panel, PanelHeader } from "@/components/ui/panel";
+import { useSession } from "@/features/acesso/session";
+import {
+  AllocationTiles,
+  AllocationVsTarget,
+  ClassBarHeading,
+  ClassBarList,
+  ClassGapList,
+  ClassLegend,
+  ClassMessages,
+  OffTargetSummary,
+} from "@/features/alocacao/components/class-allocation";
+import { donutSizes } from "@/features/alocacao/components/donut";
+import { useAllocation, type PortfolioAllocation } from "@/features/alocacao/live";
+import { OpenChat } from "@/features/conversas/components/open-chat";
+import { MataCard } from "@/features/gastos/components/teto-cards";
+import { useHoldings } from "@/features/investimentos/posicoes";
 import { cn } from "@/lib/utils";
 
 const headTitle = "text-18 tracking-normal";
 
-function VersusPanel({ compact }: { compact?: boolean }) {
+type Props = { allocation: PortfolioAllocation; ativos: number };
+
+function VersusPanel({ allocation, ativos, compact }: Props & { compact?: boolean }) {
   return (
     <Panel className={compact ? "p-4.5" : "p-5.5"}>
       <PanelHeader
-        title="Sua carteira × alvo"
-        subtitle="Bens (imóvel e veículo) não entram na conta"
+        title={allocation.perfil ? "Sua carteira × alvo" : "Sua carteira"}
+        subtitle="Imóveis e veículos não entram na conta"
         titleClassName={headTitle}
       />
-      <PortfolioVsTarget dims={compact ? donutSizes.sm : donutSizes.md} />
-      <GroupLegend />
+      <AllocationVsTarget
+        allocation={allocation}
+        ativos={ativos}
+        dims={compact ? donutSizes.sm : donutSizes.md}
+      />
+      <ClassLegend classes={allocation.classes} />
     </Panel>
   );
 }
 
-function GroupsPanel({
-  layout,
-  openGroup,
+function ClassesPanel({
+  allocation,
   compact,
 }: {
-  layout: "wide" | "compact";
-  openGroup: GroupId | GroupId[] | "all";
+  allocation: PortfolioAllocation;
   compact?: boolean;
 }) {
   return (
     <Panel className={cn("gap-2", compact ? "p-4.5" : "p-5.5")}>
-      <PanelHeader
-        title="Grupo por grupo"
-        subtitle="Toque num grupo para ver as subclasses · a marca branca é o alvo"
-        titleClassName={headTitle}
-      />
-      <GroupDetailsList layout={layout} openGroup={openGroup} />
+      <ClassBarHeading withTarget={Boolean(allocation.perfil)} />
+      <ClassBarList allocation={allocation} stacked={compact} />
+      <ClassMessages allocation={allocation} />
     </Panel>
   );
 }
 
-function GapPanel({ layout, className }: { layout: "stacked" | "side"; className?: string }) {
-  const portfolioAllocation = usePortfolioAllocation();
+function GapPanel({
+  allocation,
+  layout,
+  className,
+}: {
+  allocation: PortfolioAllocation;
+  layout: "stacked" | "side";
+  className?: string;
+}) {
+  // Sem perfil não há alvo: não há distância para mostrar.
+  if (!allocation.perfil) return null;
   return (
     <Panel className={cn("p-5.5", className)}>
       <PanelHeader
         title="Quanto falta para o alvo"
-        subtitle={`Em reais, sobre ${portfolioAllocation.total} investidos`}
+        subtitle={`Em reais, sobre ${allocation.total} investidos`}
         titleClassName={headTitle}
       />
-      <TargetGapList layout={layout} />
+      <ClassGapList allocation={allocation} layout={layout} />
       <p className="m-0 text-13 leading-[1.55] text-caption">
         É só a distância até o alvo. O Guará não compra nem vende nada; você decide se e como
         ajustar.
@@ -84,48 +92,48 @@ function GapPanel({ layout, className }: { layout: "stacked" | "side"; className
   );
 }
 
-function GuaraAllocationTip({ className, chatHref }: { className?: string; chatHref: string }) {
+/** Atalho para conversar sobre a carteira (só com perfil: sem alvo, não há o que comparar). */
+function ChatTip({
+  allocation,
+  className,
+}: {
+  allocation: PortfolioAllocation;
+  className?: string;
+}) {
+  if (!allocation.perfil) return null;
   return (
     <GuaraTip
       named
       className={className}
       action={
-        <ButtonLink href={chatHref} variant="secondary" size="sm">
+        <OpenChat
+          question="Como está minha carteira em relação ao meu perfil?"
+          className={buttonVariants({ variant: "secondary", size: "sm" })}
+        >
           <span>Conversar com o Guará</span>
-        </ButtonLink>
+        </OpenChat>
       }
     >
-      Dá para chegar mais perto do alvo sem vender nada: se os próximos aportes forem para renda
-      fixa internacional e renda variável internacional, a parte de renda variável Brasil vai
-      diminuindo. Quer que eu simule com R$ 1.500 por mês?
+      Quer entender a diferença entre a sua carteira e o alvo do perfil {allocation.perfil.nome}?
+      Posso explicar classe por classe, com os seus números.
     </GuaraTip>
   );
 }
 
-/** Alocação: com login, a carteira da API nos 5 grupos do design; no protótipo, a de exemplo. */
+/** Alocação: a carteira nas quatro classes da API contra o alvo do perfil de investidor. */
 export default function AlocacaoPage() {
   const { live } = useSession();
-  const real = useInvestimentosView({ enabled: live });
-  if (live && !real.data) {
-    return (
-      <Page
-        padding="detail"
-        header={<MobileHeader title="Alocação" back="/investimentos" balanced />}
-      >
-        {real.error ? <ErrorBlock /> : <LoadingStatus />}
-      </Page>
-    );
-  }
-  return (
-    <AlocacaoDataProvider value={real.data?.portfolioAllocation ?? prototypeAllocation}>
-      <AlocacaoContent />
-    </AlocacaoDataProvider>
-  );
-}
+  const allocation = useAllocation({ enabled: live });
+  const holdings = useHoldings({ enabled: live });
+  const data = allocation.data;
+  const failed = !live || allocation.error || holdings.error;
+  const perfil = data?.perfil;
+  const ativos = holdings.data?.quantidade ?? 0;
+  const unvalued =
+    data && data.semValor > 0
+      ? `${data.semValor === 1 ? "1 posição sem valor ficou" : `${data.semValor} posições sem valor ficaram`} de fora da conta.`
+      : null;
 
-function AlocacaoContent() {
-  const portfolioAllocation = usePortfolioAllocation();
-  const stats = useAllocationStats();
   return (
     <Page
       padding="detail"
@@ -133,9 +141,15 @@ function AlocacaoContent() {
       header={
         <MobileHeader
           title="Alocação"
-          subtitle={`Perfil ${stats.perfil}`}
+          subtitle={perfil ? `Perfil ${perfil.nome}` : "Sem perfil definido"}
           back="/investimentos"
-          actions={<IconButtonLink href="/perfil/investidor" icon="user" label="Mudar perfil" />}
+          actions={
+            <IconButtonLink
+              href="/perfil/investidor"
+              icon="user"
+              label={perfil ? "Mudar perfil" : "Definir perfil"}
+            />
+          }
         />
       }
     >
@@ -145,7 +159,11 @@ function AlocacaoContent() {
       />
       <DetailHeader
         title="Alocação"
-        subtitle={`Carteira-alvo do perfil ${stats.perfil} em 5 grupos`}
+        subtitle={
+          perfil
+            ? `Carteira-alvo do perfil ${perfil.nome} em 4 classes`
+            : "Sua carteira em 4 classes"
+        }
         actions={
           <>
             <ButtonLink
@@ -153,70 +171,85 @@ function AlocacaoContent() {
               variant="secondary"
               className="text-15"
             >
-              <span>Comparar os 4 perfis</span>
+              <span>Comparar os perfis</span>
             </ButtonLink>
             <ButtonLink href="/perfil/investidor" variant="ghost" className="text-15">
-              <span>Mudar perfil</span>
+              <span>{perfil ? "Mudar perfil" : "Definir perfil"}</span>
             </ButtonLink>
           </>
         }
       />
 
-      {/* Celular */}
-      <div className="flex flex-col gap-4 @tab:hidden">
-        <MataCard>
-          <span className="text-14 text-[#C5D8CB]">
-            Perfil {stats.perfil} · {portfolioAllocation.total} investidos
-          </span>
-          <span className="font-display text-30 leading-[1.1] font-extrabold tracking-[-0.01em] tabular-nums">
-            {stats.fora}
-            <span className="text-16 font-medium text-mist"> fora do alvo</span>
-          </span>
-          {stats.maior && (
-            <span className="text-14 text-[#E4EEE6]">
-              Maior diferença:{" "}
-              <strong className="text-white">
-                {stats.maior.grupo}, {stats.maior.diff}
-              </strong>
-            </span>
-          )}
-        </MataCard>
-        <OffTargetNote />
-        <VersusPanel compact />
-        <GroupsPanel layout="compact" openGroup="rv-br" compact />
-        <GapPanel layout="stacked" />
-        <GuaraAllocationTip chatHref="/conversas" />
-        <ButtonLink href="/investimentos/alocacao/perfis" variant="secondary" size="lg" block>
-          <span>Comparar os 4 perfis</span>
-        </ButtonLink>
-      </div>
-
-      {/* Tablet */}
-      <div className="hidden flex-col gap-5 @tab:flex @desk:hidden">
-        <AllocationStatTiles />
-        <OffTargetNote />
-        <div className="grid grid-cols-2 items-stretch gap-4">
-          <div className="flex min-w-0 flex-col gap-5">
-            <VersusPanel />
-            <GuaraAllocationTip className="grow" chatHref="/conversas" />
+      {failed ? (
+        <ErrorBlock />
+      ) : !data || !holdings.data ? (
+        <LoadingStatus />
+      ) : (
+        <>
+          {/* Celular */}
+          <div className="flex flex-col gap-4 @tab:hidden">
+            <MataCard>
+              <span className="text-14 text-[#C5D8CB]">
+                {perfil ? `Perfil ${perfil.nome}` : "Sem perfil"} · {data.total} investidos
+              </span>
+              {perfil ? (
+                <span className="font-display text-30 leading-[1.1] font-extrabold tracking-[-0.01em] tabular-nums">
+                  {data.foraDoAlvo.length} de {data.classes.length}
+                  <span className="text-16 font-medium text-mist"> fora do alvo</span>
+                </span>
+              ) : (
+                <span className="text-16 text-[#E4EEE6]">
+                  Responda o perfil de investidor para comparar com um alvo.
+                </span>
+              )}
+            </MataCard>
+            <OffTargetSummary allocation={data} />
+            {unvalued && <p className="m-0 text-13 text-caption">{unvalued}</p>}
+            <VersusPanel allocation={data} ativos={ativos} compact />
+            <ClassesPanel allocation={data} compact />
+            <GapPanel allocation={data} layout="stacked" />
+            <ChatTip allocation={data} />
           </div>
-          <GapPanel layout="stacked" />
-        </div>
-        <GroupsPanel layout="wide" openGroup={["rf-br", "rf-int", "rv-br"]} />
-      </div>
 
-      {/* Desktop */}
-      <div className="hidden flex-col gap-6 @desk:flex">
-        <AllocationStatTiles large />
-        <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-stretch gap-5">
-          <GroupsPanel layout="wide" openGroup="all" />
-          <div className="flex min-w-0 flex-col gap-5">
-            <VersusPanel />
-            <GuaraAllocationTip chatHref="/conversas" />
-            <GapPanel layout="side" className="grow" />
+          {/* Tablet */}
+          <div className="hidden flex-col gap-5 @tab:flex @desk:hidden">
+            <AllocationTiles allocation={data} ativos={ativos} />
+            <OffTargetSummary allocation={data} />
+            {unvalued && <p className="m-0 text-13 text-caption">{unvalued}</p>}
+            <div className="grid grid-cols-2 items-stretch gap-4">
+              <div className="flex min-w-0 flex-col gap-5">
+                <VersusPanel allocation={data} ativos={ativos} />
+                <ChatTip allocation={data} className="grow" />
+              </div>
+              <GapPanel allocation={data} layout="stacked" />
+            </div>
+            <ClassesPanel allocation={data} />
           </div>
-        </div>
-      </div>
+
+          {/* Desktop */}
+          <div className="hidden flex-col gap-6 @desk:flex">
+            <AllocationTiles allocation={data} ativos={ativos} large />
+            {unvalued && <p className="m-0 text-13 text-caption">{unvalued}</p>}
+            <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-stretch gap-5">
+              <ClassesPanel allocation={data} />
+              <div className="flex min-w-0 flex-col gap-5">
+                <VersusPanel allocation={data} ativos={ativos} />
+                <ChatTip allocation={data} />
+                <GapPanel allocation={data} layout="side" className="grow" />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      <ButtonLink
+        href="/investimentos/alocacao/perfis"
+        variant="secondary"
+        size="lg"
+        block
+        className="@tab:hidden"
+      >
+        <span>Comparar os perfis</span>
+      </ButtonLink>
     </Page>
   );
 }

@@ -9,8 +9,8 @@ import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 import { useInvestimentosData } from "../context";
-import type { Position } from "../data";
-import { DayChange, OriginInfo, RiskBadge } from "./position-parts";
+import type { Position } from "../types";
+import { OriginInfo, ReturnChange, RiskBadge } from "./position-parts";
 
 function Detail({
   label,
@@ -136,12 +136,9 @@ export function useClosedGroups() {
 }
 
 /** Posição em card expansível: valor e variação no resumo; classe, risco e origem ao abrir. */
-function PositionCard({ position: p, open }: { position: Position; open?: boolean }) {
+function PositionCard({ position: p }: { position: Position }) {
   return (
-    <details
-      open={open}
-      className="group overflow-hidden rounded-[1.125rem] border border-line bg-field"
-    >
+    <details className="group overflow-hidden rounded-[1.125rem] border border-line bg-field">
       <summary className="flex min-h-[4.5rem] cursor-pointer list-none items-center gap-3 px-4 py-3.5 [&::-webkit-details-marker]:hidden">
         <span className="flex min-w-0 grow flex-col leading-[1.35]">
           <strong className="text-16">{p.nome}</strong>
@@ -154,7 +151,7 @@ function PositionCard({ position: p, open }: { position: Position; open?: boolea
               {p.totalOriginal}
             </span>
           )}
-          <DayChange change={p.hoje} className="text-14" />
+          <ReturnChange change={p.rentabilidade} className="text-14" />
         </span>
         <span aria-hidden="true" className="text-mist group-open:rotate-180">
           <Icon name="chevron-down" size={18} />
@@ -181,7 +178,7 @@ function PositionCard({ position: p, open }: { position: Position; open?: boolea
         <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
           <OriginInfo origin={p.origem} />
           <Link
-            href={`/investimentos/${p.slug}`}
+            href={p.href}
             className="inline-flex h-10 items-center gap-1.5 rounded-full bg-sand px-3.5 text-14 font-bold whitespace-nowrap text-canvas no-underline"
           >
             Abrir ativo
@@ -220,7 +217,7 @@ export function PositionCards({ columns }: { columns: 1 | 2 }) {
                 )}
               >
                 {group.posicoes.map((p) => (
-                  <PositionCard key={p.id} position={p} open={p.id === "petr4"} />
+                  <PositionCard key={p.id} position={p} />
                 ))}
               </div>
             </Collapse>
@@ -241,8 +238,8 @@ export function PositionCards({ columns }: { columns: 1 | 2 }) {
         </span>
       </div>
       <p className="m-0 text-13 leading-normal text-mist">
-        Toque numa posição para ver classe, instrumento, risco, quantidade e preço médio. O risco
-        vem do cadastro do ativo (volatilidade, crédito e liquidez) e pode ser ajustado.
+        Toque numa posição para ver classe, instrumento, risco, quantidade e preço médio. O risco é
+        o padrão do tipo de investimento e pode ser mudado na página da posição.
       </p>
     </>
   );

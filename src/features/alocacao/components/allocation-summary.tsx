@@ -14,7 +14,7 @@ import {
   offTargetGroups,
   profileById,
   type ProfileId,
-} from "../data";
+} from "../prototype";
 import { usePortfolioAllocation } from "../context";
 import { GroupSwatch } from "./allocation-parts";
 

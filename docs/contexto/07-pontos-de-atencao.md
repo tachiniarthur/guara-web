@@ -6,15 +6,17 @@
    Investimentos, Simulador, Metas, Relatórios, Alertas) leem a API com login. **Início, Gastos (lista, lançamento,
    categoria, projeção), Assinaturas e o chat não têm mais dados de exemplo (17/11/2026)**: sem as variáveis ou com a API
    fora, mostram o estado de erro; carregando, os cards guardam o lugar com "—" (`EMPTY_GASTOS`, `EMPTY_LANCAMENTOS`,
-   `LOADING_SUMMARY`…). Ainda com dados de exemplo: bens, página do ativo, metas/[id] e nova, notificações, editar
-   alertas/tetos e as telas de tetos (`features/gastos/prototype.ts`, só para Alertas). Antes de mexer, confirme se a tela
+   `LOADING_SUMMARY`…). **Investimentos e Metas (com as telas filhas) também são só API desde 17/11/2026.** Ainda com
+   dados de exemplo: notificações, editar alertas/tetos, as telas de tetos (`features/gastos/prototype.ts`, só para
+   Alertas) e o questionário de perfil (onboarding e `/perfil/investidor`, `features/alocacao/prototype.ts`: não grava
+   o perfil na API). Antes de mexer, confirme se a tela
    usa `live`/context ou `data.ts`.
 2. **Dependências instaladas e não usadas** (0 imports em `src/`): `react-hook-form`, `@hookform/resolvers`, `recharts`,
    `lucide-react`, `shadcn` (só o CSS `shadcn/tailwind.css` é importado); `d3-geo`/`topojson-client`/`world-atlas` só servem ao
    script `scripts/generate-globe-dots.mjs`. `tw-animate-css` é importado só no CSS. `components.json` (shadcn, `base-nova`) existe,
    mas `components/ui` é **todo próprio**; o README ainda diz "reservada para o shadcn". Não presumir essas libs.
 3. **Duas formas de usar o mesmo dado**: `data.ts` × `live.ts` com Context. Telas de edição/criação costumam ser protótipo mesmo
-   quando a listagem é real (ex.: tetos, metas, alertas editar).
+   quando a listagem é real (ex.: tetos, alertas editar). Metas, bens e posições já criam, corrigem e excluem pela API.
 4. **Assistente único (16/11/2026)**: Web e API têm só o Lobo Guará. Na API saíram o catálogo de assistentes, o
    encaminhamento (`call_assistant`), a `@menção`, `GET /v1/chat/assistants`, `PUT /v1/me/plan/assistants`, `assistants` e
    `limits.specialists` do plano e `assistant`/`calledBy` das mensagens (migração `0040_single_assistant`). O SSE não tem mais
@@ -32,9 +34,9 @@
    com `buildView`. Percentuais vêm como string (`apiPercent`). O layout continua sem chamar `DELETE` (grava o padrão).
 9. **Layout editor**: largura editável, altura não (decisão de 17/11/2026; o app mobile ainda edita a altura); campo novo no bloco salvo → publicar API antes (`strictObject`, 422).
 10. **Rotas estáticas**: ler `searchParams` em `page.tsx` torna a rota dinâmica e piora a navegação (ver `docs/performance.md`);
-    estados do protótipo (`?estado=`, hoje só Investimentos, Metas, Relatório e Alertas) passam pelo `proxy.ts` + `/previa`.
-    `generateStaticParams` usa ids do protótipo nas telas que ainda têm; `conversas/[id]`, `assinaturas/[id]` e as de
-    Gastos são dinâmicas.
+    estados do protótipo (`?estado=`, hoje só Relatório e Alertas) passam pelo `proxy.ts` + `/previa`.
+    `generateStaticParams` usa ids do protótipo nas telas que ainda têm; `conversas/[id]`, `assinaturas/[id]`, as de
+    Gastos, a página do ativo, o bem e a meta são dinâmicas (id = uuid da API).
 11. **API de teste dorme**: login espera até 60 s; plano tem 6 retries; primeiro load pode demorar.
 12. **Plano**: `POST /me/plan` só funciona onde `ALLOW_PLAN_SELF_SERVICE=true`; em produção a API recusa (cobrança ainda inexistente).
 13. **Nomes**: README do Web cita `api/` e `mobile/` ao lado; hoje a pasta é `guara-api/`. `CLAUDE.md` cita `apps/mobile`, que não existe aqui.

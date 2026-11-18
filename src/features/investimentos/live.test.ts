@@ -114,7 +114,61 @@ const responses = {
     ],
   },
   alerts: { data: [] },
-  profile: { profile: { profile: "moderate", createdAt: "2026-10-01T12:00:00Z" } },
+  profile: {
+    profile: {
+      profile: "moderate",
+      label: "Moderado",
+      targetAllocation: [],
+      createdAt: "2026-10-01T12:00:00Z",
+    },
+  },
+  allocation: {
+    profile: "moderate",
+    investedCents: 2_200_000,
+    unvaluedPositions: 0,
+    items: [
+      {
+        assetClass: "fixed_income",
+        label: "Renda fixa",
+        valueCents: 1_100_000,
+        currentPct: 50,
+        targetPct: 40,
+        differencePp: 10,
+        status: "above",
+        message: "Renda fixa está 10,0 p.p. acima do alvo do seu perfil.",
+      },
+      {
+        assetClass: "equities",
+        label: "Renda variável",
+        valueCents: 700_000,
+        currentPct: 31.82,
+        targetPct: 35,
+        differencePp: -3.18,
+        status: "below",
+        message: "Renda variável está 3,2 p.p. abaixo do alvo do seu perfil.",
+      },
+      {
+        assetClass: "real_estate",
+        label: "Imobiliário",
+        valueCents: 400_000,
+        currentPct: 18.18,
+        targetPct: 15,
+        differencePp: 3.18,
+        status: "above",
+        message: "Imobiliário está 3,2 p.p. acima do alvo do seu perfil.",
+      },
+      {
+        assetClass: "alternatives",
+        label: "Alternativos",
+        valueCents: 0,
+        currentPct: 0,
+        targetPct: 10,
+        differencePp: -10,
+        status: "below",
+        message: "Alternativos está 10,0 p.p. abaixo do alvo do seu perfil.",
+      },
+    ],
+  },
   dashboard: { netWorth: { data: { investmentsMonthChangeCents: 100_000 } } },
 } as unknown as InvestimentosResponses;
 
@@ -129,19 +183,53 @@ describe("Investimentos com os dados da API", () => {
     expect(view.portfolio.stats.map((s) => s.valor)).toEqual(["+12,4%", "R$ 11.000", "—"]);
   });
 
-  it("alocação nos 5 grupos do design, pelo instrumento e pelo país", () => {
-    expect(view.portfolioAllocation.perfil).toBe("moderado");
-    expect(view.portfolioAllocation.atual).toEqual({
-      "rf-br": 50,
-      "rf-int": 0,
-      "rv-br": 18.2,
-      "rv-int": 31.8,
-      cripto: 0,
-    });
+  it("alocação nas classes da API, contra o alvo do perfil, e exposição por país", () => {
+    expect(view.alocacao.perfil).toMatchObject({ kind: "moderate", nome: "Moderado" });
+    expect(view.alocacao.classes.map((c) => [c.nome, c.atual, c.alvo])).toEqual([
+      ["Renda fixa", 50, 40],
+      ["Renda variável", 31.82, 35],
+      ["Imobiliário", 18.18, 15],
+      ["Alternativos", 0, 10],
+    ]);
+    // Fora do alvo, da maior diferença para a menor; a distância em reais segue o alvo.
+    expect(view.alocacao.foraDoAlvo.map((c) => c.nome)).toEqual([
+      "Renda fixa",
+      "Alternativos",
+      "Renda variável",
+      "Imobiliário",
+    ]);
+    expect(view.alocacao.classes[0]!.distanciaCents).toBe(220_000);
     expect(view.countryExposure.map((c) => [c.pais, c.percentual])).toEqual([
       ["Brasil", 68],
       ["Estados Unidos", 32],
     ]);
+    expect(view.countryExposure[0]!.detalhe).toMatch(/^\d+ posições?: /);
+  });
+
+  it("sem perfil respondido: sem alvo e sem classes fora do alvo", () => {
+    const noProfile = plain(
+      toInvestimentosView(
+        {
+          ...responses,
+          profile: { profile: null },
+          allocation: {
+            ...responses.allocation,
+            profile: null,
+            items: responses.allocation.items.map((item) => ({
+              ...item,
+              targetPct: null,
+              differencePp: null,
+              status: null,
+              message: null,
+            })),
+          },
+        },
+        now,
+      ),
+    );
+    expect(noProfile.alocacao.perfil).toBeNull();
+    expect(noProfile.alocacao.foraDoAlvo).toEqual([]);
+    expect(noProfile.alocacao.classes[0]).toMatchObject({ alvo: null, distanciaCents: null });
   });
 
   it("posições por classe, variação vazia como travessão e bens", () => {
@@ -151,7 +239,7 @@ describe("Investimentos com os dados da API", () => {
       "Imobiliário",
     ]);
     const fii = view.positionGroups[2]!.posicoes[0]!;
-    expect(fii).toMatchObject({ nome: "HGLG11", quantidade: "2", hoje: { valor: "—" } });
+    expect(fii).toMatchObject({ nome: "HGLG11", quantidade: "2", rentabilidade: { valor: "—" } });
     expect(view.otherAssets[0]).toMatchObject({
       nome: "Apartamento",
       extra: "Saldo devedor R$ 200.000",
