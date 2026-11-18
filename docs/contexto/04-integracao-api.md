@@ -55,31 +55,33 @@ subscription_required, rate_limited, invalid_credentials, cpf_*, internal, unava
 
 ## Endpoints que o Web consome (confirmados por grep em `src/`)
 
-| Endpoint                                                                                                                 | Quem chama                         | Para quê                                                          |
-| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------- | ----------------------------------------------------------------- |
-| `POST /v1/auth/email-status` · `POST /v1/auth/login`                                                                     | `acesso/auth.ts`                   | cadastro/entrada                                                  |
-| `GET/PATCH /v1/me` · `PUT /v1/me/cpf`                                                                                    | `perfil/api.ts`, `usuario/live`    | nome, celular, CPF mascarado                                      |
-| `GET/POST /v1/me/plan` · `PUT /v1/me/plan/billing-period`                                                                | `perfil/api.ts`, onboarding        | plano e uso                                                       |
-| `GET /v1/accounts`                                                                                                       | usuario, gastos, ledger            | contas/bancos conectados                                          |
-| `GET /v1/notifications/unread-count` · `GET /v1/notifications?limit=20`                                                  | usuario, alertas                   | não lidas; avisos                                                 |
-| `GET /v1/dashboard`                                                                                                      | inicio, investimentos              | agregados do painel (blocos com `data`/`reason`)                  |
-| `GET /v1/insights/spending[?month]` · `/daily` · `/monthly?months=N` · `/categories/:id`                                 | gastos, inicio, metas, tetos       | gráficos de gasto                                                 |
-| `GET /v1/budgets/summary`                                                                                                | gastos, tetos, alertas, inicio     | tetos: `items[{budget,spentCents,usedPct,projectedCents,status}]` |
-| `GET /v1/transactions` (`from,to,limit,cursor`) · `GET /v1/transactions/:id`                                             | gastos, lancamentos                | lançamentos (cursor, 100/pág)                                     |
-| `GET /v1/anomalies?status=pending` · `GET /v1/anomalies`                                                                 | gastos, ledger                     | compras fora do padrão                                            |
-| `GET /v1/categories`                                                                                                     | gastos, inicio, ledger             | categorias (cache 30 min)                                         |
-| `GET /v1/subscriptions?status=active`                                                                                    | inicio                             | assinaturas ativas                                                |
-| `GET/POST /v1/goals` · `GET/PATCH/DELETE /v1/goals/:id`                                                                  | inicio, metas                      | metas + progresso; criar, corrigir, excluir (403 = fora do plano) |
-| `GET /v1/investments/summary·evolution?period=12m·allocation·positions?groupBy=class` · `POST /v1/investments/positions` | investimentos, inicio, metas, form | carteira; criar posição                                           |
-| `GET/PATCH/DELETE /v1/investments/positions/:id` · `POST …/:id/movements`                                                | ativo, posicoes                    | página do ativo; corrigir, risco, aporte/resgate, remover         |
-| `GET /v1/market/assets/:symbol` · `/history?range=` (plano: `ASSET_PAGE`)                                                | ativo                              | cotação, desempenho, proventos, histórico                         |
-| `GET /v1/investor-profile` · `/v1/investor-profile/questionnaire`                                                        | alocacao, perfis, investimentos    | perfil salvo e carteira-alvo de cada perfil                       |
-| `GET/POST /v1/belongings` · `GET/PATCH/DELETE /v1/belongings/:id`                                                        | investimentos, bens                | imóveis e veículos                                                |
-| `GET /v1/belongings` · `GET /v1/investor-profile`                                                                        | investimentos                      | bens; perfil (alvo da alocação)                                   |
-| `GET/POST /v1/price-alerts` · `GET /v1/price-alerts/:id`                                                                 | alertas, investimentos             | alertas de preço                                                  |
-| `GET /v1/market/assets?q=` · `/assets/:symbol/quote?mic=` · `/assets/:symbol/history?range=1mo`                          | mercado, alertas                   | cotações                                                          |
-| `GET/PUT /v1/me/layouts/:screen`                                                                                         | `layout/use-screen-layout`         | layout de `home`/`spending`                                       |
-| `GET /v1/health`                                                                                                         | session                            | acordar a API                                                     |
+| Endpoint                                                                                                                 | Quem chama                             | Para quê                                                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `POST /v1/auth/email-status` · `POST /v1/auth/login`                                                                     | `acesso/auth.ts`                       | cadastro/entrada                                                                                                  |
+| `GET/PATCH /v1/me` · `PUT /v1/me/cpf`                                                                                    | `perfil/api.ts`, `usuario/live`        | nome, celular, CPF mascarado                                                                                      |
+| `GET/POST /v1/me/plan` · `PUT /v1/me/plan/billing-period`                                                                | `perfil/api.ts`, onboarding            | plano e uso                                                                                                       |
+| `GET /v1/accounts`                                                                                                       | usuario, gastos, ledger                | contas/bancos conectados                                                                                          |
+| `GET /v1/notifications/unread-count` · `GET /v1/notifications?limit=20`                                                  | usuario, alertas                       | não lidas; avisos                                                                                                 |
+| `GET /v1/dashboard`                                                                                                      | inicio, investimentos                  | agregados do painel (blocos com `data`/`reason`)                                                                  |
+| `GET /v1/insights/spending[?month]` · `/daily` · `/monthly?months=N` · `/categories/:id`                                 | gastos, inicio, metas, tetos           | gráficos de gasto                                                                                                 |
+| `GET /v1/budgets/summary`                                                                                                | gastos, tetos, alertas, inicio         | tetos: `items[{budget,spentCents,usedPct,projectedCents,status}]`                                                 |
+| `GET /v1/transactions` (`from,to,limit,cursor`) · `GET /v1/transactions/:id`                                             | gastos, lancamentos                    | lançamentos (cursor, 100/pág)                                                                                     |
+| `GET /v1/anomalies?status=pending` · `GET /v1/anomalies`                                                                 | gastos, ledger                         | compras fora do padrão                                                                                            |
+| `GET /v1/categories`                                                                                                     | gastos, inicio, ledger                 | categorias (cache 30 min)                                                                                         |
+| `GET /v1/subscriptions?status=active`                                                                                    | inicio                                 | assinaturas ativas                                                                                                |
+| `GET/POST /v1/goals` · `GET/PATCH/DELETE /v1/goals/:id`                                                                  | inicio, metas                          | metas + progresso; criar, corrigir, excluir (403 `plan_limit_reached` com `details.limit`: 2/4/8 metas por plano) |
+| `GET /v1/investments/summary·evolution?period=12m·allocation·positions?groupBy=class` · `POST /v1/investments/positions` | investimentos, inicio, metas, form     | carteira; criar posição                                                                                           |
+| `GET/PATCH/DELETE /v1/investments/positions/:id` · `POST …/:id/movements`                                                | ativo, posicoes                        | página do ativo; corrigir, risco, aporte/resgate, remover                                                         |
+| `GET /v1/market/assets/:symbol` · `/history?range=` (plano: `ASSET_PAGE`)                                                | ativo                                  | cotação, desempenho, proventos, histórico                                                                         |
+| `GET /v1/investor-profile` · `/v1/investor-profile/questionnaire`                                                        | alocacao, perfis, investimentos        | perfil salvo e carteira-alvo de cada perfil                                                                       |
+| `POST /v1/investor-profile/preview` · `POST /v1/investor-profile` (`chosenProfile` + `acceptedChangeTerm`)               | onboarding, perfil/investidor          | perfil calculado sem gravar; gravar (ou escolher outro com termo)                                                 |
+| `GET /v1/investments/duplicates` · `POST /v1/investments/positions/:id/keep-separate`                                    | duplicidade, investimentos, onboarding | manual igual a posição do Open Finance; "manter separados"                                                        |
+| `GET/POST /v1/belongings` · `GET/PATCH/DELETE /v1/belongings/:id`                                                        | investimentos, bens                    | imóveis e veículos                                                                                                |
+| `GET /v1/belongings` · `GET /v1/investor-profile`                                                                        | investimentos                          | bens; perfil (alvo da alocação)                                                                                   |
+| `GET/POST /v1/price-alerts` · `GET /v1/price-alerts/:id`                                                                 | alertas, investimentos                 | alertas de preço                                                                                                  |
+| `GET /v1/market/assets?q=` · `/assets/:symbol/quote?mic=` · `/assets/:symbol/history?range=1mo`                          | mercado, alertas                       | cotações                                                                                                          |
+| `GET/PUT /v1/me/layouts/:screen`                                                                                         | `layout/use-screen-layout`             | layout de `home`/`spending`                                                                                       |
+| `GET /v1/health`                                                                                                         | session                                | acordar a API                                                                                                     |
 
 **Chat** (`features/conversas/api.ts`, `stream.ts`): `GET/POST /v1/chat/conversations`, `GET/PATCH/DELETE /conversations/:id`,
 `GET /conversations/:id/messages`, `POST /conversations/:id/messages` (SSE: `message`, `delta`, `tool`, `reply`, `done`, `error`;
@@ -87,9 +89,9 @@ via `apiStream` em `lib/api.ts`) e `GET /v1/chat/search`. Lançamento: `PATCH /v
 `PATCH /v1/anomalies/:id` (compra fora do padrão).
 
 **Existem na API e o Web não chama** (futuras integrações): `chat/usage`, `onboarding`,
-`connections` (Open Finance), `investor-profile` POST/questionnaire, `budgets` POST/PATCH/DELETE, `goals` POST/PATCH,
+`connections` (Open Finance), `budgets` POST/PATCH/DELETE,
 `subscriptions` escrita, `category-rules`, `reports/exports`, `simulations/*`,
-`belongings` escrita, `price-alerts` PATCH/DELETE, `investments` movimentações/preview/exposure, `notifications` read/devices/settings,
+`price-alerts` PATCH/DELETE, `investments` preview/exposure, `notifications` read/devices/settings,
 `DELETE /v1/me` (exclusão), `GET /v1/plans`. (`GET /v1/chat/assistants` e `PUT /v1/me/plan/assistants` foram removidos da API em 16/11/2026.)
 
 ## Contas de teste (personas)
@@ -103,7 +105,7 @@ O banco da API de teste e o Supabase local têm 9 usuários **fictícios** (`pnp
 | `rafael.nogueira`      | Pro    | 24 meses  | renda alta, carteira grande e arrojada, 3 bens                           |
 | `camila.bastos`        | Plus   | 12 meses  | freelancer, renda irregular, carteira pequena                            |
 | `antonio.ferraz`       | Plus   | 24 meses  | aposentado, conservador; só 12 meses liberados; consentimento vence logo |
-| `lucas.pereira`        | Básico | 12 meses  | só 3 meses liberados, 2 tetos, sem metas (403 em `/v1/goals`)            |
+| `lucas.pereira`        | Básico | 12 meses  | só 3 meses liberados, 2 tetos, sem metas (o Básico permite 2)            |
 | `juliana.almeida`      | Pro    | 24 meses  | duas rendas, financiamento, escola, mercado pesado                       |
 | `beatriz.campos`       | Plus   | 12 meses  | MEI, recebimentos muito variáveis                                        |
 | `helena.quintana`      | Básico | 3 meses   | pouco histórico                                                          |

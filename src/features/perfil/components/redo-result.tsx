@@ -1,43 +1,42 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
+import { LoadingStatus } from "@/components/states/skeleton";
+import { ErrorBlock } from "@/components/states/state-block";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { DetailGrid } from "@/components/ui/detail-list";
+import { MobileActionBar } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
 import { Note } from "@/components/ui/note";
 import { Panel, PanelHeader } from "@/components/ui/panel";
-import {
-  donutSizes,
-  GroupDetailsList,
-  ProfileLevels,
-  TargetDonutWithList,
-} from "@/features/alocacao/components/allocation-parts";
-import { OffTargetNote } from "@/features/alocacao/components/allocation-summary";
-import { portfolioAllocation, profileById, type ProfileId } from "@/features/alocacao/prototype";
+import { ClassSwatch } from "@/features/alocacao/components/class-allocation";
+import { Donut, donutSizes } from "@/features/alocacao/components/donut";
+import { formatPercent } from "@/features/alocacao/format";
+import { useCurrentProfile, type InvestorProfileResponse } from "@/features/alocacao/live";
+import { useSession } from "@/features/acesso/session";
+import { RequireEarlierAnswers } from "@/features/onboarding/components/profile-question";
+import { saveErrorText, useResultData } from "@/features/onboarding/components/profile-result";
 import { profileEffects } from "@/features/onboarding/data";
 import {
   answersSummary,
-  estimateProfile,
-  profileDescription,
-  type ProfileAnswerMap,
-} from "@/features/onboarding/profile";
-import { useResultAnswers } from "@/features/onboarding/use-result-answers";
+  classesOf,
+  toProfileOptions,
+  useSaveProfile,
+  type AnswerMap,
+  type ProfileOption,
+  type Questionnaire,
+} from "@/features/onboarding/questionnaire";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 import { IconRowList } from "./icon-row-list";
+import { CompareProfilesLink, ProfileLevels } from "./profile-today";
 import { QuestionProgress } from "./redo-parts";
 
-const saved = portfolioAllocation.perfil;
+type Saved = InvestorProfileResponse["profile"];
 
-function Heading({
-  profile,
-  answers,
-  titleClassName,
-}: {
-  profile: ProfileId;
-  answers: ProfileAnswerMap;
-  titleClassName: string;
-}) {
+function Heading({ profile, titleClassName }: { profile: ProfileOption; titleClassName: string }) {
   return (
     <div className="flex flex-col gap-2.5">
       <span className="text-13 text-caption">Resultado</span>
@@ -47,16 +46,23 @@ function Heading({
           titleClassName,
         )}
       >
-        Seu perfil é <span className="text-tucano">{profileById[profile].nome}</span>
+        Seu perfil é <span className="text-tucano">{profile.nome}</span>
       </h1>
-      <p className="m-0 text-15 leading-[1.55] text-mist">{profileDescription(profile, answers)}</p>
+      <p className="m-0 text-15 leading-[1.55] text-mist">{profile.descricao}</p>
     </div>
   );
 }
 
 /** "Antes: Moderado… Agora: Arrojado." com o que muda ao salvar. */
-function ChangeNote({ profile }: { profile: ProfileId }) {
-  const same = profile === saved;
+function ChangeNote({ profile, saved }: { profile: ProfileOption; saved: Saved }) {
+  if (!saved) {
+    return (
+      <Note icon="info" tone="info">
+        Ao salvar, a Alocação passa a comparar a sua carteira com o alvo {profile.nome}.
+      </Note>
+    );
+  }
+  const same = profile.kind === saved.profile;
   return (
     <Note
       icon={same ? "check" : "info"}
@@ -64,55 +70,71 @@ function ChangeNote({ profile }: { profile: ProfileId }) {
       className={same ? "bg-folha-bg" : undefined}
       iconClassName={same ? "text-folha" : undefined}
     >
-      Antes: <strong>{profileById[saved].nome}</strong>, respondido em{" "}
-      {portfolioAllocation.definidoEm}. Agora: <strong>{profileById[profile].nome}</strong>.{" "}
+      Antes: <strong>{saved.label}</strong>, respondido em {formatDate(saved.createdAt)}. Agora:{" "}
+      <strong>{profile.nome}</strong>.{" "}
       {same
         ? "Seu perfil continua o mesmo; ao salvar, a data é atualizada."
-        : "Ao salvar, as sugestões de Investimentos passam a seguir o novo perfil."}
+        : "Ao salvar, a Alocação passa a comparar a sua carteira com o novo perfil."}
     </Note>
   );
 }
 
 function SplitPanel({
   profile,
+  questionnaire,
   size,
 }: {
-  profile: ProfileId;
+  profile: ProfileOption;
+  questionnaire: Questionnaire;
   size: "mobile" | "tablet" | "desktop";
 }) {
+  const classes = classesOf(questionnaire);
   const dims =
     size === "desktop" ? donutSizes.xl : size === "tablet" ? donutSizes.md : donutSizes.result;
   return (
-    <Panel className={size === "desktop" ? "p-6" : "p-5"}>
+    <Panel className={cn("gap-4", size === "desktop" ? "p-6" : "p-5")}>
       <PanelHeader
-        title="Como o Guará vai dividir as sugestões"
-        subtitle={`Carteira-alvo do perfil ${profileById[profile].nome} em 5 grupos · toque num grupo para ver as subclasses · a marca branca é a sua carteira hoje`}
+        title="Como o perfil divide a carteira"
+        subtitle={`Carteira-alvo do perfil ${profile.nome} em ${classes.length} classes`}
         titleClassName={cn("tracking-normal", size === "mobile" ? "text-18" : "text-20")}
       />
-      <TargetDonutWithList profile={profile} dims={dims} />
-      <GroupDetailsList
-        profile={profile}
-        layout={size === "mobile" ? "compact" : "wide"}
-        openGroup="rv-br"
-      />
-      <OffTargetNote
-        profile={profile}
-        after="O Guará pode sugerir como ajustar, mas nada muda sem você."
-      />
-      <div className="flex justify-end">
-        <Link
-          href="/investimentos/alocacao/perfis"
-          className="flex min-h-6 items-center gap-1 text-14 font-bold whitespace-nowrap text-sand underline underline-offset-3"
-        >
-          Comparar os 4 perfis
-          <Icon name="chevron-right" size={16} />
-        </Link>
+      <div className="flex flex-col items-center gap-4 @tab:flex-row @tab:gap-8">
+        <Donut
+          arcs={classes.map((c) => ({ id: c.id, color: c.cor, value: profile.alvo[c.id] }))}
+          dims={dims}
+          caption="Alvo"
+          value={profile.nome}
+          label={`Carteira-alvo do perfil ${profile.nome}: ${classes
+            .map((c) => `${c.nome} ${formatPercent(profile.alvo[c.id])}`)
+            .join(", ")}`}
+        />
+        <ul className="m-0 w-full min-w-0 grow list-none p-0">
+          {classes.map((c) => (
+            <li
+              key={c.id}
+              className="flex items-center gap-2.5 border-b border-line py-2 text-14 last:border-b-0"
+            >
+              <ClassSwatch color={c.cor} />
+              <span className="min-w-0 grow">{c.nome}</span>
+              <strong className="tabular-nums">{formatPercent(profile.alvo[c.id])}</strong>
+            </li>
+          ))}
+        </ul>
       </div>
+      <CompareProfilesLink count={questionnaire.profiles.length} />
     </Panel>
   );
 }
 
-function Answers({ answers, wide }: { answers: ProfileAnswerMap; wide?: boolean }) {
+function Answers({
+  questionnaire,
+  answers,
+  wide,
+}: {
+  questionnaire: Questionnaire;
+  answers: AnswerMap;
+  wide?: boolean;
+}) {
   return (
     <Panel className={wide ? "p-6" : "p-5"}>
       <PanelHeader
@@ -120,53 +142,116 @@ function Answers({ answers, wide }: { answers: ProfileAnswerMap; wide?: boolean 
         titleClassName={cn("tracking-normal", wide ? "text-18" : "text-16")}
       />
       <DetailGrid
-        items={answersSummary(answers).map((a) => ({ label: a.pergunta, value: a.resposta }))}
+        items={answersSummary(questionnaire, answers).map((a) => ({
+          label: a.pergunta,
+          value: a.resposta,
+        }))}
       />
     </Panel>
   );
 }
 
+function Actions({ saving, onSave }: { saving: boolean; onSave: () => void }) {
+  const label = saving ? "Salvando…" : "Salvar perfil";
+  return (
+    <>
+      <div className="hidden flex-wrap items-center justify-end gap-2.5 @tab:flex">
+        <ButtonLink href="/perfil" variant="ghost" className="text-15">
+          <span>Cancelar</span>
+        </ButtonLink>
+        <ButtonLink href="/perfil/investidor" variant="secondary" className="text-15">
+          <span>Refazer</span>
+        </ButtonLink>
+        <Button variant="primary" className="text-15" disabled={saving} onClick={onSave}>
+          <Icon name="check" size={18} />
+          <span>{label}</span>
+        </Button>
+      </div>
+      <MobileActionBar className="items-center">
+        <ButtonLink href="/perfil/investidor" variant="secondary" size="xl">
+          <span>Refazer</span>
+        </ButtonLink>
+        <Button variant="primary" size="xl" className="grow" disabled={saving} onClick={onSave}>
+          <Icon name="check" size={18} />
+          <span>{label}</span>
+        </Button>
+      </MobileActionBar>
+    </>
+  );
+}
+
 /**
- * Resultado do "Refazer perfil": o perfil calculado das respostas desta vez, comparado com o que
- * vale hoje, a carteira-alvo dele e as respostas.
+ * Resultado do "Refazer perfil": o perfil que a API calcula das respostas (sem gravar),
+ * comparado com o que vale hoje, a carteira-alvo dele e as respostas. "Salvar perfil" grava.
  */
 export function RedoResult() {
-  const answers = useResultAnswers("refazer");
-  const profile = estimateProfile(answers);
+  const router = useRouter();
+  const { live } = useSession();
+  const { questionnaire, answers, body, preview, failed } = useResultData("refazer");
+  const current = useCurrentProfile({ enabled: live });
+  const save = useSaveProfile();
+
+  if (failed || current.error) return <ErrorBlock />;
+  if (!questionnaire || !answers || !body || !preview || !current.data)
+    return (
+      <>
+        {questionnaire && (
+          <RequireEarlierAnswers before={questionnaire.questions.length + 1} scope="refazer" />
+        )}
+        <LoadingStatus />
+      </>
+    );
+
+  const profiles = toProfileOptions(questionnaire);
+  const profile = profiles.find((p) => p.kind === preview.profile)!;
+  const saved = current.data.profile;
+  const total = questionnaire.questions.length;
   const effects = profileEffects.map((e) => ({
     ...e,
-    texto: e.texto.replace("Moderado", profileById[profile].nome),
+    texto: e.texto.replace("Moderado", profile.nome),
   }));
+  const levels = <ProfileLevels levels={profiles} current={profile.kind} />;
+  const onSave = () =>
+    save.mutate(
+      { version: questionnaire.version, answers: body, chosen: null },
+      { onSuccess: () => router.push("/perfil") },
+    );
+  const error = save.error && (
+    <Note icon="alert-triangle" tone="warning">
+      {saveErrorText(save.error)}
+    </Note>
+  );
+
   return (
     <>
       {/* Celular */}
       <div className="flex flex-col gap-5 @tab:hidden">
-        <QuestionProgress label="6 de 6 respondidas" done={6} total={6} />
-        <Heading profile={profile} answers={answers} titleClassName="text-26" />
-        <ProfileLevels profile={profile} />
-        <ChangeNote profile={profile} />
-        <SplitPanel profile={profile} size="mobile" />
-        <Answers answers={answers} />
+        <QuestionProgress label={`${total} de ${total} respondidas`} done={total} total={total} />
+        <Heading profile={profile} titleClassName="text-26" />
+        {levels}
+        <ChangeNote profile={profile} saved={saved} />
+        <SplitPanel profile={profile} questionnaire={questionnaire} size="mobile" />
+        <Answers questionnaire={questionnaire} answers={answers} />
       </div>
 
       {/* Tablet */}
       <div className="hidden flex-col gap-5 @tab:flex @desk:hidden">
-        <Heading profile={profile} answers={answers} titleClassName="text-30" />
-        <ProfileLevels profile={profile} />
-        <ChangeNote profile={profile} />
-        <SplitPanel profile={profile} size="tablet" />
-        <Answers answers={answers} />
+        <Heading profile={profile} titleClassName="text-30" />
+        {levels}
+        <ChangeNote profile={profile} saved={saved} />
+        <SplitPanel profile={profile} questionnaire={questionnaire} size="tablet" />
+        <Answers questionnaire={questionnaire} answers={answers} />
       </div>
 
       {/* Desktop */}
       <div className="hidden grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] items-stretch gap-5 @desk:grid">
         <div className="flex min-w-0 flex-col gap-5">
           <Panel className="gap-4.5 p-6">
-            <Heading profile={profile} answers={answers} titleClassName="text-32" />
-            <ProfileLevels profile={profile} />
-            <ChangeNote profile={profile} />
+            <Heading profile={profile} titleClassName="text-32" />
+            {levels}
+            <ChangeNote profile={profile} saved={saved} />
           </Panel>
-          <Answers answers={answers} wide />
+          <Answers questionnaire={questionnaire} answers={answers} wide />
           <Panel className="grow p-6">
             <PanelHeader
               title="O que o perfil muda no app"
@@ -175,8 +260,10 @@ export function RedoResult() {
             <IconRowList items={effects} />
           </Panel>
         </div>
-        <SplitPanel profile={profile} size="desktop" />
+        <SplitPanel profile={profile} questionnaire={questionnaire} size="desktop" />
       </div>
+      {error}
+      <Actions saving={save.isPending} onSave={onSave} />
     </>
   );
 }

@@ -8,8 +8,10 @@
    fora, mostram o estado de erro; carregando, os cards guardam o lugar com "—" (`EMPTY_GASTOS`, `EMPTY_LANCAMENTOS`,
    `LOADING_SUMMARY`…). **Investimentos e Metas (com as telas filhas) também são só API desde 17/11/2026.** Ainda com
    dados de exemplo: notificações, editar alertas/tetos, as telas de tetos (`features/gastos/prototype.ts`, só para
-   Alertas) e o questionário de perfil (onboarding e `/perfil/investidor`, `features/alocacao/prototype.ts`: não grava
-   o perfil na API). Antes de mexer, confirme se a tela
+   Alertas) e a conexão de banco do onboarding. O questionário de perfil (onboarding e `/perfil/investidor`) vem da
+   API e grava nela desde 17/11/2026; `features/alocacao/prototype.ts` (5 grupos, Sofisticado) é só referência.
+   Telas desenhadas sem dado real: [08-funcionalidades-futuras.md](08-funcionalidades-futuras.md) (**não remover sem
+   registrar lá**). Antes de mexer, confirme se a tela
    usa `live`/context ou `data.ts`.
 2. **Dependências instaladas e não usadas** (0 imports em `src/`): `react-hook-form`, `@hookform/resolvers`, `recharts`,
    `lucide-react`, `shadcn` (só o CSS `shadcn/tailwind.css` é importado); `d3-geo`/`topojson-client`/`world-atlas` só servem ao

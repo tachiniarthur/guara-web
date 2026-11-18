@@ -39,127 +39,16 @@ export const bankAccess = {
   ],
 };
 
-export type ProfileQuestion = {
-  pergunta: string;
-  /** Rótulo curto da pergunta em "Suas respostas". */
-  resumo: string;
-  opcoes: string[];
-  /** Cada opção em poucas palavras, para "Suas respostas". */
-  curtas: string[];
-  /** Resposta marcada no protótipo. */
-  escolhida: number;
-  porque: string;
-};
-
-/** As 6 perguntas do questionário de perfil de investidor. */
-export const profileQuestions: ProfileQuestion[] = [
-  {
-    pergunta: "Qual é o seu principal objetivo ao investir?",
-    resumo: "Objetivo",
-    opcoes: [
-      "Proteger o que já tenho",
-      "Juntar para um objetivo nos próximos anos",
-      "Fazer o patrimônio crescer no longo prazo",
-      "Ter uma renda extra todo mês",
-    ],
-    curtas: [
-      "Proteger o que já tem",
-      "Juntar para um objetivo",
-      "Crescer no longo prazo",
-      "Renda extra todo mês",
-    ],
-    escolhida: 1,
-    porque:
-      "O objetivo define quanto risco faz sentido. Quem quer proteger o dinheiro precisa de mais renda fixa; quem pensa em décadas pode aceitar mais oscilação.",
-  },
-  {
-    pergunta: "Por quanto tempo você pretende deixar o dinheiro investido?",
-    resumo: "Prazo",
-    opcoes: ["Menos de 1 ano", "De 1 a 3 anos", "De 3 a 10 anos", "Mais de 10 anos"],
-    curtas: ["Menos de 1 ano", "1 a 3 anos", "3 a 10 anos", "Mais de 10 anos"],
-    escolhida: 2,
-    porque:
-      "Quanto mais longo o prazo, mais tempo o investimento tem para se recuperar de quedas. Prazos curtos pedem aplicações que não oscilam.",
-  },
-  {
-    pergunta: "Se seus investimentos caíssem 15% em um mês, o que você faria?",
-    resumo: "Queda de 15%",
-    opcoes: [
-      "Venderia tudo para não perder mais",
-      "Venderia uma parte",
-      "Manteria e esperaria recuperar",
-      "Aproveitaria para investir mais",
-    ],
-    curtas: ["Venderia tudo", "Venderia uma parte", "Manteria e esperaria", "Investiria mais"],
-    escolhida: 2,
-    porque:
-      "Seu perfil ajuda a montar simulações que combinam com você. Ele vale só para Investimentos e pode ser refeito quando quiser em Meu perfil.",
-  },
-  {
-    pergunta: "Quanto você conhece de investimentos?",
-    resumo: "Experiência",
-    opcoes: [
-      "Nunca investi",
-      "Conheço poupança e renda fixa (CDB, Tesouro)",
-      "Invisto em renda fixa e fundos, e um pouco em ações",
-      "Invisto há anos em vários tipos, inclusive exterior, cripto e estruturados",
-    ],
-    curtas: [
-      "Nunca investiu",
-      "Poupança e renda fixa",
-      "Renda fixa, fundos e um pouco de ações",
-      "Vários tipos, inclusive exterior, cripto e estruturados",
-    ],
-    escolhida: 2,
-    porque:
-      "Ajuda a explicar as coisas no nível certo e a não sugerir produtos que você ainda não conhece. Quem já investe em estruturados e alternativos pode ter o perfil Sofisticado.",
-  },
-  {
-    pergunta: "Quanto da sua renda mensal você consegue investir?",
-    resumo: "Parte da renda",
-    opcoes: ["Nada por enquanto", "Até 10%", "De 10% a 25%", "Mais de 25%"],
-    curtas: ["Nada por enquanto", "Até 10%", "10% a 25%", "Mais de 25%"],
-    escolhida: 2,
-    porque:
-      "Quem investe uma parte maior da renda tem mais folga para enfrentar oscilações. Usamos isso só para calibrar o perfil, não para julgar seus gastos.",
-  },
-  {
-    pergunta:
-      "Se precisar de dinheiro de repente, quanto do que investiu você talvez tenha que resgatar?",
-    resumo: "Resgate de surpresa",
-    opcoes: [
-      "Quase tudo",
-      "Mais da metade",
-      "Uma parte pequena",
-      "Nada, tenho uma reserva separada",
-    ],
-    curtas: ["Quase tudo", "Mais da metade", "Uma parte pequena", "Nada, tem reserva separada"],
-    escolhida: 2,
-    porque:
-      "Dinheiro que pode ser resgatado a qualquer momento precisa ficar em aplicações com liquidez diária. Isso muda a divisão da carteira.",
-  },
-];
-
-/** Resumo das respostas no resultado do questionário. */
-export const profileAnswers = [
-  { pergunta: "Objetivo", resposta: "Juntar para um objetivo" },
-  { pergunta: "Prazo", resposta: "3 a 10 anos" },
-  { pergunta: "Queda de 15%", resposta: "Manteria e esperaria" },
-  { pergunta: "Experiência", resposta: "Renda fixa, fundos e um pouco de ações" },
-  { pergunta: "Parte da renda", resposta: "10% a 25%" },
-  { pergunta: "Resgate de surpresa", resposta: "Uma parte pequena" },
-];
-
 export const profileEffects: { icon: IconName; titulo: string; texto: string }[] = [
   {
     icon: "target",
-    titulo: "Sugestões seguem a carteira-alvo",
-    texto: "O Guará usa os 5 grupos do perfil Moderado para sugerir onde colocar novos aportes.",
+    titulo: "Carteira comparada ao alvo",
+    texto: "A Alocação compara a sua carteira com as 4 classes do perfil Moderado.",
   },
   {
     icon: "alert-triangle",
     titulo: "Aviso quando sair do alvo",
-    texto: "Se um grupo passar 5 p.p. do alvo, você vê isso em Investimentos e na Alocação.",
+    texto: "Se uma classe passar 2 p.p. do alvo, você vê isso em Investimentos e na Alocação.",
   },
   {
     icon: "shield-check",

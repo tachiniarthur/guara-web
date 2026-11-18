@@ -166,6 +166,11 @@ export function useAllocation({ enabled = true }: { enabled?: boolean } = {}) {
   return buildView("alocacao", () => toAllocation(a, p));
 }
 
+/** O perfil que vale hoje (`null` se nunca respondeu o questionário). */
+export function useCurrentProfile({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery(apiQuery(ALLOCATION_PATHS.profile, InvestorProfileSchema, { enabled }));
+}
+
 export interface ProfileTarget {
   kind: ProfileKind;
   nome: string;

@@ -111,10 +111,13 @@ export function QuotePanel({
   symbol,
   market,
   enabled,
+  chartHref,
 }: {
   symbol: string;
   market: MarketView;
   enabled: boolean;
+  /** "Ver gráfico completo" (a tela do gráfico grande). */
+  chartHref?: string;
 }) {
   const [range, setRange] = useState<HistoryRange>("1y");
   const history = useHistory(symbol, range, { enabled });
@@ -179,6 +182,14 @@ export function QuotePanel({
         />
       )}
       {served && <p className="m-0 text-13 text-caption">{served}</p>}
+      {chartHref && (
+        <div className="flex justify-end">
+          <Link href={chartHref} className={panelLinkClass}>
+            Ver gráfico completo
+            <Icon name="chevron-right" size={16} />
+          </Link>
+        </div>
+      )}
       {market.faixa52 && (
         <div className="flex flex-col gap-2">
           <span className="text-13 text-mist">Faixa de 52 semanas</span>
@@ -316,7 +327,7 @@ export function PlanNote() {
         O gráfico, o desempenho e os proventos do ativo fazem parte de outro plano. A sua posição
         continua aqui.
       </p>
-      <Link href="/configuracoes/planos" className={panelLinkClass}>
+      <Link href="/perfil/planos" className={panelLinkClass}>
         Ver planos
         <Icon name="chevron-right" size={16} />
       </Link>

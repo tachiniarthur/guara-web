@@ -60,33 +60,35 @@ ids do protótipo (só `conversas/[id]` tem `dynamicParams=false`).
 
 ### Área logada `(app)`
 
-| Rota                                                                            | Tela                                      | Dados                                                                                          |
-| ------------------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `/`                                                                             | InicioScreen (blocos editáveis)           | **API**                                                                                        |
-| `/notificacoes`                                                                 | Notificações                              | protótipo (`notificacoes/data.ts`)                                                             |
-| `/gastos`                                                                       | GastosScreen (blocos editáveis)           | **API**                                                                                        |
-| `/gastos/lancamentos`, `/gastos/lancamentos/[id]`                               | Lista (paginada) e detalhe de lançamento  | **API**                                                                                        |
-| `/gastos/categorias/[categoria]`                                                | Gastos de uma categoria                   | **API**                                                                                        |
-| `/assinaturas`, `/assinaturas/[id]`, `/assinaturas/calendario`                  | Assinaturas                               | **API** (lista, detalhe com cobranças, calendário, "não é assinatura")                         |
-| `/investimentos`                                                                | Visão geral + globo                       | **API**                                                                                        |
-| `/investimentos/posicoes`                                                       | Tabela de posições + ajustar risco        | **API** (`features/investimentos/posicoes.ts`; `PATCH` do risco)                               |
-| `/investimentos/novo`                                                           | Adicionar investimento                    | **API** (`POST /positions`, prévia)                                                            |
-| `/investimentos/[ativo]` + `/eventos`                                           | Página do ativo (id da posição)           | **API** (`features/ativo/live.ts`: posição, mercado, histórico; corrigir, movimentar, remover) |
-| `/investimentos/alocacao`, `/alocacao/perfis`                                   | Alocação × perfil (4 classes)             | **API** (`features/alocacao/live.ts`)                                                          |
-| `/investimentos/bens/[bem]`, `/bens/imovel/novo`, `/bens/veiculo/novo`          | Bens                                      | **API** (`features/bens/live.ts`, `/v1/belongings`)                                            |
-| `/simulador`, `/simulador/corte`, `/simulador/objetivo`, `/simulador/salvas`    | Simulador                                 | premissas da **API**; cálculo local; salvas: **API** (aposentadoria local)                     |
-| `/metas`                                                                        | Lista                                     | **API**                                                                                        |
-| `/metas/[id]`, `/metas/nova`                                                    | Detalhe (corrigir/excluir) e criação      | **API** (`features/metas/live.ts`, `/v1/goals`)                                                |
-| `/relatorio`, `/relatorio/linha-do-tempo`                                       | Relatório                                 | **API** (períodos 7d/mês/3m/12m, exportação PDF/CSV)                                           |
-| `/alertas`                                                                      | Hub (tetos + preços + avisos)             | **API**                                                                                        |
-| `/alertas/precos`, `/precos/[id]`, `/precos/[id]/editar`, `/alertas/novo-preco` | Alertas de preço                          | **API** (criar/listar/ver); editar: protótipo                                                  |
-| `/alertas/tetos`, `/tetos/[id]`, `/tetos/[id]/editar`, `/alertas/novo-teto`     | Tetos de gasto                            | leitura **API**; criar/editar: protótipo                                                       |
-| `/conversas`, `/conversas/[id]`, `/conversas/historico`                         | Chat                                      | **API** (`/v1/chat`: conversas, mensagens em SSE, busca, renomear/excluir)                     |
-| `/perfil`, `/perfil/editar`, `/editar/email`, `/senha`, `/excluir-conta`        | Conta                                     | nome/CPF/celular via **API**; senha via Supabase; excluir-conta: só tela                       |
-| `/perfil/planos`                                                                | Planos                                    | plano via **API**; resto protótipo                                                             |
-| `/perfil/bancos/[banco]/renovar`, `/perfil/investidor`, `/investidor/resultado` | Bancos / perfil de investidor             | protótipo                                                                                      |
-| `/configuracoes`                                                                | Preferências                              | `localStorage` (store `settings`)                                                              |
-| `/previa/[estado]/[[...rota]]`                                                  | Estados do protótipo (Relatório, Alertas) | interna (via `proxy.ts`)                                                                       |
+| Rota                                                                            | Tela                                      | Dados                                                                                                      |
+| ------------------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `/`                                                                             | InicioScreen (blocos editáveis)           | **API**                                                                                                    |
+| `/notificacoes`                                                                 | Notificações                              | protótipo (`notificacoes/data.ts`)                                                                         |
+| `/gastos`                                                                       | GastosScreen (blocos editáveis)           | **API**                                                                                                    |
+| `/gastos/lancamentos`, `/gastos/lancamentos/[id]`                               | Lista (paginada) e detalhe de lançamento  | **API**                                                                                                    |
+| `/gastos/categorias/[categoria]`                                                | Gastos de uma categoria                   | **API**                                                                                                    |
+| `/assinaturas`, `/assinaturas/[id]`, `/assinaturas/calendario`                  | Assinaturas                               | **API** (lista, detalhe com cobranças, calendário, "não é assinatura")                                     |
+| `/investimentos`                                                                | Visão geral + globo                       | **API**                                                                                                    |
+| `/investimentos/posicoes`                                                       | Tabela de posições + ajustar risco        | **API** (`features/investimentos/posicoes.ts`; `PATCH` do risco)                                           |
+| `/investimentos/novo`                                                           | Adicionar investimento                    | **API** (`POST /positions`, prévia)                                                                        |
+| `/investimentos/[ativo]` + `/eventos`, `/detalhes`, `/grafico`                  | Página do ativo (id da posição)           | **API** (`features/ativo/live.ts`, `facts.ts`: posição, mercado, histórico; corrigir, movimentar, remover) |
+| `/investimentos/duplicidade`                                                    | Manual igual a posição do Open Finance    | **API** (`features/investimentos/duplicates.ts`: excluir o manual ou manter separados)                     |
+| `/investimentos/alocacao`, `/alocacao/perfis`                                   | Alocação × perfil (4 classes)             | **API** (`features/alocacao/live.ts`)                                                                      |
+| `/investimentos/bens/[bem]`, `/bens/imovel/novo`, `/bens/veiculo/novo`          | Bens                                      | **API** (`features/bens/live.ts`, `/v1/belongings`)                                                        |
+| `/simulador`, `/simulador/corte`, `/simulador/objetivo`, `/simulador/salvas`    | Simulador                                 | premissas da **API**; cálculo local; salvas: **API** (aposentadoria local)                                 |
+| `/metas`                                                                        | Lista ("X de N metas do plano")           | **API** (limite do plano: 2/4/8)                                                                           |
+| `/metas/[id]`, `/metas/nova`                                                    | Detalhe (corrigir/excluir) e criação      | **API** (`features/metas/live.ts`, `/v1/goals`)                                                            |
+| `/relatorio`, `/relatorio/linha-do-tempo`                                       | Relatório                                 | **API** (períodos 7d/mês/3m/12m, exportação PDF/CSV)                                                       |
+| `/alertas`                                                                      | Hub (tetos + preços + avisos)             | **API**                                                                                                    |
+| `/alertas/precos`, `/precos/[id]`, `/precos/[id]/editar`, `/alertas/novo-preco` | Alertas de preço                          | **API** (criar/listar/ver); editar: protótipo                                                              |
+| `/alertas/tetos`, `/tetos/[id]`, `/tetos/[id]/editar`, `/alertas/novo-teto`     | Tetos de gasto                            | leitura **API**; criar/editar: protótipo                                                                   |
+| `/conversas`, `/conversas/[id]`, `/conversas/historico`                         | Chat                                      | **API** (`/v1/chat`: conversas, mensagens em SSE, busca, renomear/excluir)                                 |
+| `/perfil`, `/perfil/editar`, `/editar/email`, `/senha`, `/excluir-conta`        | Conta                                     | nome/CPF/celular via **API**; senha via Supabase; excluir-conta: só tela                                   |
+| `/perfil/planos`                                                                | Planos                                    | plano via **API**; resto protótipo                                                                         |
+| `/perfil/bancos/[banco]/renovar`                                                | Renovar banco                             | protótipo                                                                                                  |
+| `/perfil/investidor` (`?pergunta=`), `/investidor/resultado`                    | Refazer perfil de investidor              | **API** (questionário, prévia e gravação em `/v1/investor-profile`)                                        |
+| `/configuracoes`                                                                | Preferências                              | `localStorage` (store `settings`)                                                                          |
+| `/previa/[estado]/[[...rota]]`                                                  | Estados do protótipo (Relatório, Alertas) | interna (via `proxy.ts`)                                                                                   |
 
 ### Onboarding/entrada `(onboarding)`
 
@@ -94,8 +96,8 @@ ids do protótipo (só `conversas/[id]` tem `dynamicParams=false`).
 `/desbloqueio`, `/onboarding/cpf`, `/onboarding/perfil` (+`/[pergunta]`, `/resultado`),
 `/onboarding/bancos` (+`/[banco]`, `/conectando`, `/erro`, `/sucesso`), `/onboarding/avisos`,
 `/onboarding/plano`, `/termos`, `/privacidade`.
-Reais: login/cadastro (Supabase + `/v1/auth/*`), CPF, plano. Etapas: 1 Plano, 2 Bancos, 3 Perfil, 4 Avisos (sem escolha de assistentes). **Conexão de banco (Malvo) e
-questionário de perfil são protótipo** (a API tem `/v1/investor-profile` e conexões, o Web não os chama).
+Reais: login/cadastro (Supabase + `/v1/auth/*`), CPF, plano, **questionário de perfil** (perguntas, prévia e gravação pela API, `features/onboarding/questionnaire.ts`). Etapas: 1 Plano, 2 Bancos, 3 Perfil, 4 Avisos (sem escolha de assistentes). **Conexão de banco (Malvo) é protótipo**; no sucesso da conexão, só o aviso de duplicidade é real.
+Telas desenhadas ainda sem dado real: [08-funcionalidades-futuras.md](08-funcionalidades-futuras.md).
 
 ## O que é real e o que é protótipo
 

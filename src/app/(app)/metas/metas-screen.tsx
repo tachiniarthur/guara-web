@@ -10,6 +10,7 @@ import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { IconButtonLink } from "@/components/ui/icon-button";
+import { Note } from "@/components/ui/note";
 import { useSession } from "@/features/acesso/session";
 import {
   ChatAboutGoals,
@@ -19,6 +20,7 @@ import {
   NewGoalButton,
 } from "@/features/metas/components/goal-parts";
 import { isPlanLimit, useMetasView, type GoalsSummary } from "@/features/metas/live";
+import { useMyPlan } from "@/features/perfil/api";
 import { cn } from "@/lib/utils";
 
 const linkClass =
@@ -81,7 +83,7 @@ function PlanBlock() {
         icon="lock"
         title="Metas fazem parte de outro plano"
         action={
-          <ButtonLink href="/configuracoes/planos" variant="forest" size="md" className="text-15">
+          <ButtonLink href="/perfil/planos" variant="forest" size="md" className="text-15">
             <span>Ver planos</span>
           </ButtonLink>
         }
@@ -92,15 +94,35 @@ function PlanBlock() {
   );
 }
 
+/** "Você usa as 2 metas do seu plano": para criar outra, exclua uma ou veja os planos. */
+function FullNote({ max }: { max: number }) {
+  return (
+    <Note icon="info-lg" tone="info">
+      Você usa {max === 1 ? "a meta" : `as ${max} metas`} do seu plano. Para criar outra, exclua uma
+      meta ou{" "}
+      <Link href="/perfil/planos" className="font-bold text-sand underline">
+        veja os planos
+      </Link>
+      .
+    </Note>
+  );
+}
+
 /** Metas: tudo da API (carregando = forma vazia; sem API = erro). */
 export function MetasScreen() {
   const { live } = useSession();
   const real = useMetasView({ enabled: live });
+  const myPlan = useMyPlan({ enabled: live });
   const plan = isPlanLimit(real.error);
   const state = plan ? "plano" : real.error || !live ? "erro" : !real.data ? "carregando" : null;
   const goals = real.data?.goals ?? [];
   const summary = real.data?.summary ?? EMPTY_SUMMARY;
   const empty = state === null && goals.length === 0;
+  // Limite do plano (2, 4 ou 8 metas): cheio, some o "Nova meta" e aparece o aviso.
+  const max = myPlan.data?.plan?.limits.maxGoals;
+  const full = state === null && max !== undefined && goals.length >= max;
+  const canCreate = !plan && !full;
+  const count = goals.length === 1 ? "1 meta" : `${goals.length} metas`;
 
   return (
     <Page
@@ -112,7 +134,9 @@ export function MetasScreen() {
           title="Suas metas"
           back="/"
           actions={
-            plan ? undefined : <IconButtonLink href="/metas/nova" icon="plus" label="Nova meta" />
+            canCreate ? (
+              <IconButtonLink href="/metas/nova" icon="plus" label="Nova meta" />
+            ) : undefined
           }
         />
       }
@@ -123,11 +147,12 @@ export function MetasScreen() {
         title="Suas metas"
         subtitle={
           real.data
-            ? `Acompanhadas pelo Guará · ${goals.length === 1 ? "1 meta" : `${goals.length} metas`}`
+            ? `Acompanhadas pelo Guará · ${max === undefined ? count : `${goals.length} de ${max} metas do plano`}`
             : "Acompanhadas pelo Guará"
         }
-        actions={plan ? undefined : <NewGoalButton />}
+        actions={canCreate ? <NewGoalButton /> : undefined}
       />
+      {full && <FullNote max={max} />}
       {state === "plano" ? (
         <PlanBlock />
       ) : state === "erro" ? (
@@ -165,9 +190,11 @@ export function MetasScreen() {
               ))}
             </section>
           </div>
-          <div className="@tab:hidden">
-            <NewGoalButton block />
-          </div>
+          {canCreate && (
+            <div className="@tab:hidden">
+              <NewGoalButton block />
+            </div>
+          )}
           <div className="flex items-center gap-2.5 @tab:justify-end @desk:hidden">{savedLink}</div>
         </Skeleton>
       )}

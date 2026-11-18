@@ -18,7 +18,7 @@ import {
   goalPositionOptions,
   useGoalFields,
 } from "@/features/metas/components/goal-form";
-import { isPlanLimit, useCreateGoal, useGoalPositions } from "@/features/metas/live";
+import { isPlanLimit, planLimitText, useCreateGoal, useGoalPositions } from "@/features/metas/live";
 import { formatCurrency, todayInSaoPaulo } from "@/lib/format";
 import { parseMoneyInput } from "@/lib/money-input";
 
@@ -99,7 +99,7 @@ export default function NovaMetaPage() {
     invalid ??
     (create.error
       ? isPlanLimit(create.error)
-        ? "Metas fazem parte de outro plano. Veja os planos em Configurações."
+        ? planLimitText(create.error)
         : goalErrorText(create.error)
       : null);
 

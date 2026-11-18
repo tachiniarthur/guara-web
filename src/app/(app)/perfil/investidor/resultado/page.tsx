@@ -1,9 +1,6 @@
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { DetailHeader, Page } from "@/components/layout/page";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { ButtonLink } from "@/components/ui/button";
-import { MobileActionBar } from "@/components/ui/form";
-import { Icon } from "@/components/ui/icon";
 import { IconButtonLink } from "@/components/ui/icon-button";
 import { RedoResult } from "@/features/perfil/components/redo-result";
 
@@ -35,28 +32,6 @@ export default function ResultadoRefazerPage() {
       <DetailHeader title="Resultado do perfil" />
 
       <RedoResult />
-
-      <div className="hidden flex-wrap items-center justify-end gap-2.5 @tab:flex">
-        <ButtonLink href="/perfil" variant="ghost" className="text-15">
-          <span>Cancelar</span>
-        </ButtonLink>
-        <ButtonLink href="/perfil/investidor" variant="secondary" className="text-15">
-          <span>Refazer</span>
-        </ButtonLink>
-        <ButtonLink href="/perfil" variant="primary" className="text-15">
-          <Icon name="check" size={18} />
-          <span>Salvar perfil</span>
-        </ButtonLink>
-      </div>
-      <MobileActionBar className="items-center">
-        <ButtonLink href="/perfil/investidor" variant="secondary" size="xl">
-          <span>Refazer</span>
-        </ButtonLink>
-        <ButtonLink href="/perfil" variant="primary" size="xl" className="grow">
-          <Icon name="check" size={18} />
-          <span>Salvar perfil</span>
-        </ButtonLink>
-      </MobileActionBar>
     </Page>
   );
 }

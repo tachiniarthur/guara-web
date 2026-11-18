@@ -1,4 +1,6 @@
-import { isGoalId, toGoalDetail, toMetasView } from "./live";
+import { ApiError } from "@/lib/api";
+
+import { goalLimitOf, isGoalId, planLimitText, toGoalDetail, toMetasView } from "./live";
 
 const plain = <T>(value: T): T => JSON.parse(JSON.stringify(value).replaceAll(" ", " "));
 const goal = (over: Record<string, unknown>, progress: Record<string, unknown>) => ({
@@ -120,5 +122,19 @@ describe("detalhe da meta", () => {
 
   it("só uuid vira chamada à API", () => {
     expect(isGoalId("reserva")).toBe(false);
+  });
+});
+
+describe("limite de metas do plano", () => {
+  it("lê o limite que a API manda no erro", () => {
+    const limited = new ApiError("plan_limit_reached", "Limite", 403, { limit: 2 });
+    expect(goalLimitOf(limited)).toBe(2);
+    expect(planLimitText(limited)).toBe(
+      "Seu plano permite até 2 metas. Exclua uma meta ou veja os planos em Meu perfil.",
+    );
+    const noGoals = new ApiError("plan_limit_reached", "Limite", 403);
+    expect(goalLimitOf(noGoals)).toBeNull();
+    expect(planLimitText(noGoals)).toContain("outro plano");
+    expect(goalLimitOf(new ApiError("conflict"))).toBeNull();
   });
 });

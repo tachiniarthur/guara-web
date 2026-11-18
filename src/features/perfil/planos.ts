@@ -43,6 +43,7 @@ export const plans: Plan[] = [
       "Conta do banco pelo Open Finance, só leitura",
       "Lançamentos à mão ou pela IA, além do banco",
       "Até 2 tetos de gasto e 2 alertas de preço",
+      "Até 2 metas",
       "Histórico de 3 meses",
       "Relatório do mês atual, sem exportação",
       "1 simulação por mês",
@@ -66,7 +67,7 @@ export const plans: Plan[] = [
       "Até 6 tetos de gasto e 6 alertas de preço",
       "Histórico de 12 meses",
       "Relatórios com exportação em PDF, Excel e CSV",
-      "Simulador sem limite, metas e simulações salvas",
+      "Simulador sem limite, até 4 metas e simulações salvas",
       "Análise detalhada de cada investimento: cotação, desempenho e proventos",
     ],
     atual: true,
@@ -82,6 +83,7 @@ export const plans: Plan[] = [
     recursos: [
       "Tudo do Plus",
       "Tetos de gasto e alertas de preço sem limite",
+      "Até 8 metas",
       "Histórico completo",
       "Suporte por e-mail e WhatsApp",
     ],
@@ -210,13 +212,12 @@ export const planFeatureRows: {
     ],
   },
   {
-    off: "Metas e simulações salvas",
-    values: [
-      null,
-      "Metas e simulações salvas",
-      "Metas e simulações salvas",
-      "Metas e simulações salvas",
-    ],
+    off: "Metas",
+    values: ["Até 2 metas", "Até 4 metas", "Até 8 metas", "Até 8 metas"],
+  },
+  {
+    off: "Simulações salvas",
+    values: [null, "Simulações salvas", "Simulações salvas", "Simulações salvas"],
   },
   {
     off: "Análise detalhada de cada investimento",
@@ -251,7 +252,8 @@ export const planComparison: { recurso: string; valores: [string, string, string
   { recurso: "Relatórios", valores: ["Só o mês atual", "Completos", "Completos"] },
   { recurso: "Exportar relatórios", valores: ["—", "PDF, Excel e CSV", "PDF, Excel e CSV"] },
   { recurso: "Simulador", valores: ["1 por mês", "Sem limite", "Sem limite"] },
-  { recurso: "Metas e simulações salvas", valores: ["—", "Sim", "Sim"] },
+  { recurso: "Metas", valores: ["Até 2", "Até 4", "Até 8"] },
+  { recurso: "Simulações salvas", valores: ["—", "Sim", "Sim"] },
   { recurso: "Análise de cada investimento", valores: ["—", "Sim", "Sim"] },
   { recurso: "Suporte", valores: ["E-mail", "E-mail", "E-mail e WhatsApp"] },
 ];

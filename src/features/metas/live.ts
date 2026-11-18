@@ -200,6 +200,21 @@ export const isPlanLimit = (error: unknown) =>
   error instanceof ApiError &&
   (error.code === "plan_limit_reached" || error.code === "subscription_required");
 
+/** O limite de metas do plano que a API mandou no erro (`details.limit`), se veio. */
+export function goalLimitOf(error: unknown): number | null {
+  if (!(error instanceof ApiError) || error.code !== "plan_limit_reached") return null;
+  const limit = (error.details as { limit?: unknown } | undefined)?.limit;
+  return typeof limit === "number" ? limit : null;
+}
+
+/** "Seu plano permite até 2 metas…" quando a criação esbarra no limite do plano. */
+export function planLimitText(error: unknown): string {
+  const limit = goalLimitOf(error);
+  return limit === null
+    ? "Metas fazem parte de outro plano. Veja os planos em Meu perfil."
+    : `Seu plano permite até ${limit} ${limit === 1 ? "meta" : "metas"}. Exclua uma meta ou veja os planos em Meu perfil.`;
+}
+
 /** Busca as metas. `data` fica `undefined` enquanto carrega. */
 export function useMetasView({ enabled }: { enabled: boolean }) {
   const paths = METAS_PATHS;

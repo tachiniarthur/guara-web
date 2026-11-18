@@ -39,6 +39,15 @@ export const PositionDetailSchema = ApiPositionSchema.extend({
   gainCents: cents.nullable().optional(),
   originalPrice: z.string().nullable().optional(),
   fx: z.object({ rate: z.string(), date: z.string() }).loose().nullable().optional(),
+  /** Renda fixa (Open Finance): emissor, datas e taxa. A API anterior a 17/11/2026 não manda. */
+  issuer: z.string().nullable().optional(),
+  issuedOn: z.string().nullable().optional(),
+  purchasedOn: z.string().nullable().optional(),
+  maturesOn: z.string().nullable().optional(),
+  ratePct: z.string().nullable().optional(),
+  rateIndex: z.string().nullable().optional(),
+  fixedAnnualRatePct: z.string().nullable().optional(),
+  createdAt: z.string().optional(),
 });
 export type PositionDetail = z.infer<typeof PositionDetailSchema>;
 
@@ -50,7 +59,7 @@ const PerformanceSchema = z.object({
   sharpe: apiPercent.nullable(),
 });
 
-const MarketAssetSchema = z.object({
+export const MarketAssetSchema = z.object({
   asset: z.object({
     symbol: z.string(),
     name: z.string(),
@@ -117,7 +126,7 @@ export const RANGE_LABEL: Record<HistoryRange, string> = {
   "5y": "5 anos",
 };
 
-const HistorySchema = z.object({
+export const HistorySchema = z.object({
   range: z.string(),
   limitedByPlan: z.boolean(),
   points: z.array(z.object({ date: z.string(), closeCents: cents.nullable() })),
@@ -377,6 +386,19 @@ export function toMarketView(m: MarketAsset): MarketView {
         }))
       : null,
     limites: m.dataPlanLimits.map((l) => LIMIT_TEXT[l] ?? l),
+  };
+}
+
+/** Variação, máxima e mínima do período do gráfico (valores em reais). `null` com menos de 2. */
+export function periodStats(points: { value: number }[]) {
+  if (points.length < 2) return null;
+  const values = points.map((p) => p.value);
+  const first = values[0]!;
+  const last = values.at(-1)!;
+  return {
+    variacao: first === 0 ? null : ((last - first) / first) * 100,
+    max: Math.max(...values),
+    min: Math.min(...values),
   };
 }
 

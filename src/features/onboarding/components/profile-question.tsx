@@ -8,7 +8,7 @@ import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 import { useProfileAnswers, type QuestionnaireScope } from "@/stores/profile-answers";
 
-import type { ProfileQuestion } from "../data";
+import type { Question } from "../questionnaire";
 
 const subscribeNothing = () => () => {};
 
@@ -17,7 +17,13 @@ const subscribeNothing = () => () => {};
  * `before` = total + 1) pelo endereço, sem ter respondido as anteriores, volta para a primeira
  * que falta. Voltar sempre pode; avançar, só respondendo.
  */
-export function RequireEarlierAnswers({ before }: { before: number }) {
+export function RequireEarlierAnswers({
+  before,
+  scope = "onboarding",
+}: {
+  before: number;
+  scope?: QuestionnaireScope;
+}) {
   const router = useRouter();
   // Durante a hidratação a store mostra o estado inicial (vazio), não as respostas guardadas na aba:
   // sem esperar, recarregar a página no meio do questionário voltava para a pergunta 1.
@@ -28,17 +34,22 @@ export function RequireEarlierAnswers({ before }: { before: number }) {
   );
   const missing = useProfileAnswers((s) => {
     for (let numero = 1; numero < before; numero += 1) {
-      if (s.answers.onboarding[numero] === undefined) return numero;
+      if (s.answers[scope][numero] === undefined) return numero;
     }
     return null;
   });
   useEffect(() => {
-    if (hydrated && missing) router.replace(`/onboarding/perfil/${missing}`);
-  }, [hydrated, missing, router]);
+    if (!hydrated || !missing) return;
+    router.replace(
+      scope === "onboarding"
+        ? `/onboarding/perfil/${missing}`
+        : `/perfil/investidor?pergunta=${missing}`,
+    );
+  }, [hydrated, missing, router, scope]);
   return null;
 }
 
-/** Uma pergunta do questionário de perfil: enunciado, 4 opções em cards e o "por que". */
+/** Uma pergunta do questionário de perfil (da API): enunciado, as opções em cards e o "por que". */
 export function ProfileQuestionFields({
   question,
   numero,
@@ -50,7 +61,7 @@ export function ProfileQuestionFields({
 }: {
   /** De qual questionário são as respostas (onboarding ou refazer). */
   scope: QuestionnaireScope;
-  question: ProfileQuestion;
+  question: Question;
   numero: number;
   total: number;
   /** Nome do grupo de rádio (único na página). */
@@ -78,12 +89,12 @@ export function ProfileQuestionFields({
               legendClassName,
             )}
           >
-            {question.pergunta}
+            {question.label}
           </span>
         </legend>
-        {question.opcoes.map((opcao, i) => (
+        {question.options.map((opcao, i) => (
           <label
-            key={opcao}
+            key={opcao.id}
             htmlFor={`${name}-${i}`}
             className="flex min-h-15 cursor-pointer items-center gap-3.5 rounded-bubble border border-line-strong bg-field px-4 py-2.5 text-16 font-medium has-checked:border-2 has-checked:border-sand has-checked:font-bold"
           >
@@ -95,7 +106,7 @@ export function ProfileQuestionFields({
               onChange={() => answer(scope, numero, i)}
               className="m-0 size-5.5 shrink-0 accent-sand"
             />
-            <span className="leading-[1.35]">{opcao}</span>
+            <span className="leading-[1.35]">{opcao.label}</span>
           </label>
         ))}
       </fieldset>
@@ -104,7 +115,7 @@ export function ProfileQuestionFields({
           <Icon name="info-lg" size={18} />
           Por que perguntamos isso?
         </summary>
-        <p className="m-0 mt-1 text-14 leading-[1.6] text-mist">{question.porque}</p>
+        <p className="m-0 mt-1 text-14 leading-[1.6] text-mist">{question.why}</p>
       </details>
     </>
   );

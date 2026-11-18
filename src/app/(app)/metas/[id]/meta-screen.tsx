@@ -308,7 +308,7 @@ export function MetaScreen({ id }: { id: string }) {
             icon="lock"
             title="Metas fazem parte de outro plano"
             action={
-              <ButtonLink href="/configuracoes/planos" size="md">
+              <ButtonLink href="/perfil/planos" size="md">
                 <span>Ver planos</span>
               </ButtonLink>
             }

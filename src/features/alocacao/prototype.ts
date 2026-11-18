@@ -1,8 +1,10 @@
 /**
- * PROTÓTIPO do design (cinco grupos e quatro perfis com subclasses), usado só pelo onboarding e
- * por "Perfil de investidor", que ainda não leem a API. Investimentos e Alocação usam as quatro
- * classes e o alvo do perfil que a API devolve (`live.ts`). Sai quando essas telas também lerem
- * `/v1/investor-profile`.
+ * PROTÓTIPO do design (cinco grupos com subclasses: Brasil × exterior, cripto), guardado como
+ * referência para quando a API trouxer a carteira por subclasse. Nenhuma tela usa estes dados:
+ * Investimentos, Alocação, o onboarding e "Perfil de investidor" leem as quatro classes e o alvo
+ * do perfil da API (`live.ts`, `features/onboarding/questionnaire.ts`). Os componentes do modelo
+ * de 5 grupos ficam em `components/allocation-parts.tsx` e `allocation-summary.tsx`. Acompanhamento
+ * em `docs/contexto/08-funcionalidades-futuras.md`. Não importe isto numa tela com dados reais.
  */
 
 export type GroupId = "rf-br" | "rf-int" | "rv-br" | "rv-int" | "cripto";

@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import { useProfileAnswers } from "@/stores/profile-answers";
 
-import { profileQuestions } from "../data";
+import { questionnaireMock } from "../questionnaire.mock";
 import { ProfileQuestionFields, QuestionContinue, RequireEarlierAnswers } from "./profile-question";
 
 const replace = vi.fn();
@@ -16,7 +16,7 @@ describe("Onboarding · pergunta do perfil", () => {
     render(
       <>
         <ProfileQuestionFields
-          question={profileQuestions[0]!}
+          question={questionnaireMock.questions[0]!}
           numero={1}
           total={6}
           name="p1"
@@ -41,6 +41,12 @@ describe("Onboarding · pergunta do perfil", () => {
     act(() => useProfileAnswers.setState({ answers: { onboarding: { 1: 0 }, refazer: {} } }));
     render(<RequireEarlierAnswers before={5} />);
     expect(replace).toHaveBeenCalledWith("/onboarding/perfil/2");
+  });
+
+  it("no refazer, volta para a pergunta que falta em Meu perfil", () => {
+    act(() => useProfileAnswers.setState({ answers: { onboarding: {}, refazer: { 1: 0 } } }));
+    render(<RequireEarlierAnswers before={4} scope="refazer" />);
+    expect(replace).toHaveBeenCalledWith("/perfil/investidor?pergunta=2");
   });
 
   it("com as anteriores respondidas, fica", () => {

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useState } from "react";
 
@@ -9,6 +10,8 @@ import { LoadingStatus } from "@/components/states/skeleton";
 import { ErrorBlock } from "@/components/states/state-block";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { panelLinkClass } from "@/components/ui/panel";
 import { useSession } from "@/features/acesso/session";
 import { AssetDialogs, type AssetDialog } from "@/features/ativo/components/asset-dialogs";
 import {
@@ -101,7 +104,12 @@ export function AtivoScreen({ id }: { id: string }) {
   ) : !market ? (
     <LoadingStatus />
   ) : (
-    <QuotePanel symbol={symbol} market={market} enabled={live} />
+    <QuotePanel
+      symbol={symbol}
+      market={market}
+      enabled={live}
+      chartHref={`/investimentos/${asset.id}/grafico`}
+    />
   );
   const side = market && (
     <>
@@ -139,6 +147,12 @@ export function AtivoScreen({ id }: { id: string }) {
       >
         <div className="flex min-w-0 flex-col gap-4">
           <PositionPanel asset={asset} />
+          <div className="flex justify-end">
+            <Link href={`/investimentos/${asset.id}/detalhes`} className={panelLinkClass}>
+              Mais detalhes
+              <Icon name="chevron-right" size={16} />
+            </Link>
+          </div>
           {!asset.manual && (
             <p className="m-0 text-13 leading-[1.55] text-caption">
               Os números desta posição vêm da instituição pelo Open Finance e são atualizados a cada

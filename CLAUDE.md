@@ -5,13 +5,21 @@
 Web = Next.js 16 / React 19 / Tailwind 4 / TanStack Query / zod; **único escopo de implementação**.
 `../guara-api` (NestJS 11) é só consulta. App **híbrido**: sem as 3 variáveis `NEXT_PUBLIC_*` é protótipo
 (`features/*/data.ts`); com elas, só parte das telas lê a API (`features/*/live.ts` + `context.tsx`).
-**Início, Gastos, Assinaturas, Investimentos (com posições, alocação, perfis, página do ativo e bens), Metas
+**Início, Gastos, Assinaturas, Investimentos (com posições, alocação, perfis, página do ativo, detalhes, gráfico, duplicidade e bens), Metas
 (lista, detalhe e nova) e o chat (`features/conversas`) são só API**: não reintroduza dados de exemplo nelas
 (carregando = forma vazia com "—"; sem API = estado de erro). As páginas por id (`/investimentos/<id da
 posição>`, `/investimentos/bens/<id>`, `/metas/<id>`) só chamam a API com uuid e mostram 404 para o resto.
 Toda chamada HTTP passa por `lib/api.ts` (`apiRequest` + schema zod); Supabase só para login.
 Mapa completo em `docs/contexto/README.md` (visão geral, rotas, componentes, integração com a API,
 fluxos, padrões, pontos de atenção). Confira sempre o código atual antes de alterar.
+O questionário de perfil de investidor (onboarding e `/perfil/investidor`) vem da API e grava nela
+(`features/onboarding/questionnaire.ts`); não volte a escrever perguntas ou pontuação no Web.
+
+**Telas e funcionalidades futuras:** o que o design tem e ainda não tem dado real (indicadores,
+gráficos comparados, 5 grupos de alocação, "Como guardar" das metas…) está em
+`docs/contexto/08-funcionalidades-futuras.md`. Tirar dado inventado de uma tela real é certo;
+**apagar a tela ou a funcionalidade não**. Antes de remover algo do protótipo, registre lá o que era
+e o caminho no git para recuperar.
 
 ## Movimento, interação e consistência visual
 

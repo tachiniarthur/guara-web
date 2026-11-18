@@ -1,6 +1,7 @@
 import { BankMark } from "@/components/ui/bank-mark";
 import { ButtonLink } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
+import { DuplicatesNotice } from "@/features/onboarding/components/duplicates-notice";
 import { banks } from "@/features/onboarding/data";
 import {
   bankFromSlug,
@@ -93,6 +94,7 @@ export default async function SucessoBancoPage({ params }: { params: Promise<{ b
           </ul>
         </Panel>
       </div>
+      <DuplicatesNotice />
       <div className="hidden items-center gap-2.5 md:flex">
         <ButtonLink href="/onboarding/bancos" variant="secondary" size="xl">
           <span>Conectar outro banco</span>

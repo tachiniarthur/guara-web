@@ -24,6 +24,7 @@ import {
   PortfolioCard,
   ProfileLink,
 } from "@/features/investimentos/components/overview-cards";
+import { DuplicatesNote } from "@/features/investimentos/components/duplicates-note";
 import { PositionCards } from "@/features/investimentos/components/position-cards";
 import { WorldCard } from "@/features/investimentos/components/world-card";
 import { PositionsTable } from "@/features/investimentos/components/positions-table";
@@ -223,6 +224,7 @@ export function InvestimentosScreen() {
                 items={[{ label: "Investimentos" }]}
               />
               {state === "carregando" && <LoadingStatus />}
+              <DuplicatesNote />
               {/* Mobile */}
               <div className="flex flex-col gap-4 @tab:hidden">
                 <Skeleton active={state === "carregando"}>

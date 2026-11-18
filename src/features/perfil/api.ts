@@ -22,6 +22,8 @@ export const MyPlanSchema = z.object({
         .object({
           bankConnections: z.number().int(),
           aiQuestionsPerMonth: z.number().int(),
+          /** Metas ao mesmo tempo (2, 4 e 8); falta numa API anterior a 17/11/2026. */
+          maxGoals: z.number().int().optional(),
         })
         .loose(),
     })

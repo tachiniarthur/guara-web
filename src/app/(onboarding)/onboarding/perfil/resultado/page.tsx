@@ -1,29 +1,11 @@
-import { MobileHeader } from "@/components/layout/mobile-header";
-import { PendingLinkButton } from "@/components/ui/pending-link-button";
-import { MobileActionBar } from "@/components/ui/form";
 import { OnboardingShell, stepFrame } from "@/features/onboarding/components/onboarding-shell";
-import { RequireEarlierAnswers } from "@/features/onboarding/components/profile-question";
 import { ProfileResult } from "@/features/onboarding/components/profile-result";
-import { profileQuestions } from "@/features/onboarding/data";
+import { ResultHeader } from "@/features/onboarding/components/question-step";
 
+/** Resultado do perfil: o indicado pela API e, ao continuar, o perfil gravado na conta. */
 export default function ResultadoPerfilPage() {
   return (
-    <OnboardingShell
-      {...stepFrame}
-      className="gap-5"
-      mobileTop={<MobileHeader title="Perfil de investidor" back="/onboarding/perfil/6" balanced />}
-      mobileActions={
-        <MobileActionBar>
-          <PendingLinkButton href="/onboarding/perfil/1" variant="secondary" size="xl">
-            <span>Refazer</span>
-          </PendingLinkButton>
-          <PendingLinkButton href="/onboarding/avisos" variant="light" size="xl" className="grow">
-            <span>Continuar</span>
-          </PendingLinkButton>
-        </MobileActionBar>
-      }
-    >
-      <RequireEarlierAnswers before={profileQuestions.length + 1} />
+    <OnboardingShell {...stepFrame} className="gap-5" mobileTop={<ResultHeader />}>
       <ProfileResult />
     </OnboardingShell>
   );

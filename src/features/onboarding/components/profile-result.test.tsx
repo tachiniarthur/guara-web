@@ -1,21 +1,41 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { useProfileAnswers } from "@/stores/profile-answers";
+import { questionnaireMock } from "../questionnaire.mock";
+import { ProfileResultView } from "./profile-result";
 
-import { ProfileResult } from "./profile-result";
-
-const push = vi.fn();
 vi.mock("next/navigation", () => ({
   usePathname: () => "/onboarding/perfil/resultado",
-  useRouter: () => ({ push, replace: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));
 
-describe("Onboarding · resultado do perfil", () => {
-  it("troca de perfil só com o termo aceito, e volta ao indicado", async () => {
-    render(<ProfileResult />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Moderado");
+const answers = { 1: 1, 2: 1, 3: 1 };
 
+function renderView(onContinue = vi.fn(), error: string | null = null) {
+  render(
+    <ProfileResultView
+      questionnaire={questionnaireMock}
+      answers={answers}
+      suggested="moderate"
+      saving={false}
+      error={error}
+      onContinue={onContinue}
+    />,
+  );
+  return onContinue;
+}
+
+describe("Onboarding · resultado do perfil (dados da API)", () => {
+  it("mostra o perfil indicado, as respostas curtas e o alvo das 4 classes", () => {
+    renderView();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Moderado");
+    expect(screen.getByText("Resultado · 3 de 3 respondidas")).toBeInTheDocument();
+    expect(screen.getByText("Crescer no longo prazo")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Renda fixa 50%/ })).toBeInTheDocument();
+  });
+
+  it("troca de perfil só com o termo aceito, volta ao indicado e envia a escolha", async () => {
+    const onContinue = renderView();
     // Tocar no perfil abre a comparação; o termo só vem ao escolher.
     fireEvent.click(screen.getByRole("radio", { name: /Arrojado/ }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -29,22 +49,22 @@ describe("Onboarding · resultado do perfil", () => {
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(confirm);
 
-    // O termo sai animado e depois some.
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Arrojado");
     expect(screen.getByText(/Escolhido por você/)).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button", { name: "Continuar" })[0]!);
+    expect(onContinue).toHaveBeenLastCalledWith("aggressive");
 
-    // Depois da troca, a comparação parte do perfil escolhido (inclusive para voltar ao indicado).
-    fireEvent.click(screen.getByRole("radio", { name: /Conservador/ }));
-    expect(screen.getByLabelText("Comparação: Arrojado e Conservador")).toBeInTheDocument();
+    // Voltar ao indicado não precisa de termo.
     fireEvent.click(screen.getByRole("button", { name: "Comparar com o Moderado" }));
-    expect(screen.getByLabelText("Comparação: Arrojado e Moderado")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Voltar ao Moderado" }));
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Moderado");
+    fireEvent.click(screen.getAllByRole("button", { name: "Continuar" })[0]!);
+    expect(onContinue).toHaveBeenLastCalledWith(null);
   });
 
   it("fecha a comparação recolhendo (sem foco lá dentro) e tira da tela no fim", () => {
-    render(<ProfileResult />);
+    renderView();
     fireEvent.click(screen.getByRole("radio", { name: /Arrojado/ }));
     const panel = screen.getByLabelText("Comparação: Moderado e Arrojado");
     fireEvent.click(screen.getByRole("button", { name: "Fechar a comparação" }));
@@ -54,21 +74,8 @@ describe("Onboarding · resultado do perfil", () => {
     expect(screen.queryByLabelText("Comparação: Moderado e Arrojado")).not.toBeInTheDocument();
   });
 
-  it("Continuar leva aos avisos", () => {
-    render(<ProfileResult />);
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
-    expect(push).toHaveBeenCalledWith("/onboarding/avisos");
-  });
-
-  it("o perfil sai das respostas: as mais ousadas, com experiência, dão Sofisticado", () => {
-    [2, 3, 3, 3, 3, 3].forEach((option, i) =>
-      useProfileAnswers.getState().answer("onboarding", i + 1, option),
-    );
-    render(<ProfileResult />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seu perfil é Sofisticado");
-    expect(
-      screen.getByText("Vários tipos, inclusive exterior, cripto e estruturados"),
-    ).toBeInTheDocument();
-    useProfileAnswers.setState({ answers: { onboarding: {}, refazer: {} } });
+  it("mostra o erro de salvar", () => {
+    renderView(vi.fn(), "Não deu para salvar o perfil. Tente de novo.");
+    expect(screen.getByText("Não deu para salvar o perfil. Tente de novo.")).toBeInTheDocument();
   });
 });
