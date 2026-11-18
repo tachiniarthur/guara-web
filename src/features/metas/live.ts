@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import type { IconName } from "@/components/ui/icon";
 import { ApiError, apiRequest } from "@/lib/api";
-import { apiQuery, invalidateApi, markApiStale, type ApiPath } from "@/lib/api-query";
+import { apiKey, apiQuery, invalidateApi, markApiStale, type ApiPath } from "@/lib/api-query";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { MONTHS, apiPercent, buildView, formatWhole } from "@/lib/live-format";
 
@@ -264,25 +264,29 @@ export const EMPTY_GOAL: GoalDetail = {
   onde: "—",
   icone: "target",
   status: { texto: "—", tom: "folha" },
-  guardado: "—",
-  alvo: "—",
+  // As mesmas linhas da tela pronta: o texto fica escondido e só guarda a altura. Os textos neutros
+  // ("R$ 0.000,00", "00/00/0000") têm o comprimento dos reais, para quebrar nas mesmas linhas.
+  guardado: "R$ 0.000",
+  alvo: "R$ 00.000",
   percentual: 0,
-  mensal: "—",
-  previsao: "—",
-  faltam: "—",
-  prazo: "—",
-  meses: "—",
-  alvoHoje: null,
+  mensal: "R$ 000/mês",
+  previsao: "até mmm/aaaa",
+  faltam: "R$ 0.000,00",
+  prazo: "00/00/0000",
+  meses: "faltam 0 meses",
+  alvoHoje: "R$ 00.000,00",
   fonte: "manual",
   posicoes: [],
   semValor: 0,
   premissas: [
-    { label: "Rendimento estimado", value: "—" },
-    { label: "Inflação estimada", value: "—" },
+    { label: "Rendimento estimado", value: "00,00% ao ano" },
+    { label: "Inflação estimada", value: "0,00% ao ano" },
   ],
-  motivoPremissa: null,
-  aviso: null,
-  criada: null,
+  motivoPremissa:
+    "Prazo de 0 meses (até 5 anos): rentabilidade padrão pelo CDI atual, de 00,00% ao ano.",
+  aviso:
+    "Estimativa a partir das premissas informadas, não promessa de retorno. Rentabilidade e inflação mudam com o tempo e o resultado real pode ser bem diferente. A conta não considera imposto de renda nem taxas e não é recomendação de nenhum investimento.",
+  criada: "Criada em 00/00/0000",
   form: {
     name: "",
     targetCents: 0,
@@ -339,10 +343,22 @@ export function toGoalDetail(goal: ApiGoal, positions: Positions): GoalDetail {
 
 const goalPath = (id: string): ApiPath => `/v1/goals/${encodeURIComponent(id)}`;
 
+/** A meta como veio na lista de Metas, se ela já está em cache (a lista traz os mesmos campos). */
+function listedGoal(client: ReturnType<typeof useQueryClient>, id: string) {
+  const list = GoalsSchema.safeParse(client.getQueryData(apiKey(METAS_PATHS.goals)));
+  return list.success ? list.data.data.find((goal) => goal.id === id) : undefined;
+}
+
+/**
+ * Uma meta. Vindo da lista de Metas, a tela abre na hora com a meta da lista e atualiza por trás
+ * com a resposta de `/v1/goals/:id`.
+ */
 export function useGoal(id: string, { enabled }: { enabled: boolean }) {
+  const client = useQueryClient();
   return useQuery({
     ...apiQuery(goalPath(id), ApiGoalSchema, { enabled: enabled && isGoalId(id) }),
     retry,
+    placeholderData: () => (isGoalId(id) ? listedGoal(client, id) : undefined),
   });
 }
 

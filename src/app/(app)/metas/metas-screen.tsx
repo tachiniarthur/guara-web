@@ -19,7 +19,7 @@ import {
   GuaraGoalTip,
   NewGoalButton,
 } from "@/features/metas/components/goal-parts";
-import { isPlanLimit, useMetasView, type GoalsSummary } from "@/features/metas/live";
+import { isPlanLimit, useMetasView, type Goal, type GoalsSummary } from "@/features/metas/live";
 import { useMyPlan } from "@/features/perfil/api";
 import { cn } from "@/lib/utils";
 
@@ -33,15 +33,36 @@ const savedLink = (
   </Link>
 );
 
-/** Carregando: a forma da tela com "—" (nada de valores de exemplo). */
+/*
+ * Carregando: a forma da tela com "—" (nada de valores de exemplo). Os textos só guardam a altura
+ * de cada linha (ficam escondidos), para os cards terem o tamanho dos cards prontos.
+ */
 const EMPTY_SUMMARY: GoalsSummary = {
   guardado: "—",
   mensal: "—",
-  mensalNota: "",
+  mensalNota: "para — metas em andamento",
   sobrou: "—",
-  sobrouQuando: "",
-  dica: "",
+  sobrouQuando: "em —",
+  dica: "Uma meta já foi atingida. A mais próxima é Nome da meta aqui, até mmm/aaaa: pede cerca de R$ 000 por mês.",
 };
+
+/**
+ * Três metas só com a forma: os cards de meta aparecem girando enquanto a lista vem. Os textos
+ * neutros ("R$ 00.000", "mmm/aaaa") têm o comprimento dos reais, para quebrar nas mesmas linhas.
+ */
+const LOADING_GOALS: Goal[] = [1, 2, 3].map((n) => ({
+  id: `carregando-${n}`,
+  href: "/metas",
+  nome: "Nome da meta",
+  onde: "Valor informado por você",
+  icone: "target",
+  status: { texto: "Em andamento", tom: "arara" },
+  guardado: "R$ 00.000",
+  alvo: "R$ 00.000",
+  percentual: 0,
+  mensal: "R$ 0.000/mês",
+  previsao: "até mmm/aaaa",
+}));
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
@@ -116,6 +137,7 @@ export function MetasScreen() {
   const plan = isPlanLimit(real.error);
   const state = plan ? "plano" : real.error || !live ? "erro" : !real.data ? "carregando" : null;
   const goals = real.data?.goals ?? [];
+  const shownGoals = state === "carregando" ? LOADING_GOALS : goals;
   const summary = real.data?.summary ?? EMPTY_SUMMARY;
   const empty = state === null && goals.length === 0;
   // Limite do plano (2, 4 ou 8 metas): cheio, some o "Nova meta" e aparece o aviso.
@@ -185,7 +207,7 @@ export function MetasScreen() {
               </div>
             </div>
             <section aria-label="Metas" className="flex min-w-0 flex-col gap-3.5 @desk:order-1">
-              {goals.map((goal) => (
+              {shownGoals.map((goal) => (
                 <GoalCard key={goal.id} goal={goal} />
               ))}
             </section>

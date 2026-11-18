@@ -198,3 +198,50 @@ describe("Início com os dados da API", () => {
     });
   });
 });
+
+describe("Precisa de você: ordem", () => {
+  it("compra fora do padrão, teto estourado, teto perto do limite e assinatura que subiu", () => {
+    const view = plain(
+      toHomeView(
+        {
+          ...responses,
+          anomalies: {
+            data: [
+              {
+                id: "an1",
+                reasons: ["amount"],
+                transaction: {
+                  id: "t9",
+                  occurredAt: "2026-11-05T11:40:00Z",
+                  amountCents: 37_949,
+                  description: "VIDA PLENA",
+                  merchantName: "Vida Plena",
+                },
+              },
+            ],
+          },
+          budgets: {
+            items: [
+              ...responses.budgets.items,
+              {
+                budget: { id: "b3", categoryId: "pets", limitCents: 30_000 },
+                categoryName: "Pets",
+                spentCents: 37_243,
+                remainingCents: -7_243,
+                usedPct: 124.1,
+                status: "exceeded",
+              },
+            ],
+          },
+        },
+        now,
+      ),
+    );
+    expect(view.pending.map((item) => item.titulo)).toEqual([
+      "Compra de R$ 379,49 às 08:40",
+      "Pets passou do teto",
+      "Transporte chegou a 85,9% do teto",
+      "Netflix subiu R$ 5,00",
+    ]);
+  });
+});

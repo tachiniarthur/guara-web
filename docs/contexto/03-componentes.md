@@ -73,6 +73,11 @@ Telas de edição/detalhe frequentemente importam cards de outras features (`Mat
    `<LoadingStatus />` fica fora do `Skeleton` (dentro ele some para o leitor de tela). Vale também
    para telas por id e para partes que carregam depois (ex.: a cotação na página do ativo).
    Placeholders existentes: `EMPTY_ASSET`/`EMPTY_MARKET` (ativo), `EMPTY_FACTS`, `EMPTY_GOAL`,
-   `EMPTY_BELONGING`, `EMPTY_ALLOCATION`, `EMPTY_PROFILE_TARGETS`.
+   `EMPTY_BELONGING`, `EMPTY_ALLOCATION`, `EMPTY_PROFILE_TARGETS`; a lista de Metas desenha 3
+   metas (`LOADING_GOALS`). **O card carregando tem o tamanho do card pronto**: o placeholder
+   preenche as mesmas linhas com texto neutro do mesmo comprimento ("R$ 0.000,00", "00/00/0000",
+   "mmm/aaaa"), que fica escondido e quebra nas mesmas linhas que o real. Ao mexer num card,
+   confira carregando × pronto no celular, tablet e desktop (só a diferença que depende do dado,
+   como o número de posições de uma meta, pode sobrar).
 4. Formulário? Registre em `isForm` (`lib/navigation.ts`) para o shell.
 5. Se tem `?estado=`, registre em `previa/...` e no `matcher` do `proxy.ts`.

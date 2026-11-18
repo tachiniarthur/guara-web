@@ -358,12 +358,18 @@ const REASON_LABELS: Record<string, string> = {
   duplicate: "possível cobrança duplicada",
 };
 
+/**
+ * "Precisa de você", do mais importante para o menos: compra fora do padrão, teto estourado,
+ * teto perto do limite e assinatura que subiu. O card do Início mostra os 5 primeiros.
+ */
 function buildPending(
   anomalies: Anomalies,
   budgets: BudgetSummary,
   subscriptions: Subscriptions,
 ): PendingItem[] {
   const items: PendingItem[] = [];
+  const exceeded: PendingItem[] = [];
+  const attention: PendingItem[] = [];
   for (const anomaly of anomalies.data) {
     const tx = anomaly.transaction;
     const time = tx.occurredAt ? ` às ${formatDate(tx.occurredAt, "HH:mm")}` : "";
@@ -380,7 +386,7 @@ function buildPending(
   for (const item of budgets.items) {
     if (item.status !== "attention" && item.status !== "exceeded") continue;
     const name = item.categoryName ?? "Gasto do mês";
-    items.push({
+    (item.status === "exceeded" ? exceeded : attention).push({
       id: `teto-${item.budget.id}`,
       titulo:
         item.status === "exceeded"
@@ -397,6 +403,7 @@ function buildPending(
       href: "/gastos",
     });
   }
+  items.push(...exceeded, ...attention);
   for (const sub of subscriptions.data) {
     if (sub.status !== "active" || !sub.priceIncrease) continue;
     const diff = sub.amountCents - sub.priceIncrease.previousAmountCents;

@@ -8,7 +8,9 @@
    fora, mostram o estado de erro; carregando, os cards guardam o lugar com "—" (`EMPTY_GASTOS`, `EMPTY_LANCAMENTOS`,
    `LOADING_SUMMARY`…). **Investimentos e Metas (com as telas filhas) também são só API desde 17/11/2026**;
    desde 18/11/2026 as telas por id (ativo, detalhes, gráfico, proventos, bem, meta), Alocação, Perfis e
-   Duplicidade também carregam com os cards no lugar. Ainda com
+   Duplicidade também carregam com os cards no lugar. O "Precisa de você" do Início mostra as 5 pendências mais
+   importantes (compra fora do padrão, teto estourado, teto perto do limite, assinatura que subiu) e
+   abre o resto em "Ver mais" (`PENDING_VISIBLE`). Ainda com
    dados de exemplo: notificações, editar alertas/tetos, as telas de tetos (`features/gastos/prototype.ts`, só para
    Alertas) e a conexão de banco do onboarding. O questionário de perfil (onboarding e `/perfil/investidor`) vem da
    API e grava nela desde 17/11/2026; `features/alocacao/prototype.ts` (5 grupos, Sofisticado) é só referência.
